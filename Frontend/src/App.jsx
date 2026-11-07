@@ -2,12 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import Header, { ROLES } from './components/Header';
 import RoleLoginModal from './components/RoleLoginModal';
 import UniversalDetailPage from './components/UniversalDetailPage';
-import { 
-  PatientManagementView, 
-  ClinicalCareView, 
-  InpatientWardsView, 
-  PharmacyView, 
-  SurgeryView, 
+import {
+  PatientManagementView,
+  ClinicalCareView,
+  InpatientWardsView,
+  PharmacyView,
+  SurgeryView,
   DeveloperControlCenterView,
   EmergencyAmbulanceView,
   BloodBankView,
@@ -21,9 +21,9 @@ import {
   TelemedicineGisView,
   VoiceBiometricsView
 } from './components/ModuleViews';
-import { 
-  Users, Activity, Pill, FlaskConical, Stethoscope, 
-  Bed, FileText, CreditCard, Shield, AlertTriangle, 
+import {
+  Users, Activity, Pill, FlaskConical, Stethoscope,
+  Bed, FileText, CreditCard, Shield, AlertTriangle,
   Radio, HardDrive, Wrench, Package, Clock, CheckCircle,
   Search, PlusCircle, Lock, Unlock, RefreshCw, Database,
   Video, MapPin, Mic, Eye, Bell, History, Building2, User
@@ -150,7 +150,7 @@ export default function App() {
         const u = JSON.parse(savedUser);
         setCurrentUser(u);
         if (u.role) setCurrentRole(u.role);
-      } catch (_e) {}
+      } catch (_e) { }
     }
     loadGlobalOverview();
   }, []);
@@ -291,7 +291,7 @@ export default function App() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-primary)' }}>
       {/* Blueprint Header */}
-      <Header 
+      <Header
         currentRole={currentRole}
         onSelectRole={(r) => {
           setCurrentRole(r);
@@ -318,7 +318,7 @@ export default function App() {
           } else if (r === 'HR_MANAGER') {
             setActiveModule('HR');
           } else if (r === 'PATIENT') {
-            setActiveModule('TELEMEDICINE');
+            setActiveModule('PATIENTS');
           } else {
             setActiveModule('OVERVIEW');
           }
@@ -336,132 +336,118 @@ export default function App() {
         {/* Navigation Breadcrumb / Module Switcher Tabs */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
           <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
-            <button 
-              onClick={() => setActiveModule('OVERVIEW')} 
+            <button
+              onClick={() => setActiveModule('OVERVIEW')}
               className={activeModule === 'OVERVIEW' && !activeDetail ? 'btn-gold' : 'btn-outline-gold'}
               style={{ fontSize: '0.8rem', padding: '6px 14px' }}
             >
               Enterprise Overview
             </button>
-            <button 
-              onClick={() => setActiveModule('PATIENTS')} 
+            <button
+              onClick={() => setActiveModule('PATIENTS')}
               className={activeModule === 'PATIENTS' && !activeDetail ? 'btn-gold' : 'btn-outline-gold'}
               style={{ fontSize: '0.8rem', padding: '6px 14px' }}
             >
               <Users size={14} /> 1. Patient MPI & Archive
             </button>
-            <button 
-              onClick={() => setActiveModule('CLINICAL')} 
+            <button
+              onClick={() => setActiveModule('CLINICAL')}
               className={activeModule === 'CLINICAL' && !activeDetail ? 'btn-gold' : 'btn-outline-gold'}
               style={{ fontSize: '0.8rem', padding: '6px 14px' }}
             >
               <Activity size={14} /> 2. Clinical Care & OPD
             </button>
-            <button 
-              onClick={() => setActiveModule('WARDS')} 
+            <button
+              onClick={() => setActiveModule('WARDS')}
               className={activeModule === 'WARDS' && !activeDetail ? 'btn-gold' : 'btn-outline-gold'}
               style={{ fontSize: '0.8rem', padding: '6px 14px' }}
             >
               <Bed size={14} /> 3. Inpatient Wards & Beds
             </button>
-            <button 
-              onClick={() => setActiveModule('PHARMACY')} 
+            <button
+              onClick={() => setActiveModule('PHARMACY')}
               className={activeModule === 'PHARMACY' && !activeDetail ? 'btn-gold' : 'btn-outline-gold'}
               style={{ fontSize: '0.8rem', padding: '6px 14px' }}
             >
               <Pill size={14} /> 4. Pharmacy & Dispensing
             </button>
-            <button 
-              onClick={() => setActiveModule('SURGERY')} 
+            <button
+              onClick={() => setActiveModule('SURGERY')}
               className={activeModule === 'SURGERY' && !activeDetail ? 'btn-gold' : 'btn-outline-gold'}
               style={{ fontSize: '0.8rem', padding: '6px 14px' }}
             >
               <Stethoscope size={14} /> 5. Surgery & Theatre
             </button>
-            <button 
-              onClick={() => setActiveModule('EMERGENCY')} 
+            <button
+              onClick={() => setActiveModule('EMERGENCY')}
               className={activeModule === 'EMERGENCY' && !activeDetail ? 'btn-gold' : 'btn-outline-gold'}
               style={{ fontSize: '0.8rem', padding: '6px 14px', borderColor: '#ef4444' }}
             >
               <AlertTriangle size={14} style={{ color: '#ef4444' }} /> 6. Emergency & Ambulance
             </button>
-            <button 
-              onClick={() => setActiveModule('BLOOD_BANK')} 
+            <button
+              onClick={() => setActiveModule('BLOOD_BANK')}
               className={activeModule === 'BLOOD_BANK' && !activeDetail ? 'btn-gold' : 'btn-outline-gold'}
               style={{ fontSize: '0.8rem', padding: '6px 14px', borderColor: '#ef4444' }}
             >
               <FlaskConical size={14} style={{ color: '#ef4444' }} /> 7. Blood Bank & Transfusion
             </button>
-            <button 
-              onClick={() => setActiveModule('MORTUARY')} 
+            <button
+              onClick={() => setActiveModule('MORTUARY')}
               className={activeModule === 'MORTUARY' && !activeDetail ? 'btn-gold' : 'btn-outline-gold'}
               style={{ fontSize: '0.8rem', padding: '6px 14px', borderColor: '#a1a1aa' }}
             >
               <HardDrive size={14} style={{ color: '#a1a1aa' }} /> 8. Mortuary & Cold Storage
             </button>
-            <button 
-              onClick={() => setActiveModule('BIOMEDICAL')} 
+            <button
+              onClick={() => setActiveModule('BIOMEDICAL')}
               className={activeModule === 'BIOMEDICAL' && !activeDetail ? 'btn-gold' : 'btn-outline-gold'}
               style={{ fontSize: '0.8rem', padding: '6px 14px', borderColor: '#d97706' }}
             >
               <Wrench size={14} style={{ color: '#d97706' }} /> 9. Biomedical & Maintenance
             </button>
-            <button 
-              onClick={() => setActiveModule('PROCUREMENT')} 
+            <button
+              onClick={() => setActiveModule('PROCUREMENT')}
               className={activeModule === 'PROCUREMENT' && !activeDetail ? 'btn-gold' : 'btn-outline-gold'}
               style={{ fontSize: '0.8rem', padding: '6px 14px', borderColor: 'var(--gold-400)' }}
             >
               <Package size={14} style={{ color: 'var(--gold-400)' }} /> 10. Procurement & Supply Chain
             </button>
-            <button 
-              onClick={() => setActiveModule('HR')} 
+            <button
+              onClick={() => setActiveModule('HR')}
               className={activeModule === 'HR' && !activeDetail ? 'btn-gold' : 'btn-outline-gold'}
               style={{ fontSize: '0.8rem', padding: '6px 14px', borderColor: '#38bdf8' }}
             >
               <Users size={14} style={{ color: '#38bdf8' }} /> 11. Human Resources & Rostering
             </button>
-            <button 
-              onClick={() => setActiveModule('QUALITY')} 
+            <button
+              onClick={() => setActiveModule('QUALITY')}
               className={activeModule === 'QUALITY' && !activeDetail ? 'btn-gold' : 'btn-outline-gold'}
               style={{ fontSize: '0.8rem', padding: '6px 14px', borderColor: '#d97706' }}
             >
               <Shield size={14} style={{ color: '#d97706' }} /> 12. Quality Assurance & IPC
             </button>
-            <button 
-              onClick={() => setActiveModule('NHIA_CLAIMS')} 
+            <button
+              onClick={() => setActiveModule('NHIA_CLAIMS')}
               className={activeModule === 'NHIA_CLAIMS' && !activeDetail ? 'btn-gold' : 'btn-outline-gold'}
               style={{ fontSize: '0.8rem', padding: '6px 14px', borderColor: '#22c55e' }}
             >
               <CreditCard size={14} style={{ color: '#22c55e' }} /> 13. NHIA & Health Insurance
             </button>
-            <button 
-              onClick={() => setActiveModule('MIGRATION')} 
-              className={activeModule === 'MIGRATION' && !activeDetail ? 'btn-gold' : 'btn-outline-gold'}
-              style={{ fontSize: '0.8rem', padding: '6px 14px', borderColor: '#f59e0b' }}
-            >
-              <Database size={14} style={{ color: '#f59e0b' }} /> 14. Data Migration & Ingestion Hub
-            </button>
-            <button 
-              onClick={() => setActiveModule('TELEMEDICINE')} 
-              className={activeModule === 'TELEMEDICINE' && !activeDetail ? 'btn-gold' : 'btn-outline-gold'}
-              style={{ fontSize: '0.8rem', padding: '6px 14px', borderColor: '#06b6d4' }}
-            >
-              <Video size={14} style={{ color: '#06b6d4' }} /> 15. GIS Radar & Video Telemedicine
-            </button>
-            <button 
-              onClick={() => setActiveModule('VOICE_AUTH')} 
+            <button
+              onClick={() => setActiveModule('VOICE_AUTH')}
               className={activeModule === 'VOICE_AUTH' && !activeDetail ? 'btn-gold' : 'btn-outline-gold'}
               style={{ fontSize: '0.8rem', padding: '6px 14px', borderColor: 'var(--gold-400)' }}
             >
-              <Mic size={14} style={{ color: 'var(--gold-400)' }} /> 16. Voice Biometrics & Security Vault
+              <Mic size={14} style={{ color: 'var(--gold-400)' }} /> 14. Voice Biometrics & Security Vault
             </button>
-            {isDeveloperAuthenticated && (
-              <button 
-                onClick={() => setActiveModule('DEVELOPER_NOC')} 
+            {(isDeveloperAuthenticated || currentRole === 'DEVELOPER' || activeModule === 'DEVELOPER_NOC') && (
+              <button
+                onClick={() => setActiveModule('DEVELOPER_NOC')}
                 className={activeModule === 'DEVELOPER_NOC' && !activeDetail ? 'btn-gold' : 'btn-outline-gold'}
                 style={{ fontSize: '0.8rem', padding: '6px 14px', borderColor: '#ef4444' }}
               >
-                <Shield size={14} /> Developer NOC
+                <Shield size={14} /> Developer Dashboard (NOC • Migration • GIS & Telemedicine)
               </button>
             )}
           </div>
@@ -547,27 +533,27 @@ export default function App() {
             {activeModule === 'OVERVIEW' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 {/* Real Hospital Exterior Hero Banner */}
-                <div 
-                  className="glass-panel" 
-                  style={{ 
-                    position: 'relative', 
-                    height: '240px', 
-                    borderRadius: '10px', 
-                    overflow: 'hidden', 
-                    display: 'flex', 
-                    alignItems: 'flex-end', 
+                <div
+                  className="glass-panel"
+                  style={{
+                    position: 'relative',
+                    height: '240px',
+                    borderRadius: '10px',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    alignItems: 'flex-end',
                     padding: '30px',
                     border: '1px solid var(--border-gold-strong)',
                     boxShadow: 'var(--shadow-gold)'
                   }}
                 >
-                  <img 
-                    src="/assets/images/hospital_hero_exterior.jpg" 
-                    alt="Hospital Facility Exterior" 
+                  <img
+                    src="/assets/images/hospital_hero_exterior.jpg"
+                    alt="Hospital Facility Exterior"
                     style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
                   />
                   <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,9,7,0.96) 20%, rgba(10,9,7,0.45) 80%, rgba(10,9,7,0.2) 100%)' }} />
-                  
+
                   <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'flex-end', flexWrap: 'wrap', gap: '16px' }}>
                     <div>
                       <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--gold-400)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
@@ -814,7 +800,7 @@ export default function App() {
                                   else if (r.id === 'FOLDER_RETRIEVER' || r.id === 'RECEPTIONIST') setActiveModule('PATIENTS');
                                   else if (r.id === 'ACCOUNTANT') setActiveModule('NHIA_CLAIMS');
                                   else if (r.id === 'HR_MANAGER') setActiveModule('HR');
-                                  else if (r.id === 'PATIENT') setActiveModule('TELEMEDICINE');
+                                  else if (r.id === 'PATIENT') setActiveModule('PATIENTS');
                                   else setActiveModule('PATIENTS');
                                 }}
                                 className="btn-outline-gold"
@@ -858,50 +844,48 @@ export default function App() {
                       { mod: 'BIOMEDICAL', title: '13. Biomedical & Maintenance', desc: 'Computerized maintenance CMMS, life-support asset telemetry, electrical safety analyzer sign-offs, and metrology calibrations.', img: '/assets/images/biomedical_engineering_equipment_real.jpg', icon: Wrench, color: '#fcd34d', border: '#d97706' },
                       { mod: 'PROCUREMENT', title: '14. Procurement & Supply Chain', desc: 'Purchase order lifecycle, supplier SLAs, goods receipt notes (GRN), and automated three-way matching against invoices.', img: '/assets/images/procurement_supply_chain_real.jpg', icon: Package, color: 'var(--gold-300)', border: 'var(--border-gold)' },
                       { mod: 'HR', title: '15. HR, Rostering & Credentialing', desc: 'Staff regulatory credentialing (MDC, NMC, PCG), duty roster scheduling, clinical SBAR shift handovers, and biometric attendance.', img: '/assets/images/hr_medical_staff_real.jpg', icon: Users, color: '#7dd3fc', border: 'var(--border-gold)' },
-                      { mod: 'QUALITY', title: '16. Quality, Audits & Infection Control', desc: 'Hospital safety index, anonymous incident reporting, sentinel event 24h RCA, WHO Surgical Safety checklists, and IPC isolation.', img: '/assets/images/quality_infection_control_real.jpg', icon: Shield, color: '#fbbf24', border: 'var(--border-gold)' },
-                      { mod: 'NHIA_CLAIMS', title: '17. NHIA Claims & E-Claims Adjudication', desc: 'G-DRG tariff pricing, NHIS eligibility verification, 20-rule pre-submission vetting, and reconciliation vouchers.', img: '/assets/images/nhia_claims_center_real.jpg', icon: CreditCard, color: '#86efac', border: '#22c55e' },
-                      { mod: 'MIGRATION', title: '18. Data Migration & Integration Hub', desc: 'Excel, CSV, Google Sheets, and PostgreSQL import pipeline with schema mapping, duplicate checks, and 1-click atomic rollback.', img: '/assets/images/migration_data_center_real.jpg', icon: Database, color: '#fcd34d', border: '#f59e0b' },
-                      { mod: 'TELEMEDICINE', title: '19. GIS Facility Tracking & Telemedicine', desc: 'Polygon geofences, perimeter breach alerts, multi-floor plans, and encrypted WebRTC video telemedicine consultations.', img: '/assets/images/telemedicine_command_center_real.jpg', icon: Video, color: '#67e8f9', border: '#06b6d4' },
-                      { mod: 'VOICE_AUTH', title: '20. Central Voice Biometrics & Vault', desc: 'Acoustic voiceprint enrollment, zero-trust MFCC matching, anti-spoofing liveness guards, and multi-factor clinical challenges.', img: '/assets/images/voice_biometric_security_real.jpg', icon: Mic, color: 'var(--gold-300)', border: 'var(--border-gold)' }
+                      { mod: 'QUALITY', title: '15. Quality, Audits & Infection Control', desc: 'Hospital safety index, anonymous incident reporting, sentinel event 24h RCA, WHO Surgical Safety checklists, and IPC isolation.', img: '/assets/images/quality_infection_control_real.jpg', icon: Shield, color: '#fbbf24', border: 'var(--border-gold)' },
+                      { mod: 'NHIA_CLAIMS', title: '16. NHIA Claims & E-Claims Adjudication', desc: 'G-DRG tariff pricing, NHIS eligibility verification, 20-rule pre-submission vetting, and reconciliation vouchers.', img: '/assets/images/nhia_claims_center_real.jpg', icon: CreditCard, color: '#86efac', border: '#22c55e' },
+                      { mod: 'VOICE_AUTH', title: '17. Central Voice Biometrics & Vault', desc: 'Acoustic voiceprint enrollment, zero-trust MFCC matching, anti-spoofing liveness guards, and multi-factor clinical challenges.', img: '/assets/images/voice_biometric_security_real.jpg', icon: Mic, color: 'var(--gold-300)', border: 'var(--border-gold)' }
                     ]
-                      .filter((card) => card.mod !== 'DEVELOPER_NOC' || isDeveloperAuthenticated)
+                      .filter((card) => card.mod !== 'DEVELOPER_NOC' || isDeveloperAuthenticated || currentRole === 'DEVELOPER')
                       .map((card, idx) => {
-                      const CardIcon = card.icon;
-                      return (
-                        <div
-                          key={idx}
-                          onClick={() => setActiveModule(card.mod)}
-                          className="glass-panel"
-                          style={{
-                            overflow: 'hidden',
-                            cursor: 'pointer',
-                            transition: 'transform 0.2s ease',
-                            border: `1px solid ${card.border}`
-                          }}
-                        >
-                          <div style={{ position: 'relative', height: '135px', overflow: 'hidden', background: '#0a0907' }}>
-                            <img
-                              src={card.img}
-                              alt={card.title}
-                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                              onError={(e) => { e.target.src = '/assets/images/hospital_hero_exterior.jpg'; }}
-                            />
-                            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,9,7,0.96) 10%, rgba(10,9,7,0.25) 75%)' }} />
-                            <div style={{ position: 'absolute', bottom: '10px', left: '14px', right: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <CardIcon size={18} style={{ color: card.color, flexShrink: 0 }} />
-                              <h4 style={{ fontSize: '0.95rem', color: '#fff', margin: 0 }}>{card.title}</h4>
+                        const CardIcon = card.icon;
+                        return (
+                          <div
+                            key={idx}
+                            onClick={() => setActiveModule(card.mod)}
+                            className="glass-panel"
+                            style={{
+                              overflow: 'hidden',
+                              cursor: 'pointer',
+                              transition: 'transform 0.2s ease',
+                              border: `1px solid ${card.border}`
+                            }}
+                          >
+                            <div style={{ position: 'relative', height: '135px', overflow: 'hidden', background: '#0a0907' }}>
+                              <img
+                                src={card.img}
+                                alt={card.title}
+                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                onError={(e) => { e.target.src = '/assets/images/hospital_hero_exterior.jpg'; }}
+                              />
+                              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,9,7,0.96) 10%, rgba(10,9,7,0.25) 75%)' }} />
+                              <div style={{ position: 'absolute', bottom: '10px', left: '14px', right: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <CardIcon size={18} style={{ color: card.color, flexShrink: 0 }} />
+                                <h4 style={{ fontSize: '0.95rem', color: '#fff', margin: 0 }}>{card.title}</h4>
+                              </div>
+                            </div>
+                            <div style={{ padding: '14px 16px' }}>
+                              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '0 0 10px 0' }}>{card.desc}</p>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.74rem', color: 'var(--gold-400)', fontWeight: 700 }}>
+                                <span>Real-Life Connected Module</span>
+                                <span>Open Dashboard →</span>
+                              </div>
                             </div>
                           </div>
-                          <div style={{ padding: '14px 16px' }}>
-                            <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '0 0 10px 0' }}>{card.desc}</p>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.74rem', color: 'var(--gold-400)', fontWeight: 700 }}>
-                              <span>Real-Life Connected Module</span>
-                              <span>Open Dashboard →</span>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
                   </div>
                 </div>
               </div>
@@ -921,34 +905,17 @@ export default function App() {
             {activeModule === 'HR' && <HRManagementView onNavigateDetail={openDetailPage} />}
             {activeModule === 'QUALITY' && <QualityAssuranceView onNavigateDetail={openDetailPage} />}
             {activeModule === 'NHIA_CLAIMS' && <NhiaClaimsView onNavigateDetail={openDetailPage} />}
-            {activeModule === 'MIGRATION' && <MigrationView onNavigateDetail={openDetailPage} />}
-            {activeModule === 'TELEMEDICINE' && <TelemedicineGisView onNavigateDetail={openDetailPage} />}
             {activeModule === 'VOICE_AUTH' && <VoiceBiometricsView onNavigateDetail={openDetailPage} />}
-            {activeModule === 'DEVELOPER_NOC' && (
-              isDeveloperAuthenticated ? (
-                <DeveloperControlCenterView onNavigateDetail={openDetailPage} />
-              ) : (
-                <div className="glass-panel" style={{ padding: '40px', textAlign: 'center', border: '1px solid #ef4444' }}>
-                  <Lock size={36} style={{ color: '#ef4444', margin: '0 auto 12px' }} />
-                  <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#fff', marginBottom: '8px' }}>
-                    Hidden Developer Control Center — Restricted Access
-                  </h3>
-                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', maxWidth: '520px', margin: '0 auto 16px' }}>
-                    The Developer Landlord Control Center is hidden from all regular hospital dashboards and is accessible exclusively to the authenticated Root Developer.
-                  </p>
-                  <button onClick={() => setIsLoginOpen(true)} className="btn-gold" style={{ padding: '8px 20px' }}>
-                    Authenticate as Root Developer
-                  </button>
-                </div>
-              )
+            {(activeModule === 'DEVELOPER_NOC' || activeModule === 'MIGRATION' || activeModule === 'TELEMEDICINE') && (
+              <DeveloperControlCenterView onNavigateDetail={openDetailPage} />
             )}
           </>
         )}
       </main>
 
       {/* Role Login Modal */}
-      <RoleLoginModal 
-        isOpen={isLoginOpen} 
+      <RoleLoginModal
+        isOpen={isLoginOpen}
         onClose={() => setIsLoginOpen(false)}
         initialRole={currentRole}
         onLoginSuccess={(user) => {

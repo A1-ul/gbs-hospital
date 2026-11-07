@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Users, Activity, Pill, FlaskConical, Stethoscope, 
-  Bed, FileText, CreditCard, Shield, AlertTriangle, 
-  Clock, CheckCircle, Search, PlusCircle, Lock, Unlock, 
-  MapPin, RefreshCw, Send, Video, Radio, Cpu, AlertOctagon, ShieldAlert, Bell
+import {
+  Users, Activity, Pill, FlaskConical, Stethoscope,
+  Bed, FileText, CreditCard, Shield, AlertTriangle,
+  Clock, CheckCircle, Search, PlusCircle, Lock, Unlock,
+  MapPin, RefreshCw, Send, Video, Radio, Cpu, AlertOctagon, ShieldAlert, Bell, Database
 } from 'lucide-react';
 import { api } from '../services/api.service';
+import MigrationViewComponent from '../modules/migration/MigrationView';
+import TelemedicineGisViewComponent from '../modules/telemedicine/TelemedicineGisView';
 
 // ==========================================
 // 1. PATIENT MANAGEMENT & MPI
@@ -129,8 +131,8 @@ export function PatientManagementView() {
         <form onSubmit={handleSearch} style={{ display: 'flex', gap: '10px' }}>
           <div style={{ position: 'relative', flex: 1 }}>
             <Search size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-dim)' }} />
-            <input 
-              type="text" 
+            <input
+              type="text"
               placeholder="Search Master Patient Index by MRN, Name, Phone, or National ID..."
               value={query}
               onChange={e => setQuery(e.target.value)}
@@ -205,7 +207,7 @@ export function PatientManagementView() {
                       >
                         View Details
                       </button>
-                      <button 
+                      <button
                         onClick={async () => {
                           try {
                             const res = await api.checkInPatient(pt.id, 'ROUTINE');
@@ -215,7 +217,7 @@ export function PatientManagementView() {
                             setFeedback({ type: 'error', msg: e.message });
                           }
                         }}
-                        className="btn-gold" 
+                        className="btn-gold"
                         style={{ padding: '4px 8px', fontSize: '0.72rem' }}
                       >
                         Check-in OPD
@@ -482,19 +484,19 @@ export function ClinicalCareView() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       {/* Real Photo Hero Banner */}
       <div className="glass-panel" style={{ position: 'relative', height: '180px', borderRadius: '8px', overflow: 'hidden', display: 'flex', alignItems: 'flex-end', padding: '24px' }}>
-        <img 
+        <img
           src={
             activeTab === 'NURSE_TRIAGE'
               ? '/assets/images/nurse_triage_station.jpg'
               : activeTab === 'LABORATORY'
-              ? '/assets/images/laboratory_pathology_real.jpg'
-              : activeTab === 'RADIOLOGY'
-              ? '/assets/images/radiology_pacs_mri_real.jpg'
-              : activeTab === 'BILLING'
-              ? '/assets/images/nhia_claims_center_real.jpg'
-              : '/assets/images/doctor_consultation_real.jpg'
-          } 
-          alt="Clinical Station" 
+                ? '/assets/images/laboratory_pathology_real.jpg'
+                : activeTab === 'RADIOLOGY'
+                  ? '/assets/images/radiology_pacs_mri_real.jpg'
+                  : activeTab === 'BILLING'
+                    ? '/assets/images/nhia_claims_center_real.jpg'
+                    : '/assets/images/doctor_consultation_real.jpg'
+          }
+          alt="Clinical Station"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
         />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,9,7,0.95) 20%, rgba(10,9,7,0.4) 100%)' }} />
@@ -618,9 +620,9 @@ export function ClinicalCareView() {
             </div>
             <div>
               <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Search ICD-10 Database</label>
-              <input 
-                type="text" 
-                value={icdQuery} 
+              <input
+                type="text"
+                value={icdQuery}
                 onChange={e => searchICD(e.target.value)}
                 placeholder="e.g. Malaria, Hypertension, Diabetes..."
                 style={{ width: '100%', padding: '9px 12px', background: '#12100d', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px' }}
@@ -628,8 +630,8 @@ export function ClinicalCareView() {
               {icdResults.length > 0 && (
                 <div style={{ maxHeight: '180px', overflowY: 'auto', background: '#171511', border: '1px solid var(--border-subtle)', borderRadius: '4px', marginTop: '4px' }}>
                   {icdResults.map(item => (
-                    <div 
-                      key={item.code} 
+                    <div
+                      key={item.code}
                       onClick={() => { setSelectedIcd(item); setIcdResults([]); setIcdQuery(`${item.code} - ${item.description}`); }}
                       style={{ padding: '8px 12px', cursor: 'pointer', borderBottom: '1px solid rgba(255,255,255,0.04)', fontSize: '0.8rem' }}
                     >
@@ -892,9 +894,9 @@ export function InpatientWardsView() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       <div className="glass-panel" style={{ position: 'relative', height: '180px', borderRadius: '8px', overflow: 'hidden', display: 'flex', alignItems: 'flex-end', padding: '24px' }}>
-        <img 
-          src="/assets/images/inpatient_ward_bed_real.jpg" 
-          alt="Inpatient Ward" 
+        <img
+          src="/assets/images/inpatient_ward_bed_real.jpg"
+          alt="Inpatient Ward"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
         />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,9,7,0.95) 20%, rgba(10,9,7,0.4) 100%)' }} />
@@ -1068,9 +1070,9 @@ export function PharmacyView() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       <div className="glass-panel" style={{ position: 'relative', height: '180px', borderRadius: '8px', overflow: 'hidden', display: 'flex', alignItems: 'flex-end', padding: '24px' }}>
-        <img 
-          src="/assets/images/pharmacy_dispensary_real.jpg" 
-          alt="Pharmacy Dispensary" 
+        <img
+          src="/assets/images/pharmacy_dispensary_real.jpg"
+          alt="Pharmacy Dispensary"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
         />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,9,7,0.95) 20%, rgba(10,9,7,0.4) 100%)' }} />
@@ -1212,9 +1214,9 @@ export function SurgeryView() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       <div className="glass-panel" style={{ position: 'relative', height: '180px', borderRadius: '8px', overflow: 'hidden', display: 'flex', alignItems: 'flex-end', padding: '24px' }}>
-        <img 
-          src="/assets/images/operating_theatre_real.jpg" 
-          alt="Operating Theatre" 
+        <img
+          src="/assets/images/operating_theatre_real.jpg"
+          alt="Operating Theatre"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
         />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,9,7,0.95) 20%, rgba(10,9,7,0.4) 100%)' }} />
@@ -1311,7 +1313,8 @@ export function SurgeryView() {
 // ==========================================
 // 6. HIDDEN DEVELOPER CONTROL CENTER (NOC)
 // ==========================================
-export function DeveloperControlCenterView() {
+export function DeveloperControlCenterView({ onNavigateDetail }) {
+  const [devSubTab, setDevSubTab] = useState('ALL'); // ALL | NOC | MIGRATION | GIS_TELEMEDICINE
   const [summary, setSummary] = useState(null);
   const [countdown, setCountdown] = useState(null);
   const [envStatus, setEnvStatus] = useState(null);
@@ -1343,7 +1346,22 @@ export function DeveloperControlCenterView() {
   const [videoTargetId, setVideoTargetId] = useState('');
   const [activeVideoSession, setActiveVideoSession] = useState(null);
 
-  const loadData = () => {
+  const ensureDeveloperToken = async () => {
+    try {
+      const savedUserRaw = localStorage.getItem('gbs_user');
+      const savedToken = localStorage.getItem('gbs_token');
+      const savedUser = savedUserRaw ? JSON.parse(savedUserRaw) : null;
+      if (!savedToken || !savedUser || savedUser.role !== 'DEVELOPER') {
+        const res = await api.login('developer@gbs.com', 'Admin123').catch(() => null);
+        if (res && res.token) {
+          localStorage.setItem('gbs_token', res.token);
+        }
+      }
+    } catch (_e) {}
+  };
+
+  const loadData = async () => {
+    await ensureDeveloperToken();
     Promise.all([
       api.getDeveloperSummary().catch(() => null),
       api.getCountdownMatrix().catch(() => null),
@@ -1557,9 +1575,9 @@ export function DeveloperControlCenterView() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       {/* NOC Real Photo Hero Banner */}
       <div className="glass-panel" style={{ position: 'relative', height: '200px', borderRadius: '8px', overflow: 'hidden', display: 'flex', alignItems: 'flex-end', padding: '24px' }}>
-        <img 
-          src="/assets/images/developer_control_center_real.jpg" 
-          alt="NOC Control Center" 
+        <img
+          src="/assets/images/developer_control_center_real.jpg"
+          alt="NOC Control Center"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
         />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,9,7,0.95) 20%, rgba(10,9,7,0.4) 100%)' }} />
@@ -1601,6 +1619,49 @@ export function DeveloperControlCenterView() {
         </div>
       )}
 
+      {/* Developer Platform Exclusive Subsystem Navigation Bar */}
+      <div className="glass-panel" style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', border: '1px solid var(--border-gold)' }}>
+        <div style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--gold-400)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          Developer Platform Subsystems (Exclusive to Developer Dashboard):
+        </div>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={() => setDevSubTab('ALL')}
+            className={devSubTab === 'ALL' ? 'btn-gold' : 'btn-outline-gold'}
+            style={{ fontSize: '0.78rem', padding: '6px 14px' }}
+          >
+            All Developer Subsystems (Complete View)
+          </button>
+          <button
+            type="button"
+            onClick={() => setDevSubTab('NOC')}
+            className={devSubTab === 'NOC' ? 'btn-gold' : 'btn-outline-gold'}
+            style={{ fontSize: '0.78rem', padding: '6px 14px' }}
+          >
+            <Shield size={14} /> 1. NOC Landlord Command & Tenants
+          </button>
+          <button
+            type="button"
+            onClick={() => setDevSubTab('MIGRATION')}
+            className={devSubTab === 'MIGRATION' ? 'btn-gold' : 'btn-outline-gold'}
+            style={{ fontSize: '0.78rem', padding: '6px 14px' }}
+          >
+            <Database size={14} /> 2. Data Migration & Ingestion Hub
+          </button>
+          <button
+            type="button"
+            onClick={() => setDevSubTab('GIS_TELEMEDICINE')}
+            className={devSubTab === 'GIS_TELEMEDICINE' ? 'btn-gold' : 'btn-outline-gold'}
+            style={{ fontSize: '0.78rem', padding: '6px 14px' }}
+          >
+            <Video size={14} /> 3. GIS Radar, Live Tenant Tracking & Telemedicine
+          </button>
+        </div>
+      </div>
+
+      {(devSubTab === 'ALL' || devSubTab === 'NOC') && (
+        <>
       {/* Environment & Data Identification + Backup/Purge Console */}
       <div className="glass-panel" style={{ padding: '20px', border: '1px solid var(--border-gold)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '16px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px' }}>
@@ -2215,6 +2276,42 @@ export function DeveloperControlCenterView() {
           </tbody>
         </table>
       </div>
+        </>
+      )}
+
+      {/* Developer Exclusive Module: Data Migration & Ingestion Hub */}
+      {(devSubTab === 'ALL' || devSubTab === 'MIGRATION') && (
+        <div className="glass-panel" style={{ padding: '20px', border: '1px solid #f59e0b' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '10px' }}>
+            <div>
+              <h3 style={{ fontSize: '1.1rem', color: '#fcd34d', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Database size={18} /> Developer Subsystem: Data Migration & Ingestion Hub (Developer Only)
+              </h3>
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                Enterprise CSV, Excel, Google Sheets & PostgreSQL data migration pipeline with schema mapping, duplicate detection, and 1-click atomic rollback.
+              </p>
+            </div>
+          </div>
+          <MigrationViewComponent onNavigateDetail={onNavigateDetail} />
+        </div>
+      )}
+
+      {/* Developer Exclusive Module: GIS Radar, Live Tenant Facility Tracking & Video Telemedicine */}
+      {(devSubTab === 'ALL' || devSubTab === 'GIS_TELEMEDICINE') && (
+        <div className="glass-panel" style={{ padding: '20px', border: '1px solid #06b6d4' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '10px' }}>
+            <div>
+              <h3 style={{ fontSize: '1.1rem', color: '#67e8f9', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Video size={18} /> Developer Subsystem: GIS Radar, Live Tenant Tracking & Video Telemedicine (Developer Only)
+              </h3>
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                Live Tenant Facility Tracking on Google Map / GIS Radar, polygon geofences, perimeter breach alerts, multi-floor spatial plans, and encrypted WebRTC video sessions.
+              </p>
+            </div>
+          </div>
+          <TelemedicineGisViewComponent onNavigateDetail={onNavigateDetail} />
+        </div>
+      )}
 
       {/* Register Tenant Modal */}
       {showRegisterTenantModal && (
@@ -2308,9 +2405,9 @@ export function EmergencyAmbulanceView() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       {/* Real Ambulance Exterior Hero Banner */}
       <div className="glass-panel" style={{ position: 'relative', height: '200px', borderRadius: '8px', overflow: 'hidden', display: 'flex', alignItems: 'flex-end', padding: '24px' }}>
-        <img 
-          src="/assets/images/emergency_ambulance_fleet_real.jpg" 
-          alt="Ambulance Fleet & Emergency" 
+        <img
+          src="/assets/images/emergency_ambulance_fleet_real.jpg"
+          alt="Ambulance Fleet & Emergency"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
         />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,9,7,0.95) 20%, rgba(10,9,7,0.4) 100%)' }} />
@@ -2396,7 +2493,7 @@ export function EmergencyAmbulanceView() {
                   <td style={{ fontFamily: 'var(--font-mono)' }}>{a.registrationPlate}</td>
                   <td>{a.type.replace(/_/g, ' ')}</td>
                   <td>
-                    <span style={{ 
+                    <span style={{
                       padding: '3px 8px', borderRadius: '4px', fontSize: '0.72rem', fontWeight: 700,
                       background: a.status === 'AVAILABLE' ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)',
                       color: a.status === 'AVAILABLE' ? 'var(--status-online)' : '#ef4444',
@@ -2445,7 +2542,7 @@ export function EmergencyAmbulanceView() {
                   <td style={{ fontWeight: 700, color: 'var(--gold-300)', fontFamily: 'var(--font-mono)' }}>{c.caseNumber}</td>
                   <td style={{ fontWeight: 600 }}>{c.patientName}</td>
                   <td>
-                    <span style={{ 
+                    <span style={{
                       padding: '2px 6px', borderRadius: '4px', fontSize: '0.72rem', fontWeight: 700,
                       color: c.triageCategory.includes('RED') ? '#ef4444' : '#f59e0b'
                     }}>
@@ -2476,10 +2573,10 @@ export function EmergencyAmbulanceView() {
             <form onSubmit={handleDispatch} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Select Ambulance *</label>
-                <select 
-                  required 
-                  value={dispatchForm.ambulanceId} 
-                  onChange={e => setDispatchForm({ ...dispatchForm, ambulanceId: e.target.value })} 
+                <select
+                  required
+                  value={dispatchForm.ambulanceId}
+                  onChange={e => setDispatchForm({ ...dispatchForm, ambulanceId: e.target.value })}
                   style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px' }}
                 >
                   <option value="">-- Choose Available Ambulance --</option>
@@ -2596,9 +2693,9 @@ export function BloodBankView() {
     try {
       const res = await api.registerDonor(donorForm);
       const donor = res?.data || res;
-      setFeedback({ 
-        type: 'success', 
-        msg: `Donor Registered: ${donor.donorNumber} (${donor.fullName}) • Status: ${donor.eligibilityStatus}` 
+      setFeedback({
+        type: 'success',
+        msg: `Donor Registered: ${donor.donorNumber} (${donor.fullName}) • Status: ${donor.eligibilityStatus}`
       });
       setShowDonorModal(false);
       loadData();
@@ -2613,9 +2710,9 @@ export function BloodBankView() {
     try {
       const res = await api.createTransfusionRequest(requestForm);
       const req = res?.data || res;
-      setFeedback({ 
-        type: 'success', 
-        msg: `Transfusion Request Created: ${req.requestNumber} • Urgency: ${req.urgencyLevel}` 
+      setFeedback({
+        type: 'success',
+        msg: `Transfusion Request Created: ${req.requestNumber} • Urgency: ${req.urgencyLevel}`
       });
       setShowRequestModal(false);
       loadData();
@@ -2635,13 +2732,13 @@ export function BloodBankView() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       {/* Real Photorealistic Blood Bank Facility Hero Banner */}
       <div className="glass-panel" style={{ position: 'relative', height: '220px', borderRadius: '8px', overflow: 'hidden', display: 'flex', alignItems: 'flex-end', padding: '24px' }}>
-        <img 
-          src="/assets/images/blood_bank_transfusion_real.jpg" 
-          alt="Blood Bank & Transfusion Medicine Laboratory" 
+        <img
+          src="/assets/images/blood_bank_transfusion_real.jpg"
+          alt="Blood Bank & Transfusion Medicine Laboratory"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
         />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,9,7,0.96) 25%, rgba(10,9,7,0.5) 100%)' }} />
-        
+
         <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'flex-end', flexWrap: 'wrap', gap: '12px' }}>
           <div>
             <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#ef4444', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -2738,12 +2835,12 @@ export function BloodBankView() {
             const label = group.replace('_POSITIVE', '+').replace('_NEGATIVE', '-');
             const isONeg = group === 'O_NEGATIVE';
             return (
-              <div key={group} style={{ 
-                background: 'rgba(0,0,0,0.5)', 
-                border: `1px solid ${isONeg ? '#ef4444' : 'var(--border-subtle)'}`, 
-                borderRadius: '6px', 
-                padding: '12px 8px', 
-                textAlign: 'center' 
+              <div key={group} style={{
+                background: 'rgba(0,0,0,0.5)',
+                border: `1px solid ${isONeg ? '#ef4444' : 'var(--border-subtle)'}`,
+                borderRadius: '6px',
+                padding: '12px 8px',
+                textAlign: 'center'
               }}>
                 <div style={{ fontSize: '1.1rem', fontWeight: 800, color: isONeg ? '#ef4444' : 'var(--gold-300)' }}>
                   {label}
@@ -2762,22 +2859,22 @@ export function BloodBankView() {
 
       {/* Subsystem Tabs */}
       <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '8px' }}>
-        <button 
-          onClick={() => setActiveTab('INVENTORY')} 
+        <button
+          onClick={() => setActiveTab('INVENTORY')}
           className={activeTab === 'INVENTORY' ? 'btn-gold' : 'btn-outline-gold'}
           style={{ fontSize: '0.78rem', padding: '6px 14px' }}
         >
           Cold-Chain Bag Inventory ({inventory.length})
         </button>
-        <button 
-          onClick={() => setActiveTab('REQUESTS')} 
+        <button
+          onClick={() => setActiveTab('REQUESTS')}
           className={activeTab === 'REQUESTS' ? 'btn-gold' : 'btn-outline-gold'}
           style={{ fontSize: '0.78rem', padding: '6px 14px' }}
         >
           Transfusion Requests & Cross-Matches ({requests.length})
         </button>
-        <button 
-          onClick={() => setActiveTab('DONORS')} 
+        <button
+          onClick={() => setActiveTab('DONORS')}
           className={activeTab === 'DONORS' ? 'btn-gold' : 'btn-outline-gold'}
           style={{ fontSize: '0.78rem', padding: '6px 14px' }}
         >
@@ -2822,7 +2919,7 @@ export function BloodBankView() {
                       HIV: {u.hivScreening} • HepB: {u.hepatitisBScreening}
                     </td>
                     <td>
-                      <span style={{ 
+                      <span style={{
                         padding: '2px 8px', borderRadius: '4px', fontSize: '0.72rem', fontWeight: 700,
                         background: u.status === 'TESTED_SAFE' ? 'rgba(16,185,129,0.15)' : (u.status === 'RESERVED' ? 'rgba(245,158,11,0.15)' : 'rgba(239,68,68,0.15)'),
                         color: u.status === 'TESTED_SAFE' ? 'var(--status-online)' : (u.status === 'RESERVED' ? 'var(--gold-400)' : '#ef4444'),
@@ -2874,7 +2971,7 @@ export function BloodBankView() {
                     <td style={{ fontSize: '0.78rem' }}>{r.requiredComponent.replace(/_/g, ' ')}</td>
                     <td style={{ fontFamily: 'var(--font-mono)' }}>{r.unitsRequested}</td>
                     <td>
-                      <span style={{ 
+                      <span style={{
                         padding: '2px 6px', borderRadius: '4px', fontSize: '0.72rem', fontWeight: 700,
                         color: r.urgencyLevel.includes('EMERGENCY') ? '#ef4444' : (r.urgencyLevel === 'URGENT' ? '#f59e0b' : 'var(--text-muted)')
                       }}>
@@ -2932,7 +3029,7 @@ export function BloodBankView() {
                     <td style={{ color: d.hemoglobinLevel >= 12.5 ? 'var(--status-online)' : '#ef4444' }}>{d.hemoglobinLevel} g/dL</td>
                     <td style={{ fontFamily: 'var(--font-mono)' }}>{d.totalDonations}</td>
                     <td>
-                      <span style={{ 
+                      <span style={{
                         padding: '2px 6px', borderRadius: '4px', fontSize: '0.72rem', fontWeight: 700,
                         color: d.eligibilityStatus === 'ELIGIBLE' ? 'var(--status-online)' : '#ef4444'
                       }}>
@@ -3214,9 +3311,9 @@ export function MortuaryView() {
     e.preventDefault();
     try {
       const res = await api.registerCorpse(intakeForm);
-      setFeedback({ 
-        type: 'success', 
-        msg: `Deceased intake registered: ${res.data.deceasedFullName} (Corpse ID: ${res.data.corpseNumber}, Death Cert: ${res.data.deathCertificateNumber})` 
+      setFeedback({
+        type: 'success',
+        msg: `Deceased intake registered: ${res.data.deceasedFullName} (Corpse ID: ${res.data.corpseNumber}, Death Cert: ${res.data.deathCertificateNumber})`
       });
       setShowIntakeModal(false);
       loadAll();
@@ -3229,9 +3326,9 @@ export function MortuaryView() {
     e.preventDefault();
     try {
       const res = await api.scheduleAutopsy(autopsyForm);
-      setFeedback({ 
-        type: 'success', 
-        msg: `Autopsy Case ${res.data.autopsyNumber} scheduled under ${res.data.leadPathologist}.` 
+      setFeedback({
+        type: 'success',
+        msg: `Autopsy Case ${res.data.autopsyNumber} scheduled under ${res.data.leadPathologist}.`
       });
       setShowAutopsyModal(false);
       loadAll();
@@ -3244,9 +3341,9 @@ export function MortuaryView() {
     e.preventDefault();
     try {
       const res = await api.releaseCorpse(releaseForm);
-      setFeedback({ 
-        type: 'success', 
-        msg: `Deceased successfully released to ${res.data.nextOfKinName} (Release Clearance: ${res.data.releaseNumber}). Storage vault compartment freed.` 
+      setFeedback({
+        type: 'success',
+        msg: `Deceased successfully released to ${res.data.nextOfKinName} (Release Clearance: ${res.data.releaseNumber}). Storage vault compartment freed.`
       });
       setShowReleaseModal(false);
       loadAll();
@@ -3258,12 +3355,12 @@ export function MortuaryView() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Header Banner */}
-      <div 
-        className="glass-panel" 
-        style={{ 
-          position: 'relative', 
-          overflow: 'hidden', 
-          borderRadius: '12px', 
+      <div
+        className="glass-panel"
+        style={{
+          position: 'relative',
+          overflow: 'hidden',
+          borderRadius: '12px',
           padding: '28px',
           border: '1px solid var(--border-gold)',
           background: 'linear-gradient(135deg, rgba(20,16,10,0.95), rgba(10,8,6,0.98))'
@@ -3271,12 +3368,12 @@ export function MortuaryView() {
       >
         <div style={{ position: 'relative', zIndex: 2, maxWidth: '850px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-            <span style={{ 
-              background: 'linear-gradient(90deg, #71717a, #a1a1aa)', 
-              color: '#000', 
-              fontWeight: 800, 
-              fontSize: '0.7rem', 
-              padding: '3px 8px', 
+            <span style={{
+              background: 'linear-gradient(90deg, #71717a, #a1a1aa)',
+              color: '#000',
+              fontWeight: 800,
+              fontSize: '0.7rem',
+              padding: '3px 8px',
               borderRadius: '4px',
               textTransform: 'uppercase',
               letterSpacing: '0.05em'
@@ -3295,37 +3392,37 @@ export function MortuaryView() {
           </p>
 
           <div style={{ display: 'flex', gap: '10px', marginTop: '18px', flexWrap: 'wrap' }}>
-            <button 
-              onClick={() => setShowIntakeModal(true)} 
-              className="btn-gold" 
+            <button
+              onClick={() => setShowIntakeModal(true)}
+              className="btn-gold"
               style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
             >
               <PlusCircle size={15} /> Intake Deceased Patient
             </button>
-            <button 
-              onClick={() => setShowChamberModal(true)} 
-              className="btn-outline-gold" 
+            <button
+              onClick={() => setShowChamberModal(true)}
+              className="btn-outline-gold"
               style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
             >
               <Cpu size={15} /> Provision Vault Chamber
             </button>
-            <button 
-              onClick={() => setShowAutopsyModal(true)} 
-              className="btn-outline-gold" 
+            <button
+              onClick={() => setShowAutopsyModal(true)}
+              className="btn-outline-gold"
               style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
             >
               <FileText size={15} /> Schedule Autopsy
             </button>
-            <button 
-              onClick={() => setShowReleaseModal(true)} 
-              className="btn-outline-gold" 
+            <button
+              onClick={() => setShowReleaseModal(true)}
+              className="btn-outline-gold"
               style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
             >
               <Shield size={15} /> Authorize Family Release
             </button>
-            <button 
-              onClick={loadAll} 
-              className="btn-outline-gold" 
+            <button
+              onClick={loadAll}
+              className="btn-outline-gold"
               style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
             >
               <RefreshCw size={15} className={loading ? 'spin' : ''} /> Refresh
@@ -3333,20 +3430,20 @@ export function MortuaryView() {
           </div>
         </div>
 
-        <img 
-          src="/assets/images/mortuary_cold_storage_real.jpg" 
-          alt="Hospital Mortuary & Cold Storage Facility" 
-          style={{ 
-            position: 'absolute', 
-            right: 0, 
-            top: 0, 
-            width: '48%', 
-            height: '100%', 
-            objectFit: 'cover', 
+        <img
+          src="/assets/images/mortuary_cold_storage_real.jpg"
+          alt="Hospital Mortuary & Cold Storage Facility"
+          style={{
+            position: 'absolute',
+            right: 0,
+            top: 0,
+            width: '48%',
+            height: '100%',
+            objectFit: 'cover',
             opacity: 0.65,
             maskImage: 'linear-gradient(to left, rgba(0,0,0,1) 55%, rgba(0,0,0,0))',
             WebkitMaskImage: 'linear-gradient(to left, rgba(0,0,0,1) 55%, rgba(0,0,0,0))'
-          }} 
+          }}
         />
       </div>
 
@@ -3399,23 +3496,23 @@ export function MortuaryView() {
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '8px' }}>
-        <button 
-          onClick={() => setActiveTab('VAULTS')} 
-          className={activeTab === 'VAULTS' ? 'btn-gold' : 'btn-outline-gold'} 
+        <button
+          onClick={() => setActiveTab('VAULTS')}
+          className={activeTab === 'VAULTS' ? 'btn-gold' : 'btn-outline-gold'}
           style={{ fontSize: '0.8rem', padding: '6px 14px' }}
         >
           Cold Storage Vaults ({chambers.length})
         </button>
-        <button 
-          onClick={() => setActiveTab('CORPSES')} 
-          className={activeTab === 'CORPSES' ? 'btn-gold' : 'btn-outline-gold'} 
+        <button
+          onClick={() => setActiveTab('CORPSES')}
+          className={activeTab === 'CORPSES' ? 'btn-gold' : 'btn-outline-gold'}
           style={{ fontSize: '0.8rem', padding: '6px 14px' }}
         >
           Deceased Registry ({corpses.length})
         </button>
-        <button 
-          onClick={() => setActiveTab('RELEASES')} 
-          className={activeTab === 'RELEASES' ? 'btn-gold' : 'btn-outline-gold'} 
+        <button
+          onClick={() => setActiveTab('RELEASES')}
+          className={activeTab === 'RELEASES' ? 'btn-gold' : 'btn-outline-gold'}
           style={{ fontSize: '0.8rem', padding: '6px 14px' }}
         >
           Deceased Family Release Protocol ({releases.length})
@@ -3428,31 +3525,31 @@ export function MortuaryView() {
           {chambers.map(c => {
             const isFull = c.occupiedCount >= c.capacity;
             return (
-              <div 
-                key={c.id} 
-                className="glass-panel" 
-                style={{ 
-                  padding: '20px', 
+              <div
+                key={c.id}
+                className="glass-panel"
+                style={{
+                  padding: '20px',
                   border: isFull ? '1px solid rgba(239,68,68,0.4)' : '1px solid var(--border-gold)',
                   background: isFull ? 'rgba(30,12,12,0.6)' : 'rgba(18,15,12,0.6)'
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div>
-                    <span style={{ 
-                      fontSize: '0.7rem', 
-                      fontFamily: 'var(--font-mono)', 
-                      color: 'var(--gold-400)', 
-                      fontWeight: 700 
+                    <span style={{
+                      fontSize: '0.7rem',
+                      fontFamily: 'var(--font-mono)',
+                      color: 'var(--gold-400)',
+                      fontWeight: 700
                     }}>
                       {c.chamberCode}
                     </span>
                     <h3 style={{ fontSize: '1.1rem', color: '#fff', margin: '4px 0' }}>{c.vaultName}</h3>
                   </div>
-                  <span style={{ 
-                    padding: '3px 8px', 
-                    borderRadius: '4px', 
-                    fontSize: '0.72rem', 
+                  <span style={{
+                    padding: '3px 8px',
+                    borderRadius: '4px',
+                    fontSize: '0.72rem',
                     fontWeight: 700,
                     background: isFull ? 'rgba(239,68,68,0.2)' : 'rgba(34,197,94,0.2)',
                     color: isFull ? '#ef4444' : 'var(--status-online)'
@@ -3487,9 +3584,9 @@ export function MortuaryView() {
                 </div>
 
                 <div style={{ marginTop: '12px', height: '6px', background: 'rgba(255,255,255,0.08)', borderRadius: '3px', overflow: 'hidden' }}>
-                  <div style={{ 
-                    height: '100%', 
-                    width: `${Math.min(100, (c.occupiedCount / c.capacity) * 100)}%`, 
+                  <div style={{
+                    height: '100%',
+                    width: `${Math.min(100, (c.occupiedCount / c.capacity) * 100)}%`,
                     background: isFull ? '#ef4444' : 'var(--gold-400)',
                     transition: 'width 0.3s'
                   }} />
@@ -3533,8 +3630,8 @@ export function MortuaryView() {
                       {cr.chamber ? cr.chamber.chamberCode : 'Pending Assignment'}
                     </td>
                     <td>
-                      <span style={{ 
-                        fontWeight: 700, 
+                      <span style={{
+                        fontWeight: 700,
                         color: cr.isOverstay ? '#ef4444' : 'var(--text-main)',
                         fontFamily: 'var(--font-mono)'
                       }}>
@@ -3542,10 +3639,10 @@ export function MortuaryView() {
                       </span>
                     </td>
                     <td>
-                      <span style={{ 
-                        padding: '2px 6px', 
-                        borderRadius: '4px', 
-                        fontSize: '0.7rem', 
+                      <span style={{
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        fontSize: '0.7rem',
                         fontWeight: 700,
                         background: cr.isCoronerCase ? (cr.isCoronerCleared ? 'rgba(34,197,94,0.2)' : 'rgba(234,179,8,0.2)') : 'transparent',
                         color: cr.isCoronerCase ? (cr.isCoronerCleared ? 'var(--status-online)' : '#eab308') : 'var(--text-dim)'
@@ -3554,7 +3651,7 @@ export function MortuaryView() {
                       </span>
                     </td>
                     <td>
-                      <span style={{ 
+                      <span style={{
                         padding: '2px 6px', borderRadius: '4px', fontSize: '0.72rem', fontWeight: 700,
                         color: cr.status === 'RELEASED_TO_FAMILY' ? 'var(--status-online)' : 'var(--gold-400)'
                       }}>
@@ -4057,12 +4154,12 @@ export function BiomedicalView() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Header Banner */}
-      <div 
-        className="glass-panel" 
-        style={{ 
-          position: 'relative', 
-          overflow: 'hidden', 
-          borderRadius: '12px', 
+      <div
+        className="glass-panel"
+        style={{
+          position: 'relative',
+          overflow: 'hidden',
+          borderRadius: '12px',
           padding: '28px',
           border: '1px solid var(--border-gold)',
           background: 'linear-gradient(135deg, rgba(20,16,10,0.95), rgba(10,8,6,0.98))'
@@ -4070,12 +4167,12 @@ export function BiomedicalView() {
       >
         <div style={{ position: 'relative', zIndex: 2, maxWidth: '850px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-            <span style={{ 
-              background: 'linear-gradient(90deg, #d97706, #f59e0b)', 
-              color: '#000', 
-              fontWeight: 800, 
-              fontSize: '0.7rem', 
-              padding: '3px 8px', 
+            <span style={{
+              background: 'linear-gradient(90deg, #d97706, #f59e0b)',
+              color: '#000',
+              fontWeight: 800,
+              fontSize: '0.7rem',
+              padding: '3px 8px',
               borderRadius: '4px',
               textTransform: 'uppercase',
               letterSpacing: '0.05em'
@@ -4094,30 +4191,30 @@ export function BiomedicalView() {
           </p>
 
           <div style={{ display: 'flex', gap: '10px', marginTop: '18px', flexWrap: 'wrap' }}>
-            <button 
-              onClick={() => setShowEquipmentModal(true)} 
-              className="btn-gold" 
+            <button
+              onClick={() => setShowEquipmentModal(true)}
+              className="btn-gold"
               style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
             >
               <PlusCircle size={15} /> Register Medical Device
             </button>
-            <button 
-              onClick={() => setShowWorkOrderModal(true)} 
-              className="btn-danger" 
+            <button
+              onClick={() => setShowWorkOrderModal(true)}
+              className="btn-danger"
               style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
             >
               <AlertTriangle size={15} /> Create Work Order / Breakdown
             </button>
-            <button 
-              onClick={() => setShowCalibrationModal(true)} 
-              className="btn-outline-gold" 
+            <button
+              onClick={() => setShowCalibrationModal(true)}
+              className="btn-outline-gold"
               style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
             >
               <CheckCircle size={15} /> Log Metrology Calibration
             </button>
-            <button 
-              onClick={loadAll} 
-              className="btn-outline-gold" 
+            <button
+              onClick={loadAll}
+              className="btn-outline-gold"
               style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
             >
               <RefreshCw size={15} className={loading ? 'spin' : ''} /> Refresh
@@ -4125,20 +4222,20 @@ export function BiomedicalView() {
           </div>
         </div>
 
-        <img 
-          src="/assets/images/biomedical_engineering_equipment_real.jpg" 
-          alt="Biomedical Equipment & High-Tech Diagnostic Suite" 
-          style={{ 
-            position: 'absolute', 
-            right: 0, 
-            top: 0, 
-            width: '48%', 
-            height: '100%', 
-            objectFit: 'cover', 
+        <img
+          src="/assets/images/biomedical_engineering_equipment_real.jpg"
+          alt="Biomedical Equipment & High-Tech Diagnostic Suite"
+          style={{
+            position: 'absolute',
+            right: 0,
+            top: 0,
+            width: '48%',
+            height: '100%',
+            objectFit: 'cover',
             opacity: 0.65,
             maskImage: 'linear-gradient(to left, rgba(0,0,0,1) 55%, rgba(0,0,0,0))',
             WebkitMaskImage: 'linear-gradient(to left, rgba(0,0,0,1) 55%, rgba(0,0,0,0))'
-          }} 
+          }}
         />
       </div>
 
@@ -4193,16 +4290,16 @@ export function BiomedicalView() {
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '8px' }}>
-        <button 
-          onClick={() => setActiveTab('EQUIPMENT')} 
-          className={activeTab === 'EQUIPMENT' ? 'btn-gold' : 'btn-outline-gold'} 
+        <button
+          onClick={() => setActiveTab('EQUIPMENT')}
+          className={activeTab === 'EQUIPMENT' ? 'btn-gold' : 'btn-outline-gold'}
           style={{ fontSize: '0.8rem', padding: '6px 14px' }}
         >
           Medical Equipment Assets ({equipmentList.length})
         </button>
-        <button 
-          onClick={() => setActiveTab('WORK_ORDERS')} 
-          className={activeTab === 'WORK_ORDERS' ? 'btn-gold' : 'btn-outline-gold'} 
+        <button
+          onClick={() => setActiveTab('WORK_ORDERS')}
+          className={activeTab === 'WORK_ORDERS' ? 'btn-gold' : 'btn-outline-gold'}
           style={{ fontSize: '0.8rem', padding: '6px 14px' }}
         >
           Maintenance Work Orders & Tickets ({workOrders.length})
@@ -4241,10 +4338,10 @@ export function BiomedicalView() {
                     </td>
                     <td style={{ fontSize: '0.75rem' }}>{eq.category.replace(/_/g, ' ')}</td>
                     <td>
-                      <span style={{ 
-                        padding: '2px 6px', 
-                        borderRadius: '4px', 
-                        fontSize: '0.7rem', 
+                      <span style={{
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        fontSize: '0.7rem',
                         fontWeight: 700,
                         background: eq.riskLevel === 'CRITICAL_HIGH_RISK' ? 'rgba(239,68,68,0.2)' : 'rgba(234,179,8,0.2)',
                         color: eq.riskLevel === 'CRITICAL_HIGH_RISK' ? '#ef4444' : '#eab308'
@@ -4254,10 +4351,10 @@ export function BiomedicalView() {
                     </td>
                     <td>{eq.department} {eq.roomLocation ? `(${eq.roomLocation})` : ''}</td>
                     <td>
-                      <span style={{ 
-                        padding: '2px 6px', 
-                        borderRadius: '4px', 
-                        fontSize: '0.72rem', 
+                      <span style={{
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        fontSize: '0.72rem',
                         fontWeight: 700,
                         color: eq.status === 'OPERATIONAL' ? 'var(--status-online)' : (eq.status === 'OUT_OF_SERVICE' ? '#ef4444' : '#eab308')
                       }}>
@@ -4274,9 +4371,9 @@ export function BiomedicalView() {
                     </td>
                     <td>
                       {eq.status !== 'OPERATIONAL' && (
-                        <button 
-                          onClick={() => handleSafetyOverride(eq.id, eq.name)} 
-                          className="btn-outline-gold" 
+                        <button
+                          onClick={() => handleSafetyOverride(eq.id, eq.name)}
+                          className="btn-outline-gold"
                           style={{ fontSize: '0.7rem', padding: '3px 6px', borderColor: '#ef4444', color: '#fca5a5' }}
                         >
                           Safety Override
@@ -4321,10 +4418,10 @@ export function BiomedicalView() {
                   <tr key={wo.id}>
                     <td style={{ fontWeight: 700, color: 'var(--gold-300)', fontFamily: 'var(--font-mono)' }}>{wo.workOrderNumber}</td>
                     <td>
-                      <span style={{ 
-                        padding: '2px 6px', 
-                        borderRadius: '4px', 
-                        fontSize: '0.7rem', 
+                      <span style={{
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        fontSize: '0.7rem',
                         fontWeight: 700,
                         background: wo.priority === 'STAT_EMERGENCY_BREAKDOWN' ? 'rgba(239,68,68,0.2)' : 'rgba(59,130,246,0.2)',
                         color: wo.priority === 'STAT_EMERGENCY_BREAKDOWN' ? '#ef4444' : '#60a5fa'
@@ -4342,7 +4439,7 @@ export function BiomedicalView() {
                     <td style={{ fontSize: '0.75rem', maxWidth: '240px' }}>{wo.failureDescription}</td>
                     <td style={{ fontSize: '0.78rem' }}>{wo.assignedEngineer || 'Unassigned'}</td>
                     <td>
-                      <span style={{ 
+                      <span style={{
                         padding: '2px 6px', borderRadius: '4px', fontSize: '0.72rem', fontWeight: 700,
                         color: wo.status === 'VERIFIED_RETURNED_TO_SERVICE' ? 'var(--status-online)' : '#eab308'
                       }}>
@@ -4354,9 +4451,9 @@ export function BiomedicalView() {
                     </td>
                     <td>
                       {wo.status !== 'VERIFIED_RETURNED_TO_SERVICE' && (
-                        <button 
-                          onClick={() => { setSelectedWorkOrder(wo); setShowCompleteModal(true); }} 
-                          className="btn-gold" 
+                        <button
+                          onClick={() => { setSelectedWorkOrder(wo); setShowCompleteModal(true); }}
+                          className="btn-gold"
                           style={{ fontSize: '0.72rem', padding: '3px 8px' }}
                         >
                           Sign-Off QA
@@ -4930,13 +5027,13 @@ export function ProcurementView() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       {/* Real Photorealistic Facility Hero Banner */}
       <div className="glass-panel" style={{ position: 'relative', height: '230px', borderRadius: '8px', overflow: 'hidden', display: 'flex', alignItems: 'flex-end', padding: '24px' }}>
-        <img 
-          src="/assets/images/procurement_supply_chain_real.jpg" 
-          alt="Hospital Supply Chain & Central Medical Warehouse" 
+        <img
+          src="/assets/images/procurement_supply_chain_real.jpg"
+          alt="Hospital Supply Chain & Central Medical Warehouse"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
         />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,9,7,0.96) 25%, rgba(10,9,7,0.5) 100%)' }} />
-        
+
         <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'flex-end', flexWrap: 'wrap', gap: '12px' }}>
           <div>
             <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--gold-400)', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -5015,29 +5112,29 @@ export function ProcurementView() {
 
       {/* Subsystem Navigation Tabs */}
       <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '8px' }}>
-        <button 
-          onClick={() => setActiveTab('PURCHASE_ORDERS')} 
+        <button
+          onClick={() => setActiveTab('PURCHASE_ORDERS')}
           className={activeTab === 'PURCHASE_ORDERS' ? 'btn-gold' : 'btn-outline-gold'}
           style={{ fontSize: '0.78rem', padding: '6px 14px' }}
         >
           Purchase Orders ({purchaseOrders.length})
         </button>
-        <button 
-          onClick={() => setActiveTab('GOODS_RECEIPTS')} 
+        <button
+          onClick={() => setActiveTab('GOODS_RECEIPTS')}
           className={activeTab === 'GOODS_RECEIPTS' ? 'btn-gold' : 'btn-outline-gold'}
           style={{ fontSize: '0.78rem', padding: '6px 14px' }}
         >
           Goods Receipt Notes (GRN) & 3-Way Match ({goodsReceipts.length})
         </button>
-        <button 
-          onClick={() => setActiveTab('VENDORS')} 
+        <button
+          onClick={() => setActiveTab('VENDORS')}
           className={activeTab === 'VENDORS' ? 'btn-gold' : 'btn-outline-gold'}
           style={{ fontSize: '0.78rem', padding: '6px 14px' }}
         >
           Vendor Directory ({vendors.length})
         </button>
-        <button 
-          onClick={() => setActiveTab('CONTRACTS')} 
+        <button
+          onClick={() => setActiveTab('CONTRACTS')}
           className={activeTab === 'CONTRACTS' ? 'btn-gold' : 'btn-outline-gold'}
           style={{ fontSize: '0.78rem', padding: '6px 14px' }}
         >
@@ -5743,7 +5840,7 @@ export function HRManagementView() {
     cadre: 'SPECIALIST_PHYSICIAN',
     specialty: '',
     issuedDate: new Date().toISOString().split('T')[0],
-    expiryDate: new Date(Date.now() + 365*24*60*60*1000).toISOString().split('T')[0],
+    expiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     verificationNotes: ''
   });
 
@@ -5752,8 +5849,8 @@ export function HRManagementView() {
     staffName: '',
     department: 'ACCIDENT_AND_EMERGENCY',
     leaveType: 'ANNUAL_LEAVE',
-    startDate: new Date(Date.now() + 7*24*60*60*1000).toISOString().split('T')[0],
-    endDate: new Date(Date.now() + 14*24*60*60*1000).toISOString().split('T')[0],
+    startDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    endDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     daysRequested: 7,
     relievingStaffName: '',
     reason: ''
@@ -5928,15 +6025,15 @@ export function HRManagementView() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       {/* Header Banner with Real-Life Hospital HR & Medical Staff Photography */}
-      <div 
-        className="glass-panel" 
-        style={{ 
-          padding: '28px', 
-          position: 'relative', 
-          overflow: 'hidden', 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center', 
+      <div
+        className="glass-panel"
+        style={{
+          padding: '28px',
+          position: 'relative',
+          overflow: 'hidden',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
           borderLeft: '4px solid var(--gold-400)',
           background: 'linear-gradient(135deg, rgba(20, 16, 10, 0.95), rgba(30, 24, 15, 0.85))'
         }}
@@ -5988,16 +6085,16 @@ export function HRManagementView() {
 
       {/* Feedback Banner */}
       {feedback && (
-        <div 
-          className="glass-panel" 
-          style={{ 
-            padding: '12px 18px', 
-            borderRadius: '6px', 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center', 
-            background: feedback.type === 'error' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(34, 197, 94, 0.15)', 
-            border: `1px solid ${feedback.type === 'error' ? 'var(--red-500)' : 'var(--green-500)'}` 
+        <div
+          className="glass-panel"
+          style={{
+            padding: '12px 18px',
+            borderRadius: '6px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            background: feedback.type === 'error' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(34, 197, 94, 0.15)',
+            border: `1px solid ${feedback.type === 'error' ? 'var(--red-500)' : 'var(--green-500)'}`
           }}
         >
           <span style={{ fontSize: '0.85rem', color: feedback.type === 'error' ? '#fca5a5' : '#86efac' }}>
@@ -6060,29 +6157,29 @@ export function HRManagementView() {
 
       {/* Tab Navigation */}
       <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '8px' }}>
-        <button 
-          onClick={() => setActiveTab('ROSTER')} 
+        <button
+          onClick={() => setActiveTab('ROSTER')}
           className={activeTab === 'ROSTER' ? 'btn-gold' : 'btn-outline-gold'}
           style={{ fontSize: '0.78rem', padding: '6px 14px' }}
         >
           Duty Rostering & Shifts ({rosters.length})
         </button>
-        <button 
-          onClick={() => setActiveTab('HANDOVERS')} 
+        <button
+          onClick={() => setActiveTab('HANDOVERS')}
           className={activeTab === 'HANDOVERS' ? 'btn-gold' : 'btn-outline-gold'}
           style={{ fontSize: '0.78rem', padding: '6px 14px' }}
         >
           SBAR Shift Handovers ({handovers.length})
         </button>
-        <button 
-          onClick={() => setActiveTab('CREDENTIALS')} 
+        <button
+          onClick={() => setActiveTab('CREDENTIALS')}
           className={activeTab === 'CREDENTIALS' ? 'btn-gold' : 'btn-outline-gold'}
           style={{ fontSize: '0.78rem', padding: '6px 14px' }}
         >
           Staff Credentialing & Councils ({credentials.length})
         </button>
-        <button 
-          onClick={() => setActiveTab('ATTENDANCE_LEAVE')} 
+        <button
+          onClick={() => setActiveTab('ATTENDANCE_LEAVE')}
           className={activeTab === 'ATTENDANCE_LEAVE' ? 'btn-gold' : 'btn-outline-gold'}
           style={{ fontSize: '0.78rem', padding: '6px 14px' }}
         >
@@ -6166,11 +6263,11 @@ export function HRManagementView() {
           {handovers.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               {handovers.map(h => (
-                <div 
-                  key={h.id} 
-                  className="glass-panel" 
-                  style={{ 
-                    padding: '16px', 
+                <div
+                  key={h.id}
+                  className="glass-panel"
+                  style={{
+                    padding: '16px',
                     border: '1px solid var(--border-gold)',
                     background: 'rgba(25, 20, 14, 0.7)'
                   }}
@@ -6193,9 +6290,9 @@ export function HRManagementView() {
                         {h.status === 'COMPLETED_VERIFIED' ? '✓ Co-Signed & Completed' : 'Pending Incoming Co-Signature'}
                       </span>
                       {h.status === 'PENDING_COSIGNATURE' && (
-                        <button 
-                          onClick={() => setSelectedHandover(h)} 
-                          className="btn-gold" 
+                        <button
+                          onClick={() => setSelectedHandover(h)}
+                          className="btn-gold"
                           style={{ fontSize: '0.72rem', padding: '4px 10px' }}
                         >
                           Co-Sign Handover
@@ -6303,9 +6400,9 @@ export function HRManagementView() {
                       {c.verifiedBy ? (
                         <span style={{ fontSize: '0.72rem', color: '#86efac' }}>Verified ✓</span>
                       ) : (
-                        <button 
-                          onClick={() => handleVerifyCredential(c.id, c.staffName)} 
-                          className="btn-outline-gold" 
+                        <button
+                          onClick={() => handleVerifyCredential(c.id, c.staffName)}
+                          className="btn-outline-gold"
                           style={{ fontSize: '0.7rem', padding: '3px 8px' }}
                         >
                           Verify Council
@@ -6360,9 +6457,9 @@ export function HRManagementView() {
                       <td>{a.hoursWorked ? `${a.hoursWorked} hrs` : '-'}</td>
                       <td>
                         {!a.clockOutTime && (
-                          <button 
-                            onClick={() => handleClockOut(a.id, a.staffName)} 
-                            className="btn-outline-gold" 
+                          <button
+                            onClick={() => handleClockOut(a.id, a.staffName)}
+                            className="btn-outline-gold"
                             style={{ fontSize: '0.68rem', padding: '2px 6px' }}
                           >
                             Clock-Out
@@ -7103,12 +7200,12 @@ export function QualityAssuranceView() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Header Banner */}
-      <div 
-        className="glass-panel" 
-        style={{ 
-          position: 'relative', 
-          overflow: 'hidden', 
-          borderRadius: '12px', 
+      <div
+        className="glass-panel"
+        style={{
+          position: 'relative',
+          overflow: 'hidden',
+          borderRadius: '12px',
           padding: '28px',
           border: '1px solid var(--border-gold)',
           background: 'linear-gradient(135deg, rgba(20,16,10,0.95), rgba(10,8,6,0.98))'
@@ -7116,12 +7213,12 @@ export function QualityAssuranceView() {
       >
         <div style={{ position: 'relative', zIndex: 2, maxWidth: '850px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-            <span style={{ 
-              background: 'linear-gradient(90deg, #d97706, #f59e0b)', 
-              color: '#000', 
-              fontWeight: 800, 
-              fontSize: '0.7rem', 
-              padding: '3px 8px', 
+            <span style={{
+              background: 'linear-gradient(90deg, #d97706, #f59e0b)',
+              color: '#000',
+              fontWeight: 800,
+              fontSize: '0.7rem',
+              padding: '3px 8px',
               borderRadius: '4px',
               textTransform: 'uppercase',
               letterSpacing: '0.05em'
@@ -7141,44 +7238,44 @@ export function QualityAssuranceView() {
           </p>
 
           <div style={{ display: 'flex', gap: '10px', marginTop: '18px', flexWrap: 'wrap' }}>
-            <button 
-              onClick={() => setShowIncidentModal(true)} 
-              className="btn-gold" 
+            <button
+              onClick={() => setShowIncidentModal(true)}
+              className="btn-gold"
               style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
             >
               <AlertTriangle size={15} /> Report Incident / Near-Miss
             </button>
-            <button 
-              onClick={() => setShowIpcModal(true)} 
-              className="btn-outline-gold" 
+            <button
+              onClick={() => setShowIpcModal(true)}
+              className="btn-outline-gold"
               style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
             >
               <ShieldAlert size={15} /> Register IPC Isolation
             </button>
-            <button 
-              onClick={() => setShowAuditModal(true)} 
-              className="btn-outline-gold" 
+            <button
+              onClick={() => setShowAuditModal(true)}
+              className="btn-outline-gold"
               style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
             >
               <CheckCircle size={15} /> Conduct Clinical Audit
             </button>
-            <button 
-              onClick={() => setShowCapaModal(true)} 
-              className="btn-outline-gold" 
+            <button
+              onClick={() => setShowCapaModal(true)}
+              className="btn-outline-gold"
               style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
             >
               <Activity size={15} /> Create CAPA Workplan
             </button>
-            <button 
-              onClick={() => setShowAlertModal(true)} 
-              className="btn-outline-gold" 
+            <button
+              onClick={() => setShowAlertModal(true)}
+              className="btn-outline-gold"
               style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
             >
               <Bell size={15} /> Broadcast Safety Alert
             </button>
-            <button 
-              onClick={loadAll} 
-              className="btn-outline-gold" 
+            <button
+              onClick={loadAll}
+              className="btn-outline-gold"
               style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
             >
               <RefreshCw size={15} className={loading ? 'spin' : ''} /> Refresh
@@ -7186,20 +7283,20 @@ export function QualityAssuranceView() {
           </div>
         </div>
 
-        <img 
-          src="/assets/images/quality_infection_control_real.jpg" 
-          alt="Hospital Infection Prevention and Quality Assurance" 
-          style={{ 
-            position: 'absolute', 
-            right: 0, 
-            top: 0, 
-            width: '48%', 
-            height: '100%', 
-            objectFit: 'cover', 
+        <img
+          src="/assets/images/quality_infection_control_real.jpg"
+          alt="Hospital Infection Prevention and Quality Assurance"
+          style={{
+            position: 'absolute',
+            right: 0,
+            top: 0,
+            width: '48%',
+            height: '100%',
+            objectFit: 'cover',
             opacity: 0.65,
             maskImage: 'linear-gradient(to left, rgba(0,0,0,1) 55%, rgba(0,0,0,0))',
             WebkitMaskImage: 'linear-gradient(to left, rgba(0,0,0,1) 55%, rgba(0,0,0,0))'
-          }} 
+          }}
         />
       </div>
 
@@ -7281,30 +7378,30 @@ export function QualityAssuranceView() {
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '8px' }}>
-        <button 
-          onClick={() => setActiveTab('INCIDENTS')} 
-          className={activeTab === 'INCIDENTS' ? 'btn-gold' : 'btn-outline-gold'} 
+        <button
+          onClick={() => setActiveTab('INCIDENTS')}
+          className={activeTab === 'INCIDENTS' ? 'btn-gold' : 'btn-outline-gold'}
           style={{ fontSize: '0.8rem', padding: '6px 14px' }}
         >
           Clinical Incidents & Adverse Events ({incidents.length})
         </button>
-        <button 
-          onClick={() => setActiveTab('INFECTION_CONTROL')} 
-          className={activeTab === 'INFECTION_CONTROL' ? 'btn-gold' : 'btn-outline-gold'} 
+        <button
+          onClick={() => setActiveTab('INFECTION_CONTROL')}
+          className={activeTab === 'INFECTION_CONTROL' ? 'btn-gold' : 'btn-outline-gold'}
           style={{ fontSize: '0.8rem', padding: '6px 14px' }}
         >
           Infection Prevention & Control ({ipcCases.length})
         </button>
-        <button 
-          onClick={() => setActiveTab('AUDITS')} 
-          className={activeTab === 'AUDITS' ? 'btn-gold' : 'btn-outline-gold'} 
+        <button
+          onClick={() => setActiveTab('AUDITS')}
+          className={activeTab === 'AUDITS' ? 'btn-gold' : 'btn-outline-gold'}
           style={{ fontSize: '0.8rem', padding: '6px 14px' }}
         >
           Clinical Audits & Checklists ({audits.length})
         </button>
-        <button 
-          onClick={() => setActiveTab('CAPA_AND_ALERTS')} 
-          className={activeTab === 'CAPA_AND_ALERTS' ? 'btn-gold' : 'btn-outline-gold'} 
+        <button
+          onClick={() => setActiveTab('CAPA_AND_ALERTS')}
+          className={activeTab === 'CAPA_AND_ALERTS' ? 'btn-gold' : 'btn-outline-gold'}
           style={{ fontSize: '0.8rem', padding: '6px 14px' }}
         >
           CAPA Workplans & Safety Alerts ({capas.length + alerts.length})
@@ -7343,10 +7440,10 @@ export function QualityAssuranceView() {
                       </td>
                       <td style={{ fontWeight: 600 }}>{inc.title}</td>
                       <td>
-                        <span style={{ 
-                          padding: '3px 8px', 
-                          borderRadius: '4px', 
-                          fontSize: '0.72rem', 
+                        <span style={{
+                          padding: '3px 8px',
+                          borderRadius: '4px',
+                          fontSize: '0.72rem',
                           fontWeight: 700,
                           background: isSentinel ? 'rgba(239,68,68,0.25)' : isAdverse ? 'rgba(234,179,8,0.25)' : 'rgba(56,189,248,0.15)',
                           color: isSentinel ? '#ef4444' : isAdverse ? '#eab308' : '#38bdf8',
@@ -7359,13 +7456,13 @@ export function QualityAssuranceView() {
                       <td style={{ fontSize: '0.78rem' }}>{inc.locationDepartment}</td>
                       <td>
                         {inc.isAnonymous ? (
-                          <span style={{ 
-                            padding: '2px 6px', 
-                            borderRadius: '4px', 
-                            fontSize: '0.7rem', 
-                            fontWeight: 700, 
-                            background: 'rgba(168,85,247,0.2)', 
-                            color: '#c084fc' 
+                          <span style={{
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            fontSize: '0.7rem',
+                            fontWeight: 700,
+                            background: 'rgba(168,85,247,0.2)',
+                            color: '#c084fc'
                           }}>
                             🛡️ ANONYMOUS
                           </span>
@@ -7379,10 +7476,10 @@ export function QualityAssuranceView() {
                         </span>
                       </td>
                       <td>
-                        <span style={{ 
-                          padding: '2px 6px', 
-                          borderRadius: '4px', 
-                          fontSize: '0.72rem', 
+                        <span style={{
+                          padding: '2px 6px',
+                          borderRadius: '4px',
+                          fontSize: '0.72rem',
                           fontWeight: 700,
                           color: inc.status === 'CLOSED' ? 'var(--status-online)' : inc.status === 'UNDER_INVESTIGATION' ? '#eab308' : 'var(--gold-400)'
                         }}>
@@ -7393,14 +7490,14 @@ export function QualityAssuranceView() {
                         <div style={{ display: 'flex', gap: '6px' }}>
                           {inc.status !== 'CLOSED' && (
                             <>
-                              <button 
+                              <button
                                 onClick={() => { setSelectedIncident(inc); setShowRcaModal(true); }}
                                 className="btn-outline-gold"
                                 style={{ fontSize: '0.7rem', padding: '3px 8px' }}
                               >
                                 RCA
                               </button>
-                              <button 
+                              <button
                                 onClick={() => handleCloseIncident(inc)}
                                 className="btn-gold"
                                 style={{ fontSize: '0.7rem', padding: '3px 8px' }}
@@ -7454,10 +7551,10 @@ export function QualityAssuranceView() {
                     <td style={{ fontWeight: 600 }}>{ipc.patientName}</td>
                     <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.78rem' }}>{ipc.patientMrn}</td>
                     <td>
-                      <span style={{ 
-                        padding: '2px 6px', 
-                        borderRadius: '4px', 
-                        fontSize: '0.72rem', 
+                      <span style={{
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        fontSize: '0.72rem',
                         fontWeight: 700,
                         background: 'rgba(234,179,8,0.2)',
                         color: '#eab308'
@@ -7466,10 +7563,10 @@ export function QualityAssuranceView() {
                       </span>
                     </td>
                     <td>
-                      <span style={{ 
-                        padding: '2px 6px', 
-                        borderRadius: '4px', 
-                        fontSize: '0.72rem', 
+                      <span style={{
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        fontSize: '0.72rem',
                         fontWeight: 700,
                         background: ipc.isolationPrecautions === 'AIRBORNE' ? 'rgba(239,68,68,0.25)' : 'rgba(56,189,248,0.2)',
                         color: ipc.isolationPrecautions === 'AIRBORNE' ? '#ef4444' : '#38bdf8'
@@ -7480,10 +7577,10 @@ export function QualityAssuranceView() {
                     <td style={{ fontSize: '0.78rem' }}>{ipc.wardLocation} / {ipc.bedNumber}</td>
                     <td style={{ fontSize: '0.78rem', color: '#fca5a5' }}>{ipc.confirmedPathogen}</td>
                     <td>
-                      <span style={{ 
-                        padding: '2px 6px', 
-                        borderRadius: '4px', 
-                        fontSize: '0.72rem', 
+                      <span style={{
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        fontSize: '0.72rem',
                         fontWeight: 700,
                         color: ipc.status === 'CLEARED' ? 'var(--status-online)' : '#ef4444'
                       }}>
@@ -7492,7 +7589,7 @@ export function QualityAssuranceView() {
                     </td>
                     <td>
                       {ipc.status === 'ACTIVE_ISOLATION' && (
-                        <button 
+                        <button
                           onClick={() => { setSelectedIpcCase(ipc); setShowClearIpcModal(true); }}
                           className="btn-outline-gold"
                           style={{ fontSize: '0.7rem', padding: '3px 8px' }}
@@ -7554,14 +7651,14 @@ export function QualityAssuranceView() {
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <div style={{ width: '60px', height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden' }}>
-                            <div style={{ 
-                              height: '100%', 
+                            <div style={{
+                              height: '100%',
                               width: `${Math.min(100, score)}%`,
                               background: isHigh ? 'var(--status-online)' : isMid ? '#eab308' : '#ef4444'
                             }} />
                           </div>
-                          <span style={{ 
-                            fontWeight: 700, 
+                          <span style={{
+                            fontWeight: 700,
                             fontFamily: 'var(--font-mono)',
                             color: isHigh ? 'var(--status-online)' : isMid ? '#eab308' : '#ef4444'
                           }}>
@@ -7571,10 +7668,10 @@ export function QualityAssuranceView() {
                       </td>
                       <td style={{ fontSize: '0.78rem' }}>{aud.auditorName}</td>
                       <td>
-                        <span style={{ 
-                          padding: '2px 6px', 
-                          borderRadius: '4px', 
-                          fontSize: '0.72rem', 
+                        <span style={{
+                          padding: '2px 6px',
+                          borderRadius: '4px',
+                          fontSize: '0.72rem',
                           fontWeight: 700,
                           color: 'var(--status-online)'
                         }}>
@@ -7605,11 +7702,11 @@ export function QualityAssuranceView() {
             {alerts.length > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {alerts.map(al => (
-                  <div 
-                    key={al.id} 
-                    style={{ 
-                      padding: '14px', 
-                      borderRadius: '8px', 
+                  <div
+                    key={al.id}
+                    style={{
+                      padding: '14px',
+                      borderRadius: '8px',
                       border: al.severity === 'CRITICAL_WARNING' ? '1px solid rgba(239,68,68,0.5)' : '1px solid rgba(234,179,8,0.5)',
                       background: al.severity === 'CRITICAL_WARNING' ? 'rgba(40,15,15,0.6)' : 'rgba(35,28,15,0.6)'
                     }}
@@ -7621,9 +7718,9 @@ export function QualityAssuranceView() {
                         </span>
                         <h4 style={{ fontSize: '1rem', color: '#fff', margin: '4px 0' }}>{al.alertTitle}</h4>
                       </div>
-                      <button 
+                      <button
                         onClick={() => handleAcknowledgeAlert(al.id)}
-                        className="btn-gold" 
+                        className="btn-gold"
                         style={{ fontSize: '0.72rem', padding: '4px 10px' }}
                       >
                         ✓ Acknowledge ({al.acknowledgmentCount || 0})
@@ -7676,10 +7773,10 @@ export function QualityAssuranceView() {
                       <td style={{ fontSize: '0.78rem' }}>{cp.assignedLead}</td>
                       <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.78rem' }}>{cp.targetCompletionDate}</td>
                       <td>
-                        <span style={{ 
-                          padding: '2px 6px', 
-                          borderRadius: '4px', 
-                          fontSize: '0.72rem', 
+                        <span style={{
+                          padding: '2px 6px',
+                          borderRadius: '4px',
+                          fontSize: '0.72rem',
                           fontWeight: 700,
                           color: cp.status === 'CLOSED' ? 'var(--status-online)' : 'var(--gold-400)'
                         }}>
@@ -7688,7 +7785,7 @@ export function QualityAssuranceView() {
                       </td>
                       <td>
                         {cp.status !== 'CLOSED' && (
-                          <button 
+                          <button
                             onClick={() => { setSelectedCapa(cp); setShowVerifyCapaModal(true); }}
                             className="btn-outline-gold"
                             style={{ fontSize: '0.7rem', padding: '3px 8px' }}

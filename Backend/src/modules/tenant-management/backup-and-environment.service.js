@@ -801,7 +801,7 @@ async function getFacilityBranding() {
                 updatedBy = parsed.updatedBy || null;
             }
         }
-    } catch (_e) {}
+    } catch (_e) { }
 
     return {
         mainSystemName: "GBS HOSPITAL MANAGEMENT SYSTEM",
@@ -839,7 +839,7 @@ async function updateFacilityBranding(data = {}, actorEmail = "Administrator") {
                 description: `Admin (${actorEmail}) updated facility hospital name to "${rawName}" while preserving permanent main system name "GBS HOSPITAL MANAGEMENT SYSTEM".`
             }
         });
-    } catch (_e) {}
+    } catch (_e) { }
 
     return payload;
 }

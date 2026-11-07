@@ -22,46 +22,46 @@ const http = require("http");
 
 
 const app =
-require("./app");
+    require("./app");
 
 
 
 const {
-connectDatabase,
-disconnectDatabase
+    connectDatabase,
+    disconnectDatabase
 }
-=
-require("./config/database");
+    =
+    require("./config/database");
 
 
 
 const {
-environment,
-validateEnvironment
+    environment,
+    validateEnvironment
 }
-=
-require("./config/environment");
+    =
+    require("./config/environment");
 
 
 
 const logger =
-require("./core/utils/logger");
+    require("./core/utils/logger");
 
 
 
 const {
-startSystemMonitor
+    startSystemMonitor
 }
-=
-require("./core/monitoring/system.monitor");
+    =
+    require("./core/monitoring/system.monitor");
 
 
 
 const {
-validateMigrationSafety
+    validateMigrationSafety
 }
-=
-require("./core/database/prisma.migration");
+    =
+    require("./core/database/prisma.migration");
 
 
 
@@ -86,26 +86,26 @@ ERROR NORMALIZER
 */
 
 
-function normalizeError(error){
+function normalizeError(error) {
 
 
-    if(!error)
-    return null;
+    if (!error)
+        return null;
 
 
 
     return {
 
         name:
-        error.name || "Error",
+            error.name || "Error",
 
 
         message:
-        error.message || String(error),
+            error.message || String(error),
 
 
         stack:
-        error.stack || null
+            error.stack || null
 
     };
 
@@ -127,10 +127,10 @@ STARTUP DISPLAY
 */
 
 
-function printStartupBanner(){
+function printStartupBanner() {
 
 
-console.log(`
+    console.log(`
 
 
 ==================================================
@@ -169,29 +169,29 @@ SERVER READY
 
 
 
-logger.info({
+    logger.info({
 
-message:
-"GBS Hospital Backend Started",
-
-
-status:
-"READY",
+        message:
+            "GBS Hospital Backend Started",
 
 
-environment:
-environment.NODE_ENV,
+        status:
+            "READY",
 
 
-host:
-environment.HOST || "0.0.0.0",
+        environment:
+            environment.NODE_ENV,
 
 
-port:
-environment.PORT
+        host:
+            environment.HOST || "0.0.0.0",
 
 
-});
+        port:
+            environment.PORT
+
+
+    });
 
 
 
@@ -212,73 +212,73 @@ START SERVER
 */
 
 
-async function start(){
+async function start() {
 
 
 
-if(started){
+    if (started) {
 
-return;
+        return;
 
-}
+    }
 
 
 
-try{
+    try {
 
 
 
-logger.info(
-"Starting GBS Hospital Backend..."
-);
+        logger.info(
+            "Starting GBS Hospital Backend..."
+        );
 
 
 
 
-/*
---------------------------------
-ENVIRONMENT
---------------------------------
-*/
+        /*
+        --------------------------------
+        ENVIRONMENT
+        --------------------------------
+        */
 
 
-validateEnvironment();
+        validateEnvironment();
 
 
 
 
 
-/*
---------------------------------
-PRISMA SAFETY
---------------------------------
-*/
+        /*
+        --------------------------------
+        PRISMA SAFETY
+        --------------------------------
+        */
 
-try {
-    await validateMigrationSafety();
-} catch (migrationErr) {
-    logger.warn({
-        message: "Migration safety check warning (continuing server startup)",
-        error: normalizeError(migrationErr)
-    });
-}
+        try {
+            await validateMigrationSafety();
+        } catch (migrationErr) {
+            logger.warn({
+                message: "Migration safety check warning (continuing server startup)",
+                error: normalizeError(migrationErr)
+            });
+        }
 
 
 
-/*
---------------------------------
-DATABASE
---------------------------------
-*/
+        /*
+        --------------------------------
+        DATABASE
+        --------------------------------
+        */
 
-try {
-    await connectDatabase();
-} catch (dbErr) {
-    logger.warn({
-        message: "Initial database connection deferred (server will continue listening and reconnect on demand)",
-        error: normalizeError(dbErr)
-    });
-}
+        try {
+            await connectDatabase();
+        } catch (dbErr) {
+            logger.warn({
+                message: "Initial database connection deferred (server will continue listening and reconnect on demand)",
+                error: normalizeError(dbErr)
+            });
+        }
 
 
 
@@ -287,15 +287,15 @@ try {
 
 
 
-/*
---------------------------------
-CREATE HTTP SERVER
---------------------------------
-*/
+        /*
+        --------------------------------
+        CREATE HTTP SERVER
+        --------------------------------
+        */
 
 
-server =
-http.createServer(app);
+        server =
+            http.createServer(app);
 
 
 
@@ -303,23 +303,23 @@ http.createServer(app);
 
 
 
-/*
---------------------------------
-SERVER TIMEOUT HARDENING
---------------------------------
-*/
+        /*
+        --------------------------------
+        SERVER TIMEOUT HARDENING
+        --------------------------------
+        */
 
 
-server.keepAliveTimeout =
-65000;
+        server.keepAliveTimeout =
+            65000;
 
 
-server.headersTimeout =
-66000;
+        server.headersTimeout =
+            66000;
 
 
-server.requestTimeout =
-120000;
+        server.requestTimeout =
+            120000;
 
 
 
@@ -327,54 +327,54 @@ server.requestTimeout =
 
 
 
-/*
---------------------------------
-SERVER ERROR EVENTS
---------------------------------
-*/
+        /*
+        --------------------------------
+        SERVER ERROR EVENTS
+        --------------------------------
+        */
 
 
-server.on(
+        server.on(
 
-"error",
+            "error",
 
-(error)=>{
+            (error) => {
 
 
-logger.error({
+                logger.error({
 
-message:
-"HTTP Server Error",
+                    message:
+                        "HTTP Server Error",
 
 
-error:
-normalizeError(error)
+                    error:
+                        normalizeError(error)
 
 
-});
+                });
 
 
 
-if(error.code==="EADDRINUSE"){
+                if (error.code === "EADDRINUSE") {
 
 
-logger.error(
-"Port already in use"
-);
+                    logger.error(
+                        "Port already in use"
+                    );
 
 
-shutdown(
-"PORT_ERROR"
-);
+                    shutdown(
+                        "PORT_ERROR"
+                    );
 
 
-}
+                }
 
 
 
-}
+            }
 
-);
+        );
 
 
 
@@ -384,77 +384,77 @@ shutdown(
 
 
 
-/*
---------------------------------
-START LISTENING
---------------------------------
-*/
+        /*
+        --------------------------------
+        START LISTENING
+        --------------------------------
+        */
 
 
-server.listen(
+        server.listen(
 
 
-environment.PORT,
+            environment.PORT,
 
 
-environment.HOST || "0.0.0.0",
+            environment.HOST || "0.0.0.0",
 
 
 
-()=>{
+            () => {
 
 
-started=true;
+                started = true;
 
 
 
 
 
-try{
+                try {
 
 
-startSystemMonitor();
+                    startSystemMonitor();
 
 
 
-logger.info(
-"System monitoring enabled"
-);
+                    logger.info(
+                        "System monitoring enabled"
+                    );
 
 
 
-}
+                }
 
-catch(error){
+                catch (error) {
 
 
-logger.error({
+                    logger.error({
 
-message:
-"Monitoring startup failed",
+                        message:
+                            "Monitoring startup failed",
 
-error:
-normalizeError(error)
+                        error:
+                            normalizeError(error)
 
 
-});
+                    });
 
 
-}
+                }
 
 
 
 
 
 
-printStartupBanner();
+                printStartupBanner();
 
 
 
 
-}
+            }
 
-);
+        );
 
 
 
@@ -462,30 +462,30 @@ printStartupBanner();
 
 
 
-}
+    }
 
-catch(error){
+    catch (error) {
 
 
 
-logger.error({
+        logger.error({
 
-message:
-"Fatal startup failure",
+            message:
+                "Fatal startup failure",
 
-error:
-normalizeError(error)
+            error:
+                normalizeError(error)
 
 
-});
+        });
 
 
 
-process.exit(1);
+        process.exit(1);
 
 
 
-}
+    }
 
 
 
@@ -506,79 +506,79 @@ GRACEFUL SHUTDOWN
 */
 
 
-async function shutdown(signal){
+async function shutdown(signal) {
 
 
 
-if(shuttingDown){
+    if (shuttingDown) {
 
-return;
+        return;
 
-}
+    }
 
 
 
-shuttingDown=true;
+    shuttingDown = true;
 
 
 
 
-logger.info({
+    logger.info({
 
-message:
-"Shutdown initiated",
+        message:
+            "Shutdown initiated",
 
-signal
+        signal
 
 
-});
+    });
 
 
 
 
 
-try{
+    try {
 
 
 
-if(server){
+        if (server) {
 
 
 
-await new Promise((resolve)=>{
+            await new Promise((resolve) => {
 
 
-server.close(()=>{
+                server.close(() => {
 
 
-logger.info(
-"HTTP server closed"
-);
+                    logger.info(
+                        "HTTP server closed"
+                    );
 
 
-resolve();
+                    resolve();
 
 
-});
+                });
 
 
-});
+            });
 
 
-}
+        }
 
 
 
 
 
 
-if(disconnectDatabase){
+        if (disconnectDatabase) {
 
 
-await disconnectDatabase();
+            await disconnectDatabase();
 
 
-}
+        }
 
 
 
@@ -586,41 +586,41 @@ await disconnectDatabase();
 
 
 
-logger.info({
+        logger.info({
 
-message:
-"Shutdown completed"
+            message:
+                "Shutdown completed"
 
-});
+        });
 
 
 
 
-process.exit(0);
+        process.exit(0);
 
 
 
-}
+    }
 
-catch(error){
+    catch (error) {
 
 
 
-logger.error({
+        logger.error({
 
-message:
-"Shutdown failure",
+            message:
+                "Shutdown failure",
 
-error:
-normalizeError(error)
+            error:
+                normalizeError(error)
 
-});
+        });
 
 
-process.exit(1);
+        process.exit(1);
 
 
-}
+    }
 
 
 
@@ -643,61 +643,28 @@ PROCESS PROTECTION
 
 process.on(
 
-"uncaughtException",
+    "uncaughtException",
 
-(error)=>{
-
-
-logger.error({
-
-message:
-"Uncaught Exception",
-
-error:
-normalizeError(error)
-
-});
+    (error) => {
 
 
-shutdown(
-"uncaughtException"
-);
+        logger.error({
+
+            message:
+                "Uncaught Exception",
+
+            error:
+                normalizeError(error)
+
+        });
 
 
-}
-
-);
-
-
+        shutdown(
+            "uncaughtException"
+        );
 
 
-
-
-
-process.on(
-
-"unhandledRejection",
-
-(error)=>{
-
-
-logger.error({
-
-message:
-"Unhandled Promise Rejection",
-
-error:
-normalizeError(error)
-
-});
-
-
-shutdown(
-"unhandledRejection"
-);
-
-
-}
+    }
 
 );
 
@@ -709,9 +676,42 @@ shutdown(
 
 process.on(
 
-"SIGINT",
+    "unhandledRejection",
 
-()=>shutdown("SIGINT")
+    (error) => {
+
+
+        logger.error({
+
+            message:
+                "Unhandled Promise Rejection",
+
+            error:
+                normalizeError(error)
+
+        });
+
+
+        shutdown(
+            "unhandledRejection"
+        );
+
+
+    }
+
+);
+
+
+
+
+
+
+
+process.on(
+
+    "SIGINT",
+
+    () => shutdown("SIGINT")
 
 );
 
@@ -721,9 +721,9 @@ process.on(
 
 process.on(
 
-"SIGTERM",
+    "SIGTERM",
 
-()=>shutdown("SIGTERM")
+    () => shutdown("SIGTERM")
 
 );
 

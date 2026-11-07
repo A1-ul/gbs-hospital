@@ -78,7 +78,7 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
       zIndex: 2000,
       padding: '20px'
     }}>
-      <div 
+      <div
         className="glass-panel"
         style={{
           width: '100%',
@@ -95,9 +95,9 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
         <div style={{ position: 'relative', background: '#000', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '24px', borderRight: '1px solid var(--border-gold)' }}>
           {/* Real Hospital Workspace Background for this Role */}
           <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', opacity: 0.55 }}>
-            <img 
-              src={currentRoleObj.loginBg || currentRoleObj.img} 
-              alt={currentRoleObj.dept || currentRoleObj.name} 
+            <img
+              src={currentRoleObj.loginBg || currentRoleObj.img}
+              alt={currentRoleObj.dept || currentRoleObj.name}
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               onError={(e) => { e.target.src = '/assets/images/hospital_hero_exterior.jpg'; }}
             />
@@ -120,17 +120,17 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
             {/* Real-Life Specialist Headshot Frame + Department Workspace Preview */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
               <div style={{ width: '88px', height: '88px', borderRadius: '50%', border: '2px solid var(--gold-400)', overflow: 'hidden', boxShadow: '0 4px 15px rgba(0,0,0,0.85)', flexShrink: 0 }}>
-                <img 
-                  src={currentRoleObj.img} 
-                  alt={currentRoleObj.name} 
+                <img
+                  src={currentRoleObj.img}
+                  alt={currentRoleObj.name}
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   onError={(e) => { e.target.src = '/assets/images/portrait_doctor.jpg'; }}
                 />
               </div>
               <div style={{ width: '110px', height: '74px', borderRadius: '8px', border: '1px solid var(--border-gold)', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.8)', flexShrink: 0 }}>
-                <img 
-                  src={currentRoleObj.loginBg || currentRoleObj.img} 
-                  alt={currentRoleObj.dept || currentRoleObj.name} 
+                <img
+                  src={currentRoleObj.loginBg || currentRoleObj.img}
+                  alt={currentRoleObj.dept || currentRoleObj.name}
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   onError={(e) => { e.target.src = '/assets/images/hospital_hero_exterior.jpg'; }}
                 />
@@ -147,7 +147,7 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
 
         {/* Right Side: Authentication Form */}
         <div style={{ padding: '32px', position: 'relative', background: 'rgba(26, 23, 19, 0.95)' }}>
-          <button 
+          <button
             onClick={onClose}
             style={{ position: 'absolute', top: '16px', right: '16px', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
           >
@@ -158,7 +158,7 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
             {isSignUp ? 'Request Role Account' : 'Sign In to Your Workspace'}
           </h2>
           <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '20px' }}>
-            {isSignUp 
+            {isSignUp
               ? 'Select your designated clinical or operational role. Requires Administrator approval.'
               : 'Enter your verified credentials to access authorized hospital subsystems.'}
           </p>
@@ -183,7 +183,7 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
               <label style={{ display: 'block', fontSize: '0.78rem', color: 'var(--gold-400)', fontWeight: 600, marginBottom: '6px' }}>
                 DESIGNATED ROLE *
               </label>
-              <select 
+              <select
                 value={isDeveloperEmailEntered ? 'DEVELOPER' : selectedRole}
                 onChange={(e) => setSelectedRole(e.target.value)}
                 style={{
@@ -235,10 +235,10 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '4px' }}>First Name</label>
-                  <input 
-                    type="text" 
-                    required 
-                    value={firstName} 
+                  <input
+                    type="text"
+                    required
+                    value={firstName}
                     onChange={e => setFirstName(e.target.value)}
                     placeholder="e.g. Samuel"
                     style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', fontSize: '0.85rem' }}
@@ -246,10 +246,10 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '4px' }}>Last Name</label>
-                  <input 
-                    type="text" 
-                    required 
-                    value={lastName} 
+                  <input
+                    type="text"
+                    required
+                    value={lastName}
                     onChange={e => setLastName(e.target.value)}
                     placeholder="e.g. Mensah"
                     style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', fontSize: '0.85rem' }}
@@ -262,10 +262,10 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
               <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '4px' }}>Official Email Address</label>
               <div style={{ position: 'relative' }}>
                 <Mail size={16} style={{ position: 'absolute', left: '12px', top: '10px', color: 'var(--text-dim)' }} />
-                <input 
-                  type="email" 
-                  required 
-                  value={email} 
+                <input
+                  type="email"
+                  required
+                  value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="name@gbs-hospital.org"
                   style={{ width: '100%', padding: '8px 12px 8px 36px', borderRadius: '6px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', fontSize: '0.85rem' }}
@@ -277,10 +277,10 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
               <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '4px' }}>Password</label>
               <div style={{ position: 'relative' }}>
                 <Lock size={16} style={{ position: 'absolute', left: '12px', top: '10px', color: 'var(--text-dim)' }} />
-                <input 
-                  type="password" 
-                  required 
-                  value={password} 
+                <input
+                  type="password"
+                  required
+                  value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="••••••••••••"
                   style={{ width: '100%', padding: '8px 12px 8px 36px', borderRadius: '6px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', fontSize: '0.85rem' }}
@@ -288,10 +288,10 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
               </div>
             </div>
 
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               disabled={loading}
-              className="btn-gold" 
+              className="btn-gold"
               style={{ width: '100%', justifyContent: 'center', padding: '10px', marginTop: '6px' }}
             >
               {loading ? 'Processing...' : (isSignUp ? 'Submit Registration for Approval' : 'Authenticate & Open Dashboard')}

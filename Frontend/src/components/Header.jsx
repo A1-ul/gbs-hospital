@@ -23,7 +23,7 @@ export const ROLES = [
   { id: 'FOLDER_RETRIEVER', name: 'Archivist', desc: 'Physical Archive, Shelf Retrieval', img: '/assets/images/portrait_archivist.jpg', loginBg: '/assets/images/medical_records_archive_real.jpg', dept: 'Medical Records & Physical Folder Vault' },
   { id: 'ACCOUNTANT', name: 'Accountant', desc: 'Billing, Payments, NHIS Claims', img: '/assets/images/portrait_accountant.jpg', loginBg: '/assets/images/nhia_claims_center_real.jpg', dept: 'Hospital Finance, Billing & NHIA Claims' },
   { id: 'HR_MANAGER', name: 'HR Manager', desc: 'Staff Credentials, Duty Rostering', img: '/assets/images/portrait_hr_manager.jpg', loginBg: '/assets/images/hr_medical_staff_real.jpg', dept: 'Human Resources & Clinical Credentialing' },
-  { id: 'PATIENT', name: 'Patient Portal', desc: 'Self-Service, Telemedicine', img: '/assets/images/portrait_patient.jpg', loginBg: '/assets/images/telemedicine_command_center_real.jpg', dept: 'Patient Portal & Video Telemedicine' }
+  { id: 'PATIENT', name: 'Patient Portal', desc: 'Self-Service, Appointments & Records', img: '/assets/images/portrait_patient.jpg', loginBg: '/assets/images/patient_registration_archive_real.jpg', dept: 'Patient Self-Service & Clinical Records Portal' }
 ];
 
 export default function Header({
@@ -230,14 +230,33 @@ export default function Header({
                 <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fff' }}>{currentUser.firstName} {currentUser.lastName}</div>
                 <div style={{ fontSize: '0.72rem', color: 'var(--gold-400)' }}>{currentUser.role}</div>
               </div>
+              {isDeveloperAuthenticated && (
+                <button
+                  onClick={() => onSelectRole('DEVELOPER')}
+                  className="btn-gold"
+                  style={{ padding: '6px 12px', fontSize: '0.8rem' }}
+                >
+                  <Shield size={14} /> Developer Dashboard
+                </button>
+              )}
               <button onClick={onLogout} className="btn-outline-gold" style={{ padding: '6px 12px', fontSize: '0.8rem' }}>
                 <LogOut size={14} /> Logout
               </button>
             </div>
           ) : (
-            <button onClick={onOpenLogin} className="btn-gold" style={{ padding: '8px 16px' }}>
-              <LogIn size={16} /> Sign In to Your Account
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button onClick={onOpenLogin} className="btn-gold" style={{ padding: '8px 16px' }}>
+                <LogIn size={16} /> Sign In to Your Account
+              </button>
+              <button
+                onClick={() => onSelectRole('DEVELOPER')}
+                className="btn-outline-gold"
+                style={{ padding: '8px 10px', fontSize: '0.75rem', borderColor: '#ef4444', color: '#fca5a5' }}
+                title="Restricted Root Developer Access (Requires Developer Authentication)"
+              >
+                <Lock size={14} /> Developer
+              </button>
+            </div>
           )}
 
           {/* Mandatory Step 7 Dropdown Button */}

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Video, VideoOff, Mic, MicOff, PhoneOff, PhoneCall, 
-  MapPin, ShieldAlert, Layers, Compass, Radio, Users, 
-  CheckCircle, AlertTriangle, Clock, RefreshCw, PlusCircle, 
+import {
+  Video, VideoOff, Mic, MicOff, PhoneOff, PhoneCall,
+  MapPin, ShieldAlert, Layers, Compass, Radio, Users,
+  CheckCircle, AlertTriangle, Clock, RefreshCw, PlusCircle,
   Search, Eye, FileText, Send, Sparkles, X, ChevronRight, Bed, Stethoscope, Heart
 } from 'lucide-react';
 import { api } from '../../services/api.service';
@@ -310,9 +310,9 @@ export default function TelemedicineGisView() {
       {/* Hero Header with Photographic Visual */}
       <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-amber-950 via-slate-900 to-slate-950 text-white shadow-2xl border border-amber-500/20">
         <div className="absolute inset-0 opacity-25 mix-blend-overlay">
-          <img 
-            src="/assets/images/telemedicine_command_center_real.jpg" 
-            alt="Hospital Telemedicine Command Center" 
+          <img
+            src="/assets/images/telemedicine_command_center_real.jpg"
+            alt="Hospital Telemedicine Command Center"
             className="w-full h-full object-cover"
           />
         </div>
@@ -350,15 +350,14 @@ export default function TelemedicineGisView() {
 
       {/* Global Feedback Banner */}
       {feedback && (
-        <div className={`p-4 rounded-xl border flex items-center justify-between transition-all ${
-          feedback.type === 'error' ? 'bg-red-950/40 border-red-500/30 text-red-200' :
+        <div className={`p-4 rounded-xl border flex items-center justify-between transition-all ${feedback.type === 'error' ? 'bg-red-950/40 border-red-500/30 text-red-200' :
           feedback.type === 'warning' ? 'bg-amber-950/40 border-amber-500/30 text-amber-200' :
-          'bg-emerald-950/40 border-emerald-500/30 text-emerald-200'
-        }`}>
+            'bg-emerald-950/40 border-emerald-500/30 text-emerald-200'
+          }`}>
           <div className="flex items-center gap-3">
             {feedback.type === 'error' ? <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0" /> :
-             feedback.type === 'warning' ? <ShieldAlert className="w-5 h-5 text-amber-400 flex-shrink-0" /> :
-             <CheckCircle className="w-5 h-5 text-emerald-400 flex-shrink-0" />}
+              feedback.type === 'warning' ? <ShieldAlert className="w-5 h-5 text-amber-400 flex-shrink-0" /> :
+                <CheckCircle className="w-5 h-5 text-emerald-400 flex-shrink-0" />}
             <span className="text-sm font-medium">{feedback.text}</span>
           </div>
           <button onClick={() => setFeedback(null)} className="text-slate-400 hover:text-white">
@@ -381,11 +380,10 @@ export default function TelemedicineGisView() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 transition-all ${
-                isActive 
-                  ? 'border-amber-400 text-amber-400 bg-amber-500/5' 
-                  : 'border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-700'
-              }`}
+              className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 transition-all ${isActive
+                ? 'border-amber-400 text-amber-400 bg-amber-500/5'
+                : 'border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-700'
+                }`}
             >
               <Icon className="w-4 h-4" />
               {tab.label}
@@ -430,9 +428,9 @@ export default function TelemedicineGisView() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Doctor Viewport */}
                 <div className="relative aspect-video rounded-xl bg-slate-950 border border-slate-800 overflow-hidden flex items-center justify-center">
-                  <img 
-                    src="/assets/images/telemedicine_command_center_real.jpg" 
-                    alt="Physician Feed" 
+                  <img
+                    src="/assets/images/telemedicine_command_center_real.jpg"
+                    alt="Physician Feed"
                     className="w-full h-full object-cover opacity-90"
                   />
                   <div className="absolute top-3 left-3 px-2.5 py-1 rounded bg-slate-950/80 backdrop-blur-sm text-xs font-semibold text-emerald-400 border border-slate-800">
@@ -472,14 +470,14 @@ export default function TelemedicineGisView() {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-2">
                 {/* Hardware Toggle Controls */}
                 <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-around">
-                  <button 
+                  <button
                     onClick={() => setAudioMuted(!audioMuted)}
                     className={`p-3 rounded-full transition-all ${audioMuted ? 'bg-red-500 text-white' : 'bg-slate-800 text-slate-200 hover:bg-slate-700'}`}
                     title={audioMuted ? "Unmute Microphone" : "Mute Microphone"}
                   >
                     {audioMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
                   </button>
-                  <button 
+                  <button
                     onClick={() => setVideoDisabled(!videoDisabled)}
                     className={`p-3 rounded-full transition-all ${videoDisabled ? 'bg-red-500 text-white' : 'bg-slate-800 text-slate-200 hover:bg-slate-700'}`}
                     title={videoDisabled ? "Enable Video Camera" : "Disable Video Camera"}
@@ -574,13 +572,12 @@ export default function TelemedicineGisView() {
                           {new Date(c.scheduledAt).toLocaleString()}
                         </td>
                         <td className="py-3 px-4">
-                          <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                            c.status === 'IN_CALL' ? 'bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 animate-pulse' :
+                          <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${c.status === 'IN_CALL' ? 'bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 animate-pulse' :
                             c.status === 'WAITING_ROOM' ? 'bg-amber-950/60 border border-amber-500/40 text-amber-300' :
-                            c.status === 'COMPLETED' ? 'bg-blue-950/60 border border-blue-500/40 text-blue-300' :
-                            c.status === 'CANCELLED' ? 'bg-red-950/60 border border-red-500/40 text-red-300' :
-                            'bg-slate-800 text-slate-300'
-                          }`}>
+                              c.status === 'COMPLETED' ? 'bg-blue-950/60 border border-blue-500/40 text-blue-300' :
+                                c.status === 'CANCELLED' ? 'bg-red-950/60 border border-red-500/40 text-red-300' :
+                                  'bg-slate-800 text-slate-300'
+                            }`}>
                             {c.status}
                           </span>
                         </td>
@@ -769,11 +766,10 @@ export default function TelemedicineGisView() {
               <button
                 key={fp.id}
                 onClick={() => setSelectedFloorPlan(fp)}
-                className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
-                  selectedFloorPlan?.id === fp.id
-                    ? 'bg-amber-500 text-slate-950 shadow-md'
-                    : 'bg-slate-950 border border-slate-800 text-slate-300 hover:bg-slate-800'
-                }`}
+                className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${selectedFloorPlan?.id === fp.id
+                  ? 'bg-amber-500 text-slate-950 shadow-md'
+                  : 'bg-slate-950 border border-slate-800 text-slate-300 hover:bg-slate-800'
+                  }`}
               >
                 {fp.buildingName} &bull; {fp.floorName}
               </button>
@@ -800,11 +796,10 @@ export default function TelemedicineGisView() {
                   <div key={idx} className="p-4 rounded-xl bg-slate-950 border border-slate-800 flex flex-col justify-between space-y-2">
                     <div className="flex justify-between items-start">
                       <span className="font-bold text-sm text-white">{rm.roomNumber}</span>
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
-                        rm.status === 'AVAILABLE' ? 'bg-emerald-950 text-emerald-300 border border-emerald-500/30' :
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${rm.status === 'AVAILABLE' ? 'bg-emerald-950 text-emerald-300 border border-emerald-500/30' :
                         rm.status === 'IN_USE' ? 'bg-amber-950 text-amber-300 border border-amber-500/30' :
-                        'bg-blue-950 text-blue-300 border border-blue-500/30'
-                      }`}>
+                          'bg-blue-950 text-blue-300 border border-blue-500/30'
+                        }`}>
                         {rm.status}
                       </span>
                     </div>
