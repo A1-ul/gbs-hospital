@@ -236,7 +236,7 @@ export default function VoiceBiometricsView() {
         <div className="glass-panel" style={{ padding: '16px', textAlign: 'center' }}>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Enrolled Voiceprints</div>
           <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--gold-300)', fontFamily: 'var(--font-mono)' }}>
-            {telemetry?.totalEnrolledVoiceprints ?? 1}
+            {telemetry?.totalEnrolledVoiceprints ?? 0}
           </div>
           <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>Active Acoustic Profiles</div>
         </div>
@@ -244,7 +244,7 @@ export default function VoiceBiometricsView() {
         <div className="glass-panel" style={{ padding: '16px', textAlign: 'center' }}>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Biometric Credentials</div>
           <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#38bdf8', fontFamily: 'var(--font-mono)' }}>
-            {telemetry?.totalBiometricCredentials ?? 1}
+            {telemetry?.totalBiometricCredentials ?? 0}
           </div>
           <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>Multi-Modal Credentials</div>
         </div>
@@ -252,7 +252,7 @@ export default function VoiceBiometricsView() {
         <div className="glass-panel" style={{ padding: '16px', textAlign: 'center' }}>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Verifications Today</div>
           <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--status-online)', fontFamily: 'var(--font-mono)' }}>
-            {telemetry?.totalVerifications ?? 6}
+            {telemetry?.totalVerifications ?? 0}
           </div>
           <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>Clinical Challenges</div>
         </div>
@@ -260,7 +260,7 @@ export default function VoiceBiometricsView() {
         <div className="glass-panel" style={{ padding: '16px', textAlign: 'center' }}>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Spoofs Intercepted</div>
           <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#ef4444', fontFamily: 'var(--font-mono)' }}>
-            {telemetry?.spoofsIntercepted ?? 2}
+            {telemetry?.spoofsIntercepted ?? 0}
           </div>
           <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>Replays Blocked</div>
         </div>
@@ -268,7 +268,7 @@ export default function VoiceBiometricsView() {
         <div className="glass-panel" style={{ padding: '16px', textAlign: 'center' }}>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Avg Confidence Score</div>
           <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--gold-400)', fontFamily: 'var(--font-mono)' }}>
-            {((telemetry?.averageConfidenceScore || 0.94) * 100).toFixed(1)}%
+            {((telemetry?.averageConfidenceScore ?? 0) * 100).toFixed(1)}%
           </div>
           <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>Acoustic Accuracy</div>
         </div>
@@ -453,7 +453,7 @@ export default function VoiceBiometricsView() {
                   <div style={{ background: '#12100d', padding: '10px', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
                     <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Sample Duration</div>
                     <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff' }}>
-                      {voiceprintStatus.durationSeconds || 3.8}s
+                      {voiceprintStatus.durationSeconds ?? 0}s
                     </div>
                   </div>
                 </div>
@@ -644,10 +644,10 @@ export default function VoiceBiometricsView() {
                     credentialPayload: 'ENCRYPTED_ANSI_NIST_TEMPLATE_HASH_' + Date.now(),
                     securityLevel: 'MAXIMUM_CLINICAL'
                   });
-                  alert(`Biometric credential issued: ${res.data.credentialCode}`);
+                  setFeedback({ type: 'success', msg: `Biometric credential issued: ${res.data.credentialCode}` });
                   loadAllData();
                 } catch (e) {
-                  alert(e.message);
+                  setFeedback({ type: 'error', msg: e.message });
                 }
               }}
               className="btn-gold" 
@@ -667,6 +667,7 @@ export default function VoiceBiometricsView() {
                 <th>Security Level</th>
                 <th>Status</th>
                 <th>Enrolled Date</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -692,12 +693,26 @@ export default function VoiceBiometricsView() {
                     <td style={{ color: 'var(--text-muted)' }}>
                       {new Date(c.createdAt).toLocaleDateString()}
                     </td>
+                    <td>
+                      <button
+                        onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
+                          detailType: 'VIEW_DETAILS',
+                          recordId: c.id || c.credentialCode,
+                          title: `Biometric Credential Details — ${c.credentialCode}`,
+                          payload: c
+                        })}
+                        className="btn-outline-gold"
+                        style={{ padding: '4px 8px', fontSize: '0.72rem' }}
+                      >
+                        View Details
+                      </button>
+                    </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} style={{ textAlign: 'center', padding: '20px', color: 'var(--text-dim)' }}>
-                    No hardware biometric credentials registered. Click "Register Fingerprint Template" above.
+                  <td colSpan={8} style={{ textAlign: 'center', padding: '20px', color: 'var(--text-dim)' }}>
+                    No records available. Click "Register Fingerprint Template" above.
                   </td>
                 </tr>
               )}

@@ -1287,6 +1287,8 @@ export function DeveloperControlCenterView() {
   const [envStatus, setEnvStatus] = useState(null);
   const [backups, setBackups] = useState([]);
   const [tenants, setTenants] = useState([]);
+  const [systemUsers, setSystemUsers] = useState([]);
+  const [roleCounts, setRoleCounts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionMsg, setActionMsg] = useState(null);
   const [showRegisterTenantModal, setShowRegisterTenantModal] = useState(false);
@@ -1305,19 +1307,35 @@ export function DeveloperControlCenterView() {
     subscriptionPlan: 'TRIAL'
   });
 
+  // Developer Landlord Messaging & Video Call State
+  const [msgForm, setMsgForm] = useState({ targetTenantId: '', title: '', message: '' });
+  const [broadcastForm, setBroadcastForm] = useState({ title: '', message: '' });
+  const [videoTargetId, setVideoTargetId] = useState('');
+  const [activeVideoSession, setActiveVideoSession] = useState(null);
+
   const loadData = () => {
     Promise.all([
       api.getDeveloperSummary().catch(() => null),
       api.getCountdownMatrix().catch(() => null),
       api.getDeveloperEnvironmentStatus().catch(() => null),
       api.listDeveloperBackups().catch(() => ({ backups: [] })),
-      api.getTenants().catch(() => ({ tenants: [] }))
-    ]).then(([s, c, env, bList, tList]) => {
+      api.getTenants().catch(() => ({ tenants: [] })),
+      api.getUsers().catch(() => ({ users: [] })),
+      api.getUserCountsByRole().catch(() => ({ counts: [] }))
+    ]).then(([s, c, env, bList, tList, uList, rCounts]) => {
       setSummary(s);
       setCountdown(c);
       setEnvStatus(env);
-      setBackups(bList?.backups || []);
-      setTenants(tList?.tenants || (Array.isArray(tList) ? tList : c?.countdowns || []));
+      const bArr = Array.isArray(bList) ? bList : (bList?.backups || env?.backups || []);
+      setBackups(bArr);
+      const tArr = tList?.tenants || (Array.isArray(tList) ? tList : c?.countdowns || []);
+      setTenants(tArr);
+      if (tArr.length > 0 && !msgForm.targetTenantId) {
+        setMsgForm(prev => ({ ...prev, targetTenantId: tArr[0].id || tArr[0].tenantId || '' }));
+        setVideoTargetId(tArr[0].id || tArr[0].tenantId || '');
+      }
+      setSystemUsers(uList?.users || (Array.isArray(uList) ? uList : []));
+      setRoleCounts(rCounts?.counts || rCounts?.roles || (Array.isArray(rCounts) ? rCounts : []));
       setLoading(false);
     });
   };
@@ -1352,9 +1370,36 @@ export function DeveloperControlCenterView() {
     try {
       setActionMsg({ type: 'info', msg: 'Creating full PostgreSQL database backup and computing SHA-256 verification digest...' });
       const res = await api.createDeveloperBackup({ reason: 'MANUAL_NOC_BACKUP', fixedFilename: 'pre-production-activation-backup.json' });
+      const bObj = res?.backup || res;
       setActionMsg({
         type: 'success',
-        msg: `Verified Backup Created: ${res.backup?.filename} • Records: ${res.backup?.totalRecordsBackedUp} • SHA-256: ${res.verification?.checksumSha256?.slice(0, 16)}...`
+        msg: `Verified Backup Created: ${bObj?.filename} • Records: ${bObj?.totalRecordsBackedUp} • SHA-256: ${(bObj?.checksumSha256 || '').slice(0, 16)}...`
+      });
+      loadData();
+    } catch (e) {
+      setActionMsg({ type: 'error', msg: e.message });
+    }
+  };
+
+  const handleVerifyBackup = async (filename) => {
+    try {
+      const res = await api.verifyDeveloperBackup(filename);
+      setActionMsg({
+        type: 'success',
+        msg: `Backup Integrity Verified (${filename}): Verified=${res.verified} • Records=${res.totalRecordsBackedUp} • SHA-256=${(res.checksumSha256 || '').slice(0, 16)}...`
+      });
+    } catch (e) {
+      setActionMsg({ type: 'error', msg: e.message });
+    }
+  };
+
+  const handleRestoreBackup = async (filename) => {
+    try {
+      setActionMsg({ type: 'info', msg: `Restoring database from verified backup ${filename}...` });
+      const res = await api.restoreDeveloperBackup(filename);
+      setActionMsg({
+        type: 'success',
+        msg: `Database Restored Successfully from ${filename} (${res.totalRestoredRecords ?? 0} records verified).`
       });
       loadData();
     } catch (e) {
@@ -1366,9 +1411,10 @@ export function DeveloperControlCenterView() {
     try {
       setActionMsg({ type: 'info', msg: 'Backing up database and purging development/test records while protecting system roles and accounts...' });
       const res = await api.purgeDeveloperTestData({ fixedFilename: 'pre-production-activation-backup.json' });
+      const bObj = res?.backupCreated || res?.backup;
       setActionMsg({
         type: 'success',
-        msg: `Production Data Activation Complete! Verified Backup: ${res.backup?.filename} • Purged Test Records: ${res.totalDeletedRecords}`
+        msg: `Production Data Activation Complete! Verified Backup: ${bObj?.filename} • Purged Test Records: ${res.totalDeletedRecords ?? 0} • Status: ${res.status}`
       });
       loadData();
     } catch (e) {
@@ -1390,7 +1436,7 @@ export function DeveloperControlCenterView() {
 
   const handleTenantLifecycle = async (tenantId, action) => {
     try {
-      await api.updateTenantLifecycle(tenantId, action, `NOC Developer action: ${action}`);
+      await api.updateTenantLifecycle(tenantId, action, `NOC Developer Landlord action: ${action}`);
       setActionMsg({ type: 'success', msg: `Tenant lifecycle updated: ${action}` });
       loadData();
     } catch (err) {
@@ -1398,8 +1444,84 @@ export function DeveloperControlCenterView() {
     }
   };
 
+  const handleExtendSubscription = async (tenantId, days = 30, plan = 'MONTHLY') => {
+    try {
+      await api.extendSubscription(tenantId, days, plan);
+      setActionMsg({ type: 'success', msg: `Subscription extended by +${days} days (${plan}). Countdown recalculated.` });
+      loadData();
+    } catch (err) {
+      setActionMsg({ type: 'error', msg: err.message });
+    }
+  };
+
+  const handleApproveUser = async (userId) => {
+    try {
+      await api.approveUser(userId);
+      setActionMsg({ type: 'success', msg: `System user account (${userId.slice(0, 8)}) approved and activated.` });
+      loadData();
+    } catch (err) {
+      setActionMsg({ type: 'error', msg: err.message });
+    }
+  };
+
+  const handleSendTenantMsg = async (e) => {
+    e.preventDefault();
+    if (!msgForm.targetTenantId) {
+      setActionMsg({ type: 'error', msg: 'Select a target Hospital Tenant first.' });
+      return;
+    }
+    try {
+      await api.sendTenantMessage(msgForm.targetTenantId, {
+        title: msgForm.title,
+        message: msgForm.message,
+        priority: 'HIGH'
+      });
+      setActionMsg({ type: 'success', msg: `Direct landlord message dispatched to tenant (${msgForm.targetTenantId}).` });
+      setMsgForm(prev => ({ ...prev, title: '', message: '' }));
+      loadData();
+    } catch (err) {
+      setActionMsg({ type: 'error', msg: err.message });
+    }
+  };
+
+  const handleBroadcastMsg = async (e) => {
+    e.preventDefault();
+    try {
+      const targetId = tenants[0]?.id || tenants[0]?.tenantId || 'ALL';
+      await api.sendTenantMessage(targetId, {
+        title: broadcastForm.title,
+        message: broadcastForm.message,
+        priority: 'BROADCAST_ALL'
+      });
+      setActionMsg({ type: 'success', msg: `System-wide landlord broadcast dispatched to all Hospital Tenants.` });
+      setBroadcastForm({ title: '', message: '' });
+      loadData();
+    } catch (err) {
+      setActionMsg({ type: 'error', msg: err.message });
+    }
+  };
+
+  const handleStartVideoCall = async () => {
+    const targetId = videoTargetId || tenants[0]?.id || tenants[0]?.tenantId;
+    if (!targetId) {
+      setActionMsg({ type: 'error', msg: 'Register or select a Hospital Tenant to initiate a video call.' });
+      return;
+    }
+    try {
+      const res = await api.initiateVideoCall(targetId, { reason: 'Developer Landlord Live Executive Support' });
+      setActiveVideoSession(res?.session || res);
+      setActionMsg({ type: 'success', msg: `WebRTC Video Call Session initiated with Tenant Admin (${res?.session?.roomCode || 'GBS-RTC-LIVE'}).` });
+    } catch (err) {
+      setActionMsg({ type: 'error', msg: err.message });
+    }
+  };
+
   const firstTenantCountdown = countdown?.countdowns?.[0]?.countdown || null;
   const counts = summary?.counts || {};
+  const activeEnvLabel = envStatus?.activeEnvironment || envStatus?.environment?.environmentLabel || 'DEVELOPMENT';
+  const isProdEnv = Boolean(envStatus?.isProduction || activeEnvLabel === 'PRODUCTION');
+  const dbMeta = envStatus?.databaseMetadata || {};
+  const dbHostDisplay = dbMeta.host ? `${dbMeta.host}:${dbMeta.port || '5432'}/${dbMeta.databaseName || 'gbs_hospital'}` : 'localhost:5432/gbs_hospital';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -1415,14 +1537,14 @@ export function DeveloperControlCenterView() {
           <div>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 8px', borderRadius: '4px', background: 'rgba(239, 68, 68, 0.2)', border: '1px solid #ef4444', fontSize: '0.72rem', color: '#fca5a5', fontWeight: 700, textTransform: 'uppercase' }}>
-                <Shield size={12} /> Restricted Developer Platform (NOC Authority Only)
+                <Shield size={12} /> Restricted Developer Landlord Platform (NOC Authority Only)
               </span>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 10px', borderRadius: '4px', background: envStatus?.environment?.isProduction ? 'rgba(16, 185, 129, 0.2)' : 'rgba(245, 158, 11, 0.2)', border: `1px solid ${envStatus?.environment?.isProduction ? '#10b981' : '#f59e0b'}`, fontSize: '0.72rem', color: envStatus?.environment?.isProduction ? '#6ee7b7' : '#fcd34d', fontWeight: 800 }}>
-                ACTIVE ENVIRONMENT: {envStatus?.environment?.environmentLabel || 'DEVELOPMENT'}
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 10px', borderRadius: '4px', background: isProdEnv ? 'rgba(16, 185, 129, 0.2)' : 'rgba(245, 158, 11, 0.2)', border: `1px solid ${isProdEnv ? '#10b981' : '#f59e0b'}`, fontSize: '0.72rem', color: isProdEnv ? '#6ee7b7' : '#fcd34d', fontWeight: 800 }}>
+                ACTIVE ENVIRONMENT: {activeEnvLabel}
               </span>
             </div>
             <h2 style={{ fontSize: '1.4rem', color: '#fff', fontWeight: 800 }}>
-              Developer Control Center, Environment Identification & Tenant Command Console
+              Developer Landlord Control Center, Environment Identification & Tenant Command Console
             </h2>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
               Backend-authoritative multi-tenant governance, database backup & verification, production data activation, and subscription locking.
@@ -1457,7 +1579,7 @@ export function DeveloperControlCenterView() {
               GBS Developer — Development vs. Production Data Identification & Database Protection
             </h3>
             <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              Database Host: {envStatus?.environment?.databaseHost || 'localhost:5432/gbs_hospital'} • Backup Directory: Backend/backups/ • SHA-256 Verified Protection
+              Database: {dbHostDisplay} ({dbMeta.engine || 'PostgreSQL'}) • Official Account: {envStatus?.officialCompanyEmail || 'gabosei48@gmail.com'} • Hosting: {envStatus?.cloudHostingProvider || 'Render.com'} (gbs-hospital.onrender.com)
             </p>
           </div>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -1469,7 +1591,7 @@ export function DeveloperControlCenterView() {
             </button>
             <button
               onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
-                detailType: 'SYSTEM_INFO',
+                detailType: 'VIEW_SYSTEM_INFORMATION',
                 recordId: 'ENV_DATA_IDENTIFICATION',
                 title: 'Development vs. Production Data Identification & Backup Manifest'
               })}
@@ -1481,15 +1603,15 @@ export function DeveloperControlCenterView() {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '16px' }}>
           <div style={{ padding: '12px', background: 'rgba(0,0,0,0.45)', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
             <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Active Environment</div>
             <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--gold-300)', fontFamily: 'var(--font-mono)' }}>
-              {envStatus?.environment?.environmentLabel || 'DEVELOPMENT'}
+              {activeEnvLabel}
             </div>
           </div>
           <div style={{ padding: '12px', background: 'rgba(0,0,0,0.45)', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Production Records</div>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Genuine Production Records</div>
             <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--status-online)', fontFamily: 'var(--font-mono)' }}>
               {envStatus?.summary?.totalProductionRecords ?? 0}
             </div>
@@ -1507,6 +1629,147 @@ export function DeveloperControlCenterView() {
             </div>
           </div>
         </div>
+
+        {/* Verified Database Backups & Restore Protection Table */}
+        <div style={{ marginTop: '12px' }}>
+          <h4 style={{ fontSize: '0.88rem', color: 'var(--gold-300)', marginBottom: '8px' }}>
+            Database Backup & Restore Protection Archives ({backups.length})
+          </h4>
+          {backups.length > 0 ? (
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Backup Filename</th>
+                  <th>Environment</th>
+                  <th>Records Backed Up</th>
+                  <th>Size</th>
+                  <th>SHA-256 Checksum</th>
+                  <th>Created At</th>
+                  <th>Protection Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {backups.map((bk, i) => (
+                  <tr key={bk.filename || i}>
+                    <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--gold-300)', fontWeight: 700 }}>{bk.filename}</td>
+                    <td>{bk.environment || activeEnvLabel}</td>
+                    <td style={{ fontFamily: 'var(--font-mono)' }}>{bk.totalRecordsBackedUp ?? 0}</td>
+                    <td>{bk.sizeBytes ? `${(bk.sizeBytes / 1024).toFixed(1)} KB` : '—'}</td>
+                    <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--status-online)' }}>
+                      {bk.checksumSha256 ? `${bk.checksumSha256.slice(0, 16)}...` : 'Verified'}
+                    </td>
+                    <td style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      {bk.createdAt ? new Date(bk.createdAt).toLocaleString() : '—'}
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                        <button onClick={() => handleVerifyBackup(bk.filename)} className="btn-outline-gold" style={{ padding: '3px 8px', fontSize: '0.7rem' }}>
+                          Verify SHA-256
+                        </button>
+                        <button onClick={() => handleRestoreBackup(bk.filename)} className="btn-gold" style={{ padding: '3px 8px', fontSize: '0.7rem' }}>
+                          Restore Backup
+                        </button>
+                        <button
+                          onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
+                            detailType: 'VIEW_SYSTEM_INFORMATION',
+                            recordId: bk.filename,
+                            title: `Database Backup Archive — ${bk.filename}`,
+                            payload: bk
+                          })}
+                          className="btn-outline-gold"
+                          style={{ padding: '3px 8px', fontSize: '0.7rem' }}
+                        >
+                          View Details
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div style={{ padding: '14px', textAlign: 'center', color: 'var(--text-dim)', fontSize: '0.8rem' }}>
+              No backup archives listed yet. Click "1. Create & Verify Database Backup" above.
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Table-by-Table Data Source & Creation Date Inspector */}
+      <div className="glass-panel" style={{ padding: '20px', overflowX: 'auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+          <div>
+            <h3 style={{ fontSize: '1rem', color: 'var(--gold-400)', fontWeight: 700 }}>
+              Production vs. Development/Test Data Source Inspector ({envStatus?.tables?.length ?? 0} Core Tables)
+            </h3>
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+              Tracks record origin, production vs. development/test count, and latest creation timestamp across PostgreSQL tables.
+            </p>
+          </div>
+          <button
+            onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
+              detailType: 'VIEW_RECORDS',
+              recordId: 'DATABASE_TABLES_INSPECTOR',
+              title: 'PostgreSQL Database Tables & Record Provenance Inspector',
+              payload: envStatus
+            })}
+            className="btn-outline-gold"
+            style={{ fontSize: '0.75rem', padding: '5px 10px' }}
+          >
+            Open Full Data Inspector Page
+          </button>
+        </div>
+        {envStatus?.tables && envStatus.tables.length > 0 ? (
+          <div style={{ maxHeight: '260px', overflowY: 'auto' }}>
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Table / Entity</th>
+                  <th>Subsystem Module</th>
+                  <th>Total Records</th>
+                  <th>Production Source</th>
+                  <th>Dev/Test Source</th>
+                  <th>Latest Created Date</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {envStatus.tables.map(tb => (
+                  <tr key={tb.tableKey}>
+                    <td style={{ fontWeight: 700, color: '#fff' }}>{tb.label}</td>
+                    <td style={{ fontSize: '0.75rem', color: 'var(--gold-300)' }}>{tb.module}</td>
+                    <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 700 }}>{tb.totalCount ?? 0}</td>
+                    <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--status-online)' }}>{tb.productionCount ?? 0}</td>
+                    <td style={{ fontFamily: 'var(--font-mono)', color: tb.developmentTestCount > 0 ? 'var(--status-warning)' : 'var(--text-dim)' }}>
+                      {tb.developmentTestCount ?? 0}
+                    </td>
+                    <td style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      {tb.latestCreatedAt ? new Date(tb.latestCreatedAt).toLocaleString() : 'No records'}
+                    </td>
+                    <td>
+                      <button
+                        onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
+                          detailType: 'VIEW_RECORDS',
+                          recordId: tb.tableKey,
+                          title: `${tb.label} — Production & Provenance Records`,
+                          payload: tb
+                        })}
+                        className="btn-outline-gold"
+                        style={{ padding: '3px 8px', fontSize: '0.7rem' }}
+                      >
+                        View Records
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div style={{ textAlign: 'center', padding: '18px', color: 'var(--text-dim)', fontSize: '0.82rem' }}>
+            Sign in with Developer NOC authority to inspect table-by-table data provenance.
+          </div>
+        )}
       </div>
 
       {/* 10 Live Database Counts for Tenant Registration & Command Center */}
@@ -1517,7 +1780,7 @@ export function DeveloperControlCenterView() {
           </h3>
           <button
             onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
-              detailType: 'APPLICATIONS',
+              detailType: 'VIEW_APPLICATIONS',
               recordId: 'TENANT_APPLICATIONS',
               title: 'Hospital Tenant Applications & Verification Queue'
             })}
@@ -1597,9 +1860,23 @@ export function DeveloperControlCenterView() {
 
       {/* Tenant Lifecycle Command Center Table */}
       <div className="glass-panel" style={{ padding: '20px', overflowX: 'auto' }}>
-        <h3 style={{ fontSize: '1rem', color: 'var(--gold-400)', marginBottom: '12px' }}>
-          Registered Hospital Facilities & Lifecycle Command Center ({tenants.length})
-        </h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+          <h3 style={{ fontSize: '1rem', color: 'var(--gold-400)' }}>
+            Registered Hospital Facilities & Landlord Lifecycle Command Center ({tenants.length})
+          </h3>
+          <button
+            onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
+              detailType: 'VIEW_HOSPITAL_INFORMATION',
+              recordId: 'ALL_TENANTS',
+              title: 'Registered Hospital Facilities & Subscriptions Directory',
+              payload: tenants
+            })}
+            className="btn-outline-gold"
+            style={{ fontSize: '0.75rem', padding: '5px 10px' }}
+          >
+            View Hospital Information Page
+          </button>
+        </div>
         {tenants.length > 0 ? (
           <table className="data-table">
             <thead>
@@ -1610,49 +1887,151 @@ export function DeveloperControlCenterView() {
                 <th>Status</th>
                 <th>Lock State</th>
                 <th>Countdown</th>
-                <th>Command Actions</th>
+                <th>Landlord Command Actions</th>
               </tr>
             </thead>
             <tbody>
-              {tenants.map(t => (
-                <tr key={t.id || t.tenantId}>
-                  <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--gold-300)' }}>{t.tenantCode}</td>
-                  <td style={{ fontWeight: 700, color: '#fff' }}>{t.institutionName}</td>
-                  <td>{t.subscriptionPlan}</td>
-                  <td>{t.subscriptionStatus || t.onboardingStatus}</td>
-                  <td style={{ color: t.isLocked ? 'var(--status-danger)' : 'var(--status-online)', fontWeight: 700 }}>
-                    {t.isLocked ? 'LOCKED' : 'UNLOCKED'}
+              {tenants.map(t => {
+                const tid = t.id || t.tenantId;
+                return (
+                  <tr key={tid}>
+                    <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--gold-300)' }}>{t.tenantCode}</td>
+                    <td style={{ fontWeight: 700, color: '#fff' }}>{t.institutionName || t.name}</td>
+                    <td>{t.subscriptionPlan}</td>
+                    <td>{t.subscriptionStatus || t.onboardingStatus}</td>
+                    <td style={{ color: t.isLocked ? 'var(--status-danger)' : 'var(--status-online)', fontWeight: 700 }}>
+                      {t.isLocked ? 'LOCKED' : 'UNLOCKED'}
+                    </td>
+                    <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem' }}>
+                      {t.countdown ? `${t.countdown.days}d ${t.countdown.hours}h ${t.countdown.minutes}m` : '—'}
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                        <button
+                          onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
+                            detailType: 'VIEW_HOSPITAL_INFORMATION',
+                            recordId: tid,
+                            title: `Hospital Facility Information — ${t.institutionName || t.name}`,
+                            payload: t
+                          })}
+                          className="btn-outline-gold"
+                          style={{ padding: '3px 7px', fontSize: '0.7rem' }}
+                        >
+                          View Details
+                        </button>
+                        <button onClick={() => api.approveTenant(tid).then(loadData)} className="btn-gold" style={{ padding: '3px 7px', fontSize: '0.7rem' }}>
+                          Approve
+                        </button>
+                        <button onClick={() => handleTenantLifecycle(tid, 'ACTIVATE')} className="btn-outline-gold" style={{ padding: '3px 7px', fontSize: '0.7rem' }}>
+                          Activate
+                        </button>
+                        <button onClick={() => handleExtendSubscription(tid, 30, 'MONTHLY')} className="btn-outline-gold" style={{ padding: '3px 7px', fontSize: '0.7rem' }}>
+                          +30d Sub
+                        </button>
+                        <button onClick={() => handleTenantLifecycle(tid, 'SUSPEND')} className="btn-outline-gold" style={{ padding: '3px 7px', fontSize: '0.7rem' }}>
+                          Suspend
+                        </button>
+                        {t.isLocked ? (
+                          <button onClick={() => handleUnlock(tid)} className="btn-gold" style={{ padding: '3px 7px', fontSize: '0.7rem' }}>
+                            Unlock
+                          </button>
+                        ) : (
+                          <button onClick={() => handleLock(tid)} className="btn-danger" style={{ padding: '3px 7px', fontSize: '0.7rem' }}>
+                            Lock
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        ) : (
+          <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-dim)', fontSize: '0.85rem' }}>
+            No records available. Click "Register Hospital Facility" to onboard a hospital tenant.
+          </div>
+        )}
+      </div>
+
+      {/* System Users & Role Registry (Developer Dashboard -> System Users -> User Details) */}
+      <div className="glass-panel" style={{ padding: '20px', overflowX: 'auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+          <div>
+            <h3 style={{ fontSize: '1rem', color: 'var(--gold-400)', fontWeight: 700 }}>
+              System Users & Role Registry ({systemUsers.length} Users)
+            </h3>
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+              Live PostgreSQL user accounts across all 17 hospital roles. Click "View Profile" or "View Details" to open the dedicated User Details page.
+            </p>
+          </div>
+          <button
+            onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
+              detailType: 'VIEW_PROFILE',
+              recordId: 'SYSTEM_USERS_DIRECTORY',
+              title: 'System Users & Hospital Role Directory',
+              payload: { users: systemUsers, roleCounts }
+            })}
+            className="btn-outline-gold"
+            style={{ fontSize: '0.75rem', padding: '5px 10px' }}
+          >
+            View All Users Page
+          </button>
+        </div>
+
+        {systemUsers.length > 0 ? (
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Full Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Created At</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {systemUsers.map(u => (
+                <tr key={u.id}>
+                  <td style={{ fontWeight: 700, color: '#fff' }}>{u.firstName} {u.lastName}</td>
+                  <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.78rem', color: 'var(--gold-300)' }}>{u.email}</td>
+                  <td>{u.role?.code || u.role?.name || u.role || 'STAFF'}</td>
+                  <td style={{ color: u.active !== false ? 'var(--status-online)' : 'var(--status-warning)', fontWeight: 700 }}>
+                    {u.active !== false ? 'ACTIVE' : 'PENDING_APPROVAL'}
                   </td>
-                  <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem' }}>
-                    {t.countdown ? `${t.countdown.days}d ${t.countdown.hours}h ${t.countdown.minutes}m` : '—'}
+                  <td style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                    {u.createdAt ? new Date(u.createdAt).toLocaleString() : '—'}
                   </td>
                   <td>
-                    <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                       <button
                         onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
-                          detailType: 'HOSPITAL_INFO',
-                          recordId: t.id || t.tenantId,
-                          title: `Hospital Facility Information — ${t.institutionName}`,
-                          payload: t
+                          detailType: 'VIEW_PROFILE',
+                          recordId: u.id,
+                          title: `User Profile & Security Dossier — ${u.email}`,
+                          payload: u
                         })}
                         className="btn-outline-gold"
-                        style={{ padding: '3px 7px', fontSize: '0.7rem' }}
+                        style={{ padding: '3px 8px', fontSize: '0.7rem' }}
+                      >
+                        View Profile
+                      </button>
+                      <button
+                        onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
+                          detailType: 'VIEW_DETAILS',
+                          recordId: u.id,
+                          title: `System User Details — ${u.firstName || ''} ${u.lastName || ''}`,
+                          payload: u
+                        })}
+                        className="btn-outline-gold"
+                        style={{ padding: '3px 8px', fontSize: '0.7rem' }}
                       >
                         View Details
                       </button>
-                      <button onClick={() => api.approveTenant(t.id || t.tenantId).then(loadData)} className="btn-gold" style={{ padding: '3px 7px', fontSize: '0.7rem' }}>
-                        Approve
-                      </button>
-                      <button onClick={() => handleTenantLifecycle(t.id || t.tenantId, 'SUSPEND')} className="btn-outline-gold" style={{ padding: '3px 7px', fontSize: '0.7rem' }}>
-                        Suspend
-                      </button>
-                      {t.isLocked ? (
-                        <button onClick={() => handleUnlock(t.id || t.tenantId)} className="btn-gold" style={{ padding: '3px 7px', fontSize: '0.7rem' }}>
-                          Unlock
-                        </button>
-                      ) : (
-                        <button onClick={() => handleLock(t.id || t.tenantId)} className="btn-danger" style={{ padding: '3px 7px', fontSize: '0.7rem' }}>
-                          Lock
+                      {u.active === false && (
+                        <button onClick={() => handleApproveUser(u.id)} className="btn-gold" style={{ padding: '3px 8px', fontSize: '0.7rem' }}>
+                          Approve User
                         </button>
                       )}
                     </div>
@@ -1662,10 +2041,149 @@ export function DeveloperControlCenterView() {
             </tbody>
           </table>
         ) : (
-          <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-dim)', fontSize: '0.85rem' }}>
-            No hospital tenant records available. Click "Register Hospital Facility" to onboard a facility.
+          <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-dim)', fontSize: '0.82rem' }}>
+            No records available.
           </div>
         )}
+      </div>
+
+      {/* Tenant Communication & Video Call (Developer Landlord Panel matching Blueprint) */}
+      <div className="glass-panel" style={{ padding: '20px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+          <h3 style={{ fontSize: '1rem', color: 'var(--gold-400)', fontWeight: 700 }}>
+            Tenant Communication & Video Call (Developer Landlord Authority)
+          </h3>
+          <button
+            onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
+              detailType: 'VIEW_HISTORY',
+              recordId: 'DEVELOPER_COMMUNICATIONS',
+              title: 'Developer Landlord Tenant Messages & Video Call History'
+            })}
+            className="btn-outline-gold"
+            style={{ fontSize: '0.75rem', padding: '5px 10px' }}
+          >
+            View Communication History Page
+          </button>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+          {/* Send Message to Specific Tenant */}
+          <form onSubmit={handleSendTenantMsg} style={{ background: '#12100d', padding: '16px', borderRadius: '6px', border: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--gold-300)' }}>Send Message to Tenant</div>
+            <select
+              value={msgForm.targetTenantId}
+              onChange={e => setMsgForm({ ...msgForm, targetTenantId: e.target.value })}
+              style={{ padding: '8px', background: '#0a0907', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
+            >
+              <option value="">Select Hospital Tenant...</option>
+              {tenants.map(t => (
+                <option key={t.id || t.tenantId} value={t.id || t.tenantId}>
+                  {t.institutionName || t.name} ({t.tenantCode})
+                </option>
+              ))}
+            </select>
+            <input
+              required
+              type="text"
+              placeholder="Message Title"
+              value={msgForm.title}
+              onChange={e => setMsgForm({ ...msgForm, title: e.target.value })}
+              style={{ padding: '8px', background: '#0a0907', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
+            />
+            <textarea
+              required
+              rows={3}
+              placeholder="Type your message here..."
+              value={msgForm.message}
+              onChange={e => setMsgForm({ ...msgForm, message: e.target.value })}
+              style={{ padding: '8px', background: '#0a0907', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
+            />
+            <button type="submit" className="btn-gold" style={{ alignSelf: 'flex-end' }}>
+              <Send size={14} /> Send Message
+            </button>
+          </form>
+
+          {/* Send Message to All Tenants */}
+          <form onSubmit={handleBroadcastMsg} style={{ background: '#12100d', padding: '16px', borderRadius: '6px', border: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--gold-300)' }}>Send Message to All Tenants</div>
+            <input
+              required
+              type="text"
+              placeholder="Broadcast Title"
+              value={broadcastForm.title}
+              onChange={e => setBroadcastForm({ ...broadcastForm, title: e.target.value })}
+              style={{ padding: '8px', background: '#0a0907', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
+            />
+            <textarea
+              required
+              rows={4}
+              placeholder="Type system-wide broadcast message here..."
+              value={broadcastForm.message}
+              onChange={e => setBroadcastForm({ ...broadcastForm, message: e.target.value })}
+              style={{ padding: '8px', background: '#0a0907', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
+            />
+            <button type="submit" className="btn-gold" style={{ alignSelf: 'flex-end' }}>
+              <Bell size={14} /> Send to All
+            </button>
+          </form>
+
+          {/* Video Call with Tenant Admin */}
+          <div style={{ background: '#12100d', padding: '16px', borderRadius: '6px', border: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--gold-300)' }}>Video Call with Tenant Admin</div>
+            <select
+              value={videoTargetId}
+              onChange={e => setVideoTargetId(e.target.value)}
+              style={{ padding: '8px', background: '#0a0907', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
+            >
+              <option value="">Select Tenant Admin...</option>
+              {tenants.map(t => (
+                <option key={t.id || t.tenantId} value={t.id || t.tenantId}>
+                  {t.institutionName || t.name} — {t.adminName || 'Hospital Admin'}
+                </option>
+              ))}
+            </select>
+            <div style={{ position: 'relative', height: '120px', borderRadius: '6px', overflow: 'hidden', border: '1px solid var(--border-gold)' }}>
+              <img src="/assets/images/telemedicine_command_center_real.jpg" alt="Tenant Video Feed" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <div style={{ position: 'absolute', bottom: '6px', left: '8px', background: 'rgba(0,0,0,0.75)', padding: '2px 8px', borderRadius: '4px', fontSize: '0.7rem', color: 'var(--status-online)' }}>
+                {activeVideoSession ? `LIVE: ${activeVideoSession.roomCode || 'CONNECTED'}` : 'WebRTC Channel Standby'}
+              </div>
+            </div>
+            <button type="button" onClick={handleStartVideoCall} className="btn-gold" style={{ width: '100%', justifyContent: 'center' }}>
+              <Video size={14} /> Start Live Video Call
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Central GBS Company GitHub & Render Hosting Policy Registry */}
+      <div className="glass-panel" style={{ padding: '20px', border: '1px solid var(--border-subtle)' }}>
+        <h3 style={{ fontSize: '0.95rem', color: 'var(--gold-400)', fontWeight: 700, marginBottom: '10px' }}>
+          Central GBS Company GitHub & Render Continuous Deployment Registry
+        </h3>
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>System Name</th>
+              <th>Official GBS Account</th>
+              <th>Render Service Name</th>
+              <th>Live Website Address</th>
+              <th>Cloud Hosting Provider</th>
+              <th>Database Status</th>
+              <th>Deployment Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style={{ fontWeight: 700, color: '#fff' }}>GBS Hospital Management System</td>
+              <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--gold-300)' }}>gabosei48@gmail.com</td>
+              <td style={{ fontFamily: 'var(--font-mono)' }}>gbs-hospital</td>
+              <td style={{ fontFamily: 'var(--font-mono)', color: '#38bdf8' }}>https://gbs-hospital.onrender.com</td>
+              <td>Render.com (Exclusive)</td>
+              <td style={{ color: 'var(--status-online)', fontWeight: 700 }}>PostgreSQL Connected</td>
+              <td style={{ color: 'var(--status-online)', fontWeight: 700 }}>CI/CD Auto-Deploy Ready</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       {/* Register Tenant Modal */}
@@ -1858,8 +2376,8 @@ export function EmergencyAmbulanceView() {
                     </span>
                   </td>
                   <td style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{a.latitude?.toFixed(4)}° N, {a.longitude?.toFixed(4)}° W</td>
-                  <td style={{ fontFamily: 'var(--font-mono)' }}>{a.currentSpeedKmh || 0} km/h</td>
-                  <td>{a.fuelLevelPercent || 100}%</td>
+                  <td style={{ fontFamily: 'var(--font-mono)' }}>{a.currentSpeedKmh ?? 0} km/h</td>
+                  <td>{a.fuelLevelPercent ?? 0}%</td>
                   <td style={{ fontSize: '0.78rem' }}>{a.assignedDriver || 'On Duty'} / {a.assignedParamedic || 'ALS Paramedic'}</td>
                 </tr>
               ))}
@@ -5418,7 +5936,7 @@ export function HRManagementView() {
             </button>
           </div>
           <span style={{ fontSize: '0.75rem', color: 'var(--gold-300)' }}>
-            Compliance Rate: <strong>{stats?.credentialComplianceRate ?? 100}%</strong>
+            Compliance Rate: <strong>{stats?.credentialComplianceRate ?? 0}%</strong>
           </span>
         </div>
       </div>
@@ -6658,10 +7176,10 @@ export function QualityAssuranceView() {
         <div className="glass-panel" style={{ padding: '16px', border: '1px solid var(--border-gold-strong)' }}>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Hospital Safety Index</div>
           <div style={{ fontSize: '1.7rem', fontWeight: 800, color: 'var(--gold-400)', marginTop: '4px' }}>
-            {stats.hospitalSafetyIndex || 100}%
+            {stats.hospitalSafetyIndex ?? 0}%
           </div>
           <div style={{ fontSize: '0.72rem', color: 'var(--status-online)', marginTop: '4px' }}>
-            {stats.safetyRating ? stats.safetyRating.replace(/_/g, ' ') : 'Grade A (Exemplary)'}
+            {stats.safetyRating ? stats.safetyRating.replace(/_/g, ' ') : 'Awaiting Audit Data'}
           </div>
         </div>
 

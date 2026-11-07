@@ -923,12 +923,30 @@ export default function NhiaClaimsView() {
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '14px' }}>
               <button 
                 onClick={() => {
-                  navigator.clipboard.writeText(eclaimsPayload.xmlPayload);
-                  alert('E-Claims XML copied to clipboard');
+                  if (navigator.clipboard) {
+                    navigator.clipboard.writeText(eclaimsPayload.xmlPayload);
+                  }
+                  setFeedback({ type: 'success', msg: 'E-Claims XML payload copied to clipboard.' });
                 }} 
                 className="btn-outline-gold"
               >
                 Copy XML Payload
+              </button>
+              <button
+                onClick={() => {
+                  setShowPayloadModal(false);
+                  if (window.gbsNavigateDetail) {
+                    window.gbsNavigateDetail({
+                      detailType: 'VIEW_REPORTS',
+                      recordId: eclaimsPayload.batchNumber || 'ECLAIMS_XML',
+                      title: `NHIA E-Claims XML Transmission Dossier — ${eclaimsPayload.batchNumber || ''}`,
+                      payload: eclaimsPayload
+                    });
+                  }
+                }}
+                className="btn-outline-gold"
+              >
+                Open Dedicated Page
               </button>
               <button onClick={() => setShowPayloadModal(false)} className="btn-gold">Close</button>
             </div>

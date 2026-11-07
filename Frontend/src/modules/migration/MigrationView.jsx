@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Database, UploadCloud, RefreshCw, CheckCircle, AlertTriangle, 
-  RotateCcw, FileText, Settings, ArrowRight, Play, Eye, 
+import {
+  Database, UploadCloud, RefreshCw, CheckCircle, AlertTriangle,
+  RotateCcw, FileText, Settings, ArrowRight, Play, Eye,
   Layers, ShieldAlert, Cpu, Download, Sparkles, Filter, X, ChevronRight
 } from 'lucide-react';
 import { api } from '../../services/api.service';
@@ -100,13 +100,13 @@ export default function MigrationView() {
       if (res && res.success) {
         setActiveJob(res.data.job);
         setDetectedHeaders(res.data.detectedHeaders || []);
-        
+
         // Auto-guess column mappings based on entity requirements
         const spec = catalogs.targetEntities[uploadForm.targetEntity];
         const initialMap = {};
         if (spec && spec.fields) {
           spec.fields.forEach(f => {
-            const matchedHeader = res.data.detectedHeaders.find(h => 
+            const matchedHeader = res.data.detectedHeaders.find(h =>
               h.toLowerCase() === f.key.toLowerCase() ||
               h.toLowerCase().includes(f.key.toLowerCase()) ||
               f.key.toLowerCase().includes(h.toLowerCase())
@@ -254,9 +254,9 @@ export default function MigrationView() {
       {/* Hero Header with Photographic Visual */}
       <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-amber-950 via-slate-900 to-slate-950 text-white shadow-2xl border border-amber-500/20">
         <div className="absolute inset-0 opacity-25 mix-blend-overlay">
-          <img 
-            src="/assets/images/migration_data_center_real.jpg" 
-            alt="Hospital Data Migration Center" 
+          <img
+            src="/assets/images/migration_data_center_real.jpg"
+            alt="Hospital Data Migration Center"
             className="w-full h-full object-cover"
           />
         </div>
@@ -294,15 +294,14 @@ export default function MigrationView() {
 
       {/* Global Feedback Banner */}
       {feedback && (
-        <div className={`p-4 rounded-xl border flex items-center justify-between transition-all ${
-          feedback.type === 'error' ? 'bg-red-950/40 border-red-500/30 text-red-200' :
-          feedback.type === 'success' ? 'bg-emerald-950/40 border-emerald-500/30 text-emerald-200' :
-          'bg-amber-950/40 border-amber-500/30 text-amber-200'
-        }`}>
+        <div className={`p-4 rounded-xl border flex items-center justify-between transition-all ${feedback.type === 'error' ? 'bg-red-950/40 border-red-500/30 text-red-200' :
+            feedback.type === 'success' ? 'bg-emerald-950/40 border-emerald-500/30 text-emerald-200' :
+              'bg-amber-950/40 border-amber-500/30 text-amber-200'
+          }`}>
           <div className="flex items-center gap-3">
             {feedback.type === 'error' ? <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0" /> :
-             feedback.type === 'success' ? <CheckCircle className="w-5 h-5 text-emerald-400 flex-shrink-0" /> :
-             <Sparkles className="w-5 h-5 text-amber-400 flex-shrink-0" />}
+              feedback.type === 'success' ? <CheckCircle className="w-5 h-5 text-emerald-400 flex-shrink-0" /> :
+                <Sparkles className="w-5 h-5 text-amber-400 flex-shrink-0" />}
             <span className="text-sm font-medium">{feedback.text}</span>
           </div>
           <button onClick={() => setFeedback(null)} className="text-slate-400 hover:text-white">
@@ -325,11 +324,10 @@ export default function MigrationView() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 transition-all ${
-                isActive 
-                  ? 'border-amber-400 text-amber-400 bg-amber-500/5' 
+              className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 transition-all ${isActive
+                  ? 'border-amber-400 text-amber-400 bg-amber-500/5'
                   : 'border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-700'
-              }`}
+                }`}
             >
               <Icon className="w-4 h-4" />
               {tab.label}
@@ -352,20 +350,18 @@ export default function MigrationView() {
               const isCurrent = wizardStep === step.num;
               const isDone = wizardStep > step.num;
               return (
-                <div 
+                <div
                   key={step.num}
-                  className={`p-4 rounded-xl border transition-all ${
-                    isCurrent ? 'bg-amber-950/20 border-amber-500/50 shadow-md shadow-amber-500/10' :
-                    isDone ? 'bg-slate-900/60 border-emerald-500/40 text-slate-300' :
-                    'bg-slate-900/40 border-slate-800 text-slate-500'
-                  }`}
+                  className={`p-4 rounded-xl border transition-all ${isCurrent ? 'bg-amber-950/20 border-amber-500/50 shadow-md shadow-amber-500/10' :
+                      isDone ? 'bg-slate-900/60 border-emerald-500/40 text-slate-300' :
+                        'bg-slate-900/40 border-slate-800 text-slate-500'
+                    }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
-                      isCurrent ? 'bg-amber-500 text-slate-950' :
-                      isDone ? 'bg-emerald-500 text-slate-950' :
-                      'bg-slate-800 text-slate-400'
-                    }`}>
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${isCurrent ? 'bg-amber-500 text-slate-950' :
+                        isDone ? 'bg-emerald-500 text-slate-950' :
+                          'bg-slate-800 text-slate-400'
+                      }`}>
                       {isDone ? <CheckCircle className="w-4 h-4" /> : step.num}
                     </div>
                     <div>
@@ -660,11 +656,10 @@ export default function MigrationView() {
                         <tr key={item.id} className="hover:bg-slate-800/40 font-mono">
                           <td className="py-2.5 px-3 text-slate-400">#{item.rowNumber}</td>
                           <td className="py-2.5 px-3">
-                            <span className={`px-2 py-0.5 rounded text-[11px] font-sans font-semibold ${
-                              item.status === 'VALID' ? 'bg-emerald-950/60 border border-emerald-500/40 text-emerald-300' :
-                              item.status === 'DUPLICATE' ? 'bg-amber-950/60 border border-amber-500/40 text-amber-300' :
-                              'bg-red-950/60 border border-red-500/40 text-red-300'
-                            }`}>
+                            <span className={`px-2 py-0.5 rounded text-[11px] font-sans font-semibold ${item.status === 'VALID' ? 'bg-emerald-950/60 border border-emerald-500/40 text-emerald-300' :
+                                item.status === 'DUPLICATE' ? 'bg-amber-950/60 border border-amber-500/40 text-amber-300' :
+                                  'bg-red-950/60 border border-red-500/40 text-red-300'
+                              }`}>
                               {item.status}
                             </span>
                           </td>
@@ -856,13 +851,12 @@ export default function MigrationView() {
                         {job.importedRecords}
                       </td>
                       <td className="py-3 px-4">
-                        <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                          job.status === 'COMPLETED' ? 'bg-emerald-950/60 border border-emerald-500/40 text-emerald-300' :
-                          job.status === 'ROLLED_BACK' ? 'bg-red-950/60 border border-red-500/40 text-red-300' :
-                          job.status === 'APPROVED' ? 'bg-blue-950/60 border border-blue-500/40 text-blue-300' :
-                          job.status === 'PROCESSING' ? 'bg-purple-950/60 border border-purple-500/40 text-purple-300 animate-pulse' :
-                          'bg-amber-950/60 border border-amber-500/40 text-amber-300'
-                        }`}>
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${job.status === 'COMPLETED' ? 'bg-emerald-950/60 border border-emerald-500/40 text-emerald-300' :
+                            job.status === 'ROLLED_BACK' ? 'bg-red-950/60 border border-red-500/40 text-red-300' :
+                              job.status === 'APPROVED' ? 'bg-blue-950/60 border border-blue-500/40 text-blue-300' :
+                                job.status === 'PROCESSING' ? 'bg-purple-950/60 border border-purple-500/40 text-purple-300 animate-pulse' :
+                                  'bg-amber-950/60 border border-amber-500/40 text-amber-300'
+                          }`}>
                           {job.status}
                         </span>
                       </td>
@@ -1078,12 +1072,11 @@ export default function MigrationView() {
                       <tr key={r.id} className="font-mono hover:bg-slate-800/40">
                         <td className="py-2 px-3 text-slate-400">#{r.rowNumber}</td>
                         <td className="py-2 px-3">
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-sans font-semibold ${
-                            r.status === 'IMPORTED' ? 'bg-emerald-950/60 text-emerald-300' :
-                            r.status === 'ROLLED_BACK' ? 'bg-red-950/60 text-red-300' :
-                            r.status === 'VALID' ? 'bg-blue-950/60 text-blue-300' :
-                            'bg-amber-950/60 text-amber-300'
-                          }`}>
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-sans font-semibold ${r.status === 'IMPORTED' ? 'bg-emerald-950/60 text-emerald-300' :
+                              r.status === 'ROLLED_BACK' ? 'bg-red-950/60 text-red-300' :
+                                r.status === 'VALID' ? 'bg-blue-950/60 text-blue-300' :
+                                  'bg-amber-950/60 text-amber-300'
+                            }`}>
                             {r.status}
                           </span>
                         </td>

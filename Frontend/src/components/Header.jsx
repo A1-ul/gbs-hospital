@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Activity, Database, Shield, Users, Clock, AlertTriangle, 
+import {
+  Activity, Database, Shield, Users, Clock, AlertTriangle,
   ChevronDown, Search, PlusCircle, Bed, FlaskConical, Pill, FileText,
   UserCheck, Lock, LogIn, LogOut, Key
 } from 'lucide-react';
@@ -26,13 +26,13 @@ export const ROLES = [
   { id: 'PATIENT', name: 'Patient Portal', desc: 'Self-Service, Telemedicine', img: '/assets/images/hospital_hero_exterior.jpg' }
 ];
 
-export default function Header({ 
-  currentRole, 
-  onSelectRole, 
-  onOpenLogin, 
-  currentUser, 
+export default function Header({
+  currentRole,
+  onSelectRole,
+  onOpenLogin,
+  currentUser,
   onLogout,
-  onOpenQuickAction 
+  onOpenQuickAction
 }) {
   const [time, setTime] = useState(new Date().toLocaleTimeString());
   const [health, setHealth] = useState({ server: 'Checking...', database: 'Checking...', uptime: '0s', environment: 'DEVELOPMENT' });
@@ -175,7 +175,7 @@ export default function Header({
 
           {/* Mandatory Step 7 Dropdown Button */}
           <div style={{ position: 'relative' }}>
-            <button 
+            <button
               onClick={toggleRoleCountsDropdown}
               className="btn-outline-gold"
               style={{ padding: '8px 14px', fontSize: '0.8rem', background: showRoleCounts ? 'var(--gold-glow)' : 'transparent' }}
@@ -186,14 +186,14 @@ export default function Header({
 
             {/* Dropdown Card */}
             {showRoleCounts && (
-              <div 
-                className="glass-panel" 
-                style={{ 
-                  position: 'absolute', 
-                  right: 0, 
-                  top: '115%', 
-                  width: '380px', 
-                  zIndex: 1000, 
+              <div
+                className="glass-panel"
+                style={{
+                  position: 'absolute',
+                  right: 0,
+                  top: '115%',
+                  width: '380px',
+                  zIndex: 1000,
                   padding: '16px',
                   boxShadow: '0 12px 40px rgba(0,0,0,0.85)',
                   border: '1px solid var(--gold-400)'
@@ -218,9 +218,9 @@ export default function Header({
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
                       Per Step 7 security, role counts query PostgreSQL securely via administrator authorization.
                     </div>
-                    <button 
-                      onClick={handleAdminQuickAuth} 
-                      className="btn-gold" 
+                    <button
+                      onClick={handleAdminQuickAuth}
+                      className="btn-gold"
                       style={{ padding: '6px 14px', fontSize: '0.78rem' }}
                     >
                       <Key size={14} /> Authorize as Administrator
@@ -284,9 +284,9 @@ export default function Header({
             >
               {/* Real Life Headshot Thumbnail */}
               <div style={{ width: '32px', height: '32px', borderRadius: '50%', overflow: 'hidden', border: isActive ? '2px solid var(--gold-400)' : '1px solid var(--border-subtle)', background: '#222', flexShrink: 0 }}>
-                <img 
-                  src={role.img} 
-                  alt={role.name} 
+                <img
+                  src={role.img}
+                  alt={role.name}
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   onError={(e) => { e.target.src = '/assets/images/portrait_doctor.jpg'; }}
                 />

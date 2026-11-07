@@ -53,3 +53,4 @@ Live Production URL (https://gbs-hospital.onrender.com)
   9. `View Hospital Information` (`HOSPITAL_INFO`)
   10. `View System Information` (`SYSTEM_INFO`)
 - **Back Navigation**: Top-left `← Back` button + full browser/mobile history (`window.history.pushState` / `popstate`) + scroll restoration.
+

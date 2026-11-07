@@ -44,3 +44,4 @@ databases:
     plan: standard
     region: frankfurt
     postgresMajorVersion: "16"
+
