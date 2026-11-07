@@ -202,13 +202,37 @@ export default function UniversalDetailPage({
     return JSON.stringify(item).toLowerCase().includes(detailFilter.trim().toLowerCase());
   });
 
+  const heroImageMap = {
+    PATIENTS: '/assets/images/patient_registration_archive_real.jpg',
+    PATIENT_MPI: '/assets/images/patient_registration_archive_real.jpg',
+    CLINICAL: '/assets/images/doctor_consultation_real.jpg',
+    WARDS: '/assets/images/inpatient_ward_bed_real.jpg',
+    PHARMACY: '/assets/images/pharmacy_dispensary_real.jpg',
+    SURGERY: '/assets/images/operating_theatre_real.jpg',
+    EMERGENCY: '/assets/images/emergency_ambulance_fleet_real.jpg',
+    BLOOD_BANK: '/assets/images/blood_bank_transfusion_real.jpg',
+    MORTUARY: '/assets/images/mortuary_cold_storage_real.jpg',
+    BIOMEDICAL: '/assets/images/biomedical_engineering_equipment_real.jpg',
+    PROCUREMENT: '/assets/images/procurement_supply_chain_real.jpg',
+    HR: '/assets/images/hr_medical_staff_real.jpg',
+    QUALITY: '/assets/images/quality_infection_control_real.jpg',
+    NHIA_CLAIMS: '/assets/images/nhia_claims_center_real.jpg',
+    MIGRATION: '/assets/images/migration_data_center_real.jpg',
+    TELEMEDICINE: '/assets/images/telemedicine_command_center_real.jpg',
+    VOICE_AUTH: '/assets/images/voice_biometric_security_real.jpg',
+    DEVELOPER_NOC: '/assets/images/developer_control_center_real.jpg'
+  };
+  const detailHeroImg = heroImageMap[moduleKey] || '/assets/images/hospital_hero_exterior.jpg';
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', animation: 'fadeIn 0.2s ease-out' }}>
-      {/* Top-Left Back Button & Breadcrumb Navigation Bar */}
+      {/* Top-Left Back Button, Real-Life Department Hero Photograph & Breadcrumb Navigation Bar */}
       <div
         className="glass-panel"
         style={{
-          padding: '16px 22px',
+          position: 'relative',
+          overflow: 'hidden',
+          padding: '22px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -218,7 +242,22 @@ export default function UniversalDetailPage({
           background: 'linear-gradient(90deg, rgba(212,175,55,0.12) 0%, rgba(15,14,11,0.95) 100%)'
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+        <img
+          src={detailHeroImg}
+          alt={moduleKey}
+          style={{
+            position: 'absolute',
+            right: 0,
+            top: 0,
+            width: '45%',
+            height: '100%',
+            objectFit: 'cover',
+            opacity: 0.55,
+            maskImage: 'linear-gradient(to left, rgba(0,0,0,1) 50%, rgba(0,0,0,0))',
+            WebkitMaskImage: 'linear-gradient(to left, rgba(0,0,0,1) 50%, rgba(0,0,0,0))'
+          }}
+        />
+        <div style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
           {/* MANDATORY TOP-LEFT BACK BUTTON */}
           <button
             onClick={onBack}

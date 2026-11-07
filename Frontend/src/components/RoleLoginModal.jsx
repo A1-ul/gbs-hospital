@@ -3,11 +3,11 @@ import { X, Lock, Mail, User, Shield, AlertCircle, CheckCircle } from 'lucide-re
 import { api } from '../services/api.service';
 import { ROLES } from './Header';
 
-export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess }) {
+export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initialRole = 'DOCTOR' }) {
   if (!isOpen) return null;
 
   const [isSignUp, setIsSignUp] = useState(false);
-  const [selectedRole, setSelectedRole] = useState('DOCTOR');
+  const [selectedRole, setSelectedRole] = useState(initialRole || 'DOCTOR');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
@@ -17,7 +17,7 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess }) {
   const [error, setError] = useState(null);
   const [successMsg, setSuccessMsg] = useState(null);
 
-  const currentRoleObj = ROLES.find(r => r.id === selectedRole) || ROLES[1];
+  const currentRoleObj = ROLES.find(r => r.id === selectedRole) || ROLES[0];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -77,46 +77,56 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess }) {
           boxShadow: '0 25px 60px rgba(0,0,0,0.95)'
         }}
       >
-        {/* Left Side: Real-Life Role Imagery */}
+        {/* Left Side: Real-Life Role & Hospital Department Imagery */}
         <div style={{ position: 'relative', background: '#000', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '24px', borderRight: '1px solid var(--border-gold)' }}>
-          {/* Real Photo Background */}
-          <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', opacity: 0.45 }}>
+          {/* Real Hospital Workspace Background for this Role */}
+          <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', opacity: 0.55 }}>
             <img 
-              src={currentRoleObj.img} 
-              alt={currentRoleObj.name} 
+              src={currentRoleObj.loginBg || currentRoleObj.img} 
+              alt={currentRoleObj.dept || currentRoleObj.name} 
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               onError={(e) => { e.target.src = '/assets/images/hospital_hero_exterior.jpg'; }}
             />
-            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, #0a0907 10%, rgba(10,9,7,0.3) 100%)' }} />
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, #0a0907 8%, rgba(10,9,7,0.35) 100%)' }} />
           </div>
 
           <div style={{ position: 'relative', zIndex: 2 }}>
-            <div style={{ display: 'inline-block', padding: '4px 8px', borderRadius: '4px', background: 'var(--gold-glow)', border: '1px solid var(--gold-400)', fontSize: '0.72rem', color: 'var(--gold-300)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px' }}>
-              Authorized Access Portal
+            <div style={{ display: 'inline-block', padding: '4px 8px', borderRadius: '4px', background: 'var(--gold-glow)', border: '1px solid var(--gold-400)', fontSize: '0.7rem', color: 'var(--gold-300)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px' }}>
+              {currentRoleObj.dept || 'Authorized Hospital Portal'}
             </div>
-            <h3 style={{ fontSize: '1.4rem', color: '#fff', fontWeight: 800 }}>
-              {currentRoleObj.name}
+            <h3 style={{ fontSize: '1.45rem', color: '#fff', fontWeight: 800 }}>
+              {currentRoleObj.name} Login Portal
             </h3>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+            <p style={{ fontSize: '0.82rem', color: '#e5e7eb', marginTop: '4px' }}>
               {currentRoleObj.desc}
             </p>
           </div>
 
           <div style={{ position: 'relative', zIndex: 2 }}>
-            {/* Real Headshot circular frame */}
-            <div style={{ width: '80px', height: '80px', borderRadius: '50%', border: '2px solid var(--gold-400)', overflow: 'hidden', marginBottom: '12px', boxShadow: '0 4px 15px rgba(0,0,0,0.8)' }}>
-              <img 
-                src={currentRoleObj.img} 
-                alt={currentRoleObj.name} 
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                onError={(e) => { e.target.src = '/assets/images/portrait_doctor.jpg'; }}
-              />
+            {/* Real-Life Specialist Headshot Frame + Department Workspace Preview */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+              <div style={{ width: '88px', height: '88px', borderRadius: '50%', border: '2px solid var(--gold-400)', overflow: 'hidden', boxShadow: '0 4px 15px rgba(0,0,0,0.85)', flexShrink: 0 }}>
+                <img 
+                  src={currentRoleObj.img} 
+                  alt={currentRoleObj.name} 
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  onError={(e) => { e.target.src = '/assets/images/portrait_doctor.jpg'; }}
+                />
+              </div>
+              <div style={{ width: '110px', height: '74px', borderRadius: '8px', border: '1px solid var(--border-gold)', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.8)', flexShrink: 0 }}>
+                <img 
+                  src={currentRoleObj.loginBg || currentRoleObj.img} 
+                  alt={currentRoleObj.dept || currentRoleObj.name} 
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  onError={(e) => { e.target.src = '/assets/images/hospital_hero_exterior.jpg'; }}
+                />
+              </div>
             </div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--gold-400)', fontWeight: 600 }}>
-              GBS Zero-Trust Identity
+            <div style={{ fontSize: '0.75rem', color: 'var(--gold-400)', fontWeight: 700 }}>
+              GBS Hospital Zero-Trust Identity • {currentRoleObj.id}
             </div>
             <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>
-              RBAC Policy Enforcement • Audit Logged
+              Dedicated Role Login • RBAC Policy Enforcement • Audit Logged
             </div>
           </div>
         </div>
@@ -176,6 +186,35 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess }) {
                   <option key={r.id} value={r.id}>{r.name} — {r.desc}</option>
                 ))}
               </select>
+              {/* Visual Real-Life Role Portrait Strip for Quick Role Login Selection */}
+              <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginTop: '8px', paddingBottom: '4px' }}>
+                {ROLES.map((r) => {
+                  const active = selectedRole === r.id;
+                  return (
+                    <button
+                      type="button"
+                      key={r.id}
+                      onClick={() => setSelectedRole(r.id)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '4px 8px',
+                        borderRadius: '6px',
+                        border: active ? '1px solid var(--gold-400)' : '1px solid var(--border-subtle)',
+                        background: active ? 'var(--gold-glow)' : 'rgba(18, 16, 13, 0.85)',
+                        color: active ? 'var(--gold-300)' : '#d1d5db',
+                        cursor: 'pointer',
+                        flexShrink: 0,
+                        fontSize: '0.72rem'
+                      }}
+                    >
+                      <img src={r.img} alt={r.name} style={{ width: '22px', height: '22px', borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--gold-400)' }} />
+                      <span>{r.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {isSignUp && (

@@ -75,26 +75,46 @@ export function PatientManagementView() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      {/* Banner */}
-      <div className="glass-panel" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-        <div>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#fff' }}>Patient Registration & Master Patient Index (MPI)</h2>
-          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Enterprise identity resolution, sequential MRN issuance, and paper archive shelf tracking.</p>
-        </div>
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-          <button
-            onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
-              detailType: 'RECORDS',
-              recordId: 'MPI_REGISTRY',
-              title: 'Master Patient Index — Complete Patient Records'
-            })}
-            className="btn-outline-gold"
-          >
-            <FileText size={15} /> View Records Page
-          </button>
-          <button onClick={() => setShowRegisterModal(true)} className="btn-gold">
-            <PlusCircle size={16} /> Register New Patient
-          </button>
+      {/* Real-Life Patient Registration, MPI & Medical Records Archive Hero Banner */}
+      <div className="glass-panel" style={{ position: 'relative', height: '210px', borderRadius: '8px', overflow: 'hidden', display: 'flex', alignItems: 'flex-end', padding: '24px' }}>
+        <img
+          src="/assets/images/patient_registration_archive_real.jpg"
+          alt="Patient Registration & Medical Records Archive"
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+        />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,9,7,0.96) 20%, rgba(10,9,7,0.4) 100%)' }} />
+        <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'flex-end', flexWrap: 'wrap', gap: '12px' }}>
+          <div>
+            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--gold-400)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              1. Patient Management, Master Patient Index (MPI) & Physical Folder Vault
+            </span>
+            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#fff', marginTop: '4px' }}>
+              Patient Registration, Identity Resolution & Medical Records Archive
+            </h2>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+              Enterprise identity resolution, sequential MRN issuance, and paper archive shelf chain-of-custody tracking.
+            </p>
+          </div>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+            <img
+              src="/assets/images/medical_records_archive_real.jpg"
+              alt="Physical Archive Vault"
+              style={{ width: '96px', height: '58px', borderRadius: '6px', objectFit: 'cover', border: '1px solid var(--gold-400)' }}
+            />
+            <button
+              onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
+                detailType: 'RECORDS',
+                recordId: 'MPI_REGISTRY',
+                title: 'Master Patient Index — Complete Patient Records'
+              })}
+              className="btn-outline-gold"
+            >
+              <FileText size={15} /> View Records Page
+            </button>
+            <button onClick={() => setShowRegisterModal(true)} className="btn-gold">
+              <PlusCircle size={16} /> Register New Patient
+            </button>
+          </div>
         </div>
       </div>
 
@@ -463,7 +483,17 @@ export function ClinicalCareView() {
       {/* Real Photo Hero Banner */}
       <div className="glass-panel" style={{ position: 'relative', height: '180px', borderRadius: '8px', overflow: 'hidden', display: 'flex', alignItems: 'flex-end', padding: '24px' }}>
         <img 
-          src={activeTab === 'NURSE_TRIAGE' ? '/assets/images/nurse_triage_station.jpg' : '/assets/images/doctor_consultation_real.jpg'} 
+          src={
+            activeTab === 'NURSE_TRIAGE'
+              ? '/assets/images/nurse_triage_station.jpg'
+              : activeTab === 'LABORATORY'
+              ? '/assets/images/laboratory_pathology_real.jpg'
+              : activeTab === 'RADIOLOGY'
+              ? '/assets/images/radiology_pacs_mri_real.jpg'
+              : activeTab === 'BILLING'
+              ? '/assets/images/nhia_claims_center_real.jpg'
+              : '/assets/images/doctor_consultation_real.jpg'
+          } 
           alt="Clinical Station" 
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
         />
@@ -2279,7 +2309,7 @@ export function EmergencyAmbulanceView() {
       {/* Real Ambulance Exterior Hero Banner */}
       <div className="glass-panel" style={{ position: 'relative', height: '200px', borderRadius: '8px', overflow: 'hidden', display: 'flex', alignItems: 'flex-end', padding: '24px' }}>
         <img 
-          src="/assets/images/hospital_hero_exterior.jpg" 
+          src="/assets/images/emergency_ambulance_fleet_real.jpg" 
           alt="Ambulance Fleet & Emergency" 
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
         />
@@ -3310,12 +3340,12 @@ export function MortuaryView() {
             position: 'absolute', 
             right: 0, 
             top: 0, 
-            width: '38%', 
+            width: '48%', 
             height: '100%', 
             objectFit: 'cover', 
-            opacity: 0.28,
-            maskImage: 'linear-gradient(to left, rgba(0,0,0,1) 50%, rgba(0,0,0,0))',
-            WebkitMaskImage: 'linear-gradient(to left, rgba(0,0,0,1) 50%, rgba(0,0,0,0))'
+            opacity: 0.65,
+            maskImage: 'linear-gradient(to left, rgba(0,0,0,1) 55%, rgba(0,0,0,0))',
+            WebkitMaskImage: 'linear-gradient(to left, rgba(0,0,0,1) 55%, rgba(0,0,0,0))'
           }} 
         />
       </div>
@@ -4102,12 +4132,12 @@ export function BiomedicalView() {
             position: 'absolute', 
             right: 0, 
             top: 0, 
-            width: '38%', 
+            width: '48%', 
             height: '100%', 
             objectFit: 'cover', 
-            opacity: 0.28,
-            maskImage: 'linear-gradient(to left, rgba(0,0,0,1) 50%, rgba(0,0,0,0))',
-            WebkitMaskImage: 'linear-gradient(to left, rgba(0,0,0,1) 50%, rgba(0,0,0,0))'
+            opacity: 0.65,
+            maskImage: 'linear-gradient(to left, rgba(0,0,0,1) 55%, rgba(0,0,0,0))',
+            WebkitMaskImage: 'linear-gradient(to left, rgba(0,0,0,1) 55%, rgba(0,0,0,0))'
           }} 
         />
       </div>
@@ -5897,7 +5927,7 @@ export function HRManagementView() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {/* Header Banner */}
+      {/* Header Banner with Real-Life Hospital HR & Medical Staff Photography */}
       <div 
         className="glass-panel" 
         style={{ 
@@ -5911,6 +5941,21 @@ export function HRManagementView() {
           background: 'linear-gradient(135deg, rgba(20, 16, 10, 0.95), rgba(30, 24, 15, 0.85))'
         }}
       >
+        <img
+          src="/assets/images/hr_medical_staff_real.jpg"
+          alt="Hospital Medical Staff & HR Credentialing"
+          style={{
+            position: 'absolute',
+            right: 0,
+            top: 0,
+            width: '48%',
+            height: '100%',
+            objectFit: 'cover',
+            opacity: 0.6,
+            maskImage: 'linear-gradient(to left, rgba(0,0,0,1) 55%, rgba(0,0,0,0))',
+            WebkitMaskImage: 'linear-gradient(to left, rgba(0,0,0,1) 55%, rgba(0,0,0,0))'
+          }}
+        />
         <div style={{ zIndex: 1, maxWidth: '750px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
             <span className="pulse-live"></span>
@@ -7142,18 +7187,18 @@ export function QualityAssuranceView() {
         </div>
 
         <img 
-          src="/assets/images/laboratory_pathology_real.jpg" 
+          src="/assets/images/quality_infection_control_real.jpg" 
           alt="Hospital Infection Prevention and Quality Assurance" 
           style={{ 
             position: 'absolute', 
             right: 0, 
             top: 0, 
-            width: '38%', 
+            width: '48%', 
             height: '100%', 
             objectFit: 'cover', 
-            opacity: 0.28,
-            maskImage: 'linear-gradient(to left, rgba(0,0,0,1) 50%, rgba(0,0,0,0))',
-            WebkitMaskImage: 'linear-gradient(to left, rgba(0,0,0,1) 50%, rgba(0,0,0,0))'
+            opacity: 0.65,
+            maskImage: 'linear-gradient(to left, rgba(0,0,0,1) 55%, rgba(0,0,0,0))',
+            WebkitMaskImage: 'linear-gradient(to left, rgba(0,0,0,1) 55%, rgba(0,0,0,0))'
           }} 
         />
       </div>

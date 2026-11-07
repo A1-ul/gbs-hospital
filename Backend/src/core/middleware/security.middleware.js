@@ -98,7 +98,11 @@ function getAllowedOrigins(){
 
         return [
 
-            "http://localhost:3000"
+            "http://localhost:3000",
+            "http://localhost:3001",
+            "http://localhost:5000",
+            "http://localhost:5173",
+            "https://gbs-hospital.onrender.com"
 
         ];
 
@@ -169,6 +173,37 @@ function applyHelmet(app){
 
                         defaultSrc:[
                             "'self'"
+                        ],
+
+                        scriptSrc:[
+                            "'self'",
+                            "'unsafe-inline'"
+                        ],
+
+                        styleSrc:[
+                            "'self'",
+                            "'unsafe-inline'",
+                            "https://fonts.googleapis.com"
+                        ],
+
+                        fontSrc:[
+                            "'self'",
+                            "https://fonts.gstatic.com",
+                            "data:"
+                        ],
+
+                        imgSrc:[
+                            "'self'",
+                            "data:",
+                            "blob:",
+                            "https:"
+                        ],
+
+                        connectSrc:[
+                            "'self'",
+                            "https:",
+                            "wss:",
+                            "ws:"
                         ],
 
 
@@ -344,7 +379,13 @@ function applyCors(app){
 
                     allowedOrigins.includes(
                         origin
-                    )
+                    ) ||
+                    origin.endsWith(".onrender.com") ||
+                    origin.endsWith(".lhr.life") ||
+                    origin.endsWith(".loca.lt") ||
+                    origin.endsWith(".trycloudflare.com") ||
+                    origin.startsWith("http://localhost:") ||
+                    origin.startsWith("http://127.0.0.1:")
 
                 ){
 

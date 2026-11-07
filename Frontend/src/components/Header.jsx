@@ -7,23 +7,23 @@ import {
 import { api } from '../services/api.service';
 
 export const ROLES = [
-  { id: 'ADMINISTRATOR', name: 'Administrator', desc: 'User Management, Settings, Audit', img: '/assets/images/portrait_admin.jpg' },
-  { id: 'SUPER_ADMIN', name: 'Super Admin', desc: 'Enterprise Platform Governance', img: '/assets/images/portrait_admin.jpg' },
-  { id: 'HOSPITAL_DIRECTOR', name: 'Hospital Director', desc: 'Clinical Executive Oversight', img: '/assets/images/portrait_admin.jpg' },
-  { id: 'DEVELOPER', name: 'Developer (NOC)', desc: 'Telemetry, System Lock, Tenants', img: '/assets/images/developer_control_center_real.jpg' },
-  { id: 'DOCTOR', name: 'Doctor', desc: 'Consultations, Rx, Records, Lab', img: '/assets/images/portrait_doctor.jpg' },
-  { id: 'SURGEON', name: 'Surgeon', desc: 'Surgery Plan, OT Mgmt, Post-Op', img: '/assets/images/portrait_surgeon.jpg' },
-  { id: 'DENTIST', name: 'Dentist', desc: 'Dental & Maxillofacial Care', img: '/assets/images/portrait_doctor.jpg' },
-  { id: 'EYE_DOCTOR', name: 'Ophthalmologist', desc: 'Ophthalmic Surgery & Vision', img: '/assets/images/portrait_doctor.jpg' },
-  { id: 'RADIOLOGIST', name: 'Radiologist', desc: 'PACS Imaging, Scan Analysis', img: '/assets/images/radiology_pacs_mri_real.jpg' },
-  { id: 'NURSE', name: 'Nurse', desc: 'Vitals, Medications, Care Notes', img: '/assets/images/portrait_nurse.jpg' },
-  { id: 'PHARMACIST', name: 'Pharmacist', desc: 'Dispensing, Stock, Drug Alerts', img: '/assets/images/portrait_pharmacist.jpg' },
-  { id: 'LAB_TECHNICIAN', name: 'Lab Scientist', desc: 'Tests, Sample Tracking, Reports', img: '/assets/images/laboratory_pathology_real.jpg' },
-  { id: 'RECEPTIONIST', name: 'Receptionist', desc: 'Registration, Appointments, Queue', img: '/assets/images/portrait_nurse.jpg' },
-  { id: 'FOLDER_RETRIEVER', name: 'Archivist', desc: 'Physical Archive, Shelf Retrieval', img: '/assets/images/portrait_admin.jpg' },
-  { id: 'ACCOUNTANT', name: 'Accountant', desc: 'Billing, Payments, NHIS Claims', img: '/assets/images/portrait_admin.jpg' },
-  { id: 'HR_MANAGER', name: 'HR Manager', desc: 'Staff Credentials, Duty Rostering', img: '/assets/images/portrait_admin.jpg' },
-  { id: 'PATIENT', name: 'Patient Portal', desc: 'Self-Service, Telemedicine', img: '/assets/images/hospital_hero_exterior.jpg' }
+  { id: 'ADMINISTRATOR', name: 'Administrator', desc: 'User Management, Settings, Audit', img: '/assets/images/portrait_admin.jpg', loginBg: '/assets/images/hospital_admin_office_real.jpg', dept: 'Hospital Administration & Governance' },
+  { id: 'SUPER_ADMIN', name: 'Super Admin', desc: 'Enterprise Platform Governance', img: '/assets/images/portrait_super_admin.jpg', loginBg: '/assets/images/hospital_hero_exterior.jpg', dept: 'Enterprise Multi-Facility Executive' },
+  { id: 'HOSPITAL_DIRECTOR', name: 'Hospital Director', desc: 'Clinical Executive Oversight', img: '/assets/images/portrait_director.jpg', loginBg: '/assets/images/hospital_director_boardroom_real.jpg', dept: 'Medical Directorate & Strategy' },
+  { id: 'DEVELOPER', name: 'Developer (NOC)', desc: 'Telemetry, System Lock, Tenants', img: '/assets/images/portrait_developer.jpg', loginBg: '/assets/images/developer_control_center_real.jpg', dept: 'Landlord Network Operations Center' },
+  { id: 'DOCTOR', name: 'Doctor', desc: 'Consultations, Rx, Records, Lab', img: '/assets/images/portrait_doctor.jpg', loginBg: '/assets/images/doctor_consultation_real.jpg', dept: 'Outpatient & Inpatient Medicine' },
+  { id: 'SURGEON', name: 'Surgeon', desc: 'Surgery Plan, OT Mgmt, Post-Op', img: '/assets/images/portrait_surgeon.jpg', loginBg: '/assets/images/operating_theatre_real.jpg', dept: 'Surgical Suite & Operating Theatre' },
+  { id: 'DENTIST', name: 'Dentist', desc: 'Dental & Maxillofacial Care', img: '/assets/images/portrait_dentist.jpg', loginBg: '/assets/images/dental_clinic_real.jpg', dept: 'Dental & Maxillofacial Surgery' },
+  { id: 'EYE_DOCTOR', name: 'Ophthalmologist', desc: 'Ophthalmic Surgery & Vision', img: '/assets/images/portrait_eye_doctor.jpg', loginBg: '/assets/images/ophthalmology_eye_clinic_real.jpg', dept: 'Ophthalmology & Vision Center' },
+  { id: 'RADIOLOGIST', name: 'Radiologist', desc: 'PACS Imaging, Scan Analysis', img: '/assets/images/portrait_radiologist.jpg', loginBg: '/assets/images/radiology_pacs_mri_real.jpg', dept: 'Diagnostic Radiology & PACS MRI/CT' },
+  { id: 'NURSE', name: 'Nurse', desc: 'Vitals, Medications, Care Notes', img: '/assets/images/portrait_nurse.jpg', loginBg: '/assets/images/nurse_triage_station.jpg', dept: 'Nursing Care, OPD Triage & Wards' },
+  { id: 'PHARMACIST', name: 'Pharmacist', desc: 'Dispensing, Stock, Drug Alerts', img: '/assets/images/portrait_pharmacist.jpg', loginBg: '/assets/images/pharmacy_dispensary_real.jpg', dept: 'Hospital Pharmacy & FEFO Dispensary' },
+  { id: 'LAB_TECHNICIAN', name: 'Lab Scientist', desc: 'Tests, Sample Tracking, Reports', img: '/assets/images/portrait_lab_scientist.jpg', loginBg: '/assets/images/laboratory_pathology_real.jpg', dept: 'Clinical Pathology & Hematology Lab' },
+  { id: 'RECEPTIONIST', name: 'Receptionist', desc: 'Registration, Appointments, Queue', img: '/assets/images/portrait_receptionist.jpg', loginBg: '/assets/images/patient_registration_archive_real.jpg', dept: 'Front Desk, MPI Registration & Queue' },
+  { id: 'FOLDER_RETRIEVER', name: 'Archivist', desc: 'Physical Archive, Shelf Retrieval', img: '/assets/images/portrait_archivist.jpg', loginBg: '/assets/images/medical_records_archive_real.jpg', dept: 'Medical Records & Physical Folder Vault' },
+  { id: 'ACCOUNTANT', name: 'Accountant', desc: 'Billing, Payments, NHIS Claims', img: '/assets/images/portrait_accountant.jpg', loginBg: '/assets/images/nhia_claims_center_real.jpg', dept: 'Hospital Finance, Billing & NHIA Claims' },
+  { id: 'HR_MANAGER', name: 'HR Manager', desc: 'Staff Credentials, Duty Rostering', img: '/assets/images/portrait_hr_manager.jpg', loginBg: '/assets/images/hr_medical_staff_real.jpg', dept: 'Human Resources & Clinical Credentialing' },
+  { id: 'PATIENT', name: 'Patient Portal', desc: 'Self-Service, Telemedicine', img: '/assets/images/portrait_patient.jpg', loginBg: '/assets/images/telemedicine_command_center_real.jpg', dept: 'Patient Portal & Video Telemedicine' }
 ];
 
 export default function Header({

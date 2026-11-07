@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import Header from './components/Header';
+import Header, { ROLES } from './components/Header';
 import RoleLoginModal from './components/RoleLoginModal';
 import UniversalDetailPage from './components/UniversalDetailPage';
 import { 
@@ -725,197 +725,155 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Master Blueprint 20-Enterprise Modules Grid */}
+                {/* Master Blueprint 17-Role Real-Life Specialist & Staff Portals (With Dedicated Login & Workspace Launch) */}
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+                    <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff', margin: 0 }}>
+                      Hospital Staff & Specialist Portals (17 Authorized Roles)
+                    </h3>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--gold-400)' }}>
+                      Click any role to open its dedicated real-life login page or launch its live workspace
+                    </span>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(185px, 1fr))', gap: '12px' }}>
+                    {ROLES.map((r) => {
+                      const isCurrent = currentRole === r.id;
+                      return (
+                        <div
+                          key={r.id}
+                          className="glass-panel"
+                          style={{
+                            overflow: 'hidden',
+                            border: isCurrent ? '1px solid var(--gold-400)' : '1px solid var(--border-subtle)',
+                            boxShadow: isCurrent ? 'var(--shadow-gold)' : 'none',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'space-between'
+                          }}
+                        >
+                          <div style={{ position: 'relative', height: '130px', overflow: 'hidden', background: '#0a0907' }}>
+                            <img
+                              src={r.img}
+                              alt={r.name}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }}
+                              onError={(e) => { e.target.src = '/assets/images/portrait_doctor.jpg'; }}
+                            />
+                            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,9,7,0.95) 8%, rgba(10,9,7,0.15) 75%)' }} />
+                            <div style={{ position: 'absolute', bottom: '8px', left: '10px', right: '10px' }}>
+                              <div style={{ fontSize: '0.88rem', fontWeight: 800, color: 'var(--gold-400)' }}>{r.name}</div>
+                              <div style={{ fontSize: '0.68rem', color: '#e5e7eb', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.dept || r.desc}</div>
+                            </div>
+                          </div>
+                          <div style={{ padding: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', minHeight: '30px' }}>• {r.desc}</div>
+                            <div style={{ display: 'flex', gap: '6px' }}>
+                              <button
+                                onClick={() => {
+                                  setCurrentRole(r.id);
+                                  setIsLoginOpen(true);
+                                }}
+                                className="btn-gold"
+                                style={{ flex: 1, padding: '5px 8px', fontSize: '0.7rem', justifyContent: 'center' }}
+                              >
+                                Login
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setCurrentRole(r.id);
+                                  if (r.id === 'DEVELOPER') setActiveModule('DEVELOPER_NOC');
+                                  else if (r.id === 'DOCTOR' || r.id === 'NURSE' || r.id === 'DENTIST' || r.id === 'EYE_DOCTOR' || r.id === 'RADIOLOGIST') setActiveModule('CLINICAL');
+                                  else if (r.id === 'SURGEON') setActiveModule('SURGERY');
+                                  else if (r.id === 'PHARMACIST') setActiveModule('PHARMACY');
+                                  else if (r.id === 'LAB_TECHNICIAN') setActiveModule('BLOOD_BANK');
+                                  else if (r.id === 'FOLDER_RETRIEVER' || r.id === 'RECEPTIONIST') setActiveModule('PATIENTS');
+                                  else if (r.id === 'ACCOUNTANT') setActiveModule('NHIA_CLAIMS');
+                                  else if (r.id === 'HR_MANAGER') setActiveModule('HR');
+                                  else if (r.id === 'PATIENT') setActiveModule('TELEMEDICINE');
+                                  else setActiveModule('PATIENTS');
+                                }}
+                                className="btn-outline-gold"
+                                style={{ flex: 1, padding: '5px 8px', fontSize: '0.7rem', justifyContent: 'center' }}
+                              >
+                                Portal →
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Master Blueprint 20-Enterprise Modules Grid (Every Card with Real-Life Hospital Department Photography) */}
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
                     <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff' }}>
-                      Enterprise Modules Ecosystem
+                      Enterprise Hospital Modules Ecosystem (20 Connected Subsystems)
                     </h3>
                     <span style={{ fontSize: '0.75rem', color: 'var(--gold-400)' }}>
-                      Click any module to open its live interactive console
+                      Click any module card to open its live interactive hospital dashboard
                     </span>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px' }}>
-                    {/* 1. Patient Management */}
-                    <div onClick={() => setActiveModule('PATIENTS')} className="glass-panel" style={{ padding: '18px', cursor: 'pointer', transition: 'transform 0.2s ease', border: '1px solid var(--border-gold)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                        <Users size={20} style={{ color: 'var(--gold-400)' }} />
-                        <h4 style={{ fontSize: '0.95rem', color: '#fff' }}>1. Patient Management & MPI</h4>
-                      </div>
-                      <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Registration, Master Patient Index, Physical Folder shelf cataloging, and chain-of-custody archive movement.</p>
-                    </div>
-
-                    {/* 2. Clinical Care */}
-                    <div onClick={() => setActiveModule('CLINICAL')} className="glass-panel" style={{ padding: '18px', cursor: 'pointer', transition: 'transform 0.2s ease', border: '1px solid var(--border-gold)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                        <Activity size={20} style={{ color: 'var(--status-info)' }} />
-                        <h4 style={{ fontSize: '0.95rem', color: '#fff' }}>2. Clinical Care & Triage</h4>
-                      </div>
-                      <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Nurse OPD queuing, Adult NEWS2 evaluation, BMI calculation, and Doctor consultation with WHO ICD-10 coding.</p>
-                    </div>
-
-                    {/* 3. Pharmacy */}
-                    <div onClick={() => setActiveModule('PHARMACY')} className="glass-panel" style={{ padding: '18px', cursor: 'pointer', transition: 'transform 0.2s ease', border: '1px solid var(--border-gold)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                        <Pill size={20} style={{ color: 'var(--status-warning)' }} />
-                        <h4 style={{ fontSize: '0.95rem', color: '#fff' }}>3. Pharmacy & Inventory</h4>
-                      </div>
-                      <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>FEFO prescription dispensing, batch expiry risk engine, low stock threshold alerts, and duplicate fulfillment prevention.</p>
-                    </div>
-
-                    {/* 4. Laboratory */}
-                    <div onClick={() => setActiveModule('CLINICAL')} className="glass-panel" style={{ padding: '18px', cursor: 'pointer', transition: 'transform 0.2s ease', border: '1px solid var(--border-gold)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                        <FlaskConical size={20} style={{ color: 'var(--gold-400)' }} />
-                        <h4 style={{ fontSize: '0.95rem', color: '#fff' }}>4. Laboratory & Pathology</h4>
-                      </div>
-                      <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Diagnostic panel requests, phlebotomy barcode tubes (SMP-YYYY-XXXXXX), and automated panic value cutoff evaluation.</p>
-                    </div>
-
-                    {/* 5. Inpatient Wards */}
-                    <div onClick={() => setActiveModule('WARDS')} className="glass-panel" style={{ padding: '18px', cursor: 'pointer', transition: 'transform 0.2s ease', border: '1px solid var(--border-gold)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                        <Bed size={20} style={{ color: 'var(--status-online)' }} />
-                        <h4 style={{ fontSize: '0.95rem', color: '#fff' }}>5. Inpatient Wards & Beds</h4>
-                      </div>
-                      <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Ward and room provisioning, bed availability matrix, intra-ward bed transfers, and shift nursing charts.</p>
-                    </div>
-
-                    {/* 6. Operating Theatre */}
-                    <div onClick={() => setActiveModule('SURGERY')} className="glass-panel" style={{ padding: '18px', cursor: 'pointer', transition: 'transform 0.2s ease', border: '1px solid var(--border-gold)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                        <Stethoscope size={20} style={{ color: 'var(--gold-400)' }} />
-                        <h4 style={{ fontSize: '0.95rem', color: '#fff' }}>6. Operating Theatre & Surgery</h4>
-                      </div>
-                      <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>WHO 3-phase surgical safety checklist, Anesthesia ASA protocol, and PACU Modified Aldrete recovery clearance.</p>
-                    </div>
-
-                    {/* 7. Billing & NHIS */}
-                    <div onClick={() => setActiveModule('NHIA_CLAIMS')} className="glass-panel" style={{ padding: '18px', cursor: 'pointer', transition: 'transform 0.2s ease', border: '1px solid var(--border-gold)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                        <CreditCard size={20} style={{ color: 'var(--status-info)' }} />
-                        <h4 style={{ fontSize: '0.95rem', color: '#fff' }}>7. Billing & NHIS Insurance</h4>
-                      </div>
-                      <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Automated encounter charge compilation, multi-channel receipts (Cash, MoMo, Card), and NHIS claim lifecycle.</p>
-                    </div>
-
-                    {/* 8. Radiology & PACS */}
-                    <div onClick={() => setActiveModule('CLINICAL')} className="glass-panel" style={{ padding: '18px', cursor: 'pointer', transition: 'transform 0.2s ease', border: '1px solid var(--border-gold)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                        <Radio size={20} style={{ color: 'var(--gold-300)' }} />
-                        <h4 style={{ fontSize: '0.95rem', color: '#fff' }}>8. Radiology & PACS Imaging</h4>
-                      </div>
-                      <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Modality worklists, DICOM windowing presets, red-flag panic finding detector, and electronic report sign-off.</p>
-                    </div>
-
-                    {/* 9. Developer NOC */}
-                    <div onClick={() => setActiveModule('DEVELOPER_NOC')} className="glass-panel" style={{ padding: '18px', cursor: 'pointer', transition: 'transform 0.2s ease', border: '1px solid #ef4444' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                        <Shield size={20} style={{ color: '#ef4444' }} />
-                        <h4 style={{ fontSize: '0.95rem', color: '#fca5a5' }}>9. Developer NOC Platform</h4>
-                      </div>
-                      <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Restricted control center, countdown engine, emergency system lock/unlock, and GIS facility location telemetry.</p>
-                    </div>
-
-                    {/* 10. Emergency & Ambulance Subsystem */}
-                    <div onClick={() => setActiveModule('EMERGENCY')} className="glass-panel" style={{ padding: '18px', cursor: 'pointer', transition: 'transform 0.2s ease', border: '1px solid #ef4444' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                        <AlertTriangle size={20} style={{ color: '#ef4444' }} />
-                        <h4 style={{ fontSize: '0.95rem', color: '#fca5a5' }}>10. Emergency & Ambulance</h4>
-                      </div>
-                      <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Ambulance GPS fleet dispatch, Red/Yellow triage trauma bay allocation, ALS paramedic response, and emergency override logs.</p>
-                    </div>
-
-                    {/* 11. Blood Bank & Transfusion Services */}
-                    <div onClick={() => setActiveModule('BLOOD_BANK')} className="glass-panel" style={{ padding: '18px', cursor: 'pointer', transition: 'transform 0.2s ease', border: '1px solid #ef4444' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                        <FlaskConical size={20} style={{ color: '#ef4444' }} />
-                        <h4 style={{ fontSize: '0.95rem', color: '#fca5a5' }}>11. Blood Bank & Transfusion</h4>
-                      </div>
-                      <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Donor registry, cold-chain 4°C storage, cross-matching compatibility matrix, and bedside dual-check hemovigilance.</p>
-                    </div>
-
-                    {/* 12. Mortuary Management & Deceased Release */}
-                    <div onClick={() => setActiveModule('MORTUARY')} className="glass-panel" style={{ padding: '18px', cursor: 'pointer', transition: 'transform 0.2s ease', border: '1px solid #a1a1aa' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                        <HardDrive size={20} style={{ color: '#a1a1aa' }} />
-                        <h4 style={{ fontSize: '0.95rem', color: '#e4e4e7' }}>12. Mortuary & Cold Storage</h4>
-                      </div>
-                      <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Cold storage vaults, clinical/coroner post-mortem autopsies, and biometric Next-of-Kin deceased release handover.</p>
-                    </div>
-
-                    {/* 13. Biomedical Engineering & Equipment Maintenance */}
-                    <div onClick={() => setActiveModule('BIOMEDICAL')} className="glass-panel" style={{ padding: '18px', cursor: 'pointer', transition: 'transform 0.2s ease', border: '1px solid #d97706' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                        <Wrench size={20} style={{ color: '#d97706' }} />
-                        <h4 style={{ fontSize: '0.95rem', color: '#fcd34d' }}>13. Biomedical & Maintenance</h4>
-                      </div>
-                      <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Computerized maintenance CMMS, life-support asset telemetry, electrical safety analyzer sign-offs, and metrology calibrations.</p>
-                    </div>
-
-                    {/* 14. Supply Chain, Procurement & Vendor Contracts */}
-                    <div onClick={() => setActiveModule('PROCUREMENT')} className="glass-panel" style={{ padding: '18px', cursor: 'pointer', transition: 'transform 0.2s ease', border: '1px solid var(--border-gold)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                        <Package size={20} style={{ color: 'var(--gold-400)' }} />
-                        <h4 style={{ fontSize: '0.95rem', color: 'var(--gold-300)' }}>14. Procurement & Supply Chain</h4>
-                      </div>
-                      <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Purchase order lifecycle, supplier SLAs, goods receipt notes (GRN), and automated three-way matching against invoices.</p>
-                    </div>
-
-                    {/* 15. Human Resource Management, Duty Rostering & Staff Credentialing */}
-                    <div onClick={() => setActiveModule('HR')} className="glass-panel" style={{ padding: '18px', cursor: 'pointer', transition: 'transform 0.2s ease', border: '1px solid var(--border-gold)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                        <Users size={20} style={{ color: '#38bdf8' }} />
-                        <h4 style={{ fontSize: '0.95rem', color: '#7dd3fc' }}>15. HR, Rostering & Credentialing</h4>
-                      </div>
-                      <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Staff regulatory credentialing (MDC, NMC, PCG), duty roster scheduling, clinical SBAR shift handovers, and biometric attendance.</p>
-                    </div>
-
-                    {/* 16. Quality Assurance, Clinical Audits & Infection Control */}
-                    <div onClick={() => setActiveModule('QUALITY')} className="glass-panel" style={{ padding: '18px', cursor: 'pointer', transition: 'transform 0.2s ease', border: '1px solid var(--border-gold)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                        <Shield size={20} style={{ color: '#d97706' }} />
-                        <h4 style={{ fontSize: '0.95rem', color: '#fbbf24' }}>16. Quality, Audits & Infection Control</h4>
-                      </div>
-                      <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Hospital safety index, anonymous incident reporting, sentinel event 24h RCA, WHO Surgical Safety checklists, and IPC isolation.</p>
-                    </div>
-
-                    {/* 17. NHIA Claims Batches & Electronic Adjudication */}
-                    <div onClick={() => setActiveModule('NHIA_CLAIMS')} className="glass-panel" style={{ padding: '18px', cursor: 'pointer', transition: 'transform 0.2s ease', border: '1px solid #22c55e' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                        <CreditCard size={20} style={{ color: '#22c55e' }} />
-                        <h4 style={{ fontSize: '0.95rem', color: '#86efac' }}>17. NHIA Claims & E-Claims Adjudication</h4>
-                      </div>
-                      <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>G-DRG tariff pricing, NHIS eligibility verification, 20-rule pre-submission vetting, and reconciliation vouchers.</p>
-                    </div>
-
-                    {/* 18. Migration Service Module & Data Ingestion Hub */}
-                    <div onClick={() => setActiveModule('MIGRATION')} className="glass-panel" style={{ padding: '18px', cursor: 'pointer', transition: 'transform 0.2s ease', border: '1px solid #f59e0b' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                        <Database size={20} style={{ color: '#f59e0b' }} />
-                        <h4 style={{ fontSize: '0.95rem', color: '#fcd34d' }}>18. Data Migration & Integration Hub</h4>
-                      </div>
-                      <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Excel, CSV, Google Sheets, and PostgreSQL import pipeline with schema mapping, duplicate checks, and 1-click atomic rollback.</p>
-                    </div>
-
-                    {/* 19. GIS Facility Tracking & WebRTC Telemedicine */}
-                    <div onClick={() => setActiveModule('TELEMEDICINE')} className="glass-panel" style={{ padding: '18px', cursor: 'pointer', transition: 'transform 0.2s ease', border: '1px solid #06b6d4' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                        <Video size={20} style={{ color: '#06b6d4' }} />
-                        <h4 style={{ fontSize: '0.95rem', color: '#67e8f9' }}>19. GIS Facility Tracking & WebRTC Telemedicine</h4>
-                      </div>
-                      <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Polygon geofences, perimeter breach alerts, multi-floor plans, and encrypted WebRTC video telemedicine consultations.</p>
-                    </div>
-
-                    {/* 20. Central Voice Authentication & Biometric Security Vault */}
-                    <div onClick={() => setActiveModule('VOICE_AUTH')} className="glass-panel" style={{ padding: '18px', cursor: 'pointer', transition: 'transform 0.2s ease', border: '1px solid var(--border-gold)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                        <Mic size={20} style={{ color: 'var(--gold-400)' }} />
-                        <h4 style={{ fontSize: '0.95rem', color: 'var(--gold-300)' }}>20. Central Voice Authentication & Biometric Vault</h4>
-                      </div>
-                      <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Acoustic voiceprint enrollment, zero-trust MFCC matching, anti-spoofing liveness guards, and multi-factor clinical challenges.</p>
-                    </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
+                    {[
+                      { mod: 'PATIENTS', title: '1. Patient Management & MPI', desc: 'Registration, Master Patient Index, Physical Folder shelf cataloging, and chain-of-custody archive movement.', img: '/assets/images/patient_registration_archive_real.jpg', icon: Users, color: 'var(--gold-400)', border: 'var(--border-gold)' },
+                      { mod: 'CLINICAL', title: '2. Clinical Care & OPD Triage', desc: 'Nurse OPD queuing, Adult NEWS2 evaluation, BMI calculation, and Doctor consultation with WHO ICD-10 coding.', img: '/assets/images/doctor_consultation_real.jpg', icon: Activity, color: 'var(--status-info)', border: 'var(--border-gold)' },
+                      { mod: 'PHARMACY', title: '3. Pharmacy & FEFO Inventory', desc: 'FEFO prescription dispensing, batch expiry risk engine, low stock threshold alerts, and duplicate fulfillment prevention.', img: '/assets/images/pharmacy_dispensary_real.jpg', icon: Pill, color: 'var(--status-warning)', border: 'var(--border-gold)' },
+                      { mod: 'CLINICAL', title: '4. Laboratory & Pathology', desc: 'Diagnostic panel requests, phlebotomy barcode tubes (SMP-YYYY-XXXXXX), and automated panic value cutoff evaluation.', img: '/assets/images/laboratory_pathology_real.jpg', icon: FlaskConical, color: 'var(--gold-400)', border: 'var(--border-gold)' },
+                      { mod: 'WARDS', title: '5. Inpatient Wards & ICU Beds', desc: 'Ward and room provisioning, bed availability matrix, intra-ward bed transfers, and shift nursing charts.', img: '/assets/images/inpatient_ward_bed_real.jpg', icon: Bed, color: 'var(--status-online)', border: 'var(--border-gold)' },
+                      { mod: 'SURGERY', title: '6. Operating Theatre & Surgery', desc: 'WHO 3-phase surgical safety checklist, Anesthesia ASA protocol, and PACU Modified Aldrete recovery clearance.', img: '/assets/images/operating_theatre_real.jpg', icon: Stethoscope, color: 'var(--gold-400)', border: 'var(--border-gold)' },
+                      { mod: 'NHIA_CLAIMS', title: '7. Billing & NHIS Insurance', desc: 'Automated encounter charge compilation, multi-channel receipts (Cash, MoMo, Card), and NHIS claim lifecycle.', img: '/assets/images/nhia_claims_center_real.jpg', icon: CreditCard, color: 'var(--status-info)', border: 'var(--border-gold)' },
+                      { mod: 'CLINICAL', title: '8. Radiology & PACS Imaging', desc: 'Modality worklists, DICOM windowing presets, red-flag panic finding detector, and electronic report sign-off.', img: '/assets/images/radiology_pacs_mri_real.jpg', icon: Radio, color: 'var(--gold-300)', border: 'var(--border-gold)' },
+                      { mod: 'DEVELOPER_NOC', title: '9. Developer Landlord NOC', desc: 'Landlord control center, live countdown engine, emergency system lock/unlock, database backups, and tenant governance.', img: '/assets/images/developer_control_center_real.jpg', icon: Shield, color: '#fca5a5', border: '#ef4444' },
+                      { mod: 'EMERGENCY', title: '10. Emergency & Ambulance Fleet', desc: 'Ambulance GPS fleet dispatch, Red/Yellow triage trauma bay allocation, ALS paramedic response, and emergency override logs.', img: '/assets/images/emergency_ambulance_fleet_real.jpg', icon: AlertTriangle, color: '#fca5a5', border: '#ef4444' },
+                      { mod: 'BLOOD_BANK', title: '11. Blood Bank & Transfusion', desc: 'Donor registry, cold-chain 4°C storage, cross-matching compatibility matrix, and bedside dual-check hemovigilance.', img: '/assets/images/blood_bank_transfusion_real.jpg', icon: FlaskConical, color: '#fca5a5', border: '#ef4444' },
+                      { mod: 'MORTUARY', title: '12. Mortuary & Cold Storage', desc: 'Cold storage vaults, clinical/coroner post-mortem autopsies, and biometric Next-of-Kin deceased release handover.', img: '/assets/images/mortuary_cold_storage_real.jpg', icon: HardDrive, color: '#e4e4e7', border: '#a1a1aa' },
+                      { mod: 'BIOMEDICAL', title: '13. Biomedical & Maintenance', desc: 'Computerized maintenance CMMS, life-support asset telemetry, electrical safety analyzer sign-offs, and metrology calibrations.', img: '/assets/images/biomedical_engineering_equipment_real.jpg', icon: Wrench, color: '#fcd34d', border: '#d97706' },
+                      { mod: 'PROCUREMENT', title: '14. Procurement & Supply Chain', desc: 'Purchase order lifecycle, supplier SLAs, goods receipt notes (GRN), and automated three-way matching against invoices.', img: '/assets/images/procurement_supply_chain_real.jpg', icon: Package, color: 'var(--gold-300)', border: 'var(--border-gold)' },
+                      { mod: 'HR', title: '15. HR, Rostering & Credentialing', desc: 'Staff regulatory credentialing (MDC, NMC, PCG), duty roster scheduling, clinical SBAR shift handovers, and biometric attendance.', img: '/assets/images/hr_medical_staff_real.jpg', icon: Users, color: '#7dd3fc', border: 'var(--border-gold)' },
+                      { mod: 'QUALITY', title: '16. Quality, Audits & Infection Control', desc: 'Hospital safety index, anonymous incident reporting, sentinel event 24h RCA, WHO Surgical Safety checklists, and IPC isolation.', img: '/assets/images/quality_infection_control_real.jpg', icon: Shield, color: '#fbbf24', border: 'var(--border-gold)' },
+                      { mod: 'NHIA_CLAIMS', title: '17. NHIA Claims & E-Claims Adjudication', desc: 'G-DRG tariff pricing, NHIS eligibility verification, 20-rule pre-submission vetting, and reconciliation vouchers.', img: '/assets/images/nhia_claims_center_real.jpg', icon: CreditCard, color: '#86efac', border: '#22c55e' },
+                      { mod: 'MIGRATION', title: '18. Data Migration & Integration Hub', desc: 'Excel, CSV, Google Sheets, and PostgreSQL import pipeline with schema mapping, duplicate checks, and 1-click atomic rollback.', img: '/assets/images/migration_data_center_real.jpg', icon: Database, color: '#fcd34d', border: '#f59e0b' },
+                      { mod: 'TELEMEDICINE', title: '19. GIS Facility Tracking & Telemedicine', desc: 'Polygon geofences, perimeter breach alerts, multi-floor plans, and encrypted WebRTC video telemedicine consultations.', img: '/assets/images/telemedicine_command_center_real.jpg', icon: Video, color: '#67e8f9', border: '#06b6d4' },
+                      { mod: 'VOICE_AUTH', title: '20. Central Voice Biometrics & Vault', desc: 'Acoustic voiceprint enrollment, zero-trust MFCC matching, anti-spoofing liveness guards, and multi-factor clinical challenges.', img: '/assets/images/voice_biometric_security_real.jpg', icon: Mic, color: 'var(--gold-300)', border: 'var(--border-gold)' }
+                    ].map((card, idx) => {
+                      const CardIcon = card.icon;
+                      return (
+                        <div
+                          key={idx}
+                          onClick={() => setActiveModule(card.mod)}
+                          className="glass-panel"
+                          style={{
+                            overflow: 'hidden',
+                            cursor: 'pointer',
+                            transition: 'transform 0.2s ease',
+                            border: `1px solid ${card.border}`
+                          }}
+                        >
+                          <div style={{ position: 'relative', height: '135px', overflow: 'hidden', background: '#0a0907' }}>
+                            <img
+                              src={card.img}
+                              alt={card.title}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                              onError={(e) => { e.target.src = '/assets/images/hospital_hero_exterior.jpg'; }}
+                            />
+                            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,9,7,0.96) 10%, rgba(10,9,7,0.25) 75%)' }} />
+                            <div style={{ position: 'absolute', bottom: '10px', left: '14px', right: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <CardIcon size={18} style={{ color: card.color, flexShrink: 0 }} />
+                              <h4 style={{ fontSize: '0.95rem', color: '#fff', margin: 0 }}>{card.title}</h4>
+                            </div>
+                          </div>
+                          <div style={{ padding: '14px 16px' }}>
+                            <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '0 0 10px 0' }}>{card.desc}</p>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.74rem', color: 'var(--gold-400)', fontWeight: 700 }}>
+                              <span>Real-Life Connected Module</span>
+                              <span>Open Dashboard →</span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -947,6 +905,7 @@ export default function App() {
       <RoleLoginModal 
         isOpen={isLoginOpen} 
         onClose={() => setIsLoginOpen(false)}
+        initialRole={currentRole}
         onLoginSuccess={(user) => {
           setCurrentUser(user);
           if (user.role) setCurrentRole(user.role);

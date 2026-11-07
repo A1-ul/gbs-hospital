@@ -9,12 +9,11 @@ services:
   - type: web
     name: gbs-hospital
     runtime: node
-    plan: standard
+    plan: free
     region: frankfurt
     branch: main
     buildCommand: cd Frontend && npm install && npm run build && cd ../Backend && npm install && npx prisma generate
-    preDeployCommand: cd Backend && npx prisma migrate deploy
-    startCommand: cd Backend && npm start
+    startCommand: cd Backend && npx prisma db push --skip-generate && node prisma/seed.js && npm start
     healthCheckPath: /api/v1/health
     autoDeploy: true
     envVars:
@@ -41,7 +40,7 @@ databases:
   - name: gbs-hospital-postgres
     databaseName: gbs_hospital
     user: gbs_hospital_admin
-    plan: standard
+    plan: free
     region: frankfurt
     postgresMajorVersion: "16"
 
