@@ -1,0 +1,56 @@
+{
+  "name": "gbs-hospital-management-backend",
+  "version": "1.0.0",
+  "description": "GBS Hospital Management System Production Backend",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "private": true,
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "prisma:generate": "prisma generate",
+    "prisma:format": "prisma format",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy",
+    "prisma:studio": "prisma studio",
+    "seed": "node prisma/seed.js",
+    "db:reset:development": "prisma migrate reset",
+    "test": "jest --runInBand"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
+  "dependencies": {
+    "@prisma/client": "6.19.3",
+    "bcrypt": "^5.1.1",
+    "compression": "^1.7.4",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^5.1.0",
+    "express-rate-limit": "^7.4.1",
+    "helmet": "^8.0.0",
+    "joi": "^17.13.3",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "swagger-ui-express": "^5.0.1",
+    "uuid": "11.0.3",
+    "winston": "^3.17.0"
+  },
+  "devDependencies": {
+    "jest": "29.7.0",
+    "nodemon": "^3.1.14",
+    "prisma": "^6.19.3",
+    "supertest": "7.0.0"
+  },
+  "jest": {
+    "testMatch": [
+      "<rootDir>/tests/**/*.test.js"
+    ],
+    "testTimeout": 30000
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "backend": {
+    "node": ">=20",
+    "moduleSystem": "commonjs",
+    "database": "postgresql-prisma-6.19.3",
+    "missingForBlueprint": ["bullmq", "ioredis", "voice-auth-service"]
+  },
+  "frontend": {
+    "status": "non_runnable",
+    "packageJsonEmpty": true
+  }
+}

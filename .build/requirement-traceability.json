@@ -1,0 +1,763 @@
+{
+  "totalRequirementsPlanned": 412,
+  "entries": [
+    {
+      "id": "REQ-BP-001",
+      "blueprintSection": "API layer",
+      "feature": "Central API route registry under /api/v1",
+      "phase": 0,
+      "implementationStatus": "COMPLETE",
+      "files": ["Backend/src/routes/index.js", "Backend/src/app.js"]
+    },
+    {
+      "id": "REQ-BP-002",
+      "blueprintSection": "Operations / health",
+      "feature": "Health endpoint with real database connectivity check",
+      "phase": 0,
+      "implementationStatus": "COMPLETE",
+      "files": ["Backend/src/routes/health.routes.js"]
+    },
+    {
+      "id": "REQ-BP-003",
+      "blueprintSection": "Authentication",
+      "feature": "Login issues JWT from verified credentials with role and permissions",
+      "phase": 1,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/auth/routes/auth.routes.js",
+        "Backend/src/modules/auth/controllers/auth.controller.js",
+        "Backend/src/modules/auth/services/auth.service.js"
+      ]
+    },
+    {
+      "id": "REQ-SEC-001",
+      "blueprintSection": "Security & RBAC",
+      "feature": "16-Role Blueprint matrix alignment and permanent Developer bootstrap",
+      "phase": 1,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/config/roles.js",
+        "Backend/prisma/seed.js"
+      ]
+    },
+    {
+      "id": "REQ-SEC-002",
+      "blueprintSection": "Authentication & Registration",
+      "feature": "Compulsory role-specific signup with mandatory administrator review and activation",
+      "phase": 1,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/auth/services/auth.service.js",
+        "Backend/src/modules/auth/controllers/auth.controller.js",
+        "Backend/src/modules/auth/routes/auth.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-SEC-003",
+      "blueprintSection": "User Registration Count",
+      "feature": "On-demand database-backed count of registered users for every configured role and admin cross-check",
+      "phase": 1,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/users/services/user.service.js",
+        "Backend/src/modules/users/controllers/user.controller.js",
+        "Backend/src/modules/users/routes/users.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-TEN-001",
+      "blueprintSection": "Tenant Management",
+      "feature": "Public Institution Registration with sequential enterprise code generation (TEN-YYYY-XXXXXX, GBS-ACC-XXXX, INS-YYYY-XXXXXX)",
+      "phase": 2,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/tenant-management/helpers/tenant-id.generator.js",
+        "Backend/src/modules/tenant-management/tenant-management.service.js",
+        "Backend/src/modules/tenant-management/tenant-management.controller.js",
+        "Backend/src/modules/tenant-management/tenant-management.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-TEN-002",
+      "blueprintSection": "Tenant Provisioning",
+      "feature": "Automated Multi-Tenant Infrastructure Provisioning under Developer Authority (Hospital, 10 Departments, 30-day Trial Subscription, GPS ping)",
+      "phase": 2,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/tenant-management/tenant-management.service.js",
+        "Backend/src/modules/tenant-management/tenant-management.controller.js"
+      ]
+    },
+    {
+      "id": "REQ-TEN-003",
+      "blueprintSection": "Countdown Engine",
+      "feature": "Backend-Authoritative Precise Realtime Countdown Engine with 6-stage Warning Tiers (NORMAL, WARNING_14_DAYS, CRITICAL_7_DAYS, ESCALATED_3_DAYS, FINAL_1_DAY, GRACE_PERIOD, EXPIRED_LOCKED)",
+      "phase": 2,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/tenant-management/helpers/countdown.engine.js",
+        "Backend/src/modules/tenant-management/tenant-management.service.js"
+      ]
+    },
+    {
+      "id": "REQ-TEN-004",
+      "blueprintSection": "Developer Control Center",
+      "feature": "Developer Control Center System Authority (Locking, Unlocking, Subscription Extension, Live PostgreSQL-backed telemetry)",
+      "phase": 2,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/tenant-management/tenant-management.service.js",
+        "Backend/src/modules/tenant-management/tenant-management.controller.js",
+        "Backend/src/modules/tenant-management/tenant-management.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-TEN-005",
+      "blueprintSection": "GIS Telemetry",
+      "feature": "Live GPS Facility Telemetry, Location Ping Ingestion & Developer Live GIS Map coordinates",
+      "phase": 2,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/tenant-management/tenant-management.service.js",
+        "Backend/src/modules/tenant-management/tenant-management.controller.js"
+      ]
+    },
+    {
+      "id": "REQ-DEV-001",
+      "blueprintSection": "Developer Subsystems",
+      "feature": "Developer-Tenant Two-Way Communication & WebRTC Video Call Channel Session Signaling",
+      "phase": 2,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/tenant-management/tenant-management.service.js",
+        "Backend/src/modules/tenant-management/tenant-management.controller.js"
+      ]
+    },
+    {
+      "id": "REQ-DEV-002",
+      "blueprintSection": "Clinical Safety Guard",
+      "feature": "Tenant Access Guard with Patient Safety Emergency Clinical Bypass (Audited ER/triage/emergency override access even when tenant is locked/expired)",
+      "phase": 2,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/tenant-management/tenant-access.middleware.js"
+      ]
+    },
+    {
+      "id": "REQ-PAT-001",
+      "blueprintSection": "Patient Management",
+      "feature": "Patient Registration with sequential MRN generation (MRN-YYYY-XXXXXX), National ID (Ghana Card), and NHIS integration",
+      "phase": 3,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/patients/helpers/patient-id.generator.js",
+        "Backend/src/modules/patients/services/patient.service.js",
+        "Backend/src/modules/patients/controllers/patient.controller.js",
+        "Backend/src/modules/patients/routes/patients.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-PAT-002",
+      "blueprintSection": "Master Patient Index (MPI)",
+      "feature": "Master Patient Index multi-field exact and fuzzy search across MRN, National ID, Phone, and Name",
+      "phase": 3,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/patients/services/patient.service.js",
+        "Backend/src/modules/patients/controllers/patient.controller.js"
+      ]
+    },
+    {
+      "id": "REQ-PAT-003",
+      "blueprintSection": "Patient Portal",
+      "feature": "Personal Patient Health Portal dashboard with authentic role imagery metadata",
+      "phase": 3,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/patients/services/patient.service.js",
+        "Backend/src/modules/patients/controllers/patient.controller.js"
+      ]
+    },
+    {
+      "id": "REQ-ARCH-001",
+      "blueprintSection": "Physical Medical Archive",
+      "feature": "Automated physical MedicalFolder provisioning with deterministic shelf barcode index (SHELF-A1-BAY04-RACK02)",
+      "phase": 3,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/patients/helpers/patient-id.generator.js",
+        "Backend/src/modules/patients/services/patient.service.js",
+        "Backend/src/modules/medical-records/services/folder.service.js"
+      ]
+    },
+    {
+      "id": "REQ-ARCH-002",
+      "blueprintSection": "Folder Retriever Workflow",
+      "feature": "FOLDER_RETRIEVER work queue with priority clinical sorting (EMERGENCY > URGENT > ROUTINE), physical lifecycle tracking, and chain-of-custody audit trail",
+      "phase": 3,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/medical-records/services/folder.service.js",
+        "Backend/src/modules/medical-records/controllers/folder.controller.js",
+        "Backend/src/modules/medical-records/routes/medical-records.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-OPD-001",
+      "blueprintSection": "OPD Patient Check-in & Queuing",
+      "feature": "Outpatient Department check-in generating daily sequential queue tokens (OPD-001, EMG-001, PRI-001) and opening formal clinical encounters (ENC-YYYY-XXXXXX)",
+      "phase": 4,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/clinical/helpers/opd-token.generator.js",
+        "Backend/src/modules/clinical/services/opd-triage.service.js",
+        "Backend/src/modules/clinical/controllers/opd-triage.controller.js",
+        "Backend/src/modules/clinical/routes/clinical.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-NURSE-001",
+      "blueprintSection": "Nurse Triage & NEWS2 Early Warning",
+      "feature": "Nurse Triage queue sorted by clinical priority (EMERGENCY > PRIORITY > ROUTINE), Adult NEWS2 physiological scoring engine, BMI calculation, and automatic emergency escalation",
+      "phase": 4,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/clinical/helpers/triage-scorer.js",
+        "Backend/src/modules/clinical/services/opd-triage.service.js",
+        "Backend/src/modules/clinical/controllers/opd-triage.controller.js",
+        "Backend/src/modules/clinical/routes/clinical.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-CLIN-001",
+      "blueprintSection": "Consultation Queue & Room Assignment",
+      "feature": "Doctor consulting room assignment, patient call-in transition, doctor consultation waiting queue prioritized by emergency priority and NEWS2 score, and consultation completion",
+      "phase": 4,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/clinical/services/opd-triage.service.js",
+        "Backend/src/modules/clinical/controllers/opd-triage.controller.js",
+        "Backend/src/modules/clinical/routes/clinical.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-CLIN-002",
+      "blueprintSection": "Nurse Dashboard Telemetry",
+      "feature": "Real-time nurse and OPD dashboard telemetry aggregating daily check-in counts, waiting queue sizes, active consultations, and critical emergency alert counters directly from PostgreSQL",
+      "phase": 4,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/clinical/services/opd-triage.service.js",
+        "Backend/src/modules/clinical/controllers/opd-triage.controller.js",
+        "Backend/src/modules/clinical/routes/clinical.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-DOC-001",
+      "blueprintSection": "Doctor Consultation & Clinical Notes",
+      "feature": "Doctor Clinical Consultation recording with SOAP notes (History, Examination, Assessment, Plan) and ICD-10 diagnostic coding (PRIMARY, SECONDARY, PROVISIONAL)",
+      "phase": 5,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/clinical/helpers/clinical-catalogs.js",
+        "Backend/src/modules/clinical/services/consultation.service.js",
+        "Backend/src/modules/clinical/controllers/consultation.controller.js",
+        "Backend/src/modules/clinical/routes/clinical.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-DOC-002",
+      "blueprintSection": "Electronic Prescribing",
+      "feature": "Electronic Prescribing with standard medication formulary lookup, dosage, frequency, duration, route, and PENDING dispense status",
+      "phase": 5,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/clinical/helpers/clinical-catalogs.js",
+        "Backend/src/modules/clinical/services/consultation.service.js",
+        "Backend/src/modules/clinical/controllers/consultation.controller.js",
+        "Backend/src/modules/clinical/routes/clinical.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-DOC-003",
+      "blueprintSection": "Laboratory Investigation Orders",
+      "feature": "Laboratory Investigation ordering with pre-configured clinical test panels, specimen types, and turnaround time tracking",
+      "phase": 5,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/clinical/helpers/clinical-catalogs.js",
+        "Backend/src/modules/clinical/services/consultation.service.js",
+        "Backend/src/modules/clinical/controllers/consultation.controller.js",
+        "Backend/src/modules/clinical/routes/clinical.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-DOC-004",
+      "blueprintSection": "Longitudinal Medical History",
+      "feature": "Longitudinal Patient Clinical History aggregating all lifetime encounters, diagnoses, prescriptions, lab results, and vitals",
+      "phase": 5,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/clinical/services/consultation.service.js",
+        "Backend/src/modules/clinical/controllers/consultation.controller.js",
+        "Backend/src/modules/clinical/routes/clinical.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-DOC-005",
+      "blueprintSection": "Doctor Role Dashboard & Theme",
+      "feature": "Doctor Role Real-Life Dashboard Telemetry aggregating daily completed consultations, active prescriptions, pending labs, and authentic role imagery metadata",
+      "phase": 5,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/clinical/services/consultation.service.js",
+        "Backend/src/modules/clinical/controllers/consultation.controller.js",
+        "Backend/src/modules/clinical/routes/clinical.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-IPD-001",
+      "blueprintSection": "Inpatient Ward & Bed Infrastructure",
+      "feature": "Ward hierarchy configuration with room provisioning, bed numbering, interactive ward bed occupancy matrix, and sequential identifiers (WRD-XXX-XX, BED-XXX-XX)",
+      "phase": 6,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/admissions/helpers/admission-id.generator.js",
+        "Backend/src/modules/admissions/services/inpatient.service.js",
+        "Backend/src/modules/admissions/controllers/inpatient.controller.js",
+        "Backend/src/modules/admissions/routes/admissions.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-IPD-002",
+      "blueprintSection": "Inpatient Admission & Bed Allocation",
+      "feature": "Formal Inpatient Admission with sequential admission number (ADM-YYYY-XXXXXX), bed occupancy state locking (AVAILABLE -> OCCUPIED), collision prevention, and automatic IPD Clinical Encounter linkage",
+      "phase": 6,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/admissions/helpers/admission-id.generator.js",
+        "Backend/src/modules/admissions/services/inpatient.service.js",
+        "Backend/src/modules/admissions/controllers/inpatient.controller.js",
+        "Backend/src/modules/admissions/routes/admissions.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-IPD-003",
+      "blueprintSection": "Bed Transfer & Nursing Rounds",
+      "feature": "Intra-hospital bed transfers with atomic source bed release and destination bed occupation, plus daily nursing shift charts with vitals, shift, fluid intake/output balance, and administered medications",
+      "phase": 6,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/admissions/services/inpatient.service.js",
+        "Backend/src/modules/admissions/controllers/inpatient.controller.js",
+        "Backend/src/modules/admissions/routes/admissions.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-IPD-004",
+      "blueprintSection": "Inpatient Discharge & IPD Telemetry",
+      "feature": "Patient discharge workflow releasing bed occupancy back to AVAILABLE, recording discharge summary, condition, and disposition, with real-time PostgreSQL IPD occupancy telemetry",
+      "phase": 6,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/admissions/services/inpatient.service.js",
+        "Backend/src/modules/admissions/controllers/inpatient.controller.js",
+        "Backend/src/modules/admissions/routes/admissions.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-PHARM-001",
+      "blueprintSection": "Hospital Formulary & Inventory",
+      "feature": "Hospital formulary medication cataloging with sequential code generation (MED-YYYY-XXXXXX), multi-field search, dosage forms, strength, reorder level tracking, and duplicate prevention",
+      "phase": 7,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/pharmacy/helpers/pharmacy-id.generator.js",
+        "Backend/src/modules/pharmacy/services/pharmacy.service.js",
+        "Backend/src/modules/pharmacy/controllers/pharmacy.controller.js",
+        "Backend/src/modules/pharmacy/routes/pharmacy.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-PHARM-002",
+      "blueprintSection": "Batch Tracking & Goods Receipt",
+      "feature": "Medication batch delivery receiving with sequential batch codes (BAT-YYYY-XXXXXX), remaining quantity tracking, supplier details, automatic inventory balance increments, and stock movement audit logs",
+      "phase": 7,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/pharmacy/helpers/pharmacy-id.generator.js",
+        "Backend/src/modules/pharmacy/services/pharmacy.service.js",
+        "Backend/src/modules/pharmacy/controllers/pharmacy.controller.js",
+        "Backend/src/modules/pharmacy/routes/pharmacy.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-PHARM-003",
+      "blueprintSection": "FEFO Prescription Dispensing",
+      "feature": "First Expired First Out (FEFO) prescription dispensing engine automatically allocating stock from earliest expiring active batches, decrements inventory, issues sequential dispense numbers (DSP-YYYY-XXXXXX), records patient counseling notes, and transitions prescription status",
+      "phase": 7,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/pharmacy/helpers/pharmacy-id.generator.js",
+        "Backend/src/modules/pharmacy/services/pharmacy.service.js",
+        "Backend/src/modules/pharmacy/controllers/pharmacy.controller.js",
+        "Backend/src/modules/pharmacy/routes/pharmacy.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-PHARM-004",
+      "blueprintSection": "Expiry Monitoring & Pharmacist Telemetry",
+      "feature": "Multi-tier batch expiry risk engine (EXPIRED, CRITICAL_30_DAYS, WARNING_60_DAYS, MONITOR_90_DAYS), low stock reorder alerts, and real-time Pharmacist role dashboard telemetry from PostgreSQL with authentic visual theme metadata",
+      "phase": 7,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/pharmacy/services/pharmacy.service.js",
+        "Backend/src/modules/pharmacy/controllers/pharmacy.controller.js",
+        "Backend/src/modules/pharmacy/routes/pharmacy.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-LAB-001",
+      "blueprintSection": "Laboratory Diagnostics & Ordering",
+      "feature": "Laboratory diagnostic investigation ordering with sequential request identifiers (LAB-YYYY-XXXXXX), clinical priority assignment (ROUTINE, URGENT, STAT_EMERGENCY), department categorization, and specimen type mapping",
+      "phase": 8,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/laboratory/helpers/lab-id.generator.js",
+        "Backend/src/modules/laboratory/services/laboratory.service.js",
+        "Backend/src/modules/laboratory/controllers/laboratory.controller.js",
+        "Backend/src/modules/laboratory/routes/laboratory.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-LAB-002",
+      "blueprintSection": "Specimen Barcoding & Phlebotomy",
+      "feature": "Phlebotomy specimen collection with sequential sample barcodes (SMP-YYYY-XXXXXX), container tube color coding (EDTA_PURPLE, SST_GOLD), and laboratory accessioning workqueue integration",
+      "phase": 8,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/laboratory/helpers/lab-id.generator.js",
+        "Backend/src/modules/laboratory/services/laboratory.service.js",
+        "Backend/src/modules/laboratory/controllers/laboratory.controller.js",
+        "Backend/src/modules/laboratory/routes/laboratory.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-LAB-003",
+      "blueprintSection": "Test Results & Panic Value Engine",
+      "feature": "Multi-parameter test result recording with standard reference ranges, automated abnormal/panic flag evaluation (CRITICAL_PANIC_LOW, CRITICAL_PANIC_HIGH), and real-time clinical panic alerts",
+      "phase": 8,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/laboratory/helpers/lab-catalogs.js",
+        "Backend/src/modules/laboratory/services/laboratory.service.js",
+        "Backend/src/modules/laboratory/controllers/laboratory.controller.js",
+        "Backend/src/modules/laboratory/routes/laboratory.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-LAB-004",
+      "blueprintSection": "Pathology Verification & Lab Telemetry",
+      "feature": "Clinical Pathologist and Senior Scientist report verification workflow, complete chain-of-custody investigation dossier, and real-time Laboratory Scientist role dashboard telemetry from PostgreSQL with authentic visual theme metadata",
+      "phase": 8,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/laboratory/services/laboratory.service.js",
+        "Backend/src/modules/laboratory/controllers/laboratory.controller.js",
+        "Backend/src/modules/laboratory/routes/laboratory.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-RAD-001",
+      "blueprintSection": "Radiology Orders & Modality Worklists",
+      "feature": "Radiology diagnostic examination ordering with sequential accession numbers (RAD-YYYY-XXXXXX), priority ranking (STAT_EMERGENCY, URGENT, ROUTINE), clinical indication tracking, and scheduled examination workflows",
+      "phase": 9,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/radiology/helpers/radiology-id.generator.js",
+        "Backend/src/modules/radiology/services/radiology.service.js",
+        "Backend/src/modules/radiology/controllers/radiology.controller.js",
+        "Backend/src/modules/radiology/routes/radiology.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-RAD-002",
+      "blueprintSection": "PACS Archive & DICOM Ingestion",
+      "feature": "DICOM Study acquisition and PACS archive ingestion with unique DICOM Study Instance UIDs (1.2.840.10008...), radiation telemetry (kVp, exposure time, slice thickness, pixel spacing), and standardized viewing window presets (WW/WC)",
+      "phase": 9,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/radiology/helpers/radiology-catalogs.js",
+        "Backend/src/modules/radiology/services/radiology.service.js",
+        "Backend/src/modules/radiology/controllers/radiology.controller.js",
+        "Backend/src/modules/radiology/routes/radiology.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-RAD-003",
+      "blueprintSection": "Diagnostic Reporting & Panic Alerts",
+      "feature": "Radiologist diagnostic reporting with sequential report numbers (REP-YYYY-XXXXXX), automated critical panic finding detection (pneumothorax, intracranial hemorrhage, pulmonary embolism, aortic dissection, midline shift), and immediate clinical red-flag alert tagging",
+      "phase": 9,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/radiology/helpers/radiology-catalogs.js",
+        "Backend/src/modules/radiology/services/radiology.service.js",
+        "Backend/src/modules/radiology/controllers/radiology.controller.js",
+        "Backend/src/modules/radiology/routes/radiology.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-RAD-004",
+      "blueprintSection": "Electronic Signature & PACS Telemetry",
+      "feature": "Attending Radiologist electronic report signing and finalization (VERIFIED_FINAL), PACS complete study dossier retrieval, and real-time Radiology Department Command Center telemetry aggregating live PostgreSQL operational metrics",
+      "phase": 9,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/radiology/services/radiology.service.js",
+        "Backend/src/modules/radiology/controllers/radiology.controller.js",
+        "Backend/src/modules/radiology/routes/radiology.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-BILL-001",
+      "blueprintSection": "Patient Invoicing & Multi-Payor Split",
+      "feature": "Medical invoicing with sequential numbers (INV-YYYY-XXXXXX), multi-payor split calculation (Cash, NHIS, Private Insurance, Split), and automated NHIS copayment calculations",
+      "phase": 10,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/billing/helpers/billing-id.generator.js",
+        "Backend/src/modules/billing/helpers/billing-tariffs.js",
+        "Backend/src/modules/billing/services/billing.service.js",
+        "Backend/src/modules/billing/controllers/billing.controller.js",
+        "Backend/src/modules/billing/routes/billing.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-BILL-002",
+      "blueprintSection": "Clinical Encounter Charge Compilation",
+      "feature": "Automated compilation of unbilled clinical encounter charges (consultations, prescriptions, diagnostic laboratory tests, radiology scans, and nursing care) into comprehensive patient invoices",
+      "phase": 10,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/billing/services/billing.service.js",
+        "Backend/src/modules/billing/controllers/billing.controller.js",
+        "Backend/src/modules/billing/routes/billing.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-BILL-003",
+      "blueprintSection": "Revenue Collection & Official Receipts",
+      "feature": "Cashier payment processing across multiple channels (Cash, Mobile Money with transaction reference, Card) issuing official sequential receipts (REC-YYYY-XXXXXX) and enforcing overpayment guards",
+      "phase": 10,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/billing/helpers/billing-id.generator.js",
+        "Backend/src/modules/billing/services/billing.service.js",
+        "Backend/src/modules/billing/controllers/billing.controller.js",
+        "Backend/src/modules/billing/routes/billing.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-BILL-004",
+      "blueprintSection": "Insurance Claims & Accountant Telemetry",
+      "feature": "NHIS and private insurance claims lifecycle management (CLM-YYYY-XXXXXX with submission and settlement tracking), and real-time Accountant Command Center telemetry from PostgreSQL",
+      "phase": 10,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/billing/services/billing.service.js",
+        "Backend/src/modules/billing/controllers/billing.controller.js",
+        "Backend/src/modules/billing/routes/billing.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-SURG-001",
+      "blueprintSection": "Operating Theatre & Surgical Scheduling",
+      "feature": "Surgical procedure booking with sequential codes (SURG-YYYY-XXXXXX), priority ranking (EMERGENCY_STAT, URGENT, ELECTIVE), team assignments (Surgeon, Anesthetist, Scrub Nurse, Circulating Nurse), operating theatre suite room allocation and occupancy live state",
+      "phase": 11,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/surgery/helpers/surgery-id.generator.js",
+        "Backend/src/modules/surgery/helpers/surgery-catalogs.js",
+        "Backend/src/modules/surgery/services/surgery.service.js",
+        "Backend/src/modules/surgery/controllers/surgery.controller.js",
+        "Backend/src/modules/surgery/routes/surgery.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-SURG-002",
+      "blueprintSection": "WHO Safety Checklist, Anesthesia & PACU",
+      "feature": "Complete 3-phase WHO Surgical Safety Checklist (Sign In, Time Out, Sign Out), comprehensive Anesthesia protocol documentation with ASA status classification (ASA I - VI, ASA E), Surgeon Operative Note documentation with auto-theatre cleaning transition, and PACU Modified Aldrete recovery scoring (threshold >= 9) with discharge clearance and Command Center telemetry",
+      "phase": 11,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/surgery/helpers/surgery-catalogs.js",
+        "Backend/src/modules/surgery/services/surgery.service.js",
+        "Backend/src/modules/surgery/controllers/surgery.controller.js",
+        "Backend/src/modules/surgery/routes/surgery.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-NHIA-001",
+      "blueprintSection": "NHIA Claims Batches & G-DRG Vetting",
+      "feature": "Monthly claims batch initialization (NHIA-YYYYMM-XXXXXX), G-DRG tariff catalogs, real-time NHIS member policy verification, and automated pre-submission vetting engine flagging missing ICD-10 codes, tariff mismatches, and expired memberships",
+      "phase": 19,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/insurance-claims/helpers/nhia-id.generator.js",
+        "Backend/src/modules/insurance-claims/helpers/nhia-catalogs.js",
+        "Backend/src/modules/insurance-claims/services/insurance-claims.service.js",
+        "Backend/src/modules/insurance-claims/controllers/insurance-claims.controller.js",
+        "Backend/src/modules/insurance-claims/routes/insurance-claims.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-NHIA-002",
+      "blueprintSection": "E-Claims XML/JSON & Electronic Submission",
+      "feature": "Compliant NHIA E-Claims XML and JSON compilation engine with SHA-256 transmission checksums and electronic submission to NHIA Clearinghouse with verifiable submission receipts (RCPT-NHIA-XXXXXX)",
+      "phase": 19,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/insurance-claims/helpers/nhia-catalogs.js",
+        "Backend/src/modules/insurance-claims/services/insurance-claims.service.js",
+        "Backend/src/modules/insurance-claims/controllers/insurance-claims.controller.js",
+        "Backend/src/modules/insurance-claims/routes/insurance-claims.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-NHIA-003",
+      "blueprintSection": "Electronic Adjudication, Reconciliation Vouchers & Appeals",
+      "feature": "Automated electronic adjudication calculating approved and disallowed financial values, official Reconciliation Settlement Vouchers (VOUCH-YYYY-XXXXXX) with 5% withholding tax deductions and net disbursement calculation, and clinical appeal workflow for rejected claims",
+      "phase": 19,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/insurance-claims/services/insurance-claims.service.js",
+        "Backend/src/modules/insurance-claims/controllers/insurance-claims.controller.js",
+        "Backend/src/modules/insurance-claims/routes/insurance-claims.routes.js",
+        "Frontend/src/modules/nhia-claims/NhiaClaimsView.jsx"
+      ]
+    },
+    {
+      "id": "REQ-MIG-001",
+      "blueprintSection": "Migration Pipeline & Multi-Source Ingestion",
+      "feature": "Multi-source data ingestion engine supporting CSV, Microsoft Excel, JSON, and PostgreSQL data dumps with robust delimiter, quote, and line break parsing into staged MigrationRecordItem entries with sequential Job Code (MIG-YYYY-XXXXXX)",
+      "phase": 20,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/migration/helpers/migration-id.generator.js",
+        "Backend/src/modules/migration/helpers/migration-parsers.js",
+        "Backend/src/modules/migration/services/migration.service.js",
+        "Backend/src/modules/migration/controllers/migration.controller.js",
+        "Backend/src/modules/migration/routes/migration.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-MIG-002",
+      "blueprintSection": "Column Mapping, Validation & Duplicate Checker",
+      "feature": "Interactive Column Mapping Matrix, schema validation against mandatory target entity requirements (PATIENTS, INVENTORY_ITEMS, BILLING_TARIFFS, STAFF_RECORDS), pre-import duplicate detection across PostgreSQL records and intra-file batch collisions, and reusable template repository (TMPL-YYYY-XXXXXX)",
+      "phase": 20,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/migration/helpers/migration-parsers.js",
+        "Backend/src/modules/migration/services/migration.service.js",
+        "Backend/src/modules/migration/controllers/migration.controller.js",
+        "Backend/src/modules/migration/routes/migration.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-MIG-003",
+      "blueprintSection": "Human Approval Gate, Execution & Atomic Rollback",
+      "feature": "Executive sign-off gate before execution, transactional background import creating authoritative records (Patient MRN, Pharmacy Items, Tariffs, Staff), duplicate handling strategy (SKIP/ERROR), audit trail, and 1-Click Atomic Rollback permanently reverting created database entities in reverse order",
+      "phase": 20,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/migration/services/migration.service.js",
+        "Backend/src/modules/migration/controllers/migration.controller.js",
+        "Backend/src/modules/migration/routes/migration.routes.js",
+        "Frontend/src/modules/migration/MigrationView.jsx",
+        "Frontend/src/services/api.service.js"
+      ]
+    },
+    {
+      "id": "REQ-GIS-001",
+      "blueprintSection": "Facility Geofencing, Coordinate Math & Perimeter Breach Detection",
+      "feature": "Geofence boundary engine with sequential identifiers (GEO-YYYY-XXXXXX), Haversine spherical trigonometric geodesic distance calculation, ray-casting point-in-polygon containment evaluation, and automated PERIMETER_BREACH incident logging with distance and boundary status",
+      "phase": 21,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/facility-maps/helpers/facility-id.generator.js",
+        "Backend/src/modules/facility-maps/helpers/geofence-math.js",
+        "Backend/src/modules/facility-maps/facility-maps.service.js",
+        "Backend/src/modules/facility-maps/facility-maps.controller.js",
+        "Backend/src/modules/facility-maps/facility-maps.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-GIS-002",
+      "blueprintSection": "Interactive Building Floor Plans & Spatial Department Mapping",
+      "feature": "Multi-floor building layout registry with sequential codes (FLR-YYYY-XXXXXX), floor level tracking, structured spatial department JSON matrices (zones, coordinates, capacity, asset anchors), and interactive hospital architecture rendering",
+      "phase": 21,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/facility-maps/facility-maps.service.js",
+        "Backend/src/modules/facility-maps/facility-maps.controller.js",
+        "Backend/src/modules/facility-maps/facility-maps.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-GIS-003",
+      "blueprintSection": "WebRTC Video Telemedicine Subsystem & Doctor-Patient Virtual Clinic",
+      "feature": "End-to-end encrypted WebRTC video telemedicine consultation lifecycle with sequential session identifiers (TEL-YYYY-XXXXXX), cryptographic room access tokens, virtual waiting room queue, doctor call initiation (IN_CALL), bidirectional SDP offer/answer and ICE candidate signaling buffer, and clinical consultation closure with prescriptions and ratings",
+      "phase": 21,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/telemedicine/helpers/telemedicine-id.generator.js",
+        "Backend/src/modules/telemedicine/services/telemedicine.service.js",
+        "Backend/src/modules/telemedicine/controllers/telemedicine.controller.js",
+        "Backend/src/modules/telemedicine/routes/telemedicine.routes.js",
+        "Frontend/src/modules/telemedicine/TelemedicineGisView.jsx",
+        "Frontend/src/services/api.service.js"
+      ]
+    },
+    {
+      "id": "REQ-VOX-001",
+      "blueprintSection": "Central Voiceprint Feature Extraction & Biometric Enrollment",
+      "feature": "Acoustic signal processing engine with sequential enrollment identifiers (VOX-YYYY-XXXXXX), 12-dimensional MFCC formant vectors, spectral centroid, zero-crossing rate, pitch frequency estimation, and cryptographic SHA-256 acoustic hash storage in PostgreSQL",
+      "phase": 22,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/biometrics/helpers/biometric-id.generator.js",
+        "Backend/src/modules/biometrics/helpers/voice-biometrics.engine.js",
+        "Backend/src/modules/biometrics/services/biometric-vault.service.js",
+        "Backend/src/modules/biometrics/controllers/biometric-vault.controller.js",
+        "Backend/src/modules/biometrics/routes/biometric-vault.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-VOX-002",
+      "blueprintSection": "Cosine Similarity Verification, Anti-Spoofing & Liveness Guards",
+      "feature": "Multi-factor vocal challenge verification with Cosine similarity acoustic matching against enrolled voiceprints (confidence floor >= 0.85), verbal passphrase validation, and real-time anti-spoofing heuristic detection rejecting silent playback and high-frequency synthetic static",
+      "phase": 22,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/biometrics/helpers/voice-biometrics.engine.js",
+        "Backend/src/modules/biometrics/services/biometric-vault.service.js",
+        "Backend/src/modules/biometrics/controllers/biometric-vault.controller.js",
+        "Backend/src/modules/biometrics/routes/biometric-vault.routes.js"
+      ]
+    },
+    {
+      "id": "REQ-VOX-003",
+      "blueprintSection": "Biometric Security Vault, Clinical Action Challenges & Zero-Trust Governance",
+      "feature": "Centralized multi-modal credential vault (BIO-YYYY-XXXXXX) supporting FIDO2/Fingerprint templates, high-risk clinical action challenge enforcement (narcotics release, system lockdown, mortuary release sign-off), global zero-trust policy configuration (POL-BIO-GLOBAL), and verification audit log stream (LOG-YYYY-XXXXXX)",
+      "phase": 22,
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/biometrics/services/biometric-vault.service.js",
+        "Backend/src/modules/biometrics/controllers/biometric-vault.controller.js",
+        "Backend/src/modules/biometrics/routes/biometric-vault.routes.js",
+        "Frontend/src/modules/biometrics/VoiceBiometricsView.jsx",
+        "Frontend/src/services/api.service.js"
+      ]
+    }
+  ]
+}

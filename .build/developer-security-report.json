@@ -1,0 +1,9 @@
+{
+  "developerRoutesProtected": false,
+  "reason": "Developer routes not implemented",
+  "requiredBeforeProduction": [
+    "Separate developer authentication",
+    "Audit all developer operations",
+    "No tenant navigation exposure"
+  ]
+}

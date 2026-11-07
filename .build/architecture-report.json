@@ -1,0 +1,11 @@
+{
+  "authoritativeBackendRoot": "Backend/src",
+  "apiPrefix": "/api/v1",
+  "routeRegistry": "Backend/src/routes/index.js",
+  "legacyRouteShim": "Backend/routes/index.js re-exports src/routes",
+  "conflictsRemaining": [
+    "Backend/src/routes duplicate empty stub files (v1.routes.js etc.) unused",
+    "Role naming: seed ADMIN vs config ADMINISTRATOR",
+    "Permission naming: seed SCREAMING_SNAKE vs permissions.js dot notation"
+  ]
+}

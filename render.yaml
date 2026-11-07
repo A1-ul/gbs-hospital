@@ -1,0 +1,46 @@
+# ============================================================================
+# GBS HOSPITAL MANAGEMENT SYSTEM — RENDER.COM INFRASTRUCTURE BLUEPRINT
+# Official GBS Account Email: gabosei48@gmail.com
+# Production Service Name: gbs-hospital
+# Public Domain: https://gbs-hospital.onrender.com
+# ============================================================================
+
+services:
+  - type: web
+    name: gbs-hospital
+    runtime: node
+    plan: standard
+    region: frankfurt
+    branch: main
+    buildCommand: cd Frontend && npm install && npm run build && cd ../Backend && npm install && npx prisma generate
+    preDeployCommand: cd Backend && npx prisma migrate deploy
+    startCommand: cd Backend && npm start
+    healthCheckPath: /api/v1/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: GBS_ENV
+        value: PRODUCTION
+      - key: PORT
+        value: 5000
+      - key: GBS_OFFICIAL_ACCOUNT_EMAIL
+        value: gabosei48@gmail.com
+      - key: DATABASE_URL
+        fromDatabase:
+          name: gbs-hospital-postgres
+          property: connectionString
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: CORS_ORIGIN
+        value: https://gbs-hospital.onrender.com
+
+databases:
+  - name: gbs-hospital-postgres
+    databaseName: gbs_hospital
+    user: gbs_hospital_admin
+    plan: standard
+    region: frankfurt
+    postgresMajorVersion: "16"

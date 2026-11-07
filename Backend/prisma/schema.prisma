@@ -1,0 +1,3723 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/**
+ * ====================================================
+ * GBS HOSPITAL MANAGEMENT SYSTEM
+ * DATABASE CORE SCHEMA
+ * PHASE 2
+ * PART 2
+ * PRODUCTION HARDENED
+ * COMMONJS BACKEND COMPATIBLE
+ * ====================================================
+ */
+
+model Role {
+  id String @id @default(uuid())
+
+  name String @unique
+
+  description String?
+
+  permissions Permission[]
+
+  users User[]
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+}
+
+model Permission {
+  id String @id @default(uuid())
+
+  name String @unique
+
+  description String?
+
+  roles Role[]
+
+  createdAt DateTime @default(now())
+}
+
+model User {
+  id String @id @default(uuid())
+
+  firstName String
+
+  lastName String
+
+  email String @unique
+
+  password String
+
+  roleId String
+
+  role Role @relation(fields: [roleId], references: [id])
+
+  active Boolean @default(true)
+
+  lastLogin DateTime?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  auditLogs AuditLog[]
+
+  sessions Session[]
+
+  patient Patient?
+
+  @@index([email])
+  @@index([active])
+}
+
+model Session {
+  id String @id @default(uuid())
+
+  userId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  token String @unique
+
+  ipAddress String?
+
+  userAgent String?
+
+  expiresAt DateTime
+
+  createdAt DateTime @default(now())
+
+  @@index([token])
+  @@index([expiresAt])
+}
+
+model AuditLog {
+  id String @id @default(uuid())
+
+  userId String?
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  action String
+
+  module String
+
+  description String?
+
+  ipAddress String?
+
+  createdAt DateTime @default(now())
+
+  @@index([module])
+  @@index([action])
+  @@index([createdAt])
+}
+
+model Hospital {
+  id String @id @default(uuid())
+
+  name String
+
+  code String @unique
+
+  registrationNumber String? @unique
+
+  email String?
+
+  phone String?
+
+  website String?
+
+  address String?
+
+  city String?
+
+  state String?
+
+  country String?
+
+  logo String?
+
+  timezone String @default("UTC")
+
+  active Boolean @default(true)
+
+  deletedAt DateTime?
+
+  tenant Tenant?
+
+  branches HospitalBranch[]
+
+  settings HospitalSetting[]
+
+  hospitalWards HospitalWard[]
+
+  rooms HospitalRoom[]
+
+  staff HospitalStaff[]
+
+  departments HospitalDepartment[]
+
+  hospitalBeds HospitalBed[]
+
+  units HospitalUnit[]
+
+  patientLocations HospitalPatientLocation[]
+
+  admissions HospitalAdmission[]
+
+  patients Patient[]
+  folders  MedicalFolder[]
+  queueTickets OpdQueueTicket[]
+
+  pharmacyItems PharmacyItem[]
+
+  pharmacyInventory PharmacyInventory[]
+
+  pharmacyBatches PharmacyBatch[]
+
+  prescriptionDispenses PrescriptionDispense[]
+
+  pharmacyStockMovements PharmacyStockMovement[]
+
+  createdAt DateTime @default(now())
+
+  updatedAt         DateTime           @updatedAt
+  patientEncounters PatientEncounter[]
+
+  @@index([active])
+  @@index([deletedAt])
+  @@index([country])
+  @@index([city])
+}
+
+model HospitalBranch {
+  id String @id @default(uuid())
+
+  hospitalId String
+  hospital   Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+
+  name String
+
+  code String
+
+  address String?
+
+  city String?
+
+  state String?
+
+  country String?
+
+  phone String?
+
+  email String?
+
+  active Boolean @default(true)
+
+  deletedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([hospitalId, code])
+  @@index([hospitalId])
+  @@index([active])
+  @@index([deletedAt])
+}
+
+model HospitalSetting {
+  id String @id @default(uuid())
+
+  hospitalId String
+  hospital   Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+
+  key String
+
+  value String
+
+  deletedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([hospitalId, key])
+  @@index([hospitalId])
+  @@index([deletedAt])
+}
+
+model HospitalRoom {
+  id String @id @default(uuid())
+
+  hospitalId String
+  hospital   Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+
+  wardId String
+
+  ward HospitalWard @relation(fields: [wardId], references: [id], onDelete: Cascade)
+
+  name String
+
+  code String
+
+  floor String?
+
+  roomType String?
+
+  description String?
+
+  active Boolean @default(true)
+
+  deletedAt DateTime?
+
+  beds HospitalBed[]
+
+  patientLocations HospitalPatientLocation[]
+
+  admissions HospitalAdmission[]
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([hospitalId, code])
+  @@index([hospitalId])
+  @@index([wardId])
+  @@index([active])
+  @@index([deletedAt])
+}
+
+model HospitalDepartment {
+  id String @id @default(uuid())
+
+  hospitalId String
+  hospital   Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+
+  units HospitalUnit[]
+
+  name String
+
+  code String
+
+  description String?
+
+  active Boolean @default(true)
+
+  deletedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([hospitalId, code])
+  @@index([hospitalId])
+}
+
+model HospitalWard {
+  id String @id @default(uuid())
+
+  hospitalId String
+  hospital   Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+
+  unitId String?
+
+  unit HospitalUnit? @relation(fields: [unitId], references: [id], onDelete: SetNull)
+
+  rooms HospitalRoom[]
+
+  name String
+
+  code String
+
+  description String?
+
+  capacity Int @default(0)
+
+  active Boolean @default(true)
+
+  deletedAt DateTime?
+
+  admissions HospitalAdmission[]
+
+  createdAt DateTime @default(now())
+
+  updatedAt                DateTime                  @updatedAt
+  hospitalPatientLocations HospitalPatientLocation[]
+
+  @@unique([hospitalId, code])
+  @@index([hospitalId])
+  @@index([unitId])
+}
+
+model HospitalBed {
+  id String @id @default(uuid())
+
+  roomId String
+  room   HospitalRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  hospitalId String
+  hospital   Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+
+  name String
+
+  code String
+
+  bedNumber String
+
+  status String @default("AVAILABLE")
+
+  bedType String?
+
+  description String?
+
+  active Boolean @default(true)
+
+  deletedAt DateTime?
+
+  patientLocations HospitalPatientLocation[]
+
+  admissions HospitalAdmission[]
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([roomId, code])
+  @@unique([roomId, bedNumber])
+  @@index([roomId])
+  @@index([hospitalId])
+  @@index([status])
+  @@index([active])
+  @@index([deletedAt])
+}
+
+enum StaffType {
+  DOCTOR
+  NURSE
+  PHARMACIST
+  LAB_TECHNICIAN
+  CASHIER
+  ADMIN
+}
+
+model HospitalStaff {
+  id String @id @default(uuid())
+
+  hospitalId String
+  hospital   Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+
+  firstName String
+
+  lastName String
+
+  employeeCode String
+
+  email String?
+
+  phone String?
+
+  position String?
+
+  department String?
+
+  staffType StaffType
+
+  specialization String?
+
+  licenseNumber String?
+
+  active Boolean @default(true)
+
+  deletedAt DateTime?
+
+  assignedEncounters PatientEncounter[]
+
+  consultations PatientConsultation[]
+
+  nursingRecords NursingRecord[]
+
+  requestedLaboratoryRequests LaboratoryRequest[] @relation("LaboratoryRequestedBy")
+
+  performedLaboratoryRequests LaboratoryRequest[] @relation("LaboratoryPerformedBy")
+
+  discharges DischargeRecord[]
+
+  prescriptions PatientPrescription[]
+
+  dispensedPrescriptions PrescriptionDispense[]
+
+  stockMovements PharmacyStockMovement[]
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([hospitalId, employeeCode])
+  @@index([hospitalId])
+  @@index([staffType])
+  @@index([active])
+}
+
+model HospitalUnit {
+  id String @id @default(uuid())
+
+  hospitalId String
+  hospital   Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+
+  departmentId String
+  department   HospitalDepartment @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  wards HospitalWard[]
+
+  name String
+
+  code String
+
+  description String?
+
+  active Boolean @default(true)
+
+  deletedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([hospitalId, code])
+  @@index([hospitalId])
+  @@index([departmentId])
+}
+
+model HospitalPatientLocation {
+  id String @id @default(uuid())
+
+  hospitalId String
+  hospital   Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  wardId String?
+  ward   HospitalWard? @relation(fields: [wardId], references: [id], onDelete: SetNull)
+
+  roomId String?
+  room   HospitalRoom? @relation(fields: [roomId], references: [id], onDelete: SetNull)
+
+  bedId String?
+  bed   HospitalBed? @relation(fields: [bedId], references: [id], onDelete: SetNull)
+
+  status String @default("ACTIVE")
+
+  admittedAt DateTime @default(now())
+
+  dischargedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@index([hospitalId])
+  @@index([patientId])
+  @@index([wardId])
+  @@index([roomId])
+  @@index([bedId])
+  @@index([status])
+}
+
+model HospitalAdmission {
+  id String @id @default(uuid())
+
+  hospitalId String
+  hospital   Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  wardId String?
+  ward   HospitalWard? @relation(fields: [wardId], references: [id], onDelete: SetNull)
+
+  roomId String?
+  room   HospitalRoom? @relation(fields: [roomId], references: [id], onDelete: SetNull)
+
+  bedId String?
+  bed   HospitalBed? @relation(fields: [bedId], references: [id], onDelete: SetNull)
+
+  admissionNumber String @unique
+
+  admissionType String @default("GENERAL")
+
+  status String @default("ADMITTED")
+
+  admittedAt DateTime @default(now())
+
+  dischargedAt DateTime?
+
+  notes String?
+
+  encounterId String?
+
+  admittingDoctorId String?
+
+  admittingDoctorName String?
+
+  admissionDiagnosis String?
+
+  dischargeSummary String?
+
+  dischargeCondition String?
+
+  dischargeDisposition String?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@index([hospitalId])
+  @@index([patientId])
+  @@index([status])
+}
+
+model Patient {
+  id String @id @default(uuid())
+
+  hospitalId String
+  hospital   Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+
+  patientNumber String @unique
+
+  firstName String
+
+  lastName String
+
+  middleName String?
+
+  dateOfBirth DateTime?
+
+  gender String?
+
+  phone String?
+
+  email String?
+
+  address String?
+
+  emergencyContact String?
+  emergencyContactName String?
+  emergencyContactPhone String?
+  emergencyContactRelation String?
+
+  nationalId String?
+  nhisNumber String?
+  occupation String?
+  maritalStatus String?
+  nationality String? @default("Ghanaian")
+  bloodGroup String?
+  genotype String?
+  photoUrl String?
+
+  userId String? @unique
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  active Boolean @default(true)
+
+  deletedAt DateTime?
+
+  folder MedicalFolder?
+  retrievalRequests FolderRetrievalRequest[]
+  queueTickets OpdQueueTicket[]
+
+  admissions HospitalAdmission[]
+
+  locations HospitalPatientLocation[]
+
+  profile PatientProfile?
+
+  medicalRecords PatientMedicalRecord[]
+
+  allergies PatientAllergy[]
+
+  vitalSigns PatientVitalSign[]
+
+  medications PatientMedication[]
+
+  clinicalNotes PatientClinicalNote[]
+
+  createdAt DateTime @default(now())
+
+  updatedAt         DateTime           @updatedAt
+  patientEncounters PatientEncounter[]
+  radiologyOrders   RadiologyOrder[]
+  bills             PatientBill[]
+  surgicalCases     SurgicalCase[]
+  emergencyCases    EmergencyCase[]
+  transfusionRequests BloodTransfusionRequest[]
+  corpseRecords     CorpseRecord[]
+
+  @@index([hospitalId])
+  @@index([patientNumber])
+  @@index([nationalId])
+  @@index([nhisNumber])
+  @@index([phone])
+  @@index([active])
+}
+
+model PatientEncounter {
+  id String @id @default(uuid())
+
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  hospitalId String
+  hospital   Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+
+  encounterNumber String @unique
+
+  encounterType String
+  // OUTPATIENT
+  // INPATIENT
+  // EMERGENCY
+  // FOLLOWUP
+
+  status String @default("OPEN")
+  // OPEN
+  // COMPLETED
+  // CANCELLED
+
+  visitDate DateTime @default(now())
+
+  chiefComplaint String?
+
+  notes String?
+
+  createdBy String?
+
+  consultations PatientConsultation[]
+
+  diagnoses PatientDiagnosis[]
+
+  prescriptions PatientPrescription[]
+
+  laboratoryRequests LaboratoryRequest[]
+  radiologyOrders    RadiologyOrder[]
+
+  bills PatientBill[]
+  surgicalCases     SurgicalCase[]
+
+  nursingRecords NursingRecord[]
+
+  dischargeRecord DischargeRecord?
+
+  assignedStaffId String?
+
+  assignedStaff HospitalStaff? @relation(fields: [assignedStaffId], references: [id], onDelete: SetNull)
+
+  workflow ClinicalWorkflow?
+  queueTicket OpdQueueTicket?
+  vitalSigns PatientVitalSign[]
+
+  queueToken String?
+  priority String @default("ROUTINE") // ROUTINE, PRIORITY, EMERGENCY
+  triageStatus String @default("WAITING_TRIAGE") // WAITING_TRIAGE, TRIAGED, WAITING_DOCTOR, IN_CONSULTATION, COMPLETED
+  triageRiskLevel String? // LOW, MEDIUM, HIGH, CRITICAL
+  triageNotes String?
+  assignedRoom String?
+  assignedDoctorId String?
+  assignedDoctorName String?
+
+  triagedAt DateTime?
+  consultationStartedAt DateTime?
+  consultationCompletedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@index([createdAt])
+  @@index([patientId])
+  @@index([hospitalId])
+  @@index([encounterNumber])
+  @@index([status])
+  @@index([triageStatus])
+  @@index([priority])
+}
+
+model PatientConsultation {
+  id String @id @default(uuid())
+
+  encounterId String
+  encounter   PatientEncounter @relation(fields: [encounterId], references: [id], onDelete: Cascade)
+
+  doctorId String?
+  doctor   HospitalStaff? @relation(fields: [doctorId], references: [id], onDelete: SetNull)
+
+  consultationType String?
+
+  history String?
+
+  examination String?
+
+  assessment String?
+
+  plan String?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@index([createdAt])
+  @@index([encounterId])
+  @@index([doctorId])
+}
+
+model PatientDiagnosis {
+  id String @id @default(uuid())
+
+  encounterId String
+  encounter   PatientEncounter @relation(fields: [encounterId], references: [id], onDelete: Cascade)
+
+  diagnosisCode String?
+
+  diagnosisName String
+
+  diagnosisType String?
+  // PRIMARY
+  // SECONDARY
+
+  notes String?
+
+  createdAt DateTime @default(now())
+
+  @@index([encounterId])
+}
+
+model PatientPrescription {
+  id String @id @default(uuid())
+
+  encounterId String
+
+  encounter PatientEncounter @relation(fields: [encounterId], references: [id], onDelete: Cascade)
+
+  medicationName String
+
+  dosage String?
+
+  frequency String?
+
+  duration String?
+
+  instructions String?
+
+  status String @default("ACTIVE")
+
+  prescribedById String?
+
+  prescribedBy HospitalStaff? @relation(fields: [prescribedById], references: [id], onDelete: SetNull)
+
+  dispense PrescriptionDispense?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@index([encounterId])
+  @@index([prescribedById])
+}
+
+model LaboratoryRequest {
+  id String @id @default(uuid())
+
+  encounterId String
+
+  encounter PatientEncounter @relation(fields: [encounterId], references: [id], onDelete: Cascade)
+
+  requestNumber String? @unique
+
+  requestedById String?
+
+  requestedBy HospitalStaff? @relation("LaboratoryRequestedBy", fields: [requestedById], references: [id], onDelete: SetNull)
+
+  performedById String?
+
+  performedBy HospitalStaff? @relation("LaboratoryPerformedBy", fields: [performedById], references: [id], onDelete: SetNull)
+
+  testName String
+
+  testCode String?
+
+  department String?
+
+  priority String? @default("ROUTINE")
+
+  clinicalNotes String?
+
+  specimenType String?
+
+  status String @default("REQUESTED")
+
+  result String?
+
+  resultDate DateTime?
+
+  verifiedById String?
+
+  verifiedByName String?
+
+  verifiedAt DateTime?
+
+  samples LaboratorySample[]
+
+  testResults LaboratoryTestResult[]
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@index([createdAt])
+  @@index([encounterId])
+  @@index([requestedById])
+  @@index([performedById])
+  @@index([status])
+}
+
+model LaboratorySample {
+  id String @id @default(uuid())
+
+  sampleBarcode String @unique
+
+  requestId String
+
+  request LaboratoryRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  patientId String?
+
+  specimenType String
+
+  tubeColor String?
+
+  collectionVolume String?
+
+  collectedAt DateTime @default(now())
+
+  collectedById String?
+
+  collectedByName String?
+
+  receivedAt DateTime?
+
+  receivedById String?
+
+  receivedByName String?
+
+  status String @default("COLLECTED")
+
+  rejectionReason String?
+
+  notes String?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@index([requestId])
+  @@index([sampleBarcode])
+  @@index([status])
+}
+
+model LaboratoryTestResult {
+  id String @id @default(uuid())
+
+  requestId String
+
+  request LaboratoryRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  parameterName String
+
+  parameterCode String?
+
+  measuredValue String
+
+  numericValue Float?
+
+  unit String?
+
+  referenceRangeMin Float?
+
+  referenceRangeMax Float?
+
+  referenceRangeText String?
+
+  abnormalFlag String?
+
+  notes String?
+
+  createdAt DateTime @default(now())
+
+  @@index([requestId])
+  @@index([parameterName])
+}
+
+model LaboratoryCatalogItem {
+  id String @id @default(uuid())
+
+  testCode String @unique
+
+  testName String
+
+  department String
+
+  specimenType String
+
+  containerTube String
+
+  turnaroundHours Int @default(4)
+
+  costPrice Float @default(0.0)
+
+  sellingPrice Float @default(0.0)
+
+  active Boolean @default(true)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@index([department])
+  @@index([active])
+}
+
+/**
+ * ====================================================
+ * GBS RADIOLOGY, PACS & DICOM DIAGNOSTIC SUBSYSTEM
+ * ====================================================
+ */
+
+model RadiologyOrder {
+  id String @id @default(uuid())
+
+  encounterId String
+  encounter   PatientEncounter @relation(fields: [encounterId], references: [id], onDelete: Cascade)
+
+  patientId String?
+  patient   Patient? @relation(fields: [patientId], references: [id], onDelete: SetNull)
+
+  accessionNumber String @unique
+
+  modality String // XRAY, CT_SCAN, MRI, ULTRASOUND, MAMMOGRAPHY, FLUOROSCOPY, ECHOCARDIOGRAM
+  procedureName String
+  procedureCode String?
+  bodyPart String // CHEST, BRAIN, ABDOMEN, SPINE, PELVIS, EXTREMITY, NECK, CARDIAC
+  priority String @default("ROUTINE") // ROUTINE, URGENT, STAT_EMERGENCY
+  clinicalIndication String?
+
+  status String @default("ORDERED") // ORDERED, SCHEDULED, ACQUISITION_IN_PROGRESS, ACQUIRED, REPORTED, VERIFIED, CANCELLED
+
+  requestedById String?
+  requestedByName String?
+  requestedByRole String? @default("DOCTOR")
+
+  scheduledDate DateTime?
+
+  performingRadiographerId String?
+  performingRadiographerName String?
+
+  studies DicomStudy[]
+  reports RadiologyReport[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([encounterId])
+  @@index([patientId])
+  @@index([accessionNumber])
+  @@index([modality])
+  @@index([priority])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model DicomStudy {
+  id String @id @default(uuid())
+
+  orderId String
+  order   RadiologyOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  studyInstanceUid String @unique
+  seriesInstanceUid String?
+  sopClassUid String?
+
+  modality String
+  patientId String?
+  patientName String?
+  accessionNumber String?
+
+  seriesCount Int @default(1)
+  instanceCount Int @default(1)
+
+  imageStorageUri String?
+  thumbnailUri String?
+
+  windowWidth Float?
+  windowCenter Float?
+  kvp Float?
+  exposureTime Float?
+  sliceThickness Float?
+  pixelSpacing String?
+  patientPosition String?
+  acquisitionDevice String?
+  notes String?
+
+  acquiredAt DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([studyInstanceUid])
+  @@index([modality])
+  @@index([acquiredAt])
+}
+
+model RadiologyReport {
+  id String @id @default(uuid())
+
+  orderId String
+  order   RadiologyOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  studyId String?
+
+  reportNumber String @unique
+
+  modality String
+  radiologistId String?
+  radiologistName String?
+
+  technique String?
+  comparison String?
+  findings String
+  impression String
+
+  classification String @default("NORMAL") // NORMAL, ABNORMAL, INCONCLUSIVE, CRITICAL_PANIC
+  criticalAlert Boolean @default(false)
+  criticalAlertNotes String?
+
+  status String @default("DRAFT") // DRAFT, PRELIMINARY, VERIFIED_FINAL
+
+  verifiedById String?
+  verifiedByName String?
+  signedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([reportNumber])
+  @@index([status])
+  @@index([classification])
+  @@index([criticalAlert])
+  @@index([createdAt])
+}
+
+model RadiologyCatalogItem {
+  id String @id @default(uuid())
+
+  code String @unique
+  modality String
+  procedureName String
+  bodyPart String
+  standardViews String?
+  defaultWindowWidth Float?
+  defaultWindowCenter Float?
+  estimatedMinutes Int @default(15)
+  costPrice Float @default(0.0)
+  sellingPrice Float @default(0.0)
+  active Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([modality])
+  @@index([bodyPart])
+  @@index([active])
+}
+
+/**
+ * ====================================================
+ * GBS BILLING, INVOICING, NHIS & CLAIMS SUBSYSTEM
+ * ====================================================
+ */
+
+model PatientBill {
+  id String @id @default(uuid())
+
+  encounterId String
+  encounter   PatientEncounter @relation(fields: [encounterId], references: [id], onDelete: Cascade)
+
+  patientId String?
+  patient   Patient? @relation(fields: [patientId], references: [id], onDelete: SetNull)
+
+  billNumber String @unique
+  billDate DateTime @default(now())
+
+  payorType String @default("CASH") // CASH, NHIS, PRIVATE_INSURANCE, SPLIT
+  insuranceProvider String?
+  insurancePolicyNumber String?
+
+  grossAmount Decimal @db.Decimal(10, 2) @default(0.00)
+  discountAmount Decimal @db.Decimal(10, 2) @default(0.00)
+  nhisCoveredAmount Decimal @db.Decimal(10, 2) @default(0.00)
+  insuranceCoveredAmount Decimal @db.Decimal(10, 2) @default(0.00)
+  patientPayableAmount Decimal @db.Decimal(10, 2) @default(0.00)
+  paidAmount Decimal @db.Decimal(10, 2) @default(0.00)
+  balanceDue Decimal @db.Decimal(10, 2) @default(0.00)
+  amount Decimal @db.Decimal(10, 2) @default(0.00)
+
+  paymentStatus String @default("UNPAID") // UNPAID, PARTIALLY_PAID, PAID, VOIDED, REFUNDED
+  description String?
+  notes String?
+
+  issuedById String?
+  issuedByName String?
+
+  items BillItem[]
+  payments PatientPayment[]
+  claims InsuranceClaim[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([createdAt])
+  @@index([encounterId])
+  @@index([patientId])
+  @@index([billNumber])
+  @@index([paymentStatus])
+  @@index([payorType])
+}
+
+model BillItem {
+  id String @id @default(uuid())
+
+  billId String
+  bill   PatientBill @relation(fields: [billId], references: [id], onDelete: Cascade)
+
+  category String // CONSULTATION, PHARMACY, LABORATORY, RADIOLOGY, ADMISSION, PROCEDURE, GENERAL
+  serviceCode String?
+  serviceName String
+  unitPrice Decimal @db.Decimal(10, 2)
+  quantity Int @default(1)
+  totalAmount Decimal @db.Decimal(10, 2)
+
+  nhisCovered Boolean @default(false)
+  nhisRate Decimal @db.Decimal(10, 2) @default(0.00)
+
+  referenceId String?
+  notes String?
+
+  createdAt DateTime @default(now())
+
+  @@index([billId])
+  @@index([category])
+  @@index([serviceCode])
+}
+
+model PatientPayment {
+  id String @id @default(uuid())
+
+  billId String
+  bill   PatientBill @relation(fields: [billId], references: [id], onDelete: Cascade)
+
+  receiptNumber String @unique
+  amount Decimal @db.Decimal(10, 2)
+  paymentMethod String // CASH, MOBILE_MONEY, BANK_CARD, BANK_TRANSFER, CHEQUE
+  paymentReference String?
+  paymentDate DateTime @default(now())
+
+  receivedById String?
+  receivedByName String?
+  notes String?
+
+  createdAt DateTime @default(now())
+
+  @@index([billId])
+  @@index([receiptNumber])
+  @@index([paymentMethod])
+  @@index([paymentDate])
+}
+
+model InsuranceClaim {
+  id String @id @default(uuid())
+
+  billId String
+  bill   PatientBill @relation(fields: [billId], references: [id], onDelete: Cascade)
+
+  claimNumber String @unique
+  patientId String?
+  payorType String // NHIS, PRIVATE_INSURANCE
+  insuranceProvider String
+  policyNumber String
+
+  claimedAmount Decimal @db.Decimal(10, 2)
+  approvedAmount Decimal? @db.Decimal(10, 2)
+  status String @default("GENERATED") // GENERATED, SUBMITTED, UNDER_REVIEW, APPROVED, REJECTED, SETTLED
+
+  icd10Diagnosis String?
+  submittedAt DateTime?
+  settledAt DateTime?
+  rejectionReason String?
+  notes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([billId])
+  @@index([claimNumber])
+  @@index([status])
+  @@index([insuranceProvider])
+}
+
+model BillingTariffItem {
+  id String @id @default(uuid())
+
+  category String
+  code String @unique
+  name String
+  standardCashPrice Decimal @db.Decimal(10, 2)
+  nhisPrice Decimal @db.Decimal(10, 2) @default(0.00)
+  nhisCovered Boolean @default(true)
+  privateInsurancePrice Decimal @db.Decimal(10, 2)
+  active Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+  @@index([code])
+  @@index([active])
+}
+
+/**
+ * ====================================================
+ * GBS OPERATING THEATRE & SURGICAL SUBSYSTEM
+ * ====================================================
+ */
+
+model OperatingTheatre {
+  id String @id @default(uuid())
+
+  code String @unique
+  name String
+  theatreType String @default("GENERAL_SURGERY")
+  floor String?
+  building String?
+
+  status String @default("AVAILABLE") // AVAILABLE, OCCUPIED_IN_SURGERY, CLEANING, MAINTENANCE
+  active Boolean @default(true)
+
+  currentCaseId String?
+  cases SurgicalCase[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([theatreType])
+  @@index([active])
+}
+
+model SurgicalCase {
+  id String @id @default(uuid())
+
+  encounterId String
+  encounter   PatientEncounter @relation(fields: [encounterId], references: [id], onDelete: Cascade)
+
+  patientId String?
+  patient   Patient? @relation(fields: [patientId], references: [id], onDelete: SetNull)
+
+  theatreId String?
+  theatre   OperatingTheatre? @relation(fields: [theatreId], references: [id], onDelete: SetNull)
+
+  caseNumber String @unique
+
+  procedureName String
+  procedureCode String?
+  procedureCategory String @default("GENERAL_SURGERY")
+  priority String @default("ELECTIVE") // ELECTIVE, URGENT, EMERGENCY_STAT
+  status String @default("BOOKED") // BOOKED, PRE_OP_CLEARED, IN_THEATRE, SURGERY_IN_PROGRESS, PACU_RECOVERY, COMPLETED, CANCELLED
+
+  scheduledDate DateTime?
+  startTime DateTime?
+  endTime DateTime?
+
+  preOpDiagnosis String?
+  postOpDiagnosis String?
+
+  informedConsentSigned Boolean @default(false)
+  npoStatus String?
+  bloodProductsReserved String?
+
+  leadSurgeonId String?
+  leadSurgeonName String?
+  assistantSurgeonName String?
+  anesthesiologistId String?
+  anesthesiologistName String?
+  scrubNurseName String?
+  circulatingNurseName String?
+
+  operativeFindings String?
+  operativeTechnique String?
+  estimatedBloodLossMl Float?
+  implantsUsed String?
+  specimensRemoved String?
+
+  checklist SurgicalChecklist?
+  anesthesiaRecord AnesthesiaRecord?
+  pacuRecord PacuRecord?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([encounterId])
+  @@index([patientId])
+  @@index([theatreId])
+  @@index([caseNumber])
+  @@index([status])
+  @@index([priority])
+  @@index([createdAt])
+}
+
+model SurgicalChecklist {
+  id String @id @default(uuid())
+
+  caseId String @unique
+  surgicalCase SurgicalCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  signInCompleted Boolean @default(false)
+  patientIdentityConfirmed Boolean @default(false)
+  siteMarked Boolean @default(false)
+  consentVerified Boolean @default(false)
+  pulseOximeterFunctioning Boolean @default(false)
+  allergyRiskChecked Boolean @default(false)
+  difficultAirwayRiskChecked Boolean @default(false)
+  bloodLossRiskChecked Boolean @default(false)
+
+  timeOutCompleted Boolean @default(false)
+  teamIntroduced Boolean @default(false)
+  surgeonAnesthesiaNurseConfirmPatient Boolean @default(false)
+  antibioticProphylaxisGiven Boolean @default(false)
+  sterilityConfirmed Boolean @default(false)
+  imagingDisplayed Boolean @default(false)
+
+  signOutCompleted Boolean @default(false)
+  procedureNameConfirmed Boolean @default(false)
+  spongeNeedleCountsCorrect Boolean @default(false)
+  specimenLabeledCorrectly Boolean @default(false)
+  equipmentIssuesAddressed Boolean @default(false)
+  pacuConcernsReviewed Boolean @default(false)
+
+  completedAt DateTime?
+  checkedById String?
+  checkedByName String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([caseId])
+  @@index([signInCompleted])
+  @@index([timeOutCompleted])
+  @@index([signOutCompleted])
+}
+
+model AnesthesiaRecord {
+  id String @id @default(uuid())
+
+  caseId String @unique
+  surgicalCase SurgicalCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  anesthesiaType String
+  asaStatus String @default("ASA_I")
+  airwayAssessment String?
+
+  inductionTime DateTime?
+  intubationTime DateTime?
+  extubationTime DateTime?
+  anesthesiaStopTime DateTime?
+
+  agentsAdministered String?
+  totalFluidsInfusedMl Float? @default(0.0)
+  totalBloodLossMl Float? @default(0.0)
+  urineOutputMl Float? @default(0.0)
+
+  anesthesiologistId String?
+  anesthesiologistName String?
+  notes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([caseId])
+  @@index([anesthesiaType])
+  @@index([asaStatus])
+}
+
+model PacuRecord {
+  id String @id @default(uuid())
+
+  caseId String @unique
+  surgicalCase SurgicalCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  admittedAt DateTime @default(now())
+  dischargedAt DateTime?
+
+  aldreteActivity Int @default(2)
+  aldreteRespiration Int @default(2)
+  aldreteCirculation Int @default(2)
+  aldreteConsciousness Int @default(2)
+  aldreteO2Saturation Int @default(2)
+  aldreteTotalScore Int @default(10)
+
+  painScore Int? @default(0)
+  nauseaVomitingStatus String? @default("NONE")
+  postOpDestination String @default("SURGICAL_WARD")
+
+  clearedForDischarge Boolean @default(false)
+  clearedById String?
+  clearedByName String?
+  recoveryNotes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([caseId])
+  @@index([aldreteTotalScore])
+  @@index([clearedForDischarge])
+}
+
+model SurgicalCatalogItem {
+  id String @id @default(uuid())
+
+  code String @unique
+  procedureName String
+  category String
+  estimatedDurationMinutes Int @default(60)
+  standardFee Decimal @db.Decimal(10, 2)
+  nhisCovered Boolean @default(false)
+  active Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+  @@index([active])
+}
+
+model NursingRecord {
+  id String @id @default(uuid())
+
+  encounterId String
+  encounter   PatientEncounter @relation(fields: [encounterId], references: [id], onDelete: Cascade)
+
+  recordedById String?
+
+  recordedBy HospitalStaff? @relation(fields: [recordedById], references: [id], onDelete: SetNull)
+
+  observation String?
+
+  nursingNote String?
+
+  patientId String?
+
+  admissionId String?
+
+  shift String? @default("MORNING")
+
+  temperature Float?
+
+  pulseRate Int?
+
+  respiratoryRate Int?
+
+  bloodPressure String?
+
+  oxygenSaturation Float?
+
+  intakeOutputNotes String?
+
+  medicationsAdministered String?
+
+  nurseName String?
+
+  recordedAt DateTime @default(now())
+
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([encounterId])
+  @@index([recordedById])
+}
+
+model PatientProfile {
+  id String @id @default(uuid())
+
+  patientId String  @unique
+  patient   Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  occupation String?
+
+  maritalStatus String?
+
+  religion String?
+
+  nationality String?
+
+  identificationType String?
+
+  identificationNumber String?
+
+  allergies String?
+
+  medicalHistory String?
+
+  surgicalHistory String?
+
+  familyHistory String?
+
+  chronicConditions String?
+
+  notes String?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@index([patientId])
+}
+
+model PatientMedicalRecord {
+  id String @id @default(uuid())
+
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  recordType String
+
+  title String
+
+  description String?
+
+  diagnosis String?
+
+  treatment String?
+
+  medication String?
+
+  doctorName String?
+
+  recordedBy String?
+
+  recordDate DateTime @default(now())
+
+  active Boolean @default(true)
+
+  deletedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@index([patientId])
+  @@index([recordType])
+  @@index([active])
+  @@index([deletedAt])
+}
+
+model PatientAllergy {
+  id String @id @default(uuid())
+
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  allergyName String
+
+  allergyType String?
+
+  severity String @default("MODERATE")
+
+  reaction String?
+
+  notes String?
+
+  status String @default("ACTIVE")
+
+  recordedBy String?
+
+  active Boolean @default(true)
+
+  deletedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@index([patientId])
+  @@index([status])
+  @@index([active])
+}
+
+model PatientVitalSign {
+  id String @id @default(uuid())
+
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  encounterId String?
+  encounter   PatientEncounter? @relation(fields: [encounterId], references: [id], onDelete: SetNull)
+
+  temperature Float? // Celsius
+
+  pulseRate Int? // bpm
+
+  respiratoryRate Int? // breaths/min
+
+  systolicBP Int? // mmHg
+
+  diastolicBP Int? // mmHg
+
+  oxygenSaturation Float? // % SpO2
+
+  weight Float? // kg
+
+  height Float? // cm
+
+  bmi Float? // Computed BMI
+
+  bmiCategory String? // UNDERWEIGHT, NORMAL, OVERWEIGHT, OBESE
+
+  bloodGlucose Float? // mmol/L or mg/dL
+
+  painScore Int? // 0 to 10
+
+  consciousness String? @default("ALERT") // AVPU scale: ALERT, VOICE, PAIN, UNRESPONSIVE
+
+  news2Score Int? // Early Warning Score (0 to 20)
+
+  riskCategory String? @default("LOW") // LOW, MEDIUM, HIGH, CRITICAL
+
+  triageNotes String?
+
+  recordedBy String?
+
+  recordedAt DateTime @default(now())
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@index([patientId])
+  @@index([encounterId])
+  @@index([recordedAt])
+  @@index([riskCategory])
+}
+
+model PatientMedication {
+  id String @id @default(uuid())
+
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  medicationName String
+
+  dosage String?
+
+  frequency String?
+
+  route String?
+
+  startDate DateTime?
+
+  endDate DateTime?
+
+  prescribedBy String?
+
+  status String @default("ACTIVE")
+
+  notes String?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@index([patientId])
+  @@index([status])
+}
+
+model PatientClinicalNote {
+  id String @id @default(uuid())
+
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  noteType String
+
+  title String
+
+  content String
+
+  author String?
+
+  department String?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@index([patientId])
+  @@index([noteType])
+}
+
+model DischargeRecord {
+  id String @id @default(uuid())
+
+  encounterId String           @unique
+  encounter   PatientEncounter @relation(fields: [encounterId], references: [id], onDelete: Cascade)
+
+  dischargeSummary String?
+
+  dischargeDate DateTime @default(now())
+
+  dischargedById String?
+  dischargedBy   HospitalStaff? @relation(fields: [dischargedById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@index([createdAt])
+}
+
+model ClinicalWorkflow {
+  id String @id @default(uuid())
+
+  encounterId String           @unique
+  encounter   PatientEncounter @relation(fields: [encounterId], references: [id], onDelete: Cascade)
+
+  currentStage String @default("REGISTRATION")
+  /**
+   * REGISTRATION
+   * TRIAGE
+   * CONSULTATION
+   * DIAGNOSIS
+   * LABORATORY
+   * PHARMACY
+   * BILLING
+   * DISCHARGE
+   */
+
+  status String @default("ACTIVE")
+
+  startedAt DateTime @default(now())
+
+  completedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+}
+
+model PharmacyItem {
+  id String @id @default(uuid())
+
+  hospitalId String
+  hospital   Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+
+  name String
+  itemCode String? @unique
+  genericName String?
+  brandName String?
+  dosageForm String?
+  strength String?
+  category String?
+  unitPrice Float @default(0.0)
+  reorderLevel Int @default(10)
+  active Boolean @default(true)
+
+  inventory PharmacyInventory[]
+
+  batches PharmacyBatch[]
+
+  prescriptionItems PrescriptionDispenseItem[]
+
+  stockMovements PharmacyStockMovement[]
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([hospitalId, name])
+  @@index([hospitalId])
+}
+
+model PharmacyInventory {
+  id String @id @default(uuid())
+
+  hospitalId String
+  hospital   Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+
+  itemId String
+  item   PharmacyItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  quantity Int @default(0)
+
+  availableQuantity Int @default(0)
+
+  reservedQuantity Int @default(0)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([hospitalId, itemId])
+  @@index([itemId])
+}
+
+model PharmacyBatch {
+  id String @id @default(uuid())
+
+  hospitalId String
+
+  hospital Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+
+  itemId String
+
+  item PharmacyItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  batchNumber String
+
+  expiryDate DateTime
+
+  quantity Int
+
+  remainingQuantity Int?
+
+  unitCost Float? @default(0.0)
+
+  purchaseDate DateTime?
+
+  supplier String?
+
+  active Boolean @default(true)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([hospitalId, batchNumber])
+  @@index([itemId])
+  @@index([expiryDate])
+}
+
+model PrescriptionDispense {
+  id String @id @default(uuid())
+
+  hospitalId String
+  hospital   Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+
+  prescriptionId String              @unique
+  prescription   PatientPrescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+
+  dispenseNumber String? @unique
+
+  pharmacistId String?
+  pharmacist   HospitalStaff? @relation(fields: [pharmacistId], references: [id], onDelete: SetNull)
+
+  pharmacistName String?
+
+  pharmacistUserId String?
+
+  counselingNotes String?
+
+  paymentStatus String? @default("PENDING")
+
+  totalAmount Float? @default(0.0)
+
+  status String @default("PENDING")
+
+  dispensedAt DateTime?
+
+  items PrescriptionDispenseItem[]
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@index([hospitalId])
+  @@index([prescriptionId])
+  @@index([pharmacistId])
+}
+
+model PrescriptionDispenseItem {
+  id String @id @default(uuid())
+
+  dispenseId String
+
+  dispense PrescriptionDispense @relation(fields: [dispenseId], references: [id], onDelete: Cascade)
+
+  itemId String
+
+  item PharmacyItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  quantityRequested Int
+
+  quantityDispensed Int @default(0)
+
+  instructions String?
+
+  batchNumber String?
+
+  unitPrice Float? @default(0.0)
+
+  totalPrice Float? @default(0.0)
+
+  createdAt DateTime @default(now())
+
+  @@index([dispenseId])
+  @@index([itemId])
+}
+
+model PharmacyStockMovement {
+  id String @id @default(uuid())
+
+  hospitalId String
+  hospital   Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+
+  itemId String
+  item   PharmacyItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  movementType String
+
+  quantity Int
+
+  batchNumber String?
+
+  balanceAfter Int?
+
+  referenceId String?
+
+  performedById String?
+
+  performedBy HospitalStaff? @relation(fields: [performedById], references: [id], onDelete: SetNull)
+
+  performedByName String?
+
+  notes String?
+
+  createdAt DateTime @default(now())
+
+  @@index([hospitalId])
+  @@index([itemId])
+  @@index([movementType])
+}
+
+/**
+ * ====================================================
+ * GBS ENTERPRISE TENANT MANAGEMENT & ONBOARDING
+ * ====================================================
+ */
+
+model Tenant {
+  id String @id @default(uuid())
+
+  tenantId String @unique // Format: TEN-2026-000145
+  tenantCode String @unique // Format: GBS-ACC-0145
+  institutionId String @unique // Format: INS-2026-001245
+
+  name String
+  type String @default("GENERAL_HOSPITAL")
+
+  country String
+  region String?
+  city String?
+  address String?
+  latitude Float?
+  longitude Float?
+
+  officialEmail String @unique
+  officialPhone String
+  website String?
+  registrationNumber String?
+  licenseNumber String?
+  taxId String?
+  logoUrl String?
+
+  status String @default("PENDING") // PENDING, VERIFICATION_REQUIRED, APPROVED, PROVISIONING, ACTIVE_TRIAL, TRIAL_EXPIRING, TRIAL_EXPIRED, ACTIVE_PAID, GRACE_PERIOD, SUSPENDED, LOCKED, CANCELLED, ARCHIVED
+  systemLocked Boolean @default(false)
+  lockReason String?
+  lockedAt DateTime?
+
+  representativeName String?
+  representativePosition String?
+  representativeEmail String?
+  representativePhone String?
+
+  hospitalId String? @unique
+  hospital Hospital? @relation(fields: [hospitalId], references: [id], onDelete: SetNull)
+
+  subscriptions TenantSubscription[]
+  messages TenantMessage[]
+  locationPings TenantLocationPing[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([tenantId])
+  @@index([tenantCode])
+  @@index([systemLocked])
+}
+
+model TenantSubscription {
+  id String @id @default(uuid())
+  subscriptionId String @unique // Format: SUB-2026-000145
+
+  tenantId String
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  plan String @default("ENTERPRISE_TRIAL")
+  status String @default("ACTIVE_TRIAL")
+
+  trialStartDate DateTime @default(now())
+  trialEndDate DateTime
+  subscriptionStartDate DateTime?
+  subscriptionEndDate DateTime?
+  gracePeriodEndDate DateTime?
+
+  price Float @default(0.0)
+  currency String @default("USD")
+  billingCycle String @default("MONTHLY")
+  autoRenew Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([trialEndDate])
+}
+
+model TenantMessage {
+  id String @id @default(uuid())
+
+  tenantId String?
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  senderId String
+  senderRole String @default("DEVELOPER")
+  title String
+  message String
+  priority String @default("NORMAL") // LOW, NORMAL, HIGH, URGENT
+  isRead Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([createdAt])
+}
+
+model TenantLocationPing {
+  id String @id @default(uuid())
+
+  tenantId String
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  latitude Float
+  longitude Float
+  status String @default("ONLINE")
+  recordedAt DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([recordedAt])
+}
+
+model VideoCallSession {
+  id String @id @default(uuid())
+
+  channelName String @unique
+  tenantId String
+  developerUserId String
+  adminUserId String?
+  status String @default("INITIATED") // INITIATED, ACTIVE, COMPLETED, CANCELLED
+
+  startedAt DateTime @default(now())
+  endedAt DateTime?
+
+  @@index([tenantId])
+  @@index([status])
+}
+
+/**
+ * ====================================================
+ * GBS MEDICAL FOLDER ARCHIVE & PHYSICAL TRACKING
+ * FOLDER_RETRIEVER ROLE WORKFLOW & CHAIN OF CUSTODY
+ * ====================================================
+ */
+
+model MedicalFolder {
+  id String @id @default(uuid())
+
+  hospitalId String
+  hospital   Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+
+  patientId String  @unique
+  patient   Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  folderNumber String @unique // Format: FLD-2026-000145
+  archiveZone String @default("MAIN_ARCHIVE") // MAIN_ARCHIVE, EMERGENCY_ARCHIVE, PAED_ARCHIVE, MATERNITY_ARCHIVE, COLD_STORAGE
+  shelfLocation String // Format: SHELF-A1-BAY04-RACK02
+  barcode String @unique
+  rfidTag String?
+
+  status String @default("IN_ARCHIVE") // IN_ARCHIVE, REQUESTED, RETRIEVING, IN_TRANSIT, WITH_DOCTOR, AT_OPD, WITH_NURSE, ARCHIVED, MISSING, DAMAGED
+
+  currentHolderId String?
+  currentDepartment String?
+
+  lastCheckedOutAt DateTime?
+  lastReturnedAt DateTime?
+  notes String?
+
+  retrievalRequests FolderRetrievalRequest[]
+  movementLogs FolderMovementLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([hospitalId])
+  @@index([folderNumber])
+  @@index([barcode])
+  @@index([status])
+  @@index([shelfLocation])
+}
+
+model FolderRetrievalRequest {
+  id String @id @default(uuid())
+
+  folderId String
+  folder   MedicalFolder @relation(fields: [folderId], references: [id], onDelete: Cascade)
+
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  requestedById String
+  requestedByRole String @default("DOCTOR")
+  destinationDepartment String
+  priority String @default("ROUTINE") // ROUTINE, URGENT, EMERGENCY
+  status String @default("PENDING") // PENDING, RETRIEVING, IN_TRANSIT, DELIVERED, RETURNED, CANCELLED
+
+  retrievedById String?
+  notes String?
+
+  requestedAt DateTime @default(now())
+  retrievedAt DateTime?
+  deliveredAt DateTime?
+  returnedAt DateTime?
+
+  @@index([folderId])
+  @@index([patientId])
+  @@index([status])
+  @@index([priority])
+  @@index([requestedAt])
+}
+
+model FolderMovementLog {
+  id String @id @default(uuid())
+
+  folderId String
+  folder   MedicalFolder @relation(fields: [folderId], references: [id], onDelete: Cascade)
+
+  performedById String
+  performedByRole String @default("FOLDER_RETRIEVER")
+  action String // INITIAL_SHELVED, CHECKED_OUT, IN_TRANSIT, DELIVERED, RETURNED_TO_SHELF, RELOCATED, AUDITED
+  fromLocation String?
+  toLocation String?
+  notes String?
+
+  createdAt DateTime @default(now())
+
+  @@index([folderId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+/**
+ * ====================================================
+ * GBS OUTPATIENT DEPARTMENT (OPD) QUEUE & TRIAGE
+ * ====================================================
+ */
+
+model OpdQueueTicket {
+  id String @id @default(uuid())
+
+  hospitalId String
+  hospital   Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+
+  encounterId String? @unique
+  encounter   PatientEncounter? @relation(fields: [encounterId], references: [id], onDelete: Cascade)
+
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  ticketNumber String // e.g., OPD-20261030-001
+  department String @default("GENERAL_OPD") // GENERAL_OPD, EMERGENCY, PEDIATRICS, OBGYN, DENTAL, EYE_CLINIC
+  priority String @default("ROUTINE") // ROUTINE, PRIORITY, EMERGENCY
+  status String @default("WAITING_TRIAGE") // WAITING_TRIAGE, IN_TRIAGE, WAITING_DOCTOR, IN_CONSULTATION, COMPLETED, CANCELLED
+
+  calledAt DateTime?
+  triagedAt DateTime?
+  consultedAt DateTime?
+  completedAt DateTime?
+
+  assignedRoom String?
+  assignedStaffId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([hospitalId])
+  @@index([patientId])
+  @@index([department])
+  @@index([status])
+  @@index([priority])
+  @@index([createdAt])
+}
+
+/**
+ * ====================================================
+ * GBS EMERGENCY & AMBULANCE FLEET MANAGEMENT (PHASE 12)
+ * ====================================================
+ */
+
+model Ambulance {
+  id String @id @default(uuid())
+
+  vehicleNumber     String @unique // e.g., AMB-01, AMB-02
+  registrationPlate String @unique // e.g., GV-412-26
+  type              String @default("ADVANCED_LIFE_SUPPORT") // ADVANCED_LIFE_SUPPORT, BASIC_LIFE_SUPPORT, ICU_TRANSPORT
+  status            String @default("AVAILABLE") // AVAILABLE, DISPATCHED, ON_SCENE, TRANSPORTING, MAINTENANCE
+
+  latitude          Float?
+  longitude         Float?
+  currentSpeedKmh   Float?
+  heading           Float?
+  fuelLevelPercent  Int?   @default(100)
+
+  assignedDriver    String?
+  assignedParamedic String?
+  equipmentChecklist Json?
+
+  dispatches AmbulanceDispatch[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([vehicleNumber])
+  @@index([status])
+  @@index([type])
+}
+
+model AmbulanceDispatch {
+  id String @id @default(uuid())
+
+  dispatchNumber    String @unique // e.g., DISP-2026-000001
+  ambulanceId       String
+  ambulance         Ambulance @relation(fields: [ambulanceId], references: [id], onDelete: Cascade)
+
+  callerName        String
+  callerPhone       String
+  incidentLocation  String
+  pickupLatitude    Float?
+  pickupLongitude   Float?
+
+  triageSeverity    String @default("ORANGE_EMERGENT") // RED_RESUSCITATION, ORANGE_EMERGENT, YELLOW_URGENT, GREEN_NON_URGENT
+  chiefComplaint    String
+
+  dispatchedAt      DateTime  @default(now())
+  enRouteAt         DateTime?
+  arrivedSceneAt    DateTime?
+  departedSceneAt   DateTime?
+  arrivedHospitalAt DateTime?
+  clearedAt         DateTime?
+
+  responseTimeSeconds Int? // Difference between dispatchedAt and arrivedSceneAt
+  transitTimeSeconds  Int? // Difference between departedSceneAt and arrivedHospitalAt
+
+  status            String @default("DISPATCHED") // DISPATCHED, EN_ROUTE, ON_SCENE, TRANSPORTING, COMPLETED, CANCELLED
+  vitalSignsAtScene Json?
+  handoverNotes     String?
+
+  emergencyCases    EmergencyCase[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([dispatchNumber])
+  @@index([ambulanceId])
+  @@index([status])
+  @@index([triageSeverity])
+}
+
+model EmergencyCase {
+  id String @id @default(uuid())
+
+  caseNumber             String   @unique // e.g., EMG-2026-000001
+  patientId              String?
+  patient                Patient? @relation(fields: [patientId], references: [id], onDelete: SetNull)
+
+  patientName            String?
+  triageCategory         String   @default("ORANGE_EMERGENT") // RED_RESUSCITATION, ORANGE_EMERGENT, YELLOW_URGENT, GREEN_LESS_URGENT, BLUE_NON_URGENT
+  arrivalMode            String   @default("AMBULANCE") // AMBULANCE, WALK_IN, TRANSFER_HOSPITAL, POLICE
+  
+  dispatchId             String?
+  dispatch               AmbulanceDispatch? @relation(fields: [dispatchId], references: [id], onDelete: SetNull)
+
+  assignedBay            String?  // e.g. TRAUMA_BAY_1, RESUSCITATION_ROOM_2
+  attendingPhysician     String?
+  triageNurse            String?
+  clinicalNotes          String?
+  emergencyOverrideLogged Boolean @default(true) // Master Blueprint Guardrail: Emergency Override Logging
+
+  status                 String   @default("TRIAGED") // TRIAGED, IN_RESUSCITATION, STABILIZED, ADMITTED_ICU, TRANSFERRED_OT, DISCHARGED, DECEASED
+
+  arrivedAt              DateTime @default(now())
+  stabilizedAt           DateTime?
+  dispositionAt          DateTime?
+
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@index([caseNumber])
+  @@index([patientId])
+  @@index([status])
+  @@index([triageCategory])
+  @@index([arrivalMode])
+}
+
+/**
+ * ====================================================
+ * GBS BLOOD BANK & TRANSFUSION SERVICES (PHASE 13)
+ * ====================================================
+ */
+
+model BloodDonor {
+  id String @id @default(uuid())
+
+  donorNumber         String    @unique // e.g. DNR-2026-000001
+  fullName            String
+  gender              String
+  dateOfBirth         DateTime?
+  age                 Int?
+  phone               String
+  email               String?
+  nationalId          String?
+
+  bloodGroup          String    // A_POSITIVE, A_NEGATIVE, B_POSITIVE, B_NEGATIVE, AB_POSITIVE, AB_NEGATIVE, O_POSITIVE, O_NEGATIVE
+  rhFactor            String    @default("POSITIVE") // POSITIVE, NEGATIVE
+  weightKg            Float?
+  hemoglobinLevel     Float?    // g/dL, e.g. 13.5
+  donorType           String    @default("VOLUNTARY") // VOLUNTARY, REPLACEMENT, AUTOLOGOUS
+
+  eligibilityStatus   String    @default("ELIGIBLE") // ELIGIBLE, TEMPORARILY_DEFERRED, PERMANENTLY_DEFERRED
+  deferralReason      String?
+  lastDonationDate    DateTime?
+  totalDonations      Int       @default(0)
+
+  bloodUnits          BloodUnit[]
+
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@index([donorNumber])
+  @@index([bloodGroup])
+  @@index([eligibilityStatus])
+  @@index([phone])
+}
+
+model BloodUnit {
+  id String @id @default(uuid())
+
+  unitBarcode         String    @unique // e.g. BLD-2026-000001
+  donorId             String?
+  donor               BloodDonor? @relation(fields: [donorId], references: [id], onDelete: SetNull)
+
+  bloodGroup          String    // A_POSITIVE, A_NEGATIVE, B_POSITIVE, B_NEGATIVE, AB_POSITIVE, AB_NEGATIVE, O_POSITIVE, O_NEGATIVE
+  componentType       String    @default("PACKED_RED_CELLS") // WHOLE_BLOOD, PACKED_RED_CELLS, FRESH_FROZEN_PLASMA, PLATELETS, CRYOPRECIPITATE
+  volumeMl            Int       @default(450)
+  collectionDate      DateTime  @default(now())
+  expiryDate          DateTime
+  
+  storageLocation     String    @default("FRIDGE-BB-01-SHELF-A")
+  storageTemperature  Float     @default(4.0) // Celsius
+
+  status              String    @default("QUARANTINE") // QUARANTINE, TESTED_SAFE, RESERVED, ISSUED, TRANSFUSED, DISCARDED_EXPIRED, DISCARDED_REACTIVE
+
+  // Transfusion-Transmissible Infection (TTI) Mandatory Screening
+  hivScreening        String    @default("NEGATIVE") // NEGATIVE, POSITIVE, PENDING
+  hepatitisBScreening String    @default("NEGATIVE") // NEGATIVE, POSITIVE, PENDING
+  hepatitisCScreening String    @default("NEGATIVE") // NEGATIVE, POSITIVE, PENDING
+  syphilisScreening   String    @default("NEGATIVE") // NEGATIVE, POSITIVE, PENDING
+  screeningNotes      String?
+
+  crossMatches        BloodCrossMatch[]
+  transfusions        BloodTransfusionRecord[]
+
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@index([unitBarcode])
+  @@index([bloodGroup])
+  @@index([componentType])
+  @@index([status])
+  @@index([expiryDate])
+}
+
+model BloodTransfusionRequest {
+  id String @id @default(uuid())
+
+  requestNumber       String    @unique // e.g. TRF-2026-000001
+  patientId           String
+  patient             Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  patientBloodGroup   String    // A_POSITIVE, A_NEGATIVE, etc.
+  requiredComponent   String    @default("PACKED_RED_CELLS") // WHOLE_BLOOD, PACKED_RED_CELLS, FRESH_FROZEN_PLASMA, PLATELETS, CRYOPRECIPITATE
+  unitsRequested      Int       @default(1)
+  urgencyLevel        String    @default("ROUTINE") // EMERGENCY_STAT_UNMATCHED, URGENT, ROUTINE
+  clinicalIndication  String    // Acute Blood Loss, Severe Anemia, Trauma, Post-Partum Hemorrhage, Intra-Op Loss
+  
+  requestingDoctor    String
+  departmentWard      String?   // e.g. Theatre Suite 2, Maternity, ER Trauma Bay 1
+  status              String    @default("REQUESTED") // REQUESTED, CROSS_MATCHING, COMPATIBLE_READY, ISSUED, COMPLETED, CANCELLED
+  
+  emergencyOverrideLogged Boolean @default(false) // Master Blueprint Guardrail: Emergency Override Logging for STAT uncrossmatched O-
+  clinicalNotes       String?
+
+  crossMatches        BloodCrossMatch[]
+  transfusions        BloodTransfusionRecord[]
+
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@index([requestNumber])
+  @@index([patientId])
+  @@index([patientBloodGroup])
+  @@index([status])
+  @@index([urgencyLevel])
+}
+
+model BloodCrossMatch {
+  id String @id @default(uuid())
+
+  crossMatchNumber       String    @unique // e.g. XM-2026-000001
+  requestId              String
+  request                BloodTransfusionRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  
+  bloodUnitId            String
+  bloodUnit              BloodUnit @relation(fields: [bloodUnitId], references: [id], onDelete: Cascade)
+
+  majorCrossmatchResult  String    @default("COMPATIBLE") // COMPATIBLE, INCOMPATIBLE
+  minorCrossmatchResult  String    @default("COMPATIBLE") // COMPATIBLE, INCOMPATIBLE
+  antibodyScreeningResult String   @default("NEGATIVE")   // NEGATIVE, POSITIVE
+  compatibilityStatus    String    @default("COMPATIBLE") // COMPATIBLE, INCOMPATIBLE, PENDING
+
+  testedByLabTechnician  String
+  testedAt               DateTime  @default(now())
+  notes                  String?
+
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  @@index([crossMatchNumber])
+  @@index([requestId])
+  @@index([bloodUnitId])
+  @@index([compatibilityStatus])
+}
+
+model BloodTransfusionRecord {
+  id String @id @default(uuid())
+
+  transfusionNumber     String    @unique // e.g. TXN-2026-000001
+  requestId             String
+  request               BloodTransfusionRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  bloodUnitId           String
+  bloodUnit             BloodUnit @relation(fields: [bloodUnitId], references: [id], onDelete: Cascade)
+
+  primaryClinician      String    // Administering Nurse or Doctor
+  verifyingClinician    String    // Bedside verification co-signer (Mandatory Dual-Check Safety Protocol)
+  
+  startedAt             DateTime  @default(now())
+  completedAt           DateTime?
+  initialVitals         Json?     // { bp: "120/80", hr: 82, temp: 36.8, rr: 18 }
+  postVitals            Json?
+
+  status                String    @default("IN_PROGRESS") // IN_PROGRESS, COMPLETED, TERMINATED_ADVERSE_REACTION
+  hadAdverseReaction    Boolean   @default(false)
+  reactionType          String?   // FEBRILE_NON_HEMOLYTIC, ACUTE_HEMOLYTIC, ALLERGIC, ANAPHYLACTIC, TRALI, TACO
+  reactionSeverity      String?   // MILD, MODERATE, SEVERE_LIFE_THREATENING
+  actionTaken           String?
+  investigationNotes    String?
+
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([transfusionNumber])
+  @@index([requestId])
+  @@index([bloodUnitId])
+  @@index([status])
+  @@index([hadAdverseReaction])
+}
+
+/**
+ * ====================================================
+ * GBS MORTUARY MANAGEMENT & COLD STORAGE (PHASE 14)
+ * ====================================================
+ */
+
+model CorpseRecord {
+  id String @id @default(uuid())
+
+  corpseNumber            String    @unique // e.g. CRP-2026-000001
+  patientId               String?
+  patient                 Patient?  @relation(fields: [patientId], references: [id], onDelete: SetNull)
+
+  deceasedName            String
+  gender                  String
+  age                     Int?
+  dateOfBirth             DateTime?
+  dateOfDeath             DateTime  @default(now())
+  timeOfDeath             String?
+  placeOfDeath            String    // Ward 3B, ICU, ER Trauma Bay, External / BID, Accident Scene
+  
+  caseCategory            String    @default("NON_CORONER_CLINICAL") // NON_CORONER_CLINICAL, POLICE_CORONER, MEDICO_LEGAL, UNCLAIMED
+  deathCertificateNumber  String?   // e.g. DC-2026-000001
+  certifyingPhysician     String
+  immediateCauseOfDeath   String    // e.g. Severe Septic Shock
+  underlyingCauseOfDeath  String?   // e.g. Multi-Organ Failure
+  intakeNurseOrOfficer    String
+
+  admittedAt              DateTime  @default(now())
+
+  chamberId               String?
+  chamber                 MortuaryChamber? @relation(fields: [chamberId], references: [id], onDelete: SetNull)
+  compartmentNumber       String?   // e.g. VAULT-A-04
+
+  status                  String    @default("IN_STORAGE") // IN_STORAGE, AUTOPSY_IN_PROGRESS, EMBALMED, READY_FOR_RELEASE, RELEASED_TO_FAMILY, CREMATED_OR_BURIED
+  isCoronerCleared        Boolean   @default(true) // False if police investigation hold
+  
+  propertyItems           Json?     // [{ item: "Gold watch", tag: "BAG-001", coSigner: "Officer Mensah" }]
+
+  autopsyCases            AutopsyCase[]
+  releaseRecord           CorpseRelease?
+
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  @@index([corpseNumber])
+  @@index([patientId])
+  @@index([status])
+  @@index([caseCategory])
+  @@index([chamberId])
+}
+
+model MortuaryChamber {
+  id String @id @default(uuid())
+
+  chamberCode             String    @unique // e.g. VLT-01, VLT-02, COLD-BAY-03
+  vaultName               String    // e.g. "Main Refrigerated Vault Alpha"
+  storageTier             String    @default("REFRIGERATED") // REFRIGERATED (2°C to 4°C), DEEP_FREEZE (-15°C)
+  
+  targetTemperature       Float     @default(3.0) // Celsius
+  currentTemperature      Float     @default(3.2)
+  capacity                Int       @default(1)
+  occupiedCount           Int       @default(0)
+  isOperational           Boolean   @default(true)
+
+  corpseRecords           CorpseRecord[]
+
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  @@index([chamberCode])
+  @@index([storageTier])
+  @@index([isOperational])
+}
+
+model AutopsyCase {
+  id String @id @default(uuid())
+
+  autopsyNumber           String    @unique // e.g. AUT-2026-000001
+  corpseId                String
+  corpse                  CorpseRecord @relation(fields: [corpseId], references: [id], onDelete: Cascade)
+
+  autopsyType             String    @default("CLINICAL_PATHOLOGY") // CLINICAL_PATHOLOGY, MEDICO_LEGAL_CORONER
+  leadPathologist         String
+  assistingTechnician     String?
+  
+  scheduledDate           DateTime  @default(now())
+  completedDate           DateTime?
+  status                  String    @default("SCHEDULED") // SCHEDULED, IN_PROGRESS, COMPLETED
+
+  externalFindings        String?
+  internalFindings        String?
+  finalPostMortemDiagnosis String?
+  toxicologySamplesTaken  Boolean   @default(false)
+  histopathologySamplesTaken Boolean @default(false)
+  
+  coronerApprovalIssued   Boolean   @default(false)
+  coronerOfficerName      String?
+
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  @@index([autopsyNumber])
+  @@index([corpseId])
+  @@index([status])
+  @@index([autopsyType])
+}
+
+model CorpseRelease {
+  id String @id @default(uuid())
+
+  releaseNumber           String    @unique // e.g. REL-2026-000001
+  corpseId                String    @unique
+  corpse                  CorpseRecord @relation(fields: [corpseId], references: [id], onDelete: Cascade)
+
+  nextOfKinName           String
+  nextOfKinPhone          String
+  nextOfKinNationalId     String
+  relationshipToDeceased  String
+  
+  funeralHomeOrUndertaker String?
+  hearseVehiclePlate      String?
+  releasingOfficer        String
+  
+  billingSettled          Boolean   @default(true)
+  burialPermitNumber      String?
+  
+  releasedAt              DateTime  @default(now())
+  handoverSignatureConfirmed Boolean @default(true) // Co-signed confirmation
+  notes                   String?
+
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  @@index([releaseNumber])
+  @@index([corpseId])
+  @@index([nextOfKinNationalId])
+}
+
+/**
+ * ====================================================
+ * PHASE 15: BIOMEDICAL ENGINEERING, MEDICAL EQUIPMENT
+ * MAINTENANCE, PREVENTIVE SCHEDULES & WORK ORDERS
+ * ====================================================
+ */
+
+model MedicalEquipment {
+  id                      String    @id @default(uuid())
+  assetTag                String    @unique // e.g. EQP-2026-000001
+  name                    String    // e.g. Hamilton-G5 Mechanical Ventilator
+  modelNumber             String
+  serialNumber            String    @unique
+  manufacturer            String
+  category                String    // LIFE_SUPPORT, DIAGNOSTIC_IMAGING, SURGICAL_THEATRE, MONITORING, LABORATORY, STERILIZATION, GENERAL_BIOMEDICAL
+  riskLevel               String    @default("MEDIUM_RISK") // CRITICAL_HIGH_RISK, MEDIUM_RISK, LOW_RISK
+  department              String    // ICU, THEATRE, EMERGENCY, RADIOLOGY, LAB, INPATIENT_WARDS
+  roomLocation            String?
+  status                  String    @default("OPERATIONAL") // OPERATIONAL, UNDER_MAINTENANCE, OUT_OF_SERVICE, DECOMMISSIONED
+  
+  acquisitionDate         DateTime?
+  warrantyExpiry          DateTime?
+  
+  ppmIntervalDays         Int       @default(90) // PPM frequency in days
+  lastPpmDate             DateTime?
+  nextPpmDate             DateTime?
+  
+  calibrationIntervalDays Int       @default(180) // Calibration frequency in days
+  lastCalibrationDate     DateTime?
+  nextCalibrationDate     DateTime?
+  
+  powerRatingWatts        Float?
+  electricalSafetyCertified Boolean @default(true)
+  safetyOverrideActive    Boolean   @default(false)
+  safetyOverrideReason    String?
+
+  workOrders              MedicalWorkOrder[]
+  calibrations            EquipmentCalibration[]
+
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  @@index([assetTag])
+  @@index([serialNumber])
+  @@index([category])
+  @@index([riskLevel])
+  @@index([department])
+  @@index([status])
+}
+
+model MedicalWorkOrder {
+  id                      String    @id @default(uuid())
+  workOrderNumber         String    @unique // e.g. WO-2026-000001
+  equipmentId             String
+  equipment               MedicalEquipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+  
+  orderType               String    // CORRECTIVE_BREAKDOWN, PREVENTIVE_MAINTENANCE, CALIBRATION_CERTIFICATION, SAFETY_INSPECTION
+  priority                String    @default("ROUTINE") // STAT_EMERGENCY_BREAKDOWN, URGENT, ROUTINE
+  status                  String    @default("REPORTED") // REPORTED, ASSIGNED, IN_PROGRESS, PENDING_SPARE_PARTS, COMPLETED_AWAITING_QA, VERIFIED_RETURNED_TO_SERVICE
+  
+  reportedBy              String
+  reportedAt              DateTime  @default(now())
+  failureDescription      String
+  
+  assignedEngineer        String?
+  assignedAt              DateTime?
+  startedAt               DateTime?
+  completedAt             DateTime?
+  
+  rootCause               String?
+  actionTaken             String?
+  partsReplaced           String?
+  partsCost               Float     @default(0.0)
+  laborHours              Float     @default(0.0)
+  
+  electricalSafetyTested  Boolean   @default(false)
+  leakageCurrentMicroAmps Float?
+  groundResistanceOhms    Float?
+  
+  qaApprovedBy            String?
+  qaApprovedAt            DateTime?
+  notes                   String?
+
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  @@index([workOrderNumber])
+  @@index([equipmentId])
+  @@index([orderType])
+  @@index([priority])
+  @@index([status])
+}
+
+model EquipmentCalibration {
+  id                      String    @id @default(uuid())
+  certificateNumber       String    @unique // e.g. CAL-2026-000001
+  equipmentId             String
+  equipment               MedicalEquipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+  
+  calibrationStandard     String    // ISO_17025, IEC_60601, NIST_TRACEABLE, WHO_MEDICAL_DEVICE
+  testEquipmentUsed       String    // e.g. Fluke VT900A Gas Flow Analyzer
+  parametersTested        String    // Parameters tested
+  toleranceDeviationPercent Float   @default(0.0)
+  calibrationResult       String    // PASSED, ADJUSTED_AND_PASSED, FAILED_CONDEMNED
+  
+  certifiedByEngineer     String
+  calibratedAt            DateTime  @default(now())
+  validUntil              DateTime
+  notes                   String?
+
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  @@index([certificateNumber])
+  @@index([equipmentId])
+  @@index([calibrationResult])
+}
+
+/**
+ * ====================================================
+ * PHASE 16: SUPPLY CHAIN, PROCUREMENT, VENDOR CONTRACTS,
+ * PURCHASE ORDERS, GOODS RECEIPT NOTES (GRN) & THREE-WAY MATCHING
+ * ====================================================
+ */
+
+model ProcurementVendor {
+  id                      String    @id @default(uuid())
+  vendorCode              String    @unique // e.g. VND-2026-000001
+  name                    String    // e.g. Pharmanova Ghana Ltd
+  category                String    // PHARMACEUTICALS, SURGICAL_CONSUMABLES, LAB_REAGENTS, MEDICAL_EQUIPMENT, FACILITIES_ENGINEERING, GENERAL_SUPPLIES
+  taxIdentificationNumber String?   // TIN Number
+  contactPerson           String
+  email                   String
+  phone                   String
+  address                 String
+  
+  bankName                String?
+  bankAccountNumber       String?
+  bankBranch              String?
+  paymentTerms            String    @default("NET_30") // NET_30, NET_60, NET_90, IMMEDIATE_CASH, ADVANCE_50_PERCENT
+  
+  rating                  Float     @default(5.0) // 1.0 to 5.0
+  status                  String    @default("ACTIVE") // ACTIVE, SUSPENDED, BLACKLISTED
+  notes                   String?
+
+  contracts               VendorContract[]
+  purchaseOrders          PurchaseOrder[]
+  goodsReceipts           GoodsReceiptNote[]
+
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  @@index([vendorCode])
+  @@index([category])
+  @@index([status])
+}
+
+model VendorContract {
+  id                      String    @id @default(uuid())
+  contractNumber          String    @unique // e.g. CON-2026-000001
+  vendorId                String
+  vendor                  ProcurementVendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  
+  title                   String    // e.g. Annual Surgical Gloves and Gowns Framework Supply SLA
+  contractType            String    @default("FRAMEWORK_AGREEMENT") // EXCLUSIVE_SUPPLY, FRAMEWORK_AGREEMENT, SERVICE_LEVEL_AGREEMENT, ONE_TIME_PURCHASE
+  startDate               DateTime
+  endDate                 DateTime
+  contractValue           Float     @default(0.0)
+  currency                String    @default("GHS")
+  
+  status                  String    @default("ACTIVE") // ACTIVE, PENDING_RENEWAL, EXPIRED, TERMINATED
+  termsConditions         String?
+  signedByRepresentative  String?
+  signedByHospitalDirector String?
+
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  @@index([contractNumber])
+  @@index([vendorId])
+  @@index([contractType])
+  @@index([status])
+}
+
+model PurchaseOrder {
+  id                      String    @id @default(uuid())
+  poNumber                String    @unique // e.g. PO-2026-000001
+  vendorId                String
+  vendor                  ProcurementVendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  
+  department              String    @default("CENTRAL_STORES") // PHARMACY, THEATRE, LABORATORY, CENTRAL_STORES, BIOMEDICAL, GENERAL
+  orderDate               DateTime  @default(now())
+  expectedDeliveryDate    DateTime?
+  
+  subtotal                Float     @default(0.0)
+  taxAmount               Float     @default(0.0)
+  totalAmount             Float     @default(0.0)
+  currency                String    @default("GHS")
+  
+  status                  String    @default("DRAFT") // DRAFT, SUBMITTED_FOR_APPROVAL, APPROVED, ISSUED_TO_VENDOR, PARTIALLY_RECEIVED, FULLY_RECEIVED, CANCELLED
+  priority                String    @default("ROUTINE") // ROUTINE, URGENT, EMERGENCY_STOCKOUT
+  emergencyStockoutLogged Boolean   @default(false)
+  
+  requisitionedBy         String
+  approvedBy              String?
+  approvedAt              DateTime?
+  notes                   String?
+
+  items                   PurchaseOrderItem[]
+  goodsReceipts           GoodsReceiptNote[]
+
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  @@index([poNumber])
+  @@index([vendorId])
+  @@index([department])
+  @@index([status])
+  @@index([priority])
+}
+
+model PurchaseOrderItem {
+  id                      String    @id @default(uuid())
+  purchaseOrderId         String
+  purchaseOrder           PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  
+  itemCode                String    // Catalog code e.g. MED-2026-00001 or SURG-GLV-01
+  description             String
+  quantityOrdered         Int
+  quantityReceived        Int       @default(0)
+  unitCost                Float
+  totalCost               Float
+  unitOfMeasure           String    @default("UNIT") // BOX, VIAL, PACK, UNIT, BOTTLE, ROLL, KG
+  
+  goodsReceiptItems       GoodsReceiptItem[]
+
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  @@index([purchaseOrderId])
+  @@index([itemCode])
+}
+
+model GoodsReceiptNote {
+  id                      String    @id @default(uuid())
+  grnNumber               String    @unique // e.g. GRN-2026-000001
+  purchaseOrderId         String
+  purchaseOrder           PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  
+  vendorId                String
+  vendor                  ProcurementVendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  
+  waybillOrInvoiceNumber  String
+  receivedAt              DateTime  @default(now())
+  receivedBy              String    // Storekeeper / Receiving Officer
+  
+  inspectedBy             String?   // QA / Pharmacist / Biomedical Officer
+  inspectionStatus        String    @default("INSPECTION_PASSED") // INSPECTION_PASSED, PARTIALLY_REJECTED, REJECTED_DAMAGED
+  rejectionReason         String?
+  
+  temperatureCompliant    Boolean   @default(true) // For cold chain or temperature-sensitive goods
+  
+  threeWayMatchVerified   Boolean   @default(false)
+  matchedInvoiceAmount    Float?
+  varianceAmount          Float     @default(0.0)
+  
+  status                  String    @default("INSPECTED_ACCEPTED") // RECEIVED_IN_QUARANTINE, INSPECTED_ACCEPTED, STOCKED_INTO_INVENTORY, REJECTED
+  notes                   String?
+
+  items                   GoodsReceiptItem[]
+
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  @@index([grnNumber])
+  @@index([purchaseOrderId])
+  @@index([vendorId])
+  @@index([status])
+  @@index([threeWayMatchVerified])
+}
+
+model GoodsReceiptItem {
+  id                      String    @id @default(uuid())
+  grnId                   String
+  goodsReceiptNote        GoodsReceiptNote @relation(fields: [grnId], references: [id], onDelete: Cascade)
+  
+  poItemId                String?
+  purchaseOrderItem       PurchaseOrderItem? @relation(fields: [poItemId], references: [id], onDelete: SetNull)
+  
+  itemCode                String
+  description             String
+  quantityReceived        Int
+  quantityAccepted        Int
+  quantityRejected        Int       @default(0)
+  
+  batchNumber             String?
+  expiryDate              DateTime?
+  unitCost                Float
+  
+  destinationDepartment   String    @default("CENTRAL_STORES") // CENTRAL_STORES, PHARMACY, THEATRE, LABORATORY
+
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  @@index([grnId])
+  @@index([poItemId])
+  @@index([itemCode])
+}
+
+/**
+ * ====================================================
+ * PHASE 17: HUMAN RESOURCE MANAGEMENT, CREDENTIALING,
+ * DUTY ROSTERING, SHIFT HANDOVERS, ATTENDANCE & LEAVE
+ * ====================================================
+ */
+
+model StaffCredential {
+  id                      String    @id @default(uuid())
+  credentialNumber        String    @unique // e.g. CRD-2026-000001
+  staffId                 String
+  staffName               String
+  regulatoryBody          String    // MDC_GHANA, NMC_GHANA, PHARMACY_COUNCIL_GHANA, ALLIED_HEALTH_GHANA, HEFRA
+  licenseNumber           String    @unique // e.g. MDC/RN/2026/8901
+  cadre                   String    // CONSULTANT_SURGEON, SENIOR_MEDICAL_OFFICER, REGISTERED_GENERAL_NURSE, PHARMACIST, LAB_SCIENTIST
+  specialty               String?
+  issuedDate              DateTime
+  expiryDate              DateTime
+  credentialStatus        String    @default("ACTIVE_VERIFIED") // ACTIVE_VERIFIED, EXPIRING_SOON, EXPIRED_SUSPENDED, UNDER_REVIEW
+  verifiedBy              String?   // Medical Director or HR Manager
+  verifiedAt              DateTime?
+  verificationNotes       String?
+  emergencyPracticePermitted Boolean @default(true) // Patient safety guardrail: clinical care never locked
+
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  @@index([credentialNumber])
+  @@index([staffId])
+  @@index([licenseNumber])
+  @@index([credentialStatus])
+  @@index([regulatoryBody])
+}
+
+model DutyShiftRoster {
+  id                      String    @id @default(uuid())
+  rosterNumber            String    @unique // e.g. RST-2026-000001
+  staffId                 String
+  staffName               String
+  department              String    // ICU, THEATRE, EMERGENCY, MATERNITY, PHARMACY, LAB, PEDIATRICS, GENERAL_OPD
+  wardOrUnit              String?   // e.g. "Trauma Bay A", "Ward 2B"
+  shiftType               String    // MORNING_SHIFT, AFTERNOON_SHIFT, NIGHT_SHIFT, ON_CALL_24HR
+  shiftDate               DateTime
+  startTime               String    // "07:00"
+  endTime                 String    // "15:00"
+  status                  String    @default("SCHEDULED") // SCHEDULED, CONFIRMED, SWAPPED, ABSENT, COMPLETED
+  notes                   String?
+
+  handovers               ShiftHandover[]
+
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  @@index([rosterNumber])
+  @@index([staffId])
+  @@index([department])
+  @@index([shiftDate])
+  @@index([status])
+}
+
+model ShiftHandover {
+  id                      String    @id @default(uuid())
+  handoverNumber          String    @unique // e.g. HND-2026-000001
+  rosterId                String?
+  roster                  DutyShiftRoster? @relation(fields: [rosterId], references: [id], onDelete: SetNull)
+  
+  department              String
+  wardOrUnit              String?
+  outgoingStaffName       String
+  incomingStaffName       String
+  handoverDate            DateTime  @default(now())
+  shiftFrom               String    // MORNING_SHIFT
+  shiftTo                 String    // AFTERNOON_SHIFT
+  
+  censusTotalPatients     Int       @default(0)
+  criticalPatientCount    Int       @default(0)
+  
+  situation               String    // SBAR - S
+  background              String    // SBAR - B
+  assessment              String    // SBAR - A
+  recommendation          String    // SBAR - R
+  controlledDrugsCountOk  Boolean   @default(true)
+  
+  outgoingSignedAt        DateTime  @default(now())
+  incomingCoSignedAt      DateTime?
+  status                  String    @default("PENDING_COSIGNATURE") // PENDING_COSIGNATURE, COMPLETED_VERIFIED
+
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  @@index([handoverNumber])
+  @@index([department])
+  @@index([status])
+  @@index([handoverDate])
+}
+
+model StaffAttendance {
+  id                      String    @id @default(uuid())
+  attendanceNumber        String    @unique // e.g. ATT-2026-000001
+  staffId                 String
+  staffName               String
+  department              String
+  clockInDate             DateTime  @default(now())
+  clockInTime             String    // "06:55"
+  clockOutTime            String?   // "15:05"
+  workstationOrTerminal   String    @default("BIOMETRIC_TERMINAL_MAIN")
+  status                  String    @default("PRESENT_ON_TIME") // PRESENT_ON_TIME, LATE, OVERTIME, EARLY_DEPARTURE
+  hoursWorked             Float     @default(0.0)
+  verifiedBy              String?
+
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  @@index([attendanceNumber])
+  @@index([staffId])
+  @@index([department])
+  @@index([clockInDate])
+}
+
+model StaffLeaveRequest {
+  id                      String    @id @default(uuid())
+  leaveNumber             String    @unique // e.g. LEV-2026-000001
+  staffId                 String
+  staffName               String
+  department              String
+  leaveType               String    // ANNUAL_LEAVE, SICK_LEAVE, MATERNITY_LEAVE, STUDY_LEAVE, COMPASSIONATE_LEAVE
+  startDate               DateTime
+  endDate                 DateTime
+  daysRequested           Int
+  relievingStaffName      String
+  reason                  String
+  status                  String    @default("PENDING_APPROVAL") // PENDING_APPROVAL, APPROVED, REJECTED, CANCELLED
+  approvedBy              String?
+  approvedAt              DateTime?
+  comments                String?
+
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  @@index([leaveNumber])
+  @@index([staffId])
+  @@index([department])
+  @@index([status])
+}
+
+// ==========================================
+// PHASE 18: QUALITY ASSURANCE, CLINICAL AUDIT,
+// INCIDENT REPORTING & INFECTION CONTROL
+// ==========================================
+
+model ClinicalIncident {
+  id                      String    @id @default(uuid())
+  incidentNumber          String    @unique // e.g. INC-2026-000001
+  incidentDate            DateTime  @default(now())
+  department              String
+  wardOrLocation          String?
+  severity                String    // SENTINEL_EVENT, ADVERSE_EVENT, NEAR_MISS, HAZARDOUS_CONDITION
+  category                String    // MEDICATION_ERROR, SURGICAL_PROCEDURAL, PATIENT_FALL, DIAGNOSTIC_DELAY, TRANSFUSION_EVENT, EQUIPMENT_MALFUNCTION, DOCUMENTATION
+  description             String
+  patientMrn             String?
+  patientName             String?
+  immediateActionTaken    String?
+  reportedBy              String    @default("ANONYMOUS")
+  isAnonymous             Boolean   @default(false)
+  investigatorName        String?
+  rootCause               String?
+  status                  String    @default("REPORTED") // REPORTED, UNDER_INVESTIGATION, RCA_IN_PROGRESS, CAPA_IMPLEMENTED, CLOSED
+  closedAt                DateTime?
+  closedBy                String?
+
+  capas                   CorrectiveActionPlan[]
+
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  @@index([incidentNumber])
+  @@index([severity])
+  @@index([category])
+  @@index([department])
+  @@index([status])
+  @@index([incidentDate])
+}
+
+model InfectionControlCase {
+  id                      String    @id @default(uuid())
+  caseNumber              String    @unique // e.g. IPC-2026-000001
+  patientMrn             String
+  patientName             String
+  department              String
+  wardOrBed               String
+  infectionType           String    // SURGICAL_SITE_INFECTION, CAUTI, CLABSI, VAP, MRSA, CDIFF, TUBERCULOSIS_AIRBORNE, VIRAL_HEMORRHAGIC
+  pathogenDetected        String?
+  isolationType           String    @default("CONTACT") // STANDARD, CONTACT, DROPLET, AIRBORNE_ISOLATION, PROTECTIVE_ENVIRONMENT
+  detectedDate            DateTime  @default(now())
+  status                  String    @default("ACTIVE_ISOLATION") // ACTIVE_ISOLATION, TREATING_RESOLVING, CLEARED_DISCHARGED
+  notifiedPublicHealth    Boolean   @default(false)
+  clearanceDate           DateTime?
+  clearedBy               String?
+  notes                   String?
+
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  @@index([caseNumber])
+  @@index([infectionType])
+  @@index([isolationType])
+  @@index([department])
+  @@index([status])
+}
+
+model ClinicalAudit {
+  id                      String    @id @default(uuid())
+  auditNumber             String    @unique // e.g. AUD-2026-000001
+  title                   String
+  auditType               String    // ANTIBIOTIC_STEWARDSHIP, HAND_HYGIENE_COMPLIANCE, SURGICAL_SAFETY_CHECKLIST, MORTALITY_MORBIDITY_REVIEW, SBAR_HANDOVER_QUALITY, RESUSCITATION_CRASH_CART
+  department              String
+  leadAuditor             String
+  auditDate               DateTime  @default(now())
+  sampleSize              Int       @default(1)
+  complianceScore         Float     // 0.0 to 100.0%
+  findingsSummary         String
+  status                  String    @default("DRAFT") // DRAFT, SUBMITTED, REVIEWED, CAPA_REQUIRED, CLOSED
+
+  capas                   CorrectiveActionPlan[]
+
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  @@index([auditNumber])
+  @@index([auditType])
+  @@index([department])
+  @@index([status])
+}
+
+model CorrectiveActionPlan {
+  id                      String    @id @default(uuid())
+  capaNumber              String    @unique // e.g. CAPA-2026-000001
+  incidentId              String?
+  incident                ClinicalIncident? @relation(fields: [incidentId], references: [id], onDelete: SetNull)
+  auditId                 String?
+  audit                   ClinicalAudit?    @relation(fields: [auditId], references: [id], onDelete: SetNull)
+
+  rootCauseMethod         String    @default("FIVE_WHYS") // FIVE_WHYS, FISHBONE_ISHIKAWA, FMEA, BARRIER_ANALYSIS
+  rootCauseFindings       String
+  correctiveAction        String
+  preventiveAction        String
+  responsiblePerson       String
+  targetDate              DateTime
+  completionDate          DateTime?
+  status                  String    @default("PENDING_EXECUTION") // PENDING_EXECUTION, IMPLEMENTED, VERIFIED_EFFECTIVE, OVERDUE
+  verifiedBy              String?
+  verificationNotes       String?
+
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  @@index([capaNumber])
+  @@index([incidentId])
+  @@index([auditId])
+  @@index([status])
+}
+
+model PatientSafetyAlert {
+  id                      String    @id @default(uuid())
+  alertCode               String    @unique // e.g. PSA-2026-000001
+  title                   String
+  urgencyLevel            String    // STAT_CRITICAL, URGENT_WARNING, ROUTINE_ADVISORY
+  targetAudience          String    @default("ALL_CLINICAL_STAFF") // ALL_CLINICAL_STAFF, PHYSICIANS_SURGEONS, NURSING_STAFF, PHARMACY, LABORATORY
+  message                 String
+  actionRequired          String
+  broadcastActive         Boolean   @default(true)
+  issuedBy                String
+  issuedAt                DateTime  @default(now())
+  acknowledgedCount       Int       @default(0)
+
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  @@index([alertCode])
+  @@index([urgencyLevel])
+  @@index([broadcastActive])
+}
+
+/**
+ * ====================================================
+ * PHASE 19: NHIA CLAIMS BATCHES, E-CLAIMS & RECONCILIATION
+ * ====================================================
+ */
+
+model NhiaClaimBatch {
+  id                    String      @id @default(uuid())
+  batchNumber           String      @unique // e.g. NHIA-202610-000001
+  providerNumber        String      @default("HOSP-ACC-00124")
+  providerName          String      @default("GBS Hospital Central")
+  periodMonth           Int
+  periodYear            Int
+  submissionType        String      @default("E_CLAIMS_XML") // E_CLAIMS_XML, E_CLAIMS_JSON
+  totalClaimsCount      Int         @default(0)
+  totalClaimedAmount    Decimal     @db.Decimal(12, 2) @default(0.00)
+  totalApprovedAmount   Decimal?    @db.Decimal(12, 2)
+  totalRejectedAmount   Decimal?    @db.Decimal(12, 2)
+  status                String      @default("DRAFT") // DRAFT, VETTED_READY, SUBMITTED, UNDER_ADJUDICATION, ADJUDICATED, RECONCILED, CLOSED
+  submissionReceipt     String?     // e.g. RCPT-NHIA-994214
+  submissionPayload     String?     @db.Text
+  submittedAt           DateTime?
+  adjudicatedAt         DateTime?
+  reconciledAt          DateTime?
+  vettedBy              String?
+  submittedBy           String?
+
+  claims                NhiaClaimItem[]
+  vouchers              NhiaReconciliationVoucher[]
+
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  @@index([batchNumber])
+  @@index([status])
+  @@index([periodYear, periodMonth])
+}
+
+model NhiaClaimItem {
+  id                    String          @id @default(uuid())
+  batchId               String?
+  batch                 NhiaClaimBatch? @relation(fields: [batchId], references: [id], onDelete: SetNull)
+
+  claimNumber           String          @unique // e.g. CLM-2026-000001
+  patientId             String
+  patientName           String
+  nhisNumber            String
+  nhisCardValidity      String          @default("VALID") // VALID, RENEWAL_DUE, EXPIRED
+  gender                String
+  dateOfBirth           DateTime?
+  encounterDate         DateTime        @default(now())
+  dischargeDate         DateTime?
+  encounterType         String          @default("OPD") // OPD, IPD, EMERGENCY, SURGERY
+  gdrgCode              String          // e.g. GDRG-OPD-01, GDRG-IPD-MAL01
+  gdrgDescription       String
+  primaryDiagnosisIcd10 String
+  secondaryDiagnosisIcd10 String?
+  claimedAmount         Decimal         @db.Decimal(10, 2)
+  approvedAmount        Decimal?        @db.Decimal(10, 2)
+  copayPaid             Decimal         @db.Decimal(10, 2) @default(0.00)
+  adjudicationStatus    String          @default("PENDING") // PENDING, VETTED_PASSED, VETTING_FLAGGED, APPROVED_FULL, APPROVED_PARTIAL, REJECTED, APPEALED
+  vettingWarnings       String?         @db.Text
+  rejectionCode         String?
+  rejectionReason       String?
+  appealNotes           String?
+  servicesRendered      String?         @db.Text // JSON of consultations, tests, medicines
+
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+
+  @@index([claimNumber])
+  @@index([batchId])
+  @@index([nhisNumber])
+  @@index([adjudicationStatus])
+}
+
+model NhiaReconciliationVoucher {
+  id                    String          @id @default(uuid())
+  voucherNumber         String          @unique // e.g. VOUCH-2026-000001
+  batchId               String
+  batch                 NhiaClaimBatch  @relation(fields: [batchId], references: [id], onDelete: Cascade)
+
+  grossClaimed          Decimal         @db.Decimal(12, 2)
+  approvedAmount        Decimal         @db.Decimal(12, 2)
+  disallowedAmount      Decimal         @db.Decimal(12, 2)
+  withholdingTax        Decimal         @db.Decimal(12, 2) @default(0.00)
+  netDisbursedAmount    Decimal         @db.Decimal(12, 2)
+  paymentReference      String          // Bank/treasury reference
+  adjudicatorNote       String?
+  status                String          @default("ISSUED") // ISSUED, ACKNOWLEDGED, SETTLED
+  issuedAt              DateTime        @default(now())
+
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+
+  @@index([voucherNumber])
+  @@index([batchId])
+  @@index([status])
+}
+
+model NhisMemberPolicy {
+  id                    String          @id @default(uuid())
+  nhisNumber            String          @unique
+  fullName              String
+  dateOfBirth           DateTime
+  gender                String
+  ghanaCardNumber       String?
+  status                String          @default("ACTIVE") // ACTIVE, SUSPENDED, EXPIRED, PENDING_RENEWAL
+  expiryDate            DateTime
+  memberType            String          @default("INFORMAL") // FORMAL_SECTOR, INFORMAL, INDIGENT, UNDER_5, PREGNANT, AGED_70_PLUS
+  primaryFacilityCode   String?         @default("HOSP-ACC-00124")
+  lastVerifiedAt        DateTime        @default(now())
+
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+
+  @@index([nhisNumber])
+  @@index([status])
+}
+
+/**
+ * ====================================================
+ * PHASE 20: MIGRATION SERVICE MODULE & DATA IMPORT HUB
+ * ====================================================
+ */
+
+model MigrationJob {
+  id                    String                @id @default(uuid())
+  jobCode               String                @unique // e.g. MIG-2026-000001
+  targetEntity          String                // PATIENTS, INVENTORY_ITEMS, STAFF_RECORDS, BILLING_TARIFFS, CLINICAL_ENCOUNTERS
+  sourceType            String                // EXCEL, CSV, JSON, GOOGLE_SHEETS, POSTGRESQL, MYSQL, SQL_SERVER, FIREBASE, REST_API
+  fileName              String?
+  fileSizeBytes         Int?
+  fileHash              String?
+  status                String                @default("UPLOADED") // UPLOADED, VALIDATED, MAPPED, PREVIEW_READY, APPROVED, PROCESSING, COMPLETED, FAILED, ROLLED_BACK
+  totalRecords          Int                   @default(0)
+  validRecords          Int                   @default(0)
+  duplicateRecords      Int                   @default(0)
+  invalidRecords        Int                   @default(0)
+  importedRecords       Int                   @default(0)
+  failedRecords         Int                   @default(0)
+  mappingConfig         String?               @db.Text // JSON of sourceColumn -> targetProperty
+  validationErrors      String?               @db.Text // JSON of validation errors
+  previewData           String?               @db.Text // JSON sample of first 5-10 records
+  rollbackLog           String?               @db.Text // JSON array of created IDs for rollback
+  initiatedBy           String
+  approvedBy            String?
+  startedAt             DateTime?
+  completedAt           DateTime?
+  rollbackAt            DateTime?
+
+  records               MigrationRecordItem[]
+
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  @@index([jobCode])
+  @@index([status])
+  @@index([targetEntity])
+}
+
+model MigrationRecordItem {
+  id                    String                @id @default(uuid())
+  jobId                 String
+  job                   MigrationJob          @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  rowNumber             Int
+  sourceData            String                @db.Text
+  mappedData            String?               @db.Text
+  status                String                @default("PENDING") // PENDING, VALID, DUPLICATE, INVALID, IMPORTED, ROLLED_BACK
+  destinationId         String?               // ID of created entity
+  errorMessage          String?
+
+  createdAt             DateTime              @default(now())
+
+  @@index([jobId])
+  @@index([status])
+}
+
+model MigrationTemplate {
+  id                    String                @id @default(uuid())
+  name                  String                @unique
+  targetEntity          String                // PATIENTS, INVENTORY_ITEMS, etc.
+  sourceType            String                // EXCEL, CSV, JSON, etc.
+  columnMappings        String                @db.Text // JSON source-to-target field map
+  transformationRules   String?               @db.Text // JSON formatting rules
+  createdBy             String
+
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  @@index([name])
+  @@index([targetEntity])
+}
+
+/**
+ * ====================================================
+ * PHASE 21: GIS FACILITY TRACKING, GEOFENCING,
+ * INTERACTIVE FLOOR PLANS & WEBRTC VIDEO TELEMEDICINE
+ * ====================================================
+ */
+
+model FacilityGeofence {
+  id                    String                @id @default(uuid())
+  code                  String                @unique // e.g. GEO-2026-000001
+  name                  String                // e.g. "Main Hospital Campus Perimeter"
+  facilityType          String                @default("HOSPITAL_CAMPUS") // HOSPITAL_CAMPUS, WARD_ZONE, RESTRICTED_ICU, AMBULANCE_BAY, HELIPAD
+  hospitalId            String?
+  centerLatitude        Float                 // e.g. 5.6037
+  centerLongitude       Float                 // e.g. -0.1870
+  radiusMeters          Float                 @default(500.0) // 500m geofence radius
+  polygonCoordinates    String?               @db.Text // JSON array of [lat, lng] pairs
+  alertOnBreach         Boolean               @default(true)
+  active                Boolean               @default(true)
+  status                String                @default("ACTIVE") // ACTIVE, INACTIVE, MAINTENANCE
+
+  breachEvents          GeofenceBreachEvent[]
+
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  @@index([code])
+  @@index([facilityType])
+  @@index([active])
+}
+
+model GeofenceBreachEvent {
+  id                    String                @id @default(uuid())
+  geofenceId            String
+  geofence              FacilityGeofence      @relation(fields: [geofenceId], references: [id], onDelete: Cascade)
+  entityType            String                // AMBULANCE, ASSET, CLINICIAN, PATIENT
+  entityId              String                // ID or Code of entity
+  entityName            String                // Human-readable identifier
+  latitude              Float
+  longitude             Float
+  distanceMeters        Float
+  eventType             String                // GEOFENCE_ENTRY, GEOFENCE_EXIT, PERIMETER_BREACH
+  severity              String                @default("WARNING") // INFO, WARNING, CRITICAL_ALERT
+  notes                 String?
+
+  timestamp             DateTime              @default(now())
+
+  @@index([geofenceId])
+  @@index([entityType])
+  @@index([eventType])
+  @@index([timestamp])
+}
+
+model FacilityFloorPlan {
+  id                    String                @id @default(uuid())
+  code                  String                @unique // e.g. FLR-2026-000001
+  buildingName          String                // e.g. "Main Clinical Tower"
+  floorNumber           Int                   // 0 = Ground, 1 = 1st Floor, 2 = 2nd Floor, etc.
+  floorName             String                // e.g. "Level 2: Operating Theatres & Critical Care"
+  totalBeds             Int                   @default(0)
+  totalRooms            Int                   @default(0)
+  layoutData            String?               @db.Text // JSON spatial layout (wings, zones, bed coordinates, equipment tags)
+  active                Boolean               @default(true)
+
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  @@index([code])
+  @@index([buildingName])
+  @@index([floorNumber])
+  @@index([active])
+}
+
+model TelemedicineConsultation {
+  id                    String                @id @default(uuid())
+  sessionCode           String                @unique // e.g. TEL-2026-000001
+  hospitalId            String?
+  patientId             String
+  patientName           String
+  patientPhone          String?
+  doctorId              String
+  doctorName            String
+  specialty             String                @default("GENERAL_MEDICINE")
+
+  scheduledAt           DateTime
+  startedAt             DateTime?
+  endedAt               DateTime?
+  durationSeconds       Int                   @default(0)
+
+  status                String                @default("SCHEDULED") // SCHEDULED, WAITING_ROOM, IN_CALL, COMPLETED, CANCELLED
+  clinicalReason        String?
+  
+  roomToken             String                @unique // WebRTC Room ID / Secret Key
+  channelName           String                // WebRTC Channel Name
+  signalingState        String?               @db.Text // JSON SDP offer, answer & ICE candidate buffers
+  clinicalNotes         String?               @db.Text
+  diagnosisCode         String?               // ICD-10 Diagnosis
+  prescriptionSummary   String?               @db.Text
+  followUpDate          DateTime?
+  callQualityRating     Int?                  // 1-5 Stars
+
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  @@index([sessionCode])
+  @@index([patientId])
+  @@index([doctorId])
+  @@index([status])
+  @@index([scheduledAt])
+}
+
+// ============================================================================
+// PHASE 22: CENTRAL VOICE AUTHENTICATION & BIOMETRIC SECURITY VAULT
+// ============================================================================
+
+model BiometricVoiceprint {
+  id                    String                @id @default(uuid())
+  enrollmentCode        String                @unique // VOX-YYYY-XXXXXX
+  userId                String
+  userName              String?
+  role                  String?
+  sampleRate            Int                   @default(16000) // 16kHz audio sample standard
+  durationSeconds       Float                 @default(3.5)
+  voiceprintHash        String                // Cryptographic SHA-256 acoustic hash
+  passphraseText        String                // Authorized spoken phrase
+  passphraseHash        String                // Hash of authorized spoken phrase
+  featureVector         String                @db.Text // JSON: { spectralCentroid, zeroCrossingRate, mfccVectors, energyBands, pitchHz }
+  livenessThreshold     Float                 @default(0.85) // Confidence floor
+  qualityScore          Float                 @default(0.96) // SNR & acoustic clarity score (0.0 - 1.0)
+  status                String                @default("ACTIVE") // ACTIVE, REVOKED, EXPIRED
+  verifiedAt            DateTime?             @default(now())
+  expiresAt             DateTime?
+
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  @@index([enrollmentCode])
+  @@index([userId])
+  @@index([status])
+}
+
+model BiometricSecurityCredential {
+  id                    String                @id @default(uuid())
+  credentialCode        String                @unique // BIO-YYYY-XXXXXX
+  userId                String
+  userName              String?
+  role                  String?
+  biometricType         String                // VOICEPRINT, FINGERPRINT_MINUTIAE, FACIAL_VECTOR, FIDO2_WEBAUTHN
+  credentialPayload     String                @db.Text // Encrypted biometric template / public key
+  securityLevel         String                @default("HIGH") // STANDARD, HIGH, MAXIMUM_CLINICAL
+  hardwareEnclaveId     String?               // Optional TPM / Secure Enclave binding
+  status                String                @default("ACTIVE") // ACTIVE, SUSPENDED, REVOKED
+  lastUsedAt            DateTime?
+
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  @@index([credentialCode])
+  @@index([userId])
+  @@index([biometricType])
+  @@index([status])
+}
+
+model BiometricVerificationLog {
+  id                    String                @id @default(uuid())
+  logCode               String                @unique // LOG-YYYY-XXXXXX
+  userId                String
+  userName              String?
+  role                  String?
+  biometricType         String                // VOICEPRINT, FINGERPRINT_MINUTIAE, FACIAL_VECTOR
+  actionAttempted       String                // NARCOTICS_DISPENSE, SYSTEM_LOCK_ENGAGE, DECEASED_RELEASE, CLINICAL_OVERRIDE, USER_LOGIN
+  confidenceScore       Float                 // Computed similarity / verification score (0.00 - 1.00)
+  thresholdRequired     Float                 // Minimum required confidence threshold (e.g. 0.85)
+  livenessPassed        Boolean               @default(true)
+  antiSpoofingStatus    String                @default("PASSED") // PASSED, SPOOF_SUSPECTED, PLAYBACK_DETECTED, SYNTHETIC_REJECTED
+  status                String                // SUCCESS, FAILED, REJECTED, LOCKED_OUT
+  ipAddress             String?
+  userAgent             String?
+  clientDeviceId        String?
+  rejectionReason       String?
+
+  createdAt             DateTime              @default(now())
+
+  @@index([logCode])
+  @@index([userId])
+  @@index([biometricType])
+  @@index([status])
+  @@index([actionAttempted])
+  @@index([createdAt])
+}
+
+model BiometricSecurityPolicy {
+  id                            String                @id @default(uuid())
+  policyCode                    String                @unique // POL-BIO-GLOBAL
+  policyName                    String                @default("Enterprise Multi-Factor Biometric Zero-Trust Policy")
+  requireVoiceForNarcotics       Boolean               @default(true)
+  requireVoiceForSystemLock      Boolean               @default(true)
+  requireVoiceForDeceasedRelease Boolean               @default(true)
+  requireVoiceForSurgicalSignOut Boolean               @default(true)
+  minVoiceConfidenceScore        Float                 @default(0.85)
+  minFingerprintMatchScore       Float                 @default(0.90)
+  livenessEnforced               Boolean               @default(true)
+  maxAttemptsBeforeLockout       Int                   @default(3)
+  lockoutDurationMinutes         Int                   @default(15)
+  active                         Boolean               @default(true)
+
+  createdAt                     DateTime              @default(now())
+  updatedAt                     DateTime              @updatedAt
+
+  @@index([policyCode])
+  @@index([active])
+}
+
