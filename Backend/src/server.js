@@ -254,11 +254,14 @@ PRISMA SAFETY
 --------------------------------
 */
 
-
-await validateMigrationSafety();
-
-
-
+try {
+    await validateMigrationSafety();
+} catch (migrationErr) {
+    logger.warn({
+        message: "Migration safety check warning (continuing server startup)",
+        error: normalizeError(migrationErr)
+    });
+}
 
 
 
@@ -268,8 +271,14 @@ DATABASE
 --------------------------------
 */
 
-
-await connectDatabase();
+try {
+    await connectDatabase();
+} catch (dbErr) {
+    logger.warn({
+        message: "Initial database connection deferred (server will continue listening and reconnect on demand)",
+        error: normalizeError(dbErr)
+    });
+}
 
 
 

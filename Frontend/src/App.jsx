@@ -90,10 +90,26 @@ export default function App() {
   const [activeEnvironment, setActiveEnvironment] = useState('DEVELOPMENT');
   const [recentAuditLogs, setRecentAuditLogs] = useState([]);
   const [recentNotifications, setRecentNotifications] = useState([]);
+  const [facilityBranding, setFacilityBranding] = useState({
+    mainSystemName: 'GBS HOSPITAL MANAGEMENT SYSTEM',
+    hospitalName: 'GBS Premier Specialist Teaching Hospital',
+    motto: 'Smart Healthcare, Better Care.'
+  });
+
+  const isDeveloperAuthenticated = Boolean(
+    currentUser &&
+    (currentUser.role === 'DEVELOPER' || String(currentUser.email || '').toLowerCase() === 'gabosei48@gmail.com')
+  );
 
   const loadGlobalOverview = async () => {
     try {
-      const res = await api.getGlobalOverviewStats();
+      const [res, brandingRes] = await Promise.all([
+        api.getGlobalOverviewStats().catch(() => null),
+        api.getFacilityBranding().catch(() => null)
+      ]);
+      if (brandingRes && brandingRes.hospitalName) {
+        setFacilityBranding(brandingRes);
+      }
       if (res && res.metrics) {
         setGlobalStats({
           opdToday: res.metrics.opdToday ?? 0,
@@ -233,6 +249,12 @@ export default function App() {
     localStorage.removeItem('gbs_token');
     localStorage.removeItem('gbs_user');
     setCurrentUser(null);
+    if (currentRole === 'DEVELOPER') {
+      setCurrentRole('ADMINISTRATOR');
+    }
+    if (activeModule === 'DEVELOPER_NOC') {
+      setActiveModule('OVERVIEW');
+    }
   };
 
   const handleQuickAction = (action) => {
@@ -305,6 +327,8 @@ export default function App() {
         currentUser={currentUser}
         onLogout={handleLogout}
         onOpenQuickAction={handleQuickAction}
+        facilityBranding={facilityBranding}
+        onUpdateFacilityBranding={setFacilityBranding}
       />
 
       {/* Main Content Area */}
@@ -431,13 +455,15 @@ export default function App() {
             >
               <Mic size={14} style={{ color: 'var(--gold-400)' }} /> 16. Voice Biometrics & Security Vault
             </button>
-            <button 
-              onClick={() => setActiveModule('DEVELOPER_NOC')} 
-              className={activeModule === 'DEVELOPER_NOC' && !activeDetail ? 'btn-gold' : 'btn-outline-gold'}
-              style={{ fontSize: '0.8rem', padding: '6px 14px', borderColor: '#ef4444' }}
-            >
-              <Shield size={14} /> Developer NOC
-            </button>
+            {isDeveloperAuthenticated && (
+              <button 
+                onClick={() => setActiveModule('DEVELOPER_NOC')} 
+                className={activeModule === 'DEVELOPER_NOC' && !activeDetail ? 'btn-gold' : 'btn-outline-gold'}
+                style={{ fontSize: '0.8rem', padding: '6px 14px', borderColor: '#ef4444' }}
+              >
+                <Shield size={14} /> Developer NOC
+              </button>
+            )}
           </div>
 
           {/* Active Role & Environment Indicator */}
@@ -545,10 +571,10 @@ export default function App() {
                   <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'flex-end', flexWrap: 'wrap', gap: '16px' }}>
                     <div>
                       <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--gold-400)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                        Welcome to GBS Hospital Management System
+                        Welcome to GBS Hospital Management System • {facilityBranding?.hospitalName || 'GBS Premier Specialist Teaching Hospital'}
                       </span>
                       <h2 style={{ fontSize: '2rem', fontWeight: 800, color: '#fff', marginTop: '4px' }}>
-                        Enterprise Clinical & Operational Command Center
+                        {facilityBranding?.hospitalName || 'Enterprise Clinical & Operational Command Center'}
                       </h2>
                       <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', maxWidth: '700px' }}>
                         Fully connected, resilient, and audit-logged hospital automation platform built with zero mock data and real PostgreSQL multi-tenant architecture.
@@ -725,18 +751,18 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Master Blueprint 17-Role Real-Life Specialist & Staff Portals (With Dedicated Login & Workspace Launch) */}
+                {/* Master Blueprint Real-Life Specialist & Staff Portals (Developer Hidden Unless Authenticated as Developer) */}
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
                     <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff', margin: 0 }}>
-                      Hospital Staff & Specialist Portals (17 Authorized Roles)
+                      Hospital Staff & Specialist Portals ({ROLES.filter(r => r.id !== 'DEVELOPER' || isDeveloperAuthenticated).length} Authorized Roles)
                     </h3>
                     <span style={{ fontSize: '0.75rem', color: 'var(--gold-400)' }}>
                       Click any role to open its dedicated real-life login page or launch its live workspace
                     </span>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(185px, 1fr))', gap: '12px' }}>
-                    {ROLES.map((r) => {
+                    {ROLES.filter((r) => r.id !== 'DEVELOPER' || isDeveloperAuthenticated).map((r) => {
                       const isCurrent = currentRole === r.id;
                       return (
                         <div
@@ -804,11 +830,11 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Master Blueprint 20-Enterprise Modules Grid (Every Card with Real-Life Hospital Department Photography) */}
+                {/* Master Blueprint Enterprise Modules Grid (Every Card with Real-Life Hospital Department Photography; Developer NOC Hidden from Non-Developers) */}
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
                     <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff' }}>
-                      Enterprise Hospital Modules Ecosystem (20 Connected Subsystems)
+                      Enterprise Hospital Modules Ecosystem
                     </h3>
                     <span style={{ fontSize: '0.75rem', color: 'var(--gold-400)' }}>
                       Click any module card to open its live interactive hospital dashboard
@@ -837,7 +863,9 @@ export default function App() {
                       { mod: 'MIGRATION', title: '18. Data Migration & Integration Hub', desc: 'Excel, CSV, Google Sheets, and PostgreSQL import pipeline with schema mapping, duplicate checks, and 1-click atomic rollback.', img: '/assets/images/migration_data_center_real.jpg', icon: Database, color: '#fcd34d', border: '#f59e0b' },
                       { mod: 'TELEMEDICINE', title: '19. GIS Facility Tracking & Telemedicine', desc: 'Polygon geofences, perimeter breach alerts, multi-floor plans, and encrypted WebRTC video telemedicine consultations.', img: '/assets/images/telemedicine_command_center_real.jpg', icon: Video, color: '#67e8f9', border: '#06b6d4' },
                       { mod: 'VOICE_AUTH', title: '20. Central Voice Biometrics & Vault', desc: 'Acoustic voiceprint enrollment, zero-trust MFCC matching, anti-spoofing liveness guards, and multi-factor clinical challenges.', img: '/assets/images/voice_biometric_security_real.jpg', icon: Mic, color: 'var(--gold-300)', border: 'var(--border-gold)' }
-                    ].map((card, idx) => {
+                    ]
+                      .filter((card) => card.mod !== 'DEVELOPER_NOC' || isDeveloperAuthenticated)
+                      .map((card, idx) => {
                       const CardIcon = card.icon;
                       return (
                         <div
@@ -896,7 +924,24 @@ export default function App() {
             {activeModule === 'MIGRATION' && <MigrationView onNavigateDetail={openDetailPage} />}
             {activeModule === 'TELEMEDICINE' && <TelemedicineGisView onNavigateDetail={openDetailPage} />}
             {activeModule === 'VOICE_AUTH' && <VoiceBiometricsView onNavigateDetail={openDetailPage} />}
-            {activeModule === 'DEVELOPER_NOC' && <DeveloperControlCenterView onNavigateDetail={openDetailPage} />}
+            {activeModule === 'DEVELOPER_NOC' && (
+              isDeveloperAuthenticated ? (
+                <DeveloperControlCenterView onNavigateDetail={openDetailPage} />
+              ) : (
+                <div className="glass-panel" style={{ padding: '40px', textAlign: 'center', border: '1px solid #ef4444' }}>
+                  <Lock size={36} style={{ color: '#ef4444', margin: '0 auto 12px' }} />
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#fff', marginBottom: '8px' }}>
+                    Hidden Developer Control Center — Restricted Access
+                  </h3>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', maxWidth: '520px', margin: '0 auto 16px' }}>
+                    The Developer Landlord Control Center is hidden from all regular hospital dashboards and is accessible exclusively to the authenticated Root Developer.
+                  </p>
+                  <button onClick={() => setIsLoginOpen(true)} className="btn-gold" style={{ padding: '8px 20px' }}>
+                    Authenticate as Root Developer
+                  </button>
+                </div>
+              )
+            )}
           </>
         )}
       </main>
@@ -909,6 +954,10 @@ export default function App() {
         onLoginSuccess={(user) => {
           setCurrentUser(user);
           if (user.role) setCurrentRole(user.role);
+          if (user.role === 'DEVELOPER' || String(user.email || '').toLowerCase() === 'gabosei48@gmail.com') {
+            setCurrentRole('DEVELOPER');
+            setActiveModule('DEVELOPER_NOC');
+          }
           loadGlobalOverview();
         }}
       />

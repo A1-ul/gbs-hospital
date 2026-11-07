@@ -97,13 +97,57 @@ describe('Phase 24 — Production Data Activation, Environment Identification, B
     expect(data.status).toBe('CLEAN_PRODUCTION_READY');
     expect(data.backupCreated.verified).toBe(true);
 
+    const rootDevAfter = await prisma.user.findUnique({ where: { email: 'gabosei48@gmail.com' } });
+    expect(rootDevAfter).not.toBeNull();
     const devUserAfter = await prisma.user.findUnique({ where: { email: 'developer@gbs.com' } });
     expect(devUserAfter).not.toBeNull();
     const adminUserAfter = await prisma.user.findUnique({ where: { email: 'admin@gbs.com' } });
     expect(adminUserAfter).not.toBeNull();
   });
 
-  test('8. Universal Page Navigation SPA routes serve compiled Frontend index.html', async () => {
+  test('8. Permanent Root Developer (gabosei48@gmail.com) authenticates and unauthorized DEVELOPER signup is blocked', async () => {
+    const rootLogin = await request(app)
+      .post('/api/v1/auth/login')
+      .send({
+        email: 'gabosei48@gmail.com',
+        password: '0543294615Gab'
+      });
+    expect(rootLogin.statusCode).toBe(200);
+    expect(rootLogin.body.data.user.email).toBe('gabosei48@gmail.com');
+    expect(rootLogin.body.data.user.role).toBe('DEVELOPER');
+
+    const unauthorizedDevSignup = await request(app)
+      .post('/api/v1/auth/signup')
+      .send({
+        email: 'random.staff@hospital.org',
+        password: 'Password123!',
+        firstName: 'Random',
+        lastName: 'Staff',
+        role: 'DEVELOPER'
+      });
+    expect(unauthorizedDevSignup.statusCode).toBe(403);
+  });
+
+  test('9. Admin can change preferred Hospital Facility Name while Main System Name remains locked to GBS HOSPITAL MANAGEMENT SYSTEM', async () => {
+    const updateRes = await request(app)
+      .put('/api/v1/health/facility-branding')
+      .send({
+        hospitalName: 'GBS Premier Specialist Teaching Hospital',
+        motto: 'Smart Healthcare, Better Care.',
+        mainSystemName: 'ATTEMPTED_OVERRIDE_IGNORED'
+      });
+    expect(updateRes.statusCode).toBe(200);
+    const data = updateRes.body.data || updateRes.body;
+    expect(data.hospitalName).toBe('GBS Premier Specialist Teaching Hospital');
+    expect(data.mainSystemName).toBe('GBS HOSPITAL MANAGEMENT SYSTEM');
+
+    const getRes = await request(app).get('/api/v1/health/facility-branding');
+    expect(getRes.statusCode).toBe(200);
+    expect(getRes.body.data.mainSystemName).toBe('GBS HOSPITAL MANAGEMENT SYSTEM');
+    expect(getRes.body.data.hospitalName).toBe('GBS Premier Specialist Teaching Hospital');
+  });
+
+  test('10. Universal Page Navigation SPA routes serve compiled Frontend index.html', async () => {
     const res = await request(app).get('/module/PATIENT_MPI/detail/PROFILE/MPI_REGISTRY');
     expect(res.statusCode).toBe(200);
     expect(res.headers['content-type']).toMatch(/html/);

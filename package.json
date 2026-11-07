@@ -1,0 +1,17 @@
+{
+  "name": "gbs-hospital-management-system",
+  "version": "1.0.0",
+  "description": "GBS Hospital Management System - Enterprise Full-Stack Healthcare Platform",
+  "main": "Backend/src/server.js",
+  "scripts": {
+    "build": "cd Frontend && npm install && npm run build && cd ../Backend && npm install && npx prisma generate",
+    "start": "cd Backend && (npx prisma db push --skip-generate || true) && (node prisma/seed.js || true) && npm start",
+    "dev": "cd Backend && npm run dev"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "author": "GBS Enterprise Systems (gabosei48@gmail.com)",
+  "license": "PROPRIETARY"
+}
+

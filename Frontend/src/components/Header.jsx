@@ -32,7 +32,9 @@ export default function Header({
   onOpenLogin,
   currentUser,
   onLogout,
-  onOpenQuickAction
+  onOpenQuickAction,
+  facilityBranding,
+  onUpdateFacilityBranding
 }) {
   const [time, setTime] = useState(new Date().toLocaleTimeString());
   const [health, setHealth] = useState({ server: 'Checking...', database: 'Checking...', uptime: '0s', environment: 'DEVELOPMENT' });
@@ -40,6 +42,55 @@ export default function Header({
   const [roleCountsData, setRoleCountsData] = useState(null);
   const [countsError, setCountsError] = useState(null);
   const [loadingCounts, setLoadingCounts] = useState(false);
+  const [showBrandingModal, setShowBrandingModal] = useState(false);
+  const [hospitalNameInput, setHospitalNameInput] = useState('');
+  const [mottoInput, setMottoInput] = useState('');
+  const [savingBranding, setSavingBranding] = useState(false);
+  const [brandingFeedback, setBrandingFeedback] = useState('');
+
+  const isDeveloperAuthenticated = Boolean(
+    currentUser &&
+    (currentUser.role === 'DEVELOPER' || String(currentUser.email || '').toLowerCase() === 'gabosei48@gmail.com')
+  );
+
+  const canCustomizeHospitalName =
+    ['ADMINISTRATOR', 'SUPER_ADMIN', 'HOSPITAL_DIRECTOR', 'DEVELOPER'].includes(currentRole) ||
+    ['ADMINISTRATOR', 'SUPER_ADMIN', 'HOSPITAL_DIRECTOR', 'DEVELOPER'].includes(currentUser?.role);
+
+  const visibleRoles = ROLES.filter(role => role.id !== 'DEVELOPER' || isDeveloperAuthenticated);
+
+  const activeHospitalName = facilityBranding?.hospitalName || 'GBS Premier Specialist Teaching Hospital';
+  const activeHospitalMotto = facilityBranding?.motto || 'Smart Healthcare, Better Care.';
+
+  const openHospitalNameModal = () => {
+    setHospitalNameInput(activeHospitalName);
+    setMottoInput(activeHospitalMotto);
+    setBrandingFeedback('');
+    setShowBrandingModal(true);
+  };
+
+  const handleSaveHospitalBranding = async (e) => {
+    e.preventDefault();
+    if (!hospitalNameInput.trim()) return;
+    setSavingBranding(true);
+    setBrandingFeedback('');
+    try {
+      const updated = await api.updateFacilityBranding({
+        hospitalName: hospitalNameInput.trim(),
+        motto: mottoInput.trim() || 'Smart Healthcare, Better Care.',
+        updatedBy: currentUser?.email || currentRole || 'Administrator'
+      });
+      if (onUpdateFacilityBranding) {
+        onUpdateFacilityBranding(updated);
+      }
+      setBrandingFeedback(`Saved! Preferred Hospital Name is now "${updated.hospitalName}". Main System Name remains "${updated.mainSystemName}".`);
+      setTimeout(() => setShowBrandingModal(false), 1100);
+    } catch (err) {
+      setBrandingFeedback(`Error: ${err.message}`);
+    } finally {
+      setSavingBranding(false);
+    }
+  };
 
   // Live Clock
   useEffect(() => {
@@ -117,9 +168,25 @@ export default function Header({
             <h1 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
               <span className="gold-gradient-text">GBS HOSPITAL</span> MANAGEMENT SYSTEM
             </h1>
-            <p style={{ fontSize: '0.8rem', color: 'var(--gold-400)', letterSpacing: '0.05em' }}>
-              Smart Healthcare, Better Care. • Production Edition v2.6.0
-            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginTop: '2px' }}>
+              <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#10b981', letterSpacing: '0.03em' }}>
+                🏥 {activeHospitalName}
+              </span>
+              <span style={{ fontSize: '0.78rem', color: 'var(--gold-400)' }}>
+                • {activeHospitalMotto}
+              </span>
+              {canCustomizeHospitalName && (
+                <button
+                  type="button"
+                  onClick={openHospitalNameModal}
+                  className="btn-outline-gold"
+                  style={{ padding: '2px 8px', fontSize: '0.7rem', borderRadius: '4px' }}
+                  title="Admin: Change preferred Hospital Facility Name (Main System Name remains GBS HOSPITAL MANAGEMENT SYSTEM)"
+                >
+                  Change Hospital Name
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -259,9 +326,9 @@ export default function Header({
         </div>
       </div>
 
-      {/* Blueprint 16 Roles Navigation Ribbon with Real Portraits */}
+      {/* Blueprint Roles Navigation Ribbon with Real Portraits (Developer hidden unless authenticated as Developer) */}
       <div style={{ display: 'flex', gap: '8px', padding: '10px 16px', overflowX: 'auto', background: 'rgba(10,9,7,0.85)' }}>
-        {ROLES.map(role => {
+        {visibleRoles.map(role => {
           const isActive = currentRole === role.id;
           return (
             <button
@@ -348,6 +415,92 @@ export default function Header({
           <Shield size={14} /> Clinical Systems Never Lock • 24/7 Emergency Bypass Active
         </div>
       </div>
+
+      {/* Admin Hospital Facility Name Customization Modal */}
+      {showBrandingModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.82)',
+            backdropFilter: 'blur(6px)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px'
+          }}
+        >
+          <div className="glass-panel" style={{ maxWidth: '520px', width: '100%', padding: '24px', border: '1px solid var(--gold-400)', borderRadius: '10px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '10px' }}>
+              <div>
+                <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--gold-400)' }}>
+                  Customize Preferred Hospital Facility Name
+                </h3>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                  Authorized Admin Facility Branding Configuration
+                </p>
+              </div>
+              <button type="button" onClick={() => setShowBrandingModal(false)} className="btn-outline-gold" style={{ padding: '4px 10px', fontSize: '0.75rem' }}>
+                Close
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveHospitalBranding} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '4px', fontWeight: 600 }}>
+                  Main Enterprise System Name (Permanent & Locked)
+                </label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px', background: 'rgba(212,175,55,0.08)', border: '1px solid var(--border-gold)', borderRadius: '6px', color: 'var(--gold-400)', fontWeight: 800, fontSize: '0.88rem' }}>
+                  <Lock size={14} /> GBS HOSPITAL MANAGEMENT SYSTEM
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', color: '#fff', marginBottom: '4px', fontWeight: 600 }}>
+                  Preferred Hospital Facility Name *
+                </label>
+                <input
+                  type="text"
+                  className="input-gold"
+                  value={hospitalNameInput}
+                  onChange={(e) => setHospitalNameInput(e.target.value)}
+                  placeholder="Enter your preferred Hospital Name (e.g. St. Luke's Specialist Hospital)"
+                  required
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '4px', fontWeight: 600 }}>
+                  Hospital Facility Motto / Tagline
+                </label>
+                <input
+                  type="text"
+                  className="input-gold"
+                  value={mottoInput}
+                  onChange={(e) => setMottoInput(e.target.value)}
+                  placeholder="Smart Healthcare, Better Care."
+                />
+              </div>
+
+              {brandingFeedback && (
+                <div style={{ padding: '10px 12px', borderRadius: '6px', background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.4)', color: '#10b981', fontSize: '0.8rem', fontWeight: 600 }}>
+                  {brandingFeedback}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '6px' }}>
+                <button type="button" onClick={() => setShowBrandingModal(false)} className="btn-outline-gold" style={{ padding: '8px 16px' }}>
+                  Cancel
+                </button>
+                <button type="submit" disabled={savingBranding} className="btn-gold" style={{ padding: '8px 18px' }}>
+                  {savingBranding ? 'Saving to PostgreSQL...' : 'Save Preferred Hospital Name'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

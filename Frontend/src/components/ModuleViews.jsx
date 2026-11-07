@@ -3137,25 +3137,25 @@ export function MortuaryView() {
   const [intakeForm, setIntakeForm] = useState({
     deceasedFullName: '',
     gender: 'MALE',
-    approximateAge: 65,
+    approximateAge: '',
     dateOfDeath: new Date().toISOString().split('T')[0],
-    timeOfDeath: '14:30',
-    placeOfDeath: 'ICU Critical Care Ward',
-    causeOfDeathPrimary: 'Cardiorespiratory Arrest',
-    certifyingPhysician: 'Dr. Mensah, MD',
+    timeOfDeath: '',
+    placeOfDeath: '',
+    causeOfDeathPrimary: '',
+    certifyingPhysician: '',
     isCoronerCase: false,
     storageTier: 'REFRIGERATED',
     nextOfKinName: '',
     nextOfKinPhone: '',
     nextOfKinNationalId: '',
     relationshipToDeceased: 'CHILD',
-    propertyItemsInventory: 'Personal identification documents, wristwatch, wedding ring'
+    propertyItemsInventory: ''
   });
 
   const [autopsyForm, setAutopsyForm] = useState({
     corpseId: '',
     caseCategory: 'CLINICAL_HOSPITAL',
-    leadPathologist: 'Dr. Addo-Yobo, Chief Pathologist',
+    leadPathologist: '',
     scheduledDate: new Date().toISOString().split('T')[0],
     requiresCoronerApproval: false
   });
@@ -3166,11 +3166,11 @@ export function MortuaryView() {
     nextOfKinPhone: '',
     nextOfKinNationalId: '',
     relationshipToDeceased: 'SPOUSE',
-    funeralHomeOrUndertaker: 'Dignified Transitions Ghana Ltd.',
-    hearseVehiclePlate: 'GW-4921-24',
-    releasingOfficer: 'Chief Mortuary Officer Appiah',
-    burialPermitNumber: 'BUR-2026-99014',
-    notes: 'Next-of-Kin verified with Ghana National ID. Personal effects handed over.'
+    funeralHomeOrUndertaker: '',
+    hearseVehiclePlate: '',
+    releasingOfficer: '',
+    burialPermitNumber: '',
+    notes: ''
   });
 
   const loadAll = async () => {
@@ -3871,10 +3871,10 @@ export function BiomedicalView() {
   const [stats, setStats] = useState({
     totalEquipment: 0,
     operationalCount: 0,
-    operationalUptimeRate: '100.0%',
+    operationalUptimeRate: '0.0%',
     criticalHighRiskTotal: 0,
     criticalHighRiskOperational: 0,
-    lifeSupportUptimeRate: '100.0%',
+    lifeSupportUptimeRate: '0.0%',
     openWorkOrders: 0,
     emergencyBreakdowns: 0,
     ppmOverdueCount: 0,
@@ -3902,7 +3902,7 @@ export function BiomedicalView() {
     category: 'LIFE_SUPPORT',
     riskLevel: 'CRITICAL_HIGH_RISK',
     department: 'ICU',
-    roomLocation: 'ICU Ward Bay 01',
+    roomLocation: '',
     powerRatingWatts: 450,
     ppmIntervalDays: 60,
     calibrationIntervalDays: 90
@@ -3913,32 +3913,32 @@ export function BiomedicalView() {
     orderType: 'CORRECTIVE_BREAKDOWN',
     priority: 'STAT_EMERGENCY_BREAKDOWN',
     failureDescription: '',
-    reportedBy: 'Nurse In-Charge, ICU',
-    assignedEngineer: 'Lead Biomedical Engineer'
+    reportedBy: '',
+    assignedEngineer: ''
   });
 
   const [completeForm, setCompleteForm] = useState({
-    qaApprovedBy: 'Chief Biomedical Inspector',
-    rootCause: 'Pneumatic valve drift and particulate sensor buildup corrected',
-    actionTaken: 'Overhauled, safety inspected, and calibrated',
-    partsReplaced: 'Transducer Sensor P/N 3982',
-    partsCost: 350.0,
-    laborHours: 2.0,
+    qaApprovedBy: '',
+    rootCause: '',
+    actionTaken: '',
+    partsReplaced: '',
+    partsCost: 0,
+    laborHours: 1.0,
     leakageCurrentMicroAmps: 45.0,
     groundResistanceOhms: 0.08,
-    notes: 'IEC 60601-1 electrical safety inspection passed.'
+    notes: ''
   });
 
   const [calibrationForm, setCalibrationForm] = useState({
     equipmentId: '',
     calibrationStandard: 'ISO_17025',
-    testEquipmentUsed: 'Fluke VT900A Gas Flow Analyzer & Rigel 288+ Electrical Tester',
-    parametersTested: 'Pressure delivery (cmH2O), Inspiratory flow (L/min), Chassis leakage (uA)',
-    toleranceDeviationPercent: 1.2,
+    testEquipmentUsed: '',
+    parametersTested: '',
+    toleranceDeviationPercent: 1.0,
     calibrationResult: 'PASSED',
-    certifiedByEngineer: 'Eng. Kwame Darko, Lead Metrologist',
+    certifiedByEngineer: '',
     validityDays: 180,
-    notes: 'Metrology verification verified within ISO 17025 tolerances.'
+    notes: ''
   });
 
   const loadAll = async () => {
@@ -4661,7 +4661,7 @@ export function ProcurementView() {
     approvedPurchaseOrders: 0,
     fullyReceivedOrders: 0,
     totalSpendYtd: 0,
-    threeWayMatchCompliancePercent: 100,
+    threeWayMatchCompliancePercent: 0,
     pendingGrnInspections: 0,
     activeContractsCount: 0
   });
@@ -4689,7 +4689,7 @@ export function ProcurementView() {
     email: '',
     phone: '',
     address: '',
-    bankName: 'GCB Bank Ghana',
+    bankName: '',
     paymentTerms: 'NET_30',
     notes: ''
   });
@@ -4701,17 +4701,17 @@ export function ProcurementView() {
     expectedDeliveryDate: '',
     taxAmount: 0,
     notes: '',
-    requisitionedBy: 'Procurement Officer Mensah',
+    requisitionedBy: '',
     items: [
-      { itemCode: 'MED-AMOX-500', description: 'Amoxicillin 500mg (Box of 100)', quantityOrdered: 50, unitCost: 20.0, unitOfMeasure: 'BOX' }
+      { itemCode: '', description: '', quantityOrdered: 1, unitCost: 0, unitOfMeasure: 'BOX' }
     ]
   });
 
   const [grnForm, setGrnForm] = useState({
     purchaseOrderId: '',
     waybillOrInvoiceNumber: '',
-    receivedBy: 'Storekeeper Boateng',
-    inspectedBy: 'QA Inspector E. Mensah',
+    receivedBy: '',
+    inspectedBy: '',
     inspectionStatus: 'INSPECTION_PASSED',
     temperatureCompliant: true,
     notes: '',
@@ -4724,11 +4724,11 @@ export function ProcurementView() {
     contractType: 'FRAMEWORK_AGREEMENT',
     startDate: new Date().toISOString().split('T')[0],
     endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    contractValue: 50000,
+    contractValue: 0,
     currency: 'GHS',
-    termsConditions: 'Guaranteed 48-hour delivery SLA with cold-chain audit validation.',
+    termsConditions: '',
     signedByRepresentative: '',
-    signedByHospitalDirector: 'Dr. Mensah Osei'
+    signedByHospitalDirector: ''
   });
 
   const [threeWayMatchForm, setThreeWayMatchForm] = useState({
@@ -5708,63 +5708,63 @@ export function HRManagementView() {
 
   // Forms
   const [rosterForm, setRosterForm] = useState({
-    staffId: 'STF-001',
-    staffName: 'Dr. Kwame Mensah-Bonsu',
+    staffId: '',
+    staffName: '',
     department: 'ACCIDENT_AND_EMERGENCY',
-    wardOrUnit: 'Trauma Resuscitation Suite',
+    wardOrUnit: '',
     shiftType: 'MORNING_SHIFT',
     shiftDate: new Date().toISOString().split('T')[0],
     startTime: '07:00',
     endTime: '15:00',
-    notes: 'Senior medical officer on acute trauma coverage'
+    notes: ''
   });
 
   const [handoverForm, setHandoverForm] = useState({
     department: 'ACCIDENT_AND_EMERGENCY',
-    wardOrUnit: 'Emergency Trauma Ward',
-    outgoingStaffName: 'Dr. Kwame Mensah-Bonsu',
-    incomingStaffName: 'Dr. Abena Osei-Tutu',
+    wardOrUnit: '',
+    outgoingStaffName: '',
+    incomingStaffName: '',
     shiftFrom: 'MORNING_SHIFT',
     shiftTo: 'AFTERNOON_SHIFT',
-    censusTotalPatients: 14,
-    criticalPatientCount: 3,
-    situation: '14 active emergency admissions; 3 critical resuscitations in Bay 1 & 2',
-    background: 'Post-motorway collision surge arriving via EMS ambulance unit',
-    assessment: 'Patient 1 stabilized on bilateral chest tubes; Patient 2 awaiting ICU bed assignment; Patient 3 on continuous insulin infusion',
-    recommendation: 'Monitor arterial blood gases q1h; complete transfer of Patient 2 to ICU upon bed sanitization; re-check controlled drugs vault at 16:00',
+    censusTotalPatients: 0,
+    criticalPatientCount: 0,
+    situation: '',
+    background: '',
+    assessment: '',
+    recommendation: '',
     controlledDrugsCountOk: true
   });
 
   const [credentialForm, setCredentialForm] = useState({
-    staffId: 'STF-001',
-    staffName: 'Dr. Kwame Mensah-Bonsu',
+    staffId: '',
+    staffName: '',
     regulatoryBody: 'Medical and Dental Council (MDC) Ghana',
-    licenseNumber: `MDC/P/${Math.floor(10000 + Math.random() * 90000)}`,
+    licenseNumber: '',
     cadre: 'SPECIALIST_PHYSICIAN',
-    specialty: 'Emergency Medicine & Critical Care',
-    issuedDate: new Date(Date.now() - 365*24*60*60*1000).toISOString().split('T')[0],
+    specialty: '',
+    issuedDate: new Date().toISOString().split('T')[0],
     expiryDate: new Date(Date.now() + 365*24*60*60*1000).toISOString().split('T')[0],
-    verificationNotes: 'Verified against official MDC Ghana register portal'
+    verificationNotes: ''
   });
 
   const [leaveForm, setLeaveForm] = useState({
-    staffId: 'STF-001',
-    staffName: 'Dr. Kwame Mensah-Bonsu',
+    staffId: '',
+    staffName: '',
     department: 'ACCIDENT_AND_EMERGENCY',
     leaveType: 'ANNUAL_LEAVE',
     startDate: new Date(Date.now() + 7*24*60*60*1000).toISOString().split('T')[0],
     endDate: new Date(Date.now() + 14*24*60*60*1000).toISOString().split('T')[0],
     daysRequested: 7,
-    relievingStaffName: 'Dr. Kweku Addo',
-    reason: 'Statutory annual clinical recess & restorative leave'
+    relievingStaffName: '',
+    reason: ''
   });
 
   const [clockInForm, setClockInForm] = useState({
-    staffId: 'STF-001',
-    staffName: 'Dr. Kwame Mensah-Bonsu',
+    staffId: '',
+    staffName: '',
     department: 'ACCIDENT_AND_EMERGENCY',
     workstationOrTerminal: 'BIOMETRIC_TERMINAL_ED_MAIN',
-    clockInTime: '06:55'
+    clockInTime: ''
   });
 
   const [coSignNotes, setCoSignNotes] = useState('');
@@ -6778,13 +6778,13 @@ export function HRManagementView() {
 export function QualityAssuranceView() {
   const [activeTab, setActiveTab] = useState('INCIDENTS'); // INCIDENTS | INFECTION_CONTROL | AUDITS | CAPA_AND_ALERTS
   const [stats, setStats] = useState({
-    hospitalSafetyIndex: 98.0,
-    safetyRating: 'GRADE_A_EXEMPLARY',
+    hospitalSafetyIndex: 0,
+    safetyRating: 'NO_DATA',
     totalIncidents: 0,
     sentinelEvents: 0,
     openIncidents: 0,
     activeInfectionCases: 0,
-    averageAuditCompliance: '96.5%',
+    averageAuditCompliance: '0.0%',
     totalAuditsConducted: 0,
     openCapaCount: 0,
     activeSafetyAlerts: 0
@@ -6819,18 +6819,18 @@ export function QualityAssuranceView() {
     incidentDate: new Date().toISOString().split('T')[0],
     category: 'MEDICATION_ERROR',
     severity: 'NEAR_MISS',
-    locationDepartment: 'Emergency Ward',
+    locationDepartment: '',
     description: '',
     immediateActionTaken: '',
     isAnonymous: false,
-    reportedByStaffName: 'Clinical Pharmacist'
+    reportedByStaffName: ''
   });
 
   const [rcaForm, setRcaForm] = useState({
     rootCauseAnalysis: '',
-    contributingFactors: 'High workload during shift changeover, sound-alike look-alike packaging.',
-    actionPlanSummary: 'Implement electronic 2D barcode bedside scanning and double-verification.',
-    leadInvestigator: 'Dr. Kwame Darko, Lead Quality Auditor'
+    contributingFactors: '',
+    actionPlanSummary: '',
+    leadInvestigator: ''
   });
 
   const [ipcForm, setIpcForm] = useState({
@@ -6838,43 +6838,43 @@ export function QualityAssuranceView() {
     patientMrn: '',
     infectionType: 'SSI',
     isolationPrecautions: 'CONTACT',
-    wardLocation: 'Surgical Ward',
-    bedNumber: 'Bed-07',
-    confirmedPathogen: 'MRSA (Methicillin-Resistant Staphylococcus aureus)',
-    antibioticResistanceProfile: 'Resistant to Oxacillin/Methicillin, Susceptible to Vancomycin',
-    attendingPhysician: 'Dr. Yaw Addo'
+    wardLocation: '',
+    bedNumber: '',
+    confirmedPathogen: '',
+    antibioticResistanceProfile: '',
+    attendingPhysician: ''
   });
 
   const [clearIpcForm, setClearIpcForm] = useState({
-    clearanceReason: 'Two consecutive negative microbiological cultures 48h apart. Patient clinically asymptomatic.',
-    infectionControlOfficer: 'Dr. Aba Mensah, Lead Epidemiologist'
+    clearanceReason: '',
+    infectionControlOfficer: ''
   });
 
   const [auditForm, setAuditForm] = useState({
-    auditTitle: 'WHO Surgical Safety Checklist Adherence Audit Q4',
+    auditTitle: '',
     auditType: 'WHO_SURGICAL_SAFETY_CHECKLIST',
-    department: 'Main Operating Theatre',
-    auditorName: 'Dr. Kofi Annan, Chief Clinical Auditor',
-    sampleSizeEvaluated: 40,
-    nonCompliancesFound: 2,
-    checklistItemsEvaluated: 'Sign In, Time Out, Sign Out adherence verification',
-    recommendations: 'Mandate verbal team pause before surgical knife to skin in all suites.'
+    department: '',
+    auditorName: '',
+    sampleSizeEvaluated: 10,
+    nonCompliancesFound: 0,
+    checklistItemsEvaluated: '',
+    recommendations: ''
   });
 
   const [capaForm, setCapaForm] = useState({
-    title: 'Elimination of Medication Administration Timing Lags',
+    title: '',
     rootCauseMethod: 'FIVE_WHYS',
-    rootCauseFinding: 'Root cause identified as late order transcription from physical chart to pharmacy queue during changeover.',
-    correctiveAction: 'Digitize instant CPOE order dispatch directly to ward dispensing automation.',
-    preventiveAction: 'Mandate electronic nurse signoff at bedside within 15 minutes of scheduled dose.',
-    assignedLead: 'Director of Clinical Pharmacy',
+    rootCauseFinding: '',
+    correctiveAction: '',
+    preventiveAction: '',
+    assignedLead: '',
     targetCompletionDate: new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0]
   });
 
   const [verifyCapaForm, setVerifyCapaForm] = useState({
-    verificationNotes: 'Audit of 120 subsequent administrations showed 100% on-time dispensing with zero omissions.',
+    verificationNotes: '',
     effectivenessResult: 'EFFECTIVE_CLOSED',
-    verifiedBy: 'Dr. Kwesi Appiah, Quality Assurance Director'
+    verifiedBy: ''
   });
 
   const [alertForm, setAlertForm] = useState({

@@ -46,6 +46,12 @@ export const api = {
   checkHealth: () => request('/health'),
   getGlobalOverviewStats: () => request('/health/overview-stats'),
   getEnvironmentInfo: () => request('/health/environment-info'),
+  getFacilityBranding: () => request('/health/facility-branding'),
+  updateFacilityBranding: (payload) =>
+    request('/health/facility-branding', {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    }),
 
   // Auth
   login: (email, password) =>

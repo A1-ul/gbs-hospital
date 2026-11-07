@@ -12,8 +12,8 @@ services:
     plan: free
     region: frankfurt
     branch: main
-    buildCommand: cd Frontend && npm install && npm run build && cd ../Backend && npm install && npx prisma generate
-    startCommand: cd Backend && npx prisma db push --skip-generate && node prisma/seed.js && npm start
+    buildCommand: npm run build
+    startCommand: npm start
     healthCheckPath: /api/v1/health
     autoDeploy: true
     envVars:
@@ -29,6 +29,8 @@ services:
         fromDatabase:
           name: gbs-hospital-postgres
           property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
       - key: JWT_ACCESS_SECRET
         generateValue: true
       - key: JWT_REFRESH_SECRET

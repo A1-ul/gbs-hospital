@@ -30,29 +30,29 @@ export default function NhiaClaimsView() {
   const [batchForm, setBatchForm] = useState({
     periodMonth: new Date().getMonth() + 1,
     periodYear: new Date().getFullYear(),
-    providerNumber: 'HOSP-ACC-00124',
-    providerName: 'GBS Central Teaching Hospital',
+    providerNumber: '',
+    providerName: '',
     submissionType: 'E_CLAIMS_XML'
   });
 
   const [claimForm, setClaimForm] = useState({
-    patientId: 'PAT-2026-0001',
+    patientId: '',
     patientName: '',
     nhisNumber: '',
     gender: 'M',
-    dateOfBirth: '1990-01-01',
+    dateOfBirth: '',
     encounterType: 'OPD',
     gdrgCode: 'GDRG-OPD-01',
-    primaryDiagnosisIcd10: 'B54.0',
+    primaryDiagnosisIcd10: '',
     secondaryDiagnosisIcd10: '',
-    claimedAmount: 45.00,
+    claimedAmount: 0.00,
     copayPaid: 0.00
   });
 
   const [voucherForm, setVoucherForm] = useState({
     withholdingTaxPercent: 5.0,
-    paymentReference: 'TRF-BOG-GHANA-90124',
-    adjudicatorNote: 'Cleared by NHIA Financial Comptroller & Internal Auditor.'
+    paymentReference: '',
+    adjudicatorNote: ''
   });
 
   const [eligibilityQuery, setEligibilityQuery] = useState('');

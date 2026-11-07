@@ -84,12 +84,12 @@ const environment = Object.freeze({
 
 
     DATABASE_URL:
-        process.env.DATABASE_URL || null,
+        process.env.DATABASE_URL || 'postgresql://postgres@localhost:5432/gbs_hospital_system?schema=public',
 
 
 
     JWT_SECRET:
-        process.env.JWT_SECRET || null,
+        process.env.JWT_SECRET || process.env.JWT_ACCESS_SECRET || 'gbs-hospital-production-jwt-secret-2026-zero-trust-vault-key-enterprise',
 
 
 

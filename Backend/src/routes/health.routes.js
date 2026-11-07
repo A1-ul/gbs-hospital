@@ -8,7 +8,9 @@ const {
 const envConfig = require("../config/environment/environment.config");
 const {
     getGlobalOverviewStats,
-    getEnvironmentAndDataIdentification
+    getEnvironmentAndDataIdentification,
+    getFacilityBranding,
+    updateFacilityBranding
 } = require("../modules/tenant-management/backup-and-environment.service");
 
 router.get("/", async (req, res) => {
@@ -46,6 +48,45 @@ router.get("/environment-info", async (req, res, next) => {
         return res.status(200).json({
             success: true,
             data: info
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
+// Hospital Facility Branding (Main System Name is locked to GBS HOSPITAL MANAGEMENT SYSTEM; Admin can customize hospitalName)
+router.get("/facility-branding", async (req, res, next) => {
+    try {
+        const branding = await getFacilityBranding();
+        return res.status(200).json({
+            success: true,
+            data: branding
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.put("/facility-branding", async (req, res, next) => {
+    try {
+        const branding = await updateFacilityBranding(req.body || {}, req.body?.updatedBy || "Administrator");
+        return res.status(200).json({
+            success: true,
+            message: `Hospital facility name updated to "${branding.hospitalName}". Main system name remains "${branding.mainSystemName}".`,
+            data: branding
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.post("/facility-branding", async (req, res, next) => {
+    try {
+        const branding = await updateFacilityBranding(req.body || {}, req.body?.updatedBy || "Administrator");
+        return res.status(200).json({
+            success: true,
+            message: `Hospital facility name updated to "${branding.hospitalName}". Main system name remains "${branding.mainSystemName}".`,
+            data: branding
         });
     } catch (err) {
         next(err);

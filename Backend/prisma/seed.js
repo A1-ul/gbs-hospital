@@ -205,7 +205,32 @@ async function main() {
 
         console.log("Root roles (DEVELOPER, SUPER_ADMIN, ADMINISTRATOR) secured with enterprise permissions");
 
-        // 4. Create Permanent Developer Account
+        // 4. Create Permanent Root Developer Account (gabosei48@gmail.com) & Test Developer Account
+        const rootDevPassword = await bcrypt.hash(
+            process.env.DEVELOPER_ROOT_PASSWORD || "0543294615Gab",
+            SALT_ROUNDS
+        );
+
+        const rootDeveloper = await tx.user.upsert({
+            where: { email: "gabosei48@gmail.com" },
+            update: {
+                firstName: "Gabriel",
+                lastName: "Osei",
+                roleId: roleRecords.DEVELOPER.id,
+                active: true,
+                password: rootDevPassword
+            },
+            create: {
+                firstName: "Gabriel",
+                lastName: "Osei",
+                email: "gabosei48@gmail.com",
+                password: rootDevPassword,
+                roleId: roleRecords.DEVELOPER.id,
+                active: true
+            }
+        });
+        console.log("Permanent Root Developer Account ready:", rootDeveloper.email);
+
         const devPassword = await bcrypt.hash(
             process.env.DEVELOPER_PASSWORD || "Admin123",
             SALT_ROUNDS
@@ -264,7 +289,7 @@ async function main() {
         }
 
         console.log(`DEVELOPER verified with ${devCheck.permissions.length} permissions`);
-    });
+    }, { maxWait: 30000, timeout: 60000 });
 }
 
 main()

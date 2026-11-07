@@ -37,18 +37,18 @@ export default function TelemedicineGisView() {
 
   // Forms
   const [scheduleForm, setScheduleForm] = useState({
-    patientId: 'PAT-2026-0001',
-    patientName: 'Kwame Asante',
-    patientPhone: '+233244111222',
-    doctorId: 'DOC-2026-001',
-    doctorName: 'Dr. Ama Pokuaa',
+    patientId: '',
+    patientName: '',
+    patientPhone: '',
+    doctorId: '',
+    doctorName: '',
     specialty: 'CARDIOLOGY',
     scheduledAt: new Date(Date.now() + 1800000).toISOString().slice(0, 16),
-    clinicalReason: 'Follow-up consultation on post-operative recovery and blood pressure'
+    clinicalReason: ''
   });
 
   const [geofenceForm, setGeofenceForm] = useState({
-    name: 'Main Hospital Campus Perimeter',
+    name: '',
     facilityType: 'HOSPITAL_CAMPUS',
     centerLatitude: 5.6037,
     centerLongitude: -0.1870,
@@ -58,31 +58,23 @@ export default function TelemedicineGisView() {
 
   const [pingTestForm, setPingTestForm] = useState({
     entityType: 'AMBULANCE',
-    entityId: 'AMB-ACC-01',
-    entityName: 'Rapid Response Unit 01',
+    entityId: '',
+    entityName: '',
     latitude: 5.6040,
     longitude: -0.1872
   });
   const [pingResult, setPingResult] = useState(null);
 
   const [floorPlanForm, setFloorPlanForm] = useState({
-    buildingName: 'Main Surgical Tower',
-    floorNumber: 2,
-    floorName: 'Level 2: Operating Theatres & Intensive Care',
-    totalBeds: 24,
-    totalRooms: 8,
+    buildingName: '',
+    floorNumber: 1,
+    floorName: '',
+    totalBeds: 0,
+    totalRooms: 0,
     layoutData: JSON.stringify({
-      wings: ['NORTH_WING', 'SOUTH_WING'],
-      rooms: [
-        { roomNumber: 'OR-01', type: 'THEATRE', x: 20, y: 30, status: 'IN_USE' },
-        { roomNumber: 'OR-02', type: 'THEATRE', x: 50, y: 30, status: 'AVAILABLE' },
-        { roomNumber: 'ICU-01', type: 'ICU_BAY', x: 20, y: 70, status: 'OCCUPIED' },
-        { roomNumber: 'ICU-02', type: 'ICU_BAY', x: 50, y: 70, status: 'AVAILABLE' }
-      ],
-      beds: [
-        { bedNumber: 'BED-OR-1A', roomId: 'OR-01', status: 'AVAILABLE' },
-        { bedNumber: 'BED-ICU-1A', roomId: 'ICU-01', status: 'OCCUPIED' }
-      ]
+      wings: [],
+      rooms: [],
+      beds: []
     }, null, 2)
   });
 

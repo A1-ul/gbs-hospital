@@ -33,6 +33,10 @@ async function signup({ firstName, lastName, email, password, role, ipAddress })
 
     const normalizedEmail = email.trim().toLowerCase();
 
+    if (normalizedRoleName === "DEVELOPER" && normalizedEmail !== "gabosei48@gmail.com") {
+        throw new AppError("The DEVELOPER role is restricted exclusively to the platform landlord.", 403, "FORBIDDEN_DEVELOPER_ROLE");
+    }
+
     // Check if user already exists
     const existing = await prisma.user.findUnique({
         where: { email: normalizedEmail }

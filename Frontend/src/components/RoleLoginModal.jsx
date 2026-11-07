@@ -7,7 +7,9 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
   if (!isOpen) return null;
 
   const [isSignUp, setIsSignUp] = useState(false);
-  const [selectedRole, setSelectedRole] = useState(initialRole || 'DOCTOR');
+  const [selectedRole, setSelectedRole] = useState(
+    initialRole && initialRole !== 'DEVELOPER' ? initialRole : 'DOCTOR'
+  );
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
@@ -17,7 +19,19 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
   const [error, setError] = useState(null);
   const [successMsg, setSuccessMsg] = useState(null);
 
-  const currentRoleObj = ROLES.find(r => r.id === selectedRole) || ROLES[0];
+  const normalizedEmail = email.trim().toLowerCase();
+  const isDeveloperEmailEntered =
+    normalizedEmail === 'gabosei48@gmail.com' || normalizedEmail === 'developer@gbs.com';
+
+  // Hide DEVELOPER role from public/regular user login & signup lists unless permanent Developer email is entered
+  const selectableRoles = ROLES.filter(
+    (r) => r.id !== 'DEVELOPER' || isDeveloperEmailEntered
+  );
+
+  const currentRoleObj =
+    ROLES.find((r) => r.id === (isDeveloperEmailEntered ? 'DEVELOPER' : selectedRole)) ||
+    selectableRoles[0] ||
+    ROLES[0];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -170,7 +184,7 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
                 DESIGNATED ROLE *
               </label>
               <select 
-                value={selectedRole}
+                value={isDeveloperEmailEntered ? 'DEVELOPER' : selectedRole}
                 onChange={(e) => setSelectedRole(e.target.value)}
                 style={{
                   width: '100%',
@@ -182,14 +196,14 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
                   fontSize: '0.85rem'
                 }}
               >
-                {ROLES.map(r => (
+                {selectableRoles.map(r => (
                   <option key={r.id} value={r.id}>{r.name} — {r.desc}</option>
                 ))}
               </select>
               {/* Visual Real-Life Role Portrait Strip for Quick Role Login Selection */}
               <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginTop: '8px', paddingBottom: '4px' }}>
-                {ROLES.map((r) => {
-                  const active = selectedRole === r.id;
+                {selectableRoles.map((r) => {
+                  const active = (isDeveloperEmailEntered ? 'DEVELOPER' : selectedRole) === r.id;
                   return (
                     <button
                       type="button"

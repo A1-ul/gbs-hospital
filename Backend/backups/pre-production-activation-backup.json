@@ -10,15 +10,15 @@
     "sslMode": "prefer"
   },
   "filename": "pre-production-activation-backup.json",
-  "createdAt": "2026-11-07T20:40:13.446Z",
+  "createdAt": "2026-11-07T22:08:13.496Z",
   "createdBy": "1a5f27fc-ffb0-49fb-90e6-8674d879d7bf",
-  "totalRecordsBackedUp": 1559,
-  "checksumSha256": "f957e5bafa7b94519ec34816036807f23a043d48865e953db7d0b45249128e68",
+  "totalRecordsBackedUp": 1564,
+  "checksumSha256": "06cb9c31a8de64e829d62d8ca46d23dce8eb6f8c34be292894fb6aa8a2021bf0",
   "tableCounts": {
     "role": 18,
     "permission": 75,
     "rolePermission": 0,
-    "user": 2,
+    "user": 3,
     "tenant": 0,
     "tenantSubscription": 0,
     "tenantLocationPing": 0,
@@ -93,7 +93,7 @@
     "biometricSecurityCredential": 0,
     "biometricVerificationLog": 0,
     "biometricSecurityPolicy": 1,
-    "auditLog": 1463
+    "auditLog": 1467
   },
   "tables": {
     "role": [
@@ -679,28 +679,40 @@
     "rolePermission": [],
     "user": [
       {
+        "id": "ac0fdc97-7c2d-4d2e-b92b-23ac332d91ff",
+        "firstName": "Gabriel",
+        "lastName": "Osei",
+        "email": "gabosei48@gmail.com",
+        "password": "$2b$12$erMl6mv2aL3DzBSSmGmYHe81lQqxv6sadxlt1aDWmW.5kVUbADyLy",
+        "roleId": "8176e25d-2ef7-4e60-9c52-b3da19028dc3",
+        "active": true,
+        "lastLogin": null,
+        "createdAt": "2026-11-07T21:40:38.820Z",
+        "updatedAt": "2026-11-07T21:40:38.820Z"
+      },
+      {
         "id": "e70398b7-37ee-4a0a-a8f5-c89bbac2e441",
         "firstName": "System",
         "lastName": "Administrator",
         "email": "admin@gbs.com",
-        "password": "$2b$12$9q4j8qhNjkfOtHv7hsw50ui31o4eeBz1A98NwswUU/A8yHL0yxMrG",
+        "password": "$2b$12$oa2Xuk4u3xQfyqInLjvAluL/ivnqWU2g/d949SE5ahBSVEaB3Kycm",
         "roleId": "d9dd5633-eec7-4d30-9217-69cadc319235",
         "active": true,
         "lastLogin": "2026-11-07T20:13:31.826Z",
         "createdAt": "2026-06-14T23:08:09.714Z",
-        "updatedAt": "2026-11-07T20:13:31.971Z"
+        "updatedAt": "2026-11-07T21:40:39.561Z"
       },
       {
         "id": "1a5f27fc-ffb0-49fb-90e6-8674d879d7bf",
         "firstName": "GBS",
         "lastName": "Developer",
         "email": "developer@gbs.com",
-        "password": "$2b$12$YWvMn6iRD53pBruoNChhLOuiEcw/Q03/3CohpdKpiGiQRDAuAF3ei",
+        "password": "$2b$12$6xtLNibW4PqHvM37N76cYeVmu7BsqJqZKk/LzKcwas2Wp4FdFDVqC",
         "roleId": "8176e25d-2ef7-4e60-9c52-b3da19028dc3",
         "active": true,
-        "lastLogin": "2026-11-07T20:40:11.413Z",
+        "lastLogin": "2026-11-07T22:08:01.072Z",
         "createdAt": "2026-10-30T02:11:19.580Z",
-        "updatedAt": "2026-11-07T20:40:11.440Z"
+        "updatedAt": "2026-11-07T22:08:01.074Z"
       }
     ],
     "tenant": [],
@@ -13962,6 +13974,42 @@
         "description": "Full PostgreSQL backup created and verified: pre-production-activation-backup.json (1558 records, SHA-256: bc3f9795f926cb59...)",
         "ipAddress": null,
         "createdAt": "2026-11-07T20:40:13.257Z"
+      },
+      {
+        "id": "89e89104-2679-49a1-890b-c4bb2153e9bb",
+        "userId": "1a5f27fc-ffb0-49fb-90e6-8674d879d7bf",
+        "action": "DATABASE_BACKUP_CREATED",
+        "module": "DEVELOPER_PLATFORM",
+        "description": "Full PostgreSQL backup created and verified: pre-production-activation-backup.json (1559 records, SHA-256: f957e5bafa7b9451...)",
+        "ipAddress": null,
+        "createdAt": "2026-11-07T20:40:13.476Z"
+      },
+      {
+        "id": "e5252403-d441-4d9b-b101-a35c6310f055",
+        "userId": "1a5f27fc-ffb0-49fb-90e6-8674d879d7bf",
+        "action": "PRODUCTION_CLEAN_DATA_ACTIVATION",
+        "module": "DEVELOPER_PLATFORM",
+        "description": "Verified backup pre-production-activation-backup.json created. Purged 0 test/demo records. Preserved permanent system accounts (developer@gbs.com, admin@gbs.com) and RBAC roles.",
+        "ipAddress": null,
+        "createdAt": "2026-11-07T20:40:13.977Z"
+      },
+      {
+        "id": "83ba8f53-d39f-4fe6-a6f2-d39394471d9e",
+        "userId": "1a5f27fc-ffb0-49fb-90e6-8674d879d7bf",
+        "action": "USER_LOGIN_SUCCESS",
+        "module": "AUTH",
+        "description": "Login success for role DEVELOPER",
+        "ipAddress": "::ffff:127.0.0.1",
+        "createdAt": "2026-11-07T22:08:01.193Z"
+      },
+      {
+        "id": "4b71d6fb-7c32-4b67-95c8-6aad892778fa",
+        "userId": "1a5f27fc-ffb0-49fb-90e6-8674d879d7bf",
+        "action": "DATABASE_BACKUP_CREATED",
+        "module": "DEVELOPER_PLATFORM",
+        "description": "Full PostgreSQL backup created and verified: pre-production-activation-backup.json (1563 records, SHA-256: 329d00c3e5d51f9e...)",
+        "ipAddress": null,
+        "createdAt": "2026-11-07T22:08:13.198Z"
       }
     ]
   }

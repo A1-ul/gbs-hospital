@@ -47,6 +47,7 @@ function classifyRecordDataSource(record, tableKey) {
         jsonStr.includes("phase") ||
         (tableKey === "user" &&
             record.email &&
+            record.email !== "gabosei48@gmail.com" &&
             record.email !== "developer@gbs.com" &&
             record.email !== "admin@gbs.com" &&
             (record.email.includes("test") ||
@@ -636,9 +637,9 @@ async function purgeDevelopmentTestData(options = {}, developerUserId = null) {
         }
     }
 
-    // Clean only test users while strictly preserving permanent bootstrap accounts (developer@gbs.com, admin@gbs.com)
+    // Clean only test users while strictly preserving permanent bootstrap accounts (gabosei48@gmail.com, developer@gbs.com, admin@gbs.com)
     try {
-        const preservedEmails = ["developer@gbs.com", "admin@gbs.com"];
+        const preservedEmails = ["gabosei48@gmail.com", "developer@gbs.com", "admin@gbs.com"];
         const deletedUsers = await prisma.user.deleteMany({
             where: {
                 email: { notIn: preservedEmails }
@@ -656,7 +657,7 @@ async function purgeDevelopmentTestData(options = {}, developerUserId = null) {
             userId: developerUserId || null,
             action: "PRODUCTION_CLEAN_DATA_ACTIVATION",
             module: "DEVELOPER_PLATFORM",
-            description: `Verified backup ${backup.filename} created. Purged ${totalDeleted} test/demo records. Preserved permanent system accounts (developer@gbs.com, admin@gbs.com) and RBAC roles.`
+            description: `Verified backup ${backup.filename} created. Purged ${totalDeleted} test/demo records. Preserved permanent system accounts (gabosei48@gmail.com, developer@gbs.com, admin@gbs.com) and RBAC roles.`
         }
     });
 
@@ -664,7 +665,7 @@ async function purgeDevelopmentTestData(options = {}, developerUserId = null) {
         backupCreated: backup,
         totalDeletedRecords: totalDeleted,
         deletedCounts,
-        preservedSystemAccounts: ["developer@gbs.com", "admin@gbs.com"],
+        preservedSystemAccounts: ["gabosei48@gmail.com", "developer@gbs.com", "admin@gbs.com"],
         status: "CLEAN_PRODUCTION_READY"
     };
 }
@@ -727,11 +728,14 @@ async function getGlobalOverviewStats() {
     const occupancyRate =
         totalBeds > 0 ? `${((occupiedBeds / totalBeds) * 100).toFixed(1)}%` : "0.0%";
 
+    const facilityBranding = await getFacilityBranding();
+
     return {
         environment: envConfig.activeEnvironment,
         databaseEngine: "PostgreSQL",
         timestamp: new Date().toISOString(),
         uptimeSeconds: Math.floor(process.uptime()),
+        facilityBranding,
         metrics: {
             opdToday,
             totalConsultations,
@@ -778,6 +782,68 @@ async function getGlobalOverviewStats() {
     };
 }
 
+const BRANDING_FILE = path.join(BACKUP_DIR, "facility-branding.json");
+
+async function getFacilityBranding() {
+    ensureBackupDir();
+    let customHospitalName = "";
+    let facilityTagline = "Smart Healthcare, Better Care.";
+    let updatedAt = null;
+    let updatedBy = null;
+
+    try {
+        if (fs.existsSync(BRANDING_FILE)) {
+            const parsed = JSON.parse(fs.readFileSync(BRANDING_FILE, "utf8"));
+            if (parsed && typeof parsed.hospitalName === "string") {
+                customHospitalName = parsed.hospitalName.trim();
+                facilityTagline = parsed.facilityTagline || facilityTagline;
+                updatedAt = parsed.updatedAt || null;
+                updatedBy = parsed.updatedBy || null;
+            }
+        }
+    } catch (_e) {}
+
+    return {
+        mainSystemName: "GBS HOSPITAL MANAGEMENT SYSTEM",
+        hospitalName: customHospitalName,
+        facilityTagline,
+        updatedAt,
+        updatedBy
+    };
+}
+
+async function updateFacilityBranding(data = {}, actorEmail = "Administrator") {
+    ensureBackupDir();
+    const rawName = typeof data.hospitalName === "string" ? data.hospitalName.trim() : "";
+    if (!rawName) {
+        throw new AppError("Hospital name is required.", 400, "MISSING_HOSPITAL_NAME");
+    }
+
+    const payload = {
+        mainSystemName: "GBS HOSPITAL MANAGEMENT SYSTEM",
+        hospitalName: rawName,
+        facilityTagline: typeof data.facilityTagline === "string" && data.facilityTagline.trim()
+            ? data.facilityTagline.trim()
+            : "Smart Healthcare, Better Care.",
+        updatedBy: actorEmail,
+        updatedAt: new Date().toISOString()
+    };
+
+    fs.writeFileSync(BRANDING_FILE, JSON.stringify(payload, null, 2), "utf8");
+
+    try {
+        await prisma.auditLog.create({
+            data: {
+                action: "HOSPITAL_FACILITY_NAME_UPDATED",
+                module: "HOSPITAL_ADMINISTRATION",
+                description: `Admin (${actorEmail}) updated facility hospital name to "${rawName}" while preserving permanent main system name "GBS HOSPITAL MANAGEMENT SYSTEM".`
+            }
+        });
+    } catch (_e) {}
+
+    return payload;
+}
+
 module.exports = {
     createDatabaseBackup,
     verifyDatabaseBackup,
@@ -785,6 +851,8 @@ module.exports = {
     restoreDatabaseBackup,
     getEnvironmentAndDataIdentification,
     purgeDevelopmentTestData,
-    getGlobalOverviewStats
+    getGlobalOverviewStats,
+    getFacilityBranding,
+    updateFacilityBranding
 };
 
