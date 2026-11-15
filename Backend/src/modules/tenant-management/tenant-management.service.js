@@ -99,10 +99,10 @@ async function registerTenant(data) {
                 logoUrl: logoUrl || null,
                 status: "PENDING",
                 systemLocked: false,
-                representativeName: representativeName || null,
-                representativePosition: representativePosition || null,
-                representativeEmail: representativeEmail || null,
-                representativePhone: representativePhone || null
+                representativeName: representativeName || adminName || null,
+                representativePosition: representativePosition || "Hospital Administrator",
+                representativeEmail: representativeEmail || normalizedAdminEmail || null,
+                representativePhone: representativePhone || adminPhone || officialPhone.trim() || null
             }
         });
 
@@ -186,7 +186,23 @@ async function approveAndProvisionTenant(tenantIdentifier, options = {}, develop
         };
     }
 
-    const trialDays = options.trialDays || 30;
+    const planKey = String(options.plan || "ENTERPRISE_TRIAL").toUpperCase();
+    const planDaysMap = {
+        TRIAL: 30,
+        ENTERPRISE_TRIAL: 30,
+        "1_MONTH_TRIAL": 30,
+        QUARTERLY: 90,
+        "3_MONTHS": 90,
+        SEMI_ANNUAL: 180,
+        "6_MONTHS": 180,
+        ANNUAL: 365,
+        "1_YEAR": 365,
+        LIFETIME: 36500,
+        ENTERPRISE_LIFETIME: 36500
+    };
+    const trialDays = Number(options.trialDays || options.days || planDaysMap[planKey] || 30);
+    const isPaidPlan = planKey !== "TRIAL" && planKey !== "ENTERPRISE_TRIAL" && planKey !== "1_MONTH_TRIAL";
+    const tenantStatus = isPaidPlan ? "ACTIVE_PAID" : "ACTIVE_TRIAL";
     const now = new Date();
     const trialEndDate = new Date(now.getTime() + trialDays * 86400 * 1000);
     const subscriptionId = await generateSubscriptionIdentifier();
@@ -214,37 +230,38 @@ async function approveAndProvisionTenant(tenantIdentifier, options = {}, develop
         const updatedTenant = await tx.tenant.update({
             where: { id: tenant.id },
             data: {
-                status: "ACTIVE_TRIAL",
+                status: tenantStatus,
                 systemLocked: false,
                 hospitalId: hospital.id
             }
         });
 
-        // 3. Create Subscription Record (30-day trial)
+        // 3. Create Subscription Record
         const subscription = await tx.tenantSubscription.create({
             data: {
                 subscriptionId,
                 tenantId: tenant.id,
                 plan: options.plan || "ENTERPRISE_TRIAL",
-                status: "ACTIVE_TRIAL",
+                status: tenantStatus,
                 trialStartDate: now,
                 trialEndDate,
-                price: 0.0,
-                currency: "USD",
-                billingCycle: "MONTHLY",
+                subscriptionEndDate: isPaidPlan ? trialEndDate : null,
+                price: Number(options.price || 0.0),
+                currency: options.currency || "USD",
+                billingCycle: planKey.includes("LIFETIME") ? "LIFETIME" : "MONTHLY",
                 autoRenew: false
             }
         });
 
-        // 4. Activate staged Administrator account
-        const stagedAdmin = await tx.user.findFirst({
-            where: {
-                email: tenant.officialEmail
-            }
-        });
-        if (stagedAdmin) {
-            await tx.user.update({
-                where: { id: stagedAdmin.id },
+        // 4. Activate staged Administrator account(s)
+        const emailsToActivate = [tenant.officialEmail, tenant.representativeEmail]
+            .filter(Boolean)
+            .map((e) => String(e).trim().toLowerCase());
+        if (emailsToActivate.length > 0) {
+            await tx.user.updateMany({
+                where: {
+                    email: { in: emailsToActivate }
+                },
                 data: { active: true }
             });
         }
@@ -403,7 +420,11 @@ async function getTenants({ status, search, limit = 50, offset = 0 }) {
             { name: { contains: search, mode: "insensitive" } },
             { tenantId: { contains: search, mode: "insensitive" } },
             { tenantCode: { contains: search, mode: "insensitive" } },
-            { officialEmail: { contains: search, mode: "insensitive" } }
+            { officialEmail: { contains: search, mode: "insensitive" } },
+            { officialPhone: { contains: search, mode: "insensitive" } },
+            { representativePhone: { contains: search, mode: "insensitive" } },
+            { representativeName: { contains: search, mode: "insensitive" } },
+            { representativeEmail: { contains: search, mode: "insensitive" } }
         ];
     }
 
@@ -441,6 +462,11 @@ async function getTenants({ status, search, limit = 50, offset = 0 }) {
             city: t.city,
             officialEmail: t.officialEmail,
             officialPhone: t.officialPhone,
+            representativeName: t.representativeName,
+            representativePhone: t.representativePhone,
+            representativeEmail: t.representativeEmail,
+            latitude: t.latitude,
+            longitude: t.longitude,
             status: t.status,
             systemLocked: t.systemLocked,
             lockReason: t.lockReason,
@@ -589,7 +615,7 @@ async function unlockTenant(tenantIdentifier, developerUserId) {
 /**
  * Extend trial or paid subscription
  */
-async function extendSubscription(tenantIdentifier, { days = 30, plan = "ACTIVE_PAID" }, developerUserId) {
+async function extendSubscription(tenantIdentifier, { days, plan = "ACTIVE_PAID" }, developerUserId) {
     const tenant = await prisma.tenant.findFirst({
         where: {
             OR: [{ id: tenantIdentifier }, { tenantId: tenantIdentifier }]
@@ -604,11 +630,37 @@ async function extendSubscription(tenantIdentifier, { days = 30, plan = "ACTIVE_
 
     if (!tenant) throw new AppError("Tenant not found", 404, "TENANT_NOT_FOUND");
 
+    const planUpper = String(plan || "ACTIVE_PAID").toUpperCase();
+    const planDaysLookup = {
+        TRIAL: 30,
+        ACTIVE_TRIAL: 30,
+        "1_MONTH_TRIAL": 30,
+        QUARTERLY: 90,
+        "3_MONTHS": 90,
+        SEMI_ANNUAL: 180,
+        "6_MONTHS": 180,
+        ANNUAL: 365,
+        "1_YEAR": 365,
+        LIFETIME: 36500,
+        ENTERPRISE_LIFETIME: 36500
+    };
+    const resolvedDays = Number(days || planDaysLookup[planUpper] || 30);
+    const isLifetime = planUpper.includes("LIFETIME") || resolvedDays >= 36500;
+    const isTrial = planUpper === "TRIAL" || planUpper === "ACTIVE_TRIAL" || planUpper === "1_MONTH_TRIAL";
+    const resolvedStatus = isTrial ? "ACTIVE_TRIAL" : "ACTIVE_PAID";
+    const resolvedPlanName = isLifetime
+        ? "ENTERPRISE_LIFETIME"
+        : isTrial
+          ? "ENTERPRISE_TRIAL"
+          : planUpper === "ACTIVE_PAID"
+            ? "ENTERPRISE_PAID"
+            : planUpper;
+
     const activeSub = tenant.subscriptions[0];
     const now = new Date();
     const currentExpiry = activeSub ? new Date(activeSub.trialEndDate).getTime() : now.getTime();
     const baseDate = Math.max(now.getTime(), currentExpiry);
-    const newExpiry = new Date(baseDate + Number(days) * 86400 * 1000);
+    const newExpiry = new Date(baseDate + resolvedDays * 86400 * 1000);
 
     const updated = await prisma.$transaction(async (tx) => {
         let sub;
@@ -617,8 +669,10 @@ async function extendSubscription(tenantIdentifier, { days = 30, plan = "ACTIVE_
                 where: { id: activeSub.id },
                 data: {
                     trialEndDate: newExpiry,
-                    status: plan === "ACTIVE_PAID" ? "ACTIVE_PAID" : "ACTIVE_TRIAL",
-                    plan: plan === "ACTIVE_PAID" ? "ENTERPRISE_PAID" : activeSub.plan
+                    subscriptionEndDate: isTrial ? null : newExpiry,
+                    status: resolvedStatus,
+                    plan: resolvedPlanName,
+                    billingCycle: isLifetime ? "LIFETIME" : activeSub.billingCycle || "MONTHLY"
                 }
             });
         } else {
@@ -627,10 +681,12 @@ async function extendSubscription(tenantIdentifier, { days = 30, plan = "ACTIVE_
                 data: {
                     subscriptionId,
                     tenantId: tenant.id,
-                    plan: "ENTERPRISE_PAID",
-                    status: "ACTIVE_PAID",
+                    plan: resolvedPlanName,
+                    status: resolvedStatus,
                     trialStartDate: now,
-                    trialEndDate: newExpiry
+                    trialEndDate: newExpiry,
+                    subscriptionEndDate: isTrial ? null : newExpiry,
+                    billingCycle: isLifetime ? "LIFETIME" : "MONTHLY"
                 }
             });
         }
@@ -639,7 +695,7 @@ async function extendSubscription(tenantIdentifier, { days = 30, plan = "ACTIVE_
             where: { id: tenant.id },
             data: {
                 systemLocked: false,
-                status: plan === "ACTIVE_PAID" ? "ACTIVE_PAID" : "ACTIVE_TRIAL"
+                status: resolvedStatus
             }
         });
 
@@ -648,7 +704,7 @@ async function extendSubscription(tenantIdentifier, { days = 30, plan = "ACTIVE_
                 userId: developerUserId || null,
                 action: "TENANT_SUBSCRIPTION_EXTENDED",
                 module: "TENANT_MANAGEMENT",
-                description: `Extended subscription by ${days} days for tenant ${tenant.tenantId}. New expiry: ${newExpiry.toISOString()}`
+                description: `Extended subscription (${resolvedPlanName}, ${resolvedDays} days) for tenant ${tenant.tenantId}. New expiry: ${newExpiry.toISOString()}`
             }
         });
 
@@ -658,9 +714,12 @@ async function extendSubscription(tenantIdentifier, { days = 30, plan = "ACTIVE_
     return {
         tenantId: tenant.tenantId,
         subscriptionId: updated.subscriptionId,
+        plan: updated.plan,
         status: updated.status,
         newExpiry: updated.trialEndDate,
-        message: `Subscription successfully extended by ${days} days.`
+        message: isLifetime
+            ? "Lifetime subscription activated permanently."
+            : `Subscription successfully extended by ${resolvedDays} days.`
     };
 }
 
@@ -678,8 +737,13 @@ async function getLiveTenantLocations() {
             tenantId: true,
             tenantCode: true,
             name: true,
+            type: true,
             country: true,
             city: true,
+            officialEmail: true,
+            officialPhone: true,
+            representativeName: true,
+            representativePhone: true,
             latitude: true,
             longitude: true,
             status: true,
@@ -704,6 +768,11 @@ async function getLiveTenantLocations() {
             tenantId: t.tenantId,
             tenantCode: t.tenantCode,
             name: t.name,
+            type: t.type,
+            officialEmail: t.officialEmail,
+            officialPhone: t.officialPhone,
+            adminName: t.representativeName || "Hospital Admin",
+            adminPhone: t.representativePhone || t.officialPhone || null,
             location: {
                 latitude: lastPing ? lastPing.latitude : t.latitude,
                 longitude: lastPing ? lastPing.longitude : t.longitude,

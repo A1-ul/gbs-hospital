@@ -22,13 +22,14 @@ const logger = require("../../../core/utils/logger");
  * @param {Object} consultationData - Consultation payload
  * @param {Object} doctorUser - Authenticated doctor user object
  */
-async function recordDoctorConsultation(encounterId, consultationData, doctorUser) {
-    if (!encounterId) {
-        throw new AppError("Encounter ID is required", 400, "MISSING_ENCOUNTER_ID");
+async function recordDoctorConsultation(encounterId, consultationData = {}, doctorUser) {
+    const lookupId = encounterId || consultationData.encounterId || consultationData.patientId;
+    if (!lookupId) {
+        throw new AppError("Encounter ID or Patient ID is required", 400, "MISSING_ENCOUNTER_ID");
     }
 
-    const encounter = await prisma.patientEncounter.findUnique({
-        where: { id: encounterId },
+    let encounter = await prisma.patientEncounter.findUnique({
+        where: { id: lookupId },
         include: {
             patient: true,
             queueTicket: true
@@ -36,20 +37,58 @@ async function recordDoctorConsultation(encounterId, consultationData, doctorUse
     });
 
     if (!encounter) {
+        const patientIdentifier = consultationData.patientId || lookupId;
+        const patient = await prisma.patient.findFirst({
+            where: {
+                OR: [{ id: patientIdentifier }, { patientNumber: patientIdentifier }]
+            }
+        });
+        if (patient) {
+            encounter = await prisma.patientEncounter.findFirst({
+                where: { patientId: patient.id, status: { not: "CANCELLED" } },
+                include: { patient: true, queueTicket: true },
+                orderBy: { visitDate: "desc" }
+            });
+            if (!encounter) {
+                encounter = await prisma.patientEncounter.create({
+                    data: {
+                        patientId: patient.id,
+                        hospitalId: patient.hospitalId,
+                        encounterNumber: `ENC-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`,
+                        encounterType: consultationData.type || "OUTPATIENT",
+                        status: "IN_CONSULTATION",
+                        chiefComplaint: consultationData.chiefComplaint || null
+                    },
+                    include: { patient: true, queueTicket: true }
+                });
+            }
+            encounterId = encounter.id;
+        }
+    } else {
+        encounterId = encounter.id;
+    }
+
+    if (!encounter) {
         throw new AppError("Clinical Encounter not found", 404, "ENCOUNTER_NOT_FOUND");
     }
 
     const {
         consultationType = "INITIAL",
-        history,
+        history = consultationData.chiefComplaint || null,
         examination,
-        assessment,
-        plan,
-        diagnoses = [],
+        assessment = consultationData.diagnosis || null,
+        plan = consultationData.treatmentPlan || null,
+        diagnoses: rawDiagnoses = [],
         prescriptions = [],
         laboratoryRequests = [],
         markComplete = false
     } = consultationData;
+
+    const diagnoses = Array.isArray(rawDiagnoses) && rawDiagnoses.length > 0
+        ? rawDiagnoses
+        : consultationData.diagnosis
+            ? [{ diagnosisCode: consultationData.icd10Code || null, diagnosisName: consultationData.diagnosis, diagnosisType: "PRIMARY" }]
+            : [];
 
     const doctorUserId = doctorUser ? doctorUser.id : null;
     const doctorName = doctorUser ? `${doctorUser.firstName} ${doctorUser.lastName}` : "Consulting Physician";
@@ -439,6 +478,325 @@ async function getDoctorDashboardTelemetry(hospitalId, doctorUserId) {
     };
 }
 
+/**
+ * Dispatch a Patient Clinical Report from Doctor/Clinician to any Target Role or Specialist
+ * Persists in PostgreSQL and generates a SENT notification record
+ */
+async function dispatchClinicalReport(reportData = {}, senderUser = null) {
+    const {
+        patientId,
+        targetRole = "SPECIALIST",
+        targetStaffName,
+        reportCategory = "CONSULTATION",
+        reportTitle,
+        title,
+        summary,
+        clinicalFindings,
+        findingsSummary,
+        recommendations,
+        recommendedAction,
+        urgency = "NORMAL"
+    } = reportData;
+
+    const resolvedSummary = summary || clinicalFindings || findingsSummary;
+    const resolvedTitle = reportTitle || title || `${reportCategory} Report -> ${targetRole}`;
+    const resolvedRecommendations = recommendations || recommendedAction || null;
+
+    if (!resolvedSummary) {
+        throw new AppError("Report summary or clinical findings are required", 400, "MISSING_REPORT_CONTENT");
+    }
+
+    let patient = null;
+    if (patientId) {
+        patient = await prisma.patient.findFirst({
+            where: {
+                OR: [{ id: patientId }, { patientNumber: patientId }]
+            }
+        });
+    }
+    if (!patient) {
+        patient = await prisma.patient.findFirst({ orderBy: { createdAt: "desc" } });
+    }
+
+    const senderName = senderUser
+        ? (senderUser.name || `${senderUser.firstName || ""} ${senderUser.lastName || ""}`.trim() || senderUser.email)
+        : "Attending Physician";
+    const senderRole = senderUser?.role || "DOCTOR";
+
+    const payload = {
+        dispatchNumber: `RPT-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`,
+        status: "SENT",
+        notificationStatus: "SENT",
+        patientId: patient?.id || null,
+        patientMrn: patient?.patientNumber || String(patientId || "N/A"),
+        patientName: patient ? `${patient.firstName} ${patient.lastName}` : (reportData.patientName || "General Report"),
+        senderName,
+        senderRole,
+        targetRole: String(targetRole).toUpperCase(),
+        targetStaffName: targetStaffName || String(targetRole).toUpperCase(),
+        reportCategory: String(reportCategory).toUpperCase(),
+        reportTitle: resolvedTitle,
+        title: resolvedTitle,
+        summary: resolvedSummary,
+        clinicalFindings: clinicalFindings || resolvedSummary,
+        findingsSummary: resolvedSummary,
+        recommendations: resolvedRecommendations,
+        recommendedAction: resolvedRecommendations,
+        urgency: String(urgency).toUpperCase(),
+        sentAt: new Date().toISOString()
+    };
+
+    let createdNote = null;
+    if (patient) {
+        createdNote = await prisma.patientClinicalNote.create({
+            data: {
+                patientId: patient.id,
+                noteType: `DISPATCH_REPORT_${payload.targetRole}`,
+                title: payload.reportTitle,
+                content: JSON.stringify(payload),
+                author: `${senderName} (${senderRole})`,
+                department: payload.targetRole
+            }
+        });
+    }
+
+    const auditEntry = await prisma.auditLog.create({
+        data: {
+            userId: senderUser?.id || null,
+            action: "CLINICAL_REPORT_DISPATCHED",
+            module: "CLINICAL_REPORTS",
+            description: JSON.stringify(payload)
+        }
+    });
+
+    return {
+        id: createdNote?.id || auditEntry.id,
+        ...payload
+    };
+}
+
+/**
+ * Prepare and Submit a Role Duty Report (Available to Every Hospital Role)
+ */
+async function createDutyReport(reportData = {}, authorUser = null) {
+    const {
+        reportCategory = "STAFF_DUTY",
+        title,
+        department,
+        shift,
+        shiftType,
+        dutiesPerformed,
+        dutiesSummary,
+        challengesOrIncidents,
+        challengesFaced,
+        handoverNotes
+    } = reportData;
+
+    const resolvedDuties = dutiesPerformed || dutiesSummary;
+    if (!resolvedDuties) {
+        throw new AppError("Duties performed summary is required", 400, "MISSING_DUTY_REPORT_FIELDS");
+    }
+
+    const authorName = reportData.staffName || reportData.authorName || (authorUser
+        ? (authorUser.name || `${authorUser.firstName || ""} ${authorUser.lastName || ""}`.trim() || authorUser.email)
+        : "Hospital Staff");
+    const authorRole = reportData.role || reportData.authorRole || authorUser?.role || "STAFF";
+    const resolvedShift = shift || shiftType || "MORNING_SHIFT";
+    const resolvedTitle = title || `${authorRole} Duty Report — ${authorName} (${resolvedShift})`;
+
+    const payload = {
+        reportNumber: `DUTY-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`,
+        reportCategory: String(reportCategory).toUpperCase(),
+        title: String(resolvedTitle).trim(),
+        authorName,
+        staffName: authorName,
+        authorRole,
+        role: authorRole,
+        department: department || authorRole,
+        shift: resolvedShift,
+        shiftType: resolvedShift,
+        dutiesPerformed: String(resolvedDuties).trim(),
+        dutiesSummary: String(resolvedDuties).trim(),
+        challengesOrIncidents: challengesOrIncidents || challengesFaced || null,
+        handoverNotes: handoverNotes || null,
+        status: "SUBMITTED",
+        submittedAt: new Date().toISOString()
+    };
+
+    const auditEntry = await prisma.auditLog.create({
+        data: {
+            userId: authorUser?.id || null,
+            action: "ROLE_DUTY_REPORT_SUBMITTED",
+            module: "DUTY_REPORTS",
+            description: JSON.stringify(payload)
+        }
+    });
+
+    return {
+        id: auditEntry.id,
+        ...payload
+    };
+}
+
+/**
+ * Unified Report Center Query across Categories:
+ * ALL, LAB_REPORTS, VITALS_TRIAGE, CONSULTATION, PHARMACY, RADIOLOGY, STAFF_DUTY, DISPATCHED_REPORTS
+ */
+async function getClinicalAndDutyReports(query = {}) {
+    const category = String(query.category || "ALL").toUpperCase();
+
+    const [
+        labRequests,
+        vitals,
+        consultations,
+        prescriptions,
+        radiologyReports,
+        dispatchedLogs,
+        dutyLogs
+    ] = await Promise.all([
+        prisma.laboratoryRequest.findMany({
+            include: { encounter: { include: { patient: true } }, testResults: true },
+            orderBy: { createdAt: "desc" },
+            take: 30
+        }),
+        prisma.patientVitalSign.findMany({
+            include: { patient: true },
+            orderBy: { recordedAt: "desc" },
+            take: 30
+        }),
+        prisma.patientConsultation.findMany({
+            include: { encounter: { include: { patient: true, diagnoses: true } } },
+            orderBy: { createdAt: "desc" },
+            take: 30
+        }),
+        prisma.patientPrescription.findMany({
+            include: { encounter: { include: { patient: true } }, dispense: true },
+            orderBy: { createdAt: "desc" },
+            take: 30
+        }),
+        prisma.radiologyReport.findMany({
+            include: { order: { include: { patient: true } } },
+            orderBy: { createdAt: "desc" },
+            take: 30
+        }),
+        prisma.auditLog.findMany({
+            where: { module: "CLINICAL_REPORTS", action: "CLINICAL_REPORT_DISPATCHED" },
+            orderBy: { createdAt: "desc" },
+            take: 30
+        }),
+        prisma.auditLog.findMany({
+            where: { module: "DUTY_REPORTS", action: "ROLE_DUTY_REPORT_SUBMITTED" },
+            orderBy: { createdAt: "desc" },
+            take: 30
+        })
+    ]);
+
+    const allReports = [
+        ...dispatchedLogs.map((l) => {
+            let parsed = {};
+            try { parsed = JSON.parse(l.description || "{}"); } catch (_e) { }
+            return {
+                id: l.id,
+                reportNumber: parsed.dispatchNumber || l.id.slice(0, 8),
+                category: "DISPATCHED_REPORTS",
+                title: parsed.reportTitle || "Specialist Referral Report",
+                patientName: parsed.patientName || "N/A",
+                patientMrn: parsed.patientMrn || "N/A",
+                author: `${parsed.senderName || "Doctor"} -> ${parsed.targetStaffName || parsed.targetRole || "Specialist"}`,
+                status: parsed.status || "SENT",
+                summary: parsed.summary || l.description,
+                createdAt: l.createdAt
+            };
+        }),
+        ...dutyLogs.map((l) => {
+            let parsed = {};
+            try { parsed = JSON.parse(l.description || "{}"); } catch (_e) { }
+            return {
+                id: l.id,
+                reportNumber: parsed.reportNumber || l.id.slice(0, 8),
+                category: "STAFF_DUTY",
+                title: parsed.title || "Role Duty Report",
+                patientName: parsed.department || "Facility Duty",
+                patientMrn: parsed.shift || "SHIFT",
+                author: `${parsed.authorName || "Staff"} (${parsed.authorRole || "ROLE"})`,
+                status: parsed.status || "SUBMITTED",
+                summary: parsed.dutiesPerformed || l.description,
+                createdAt: l.createdAt
+            };
+        }),
+        ...labRequests.map((lab) => ({
+            id: lab.id,
+            reportNumber: lab.requestNumber || lab.id.slice(0, 8),
+            category: "LAB_REPORTS",
+            title: `Lab Investigation: ${lab.testName}`,
+            patientName: lab.encounter?.patient ? `${lab.encounter.patient.firstName} ${lab.encounter.patient.lastName}` : "Patient",
+            patientMrn: lab.encounter?.patient?.patientNumber || "N/A",
+            author: lab.verifiedByName || lab.department || "Laboratory",
+            status: lab.status,
+            summary: lab.result || (lab.testResults?.length ? lab.testResults.map((r) => `${r.parameterName}: ${r.measuredValue} ${r.unit || ""}`).join(", ") : `Specimen: ${lab.specimenType || "Blood"}`),
+            createdAt: lab.createdAt
+        })),
+        ...vitals.map((v) => ({
+            id: v.id,
+            reportNumber: `VIT-${v.id.slice(0, 6).toUpperCase()}`,
+            category: "VITALS_TRIAGE",
+            title: `Triage & Vital Signs (NEWS2: ${v.news2Score ?? 0} - ${v.riskCategory || "LOW"})`,
+            patientName: v.patient ? `${v.patient.firstName} ${v.patient.lastName}` : "Patient",
+            patientMrn: v.patient?.patientNumber || "N/A",
+            author: v.recordedBy || "Triage Nurse",
+            status: v.riskCategory || "RECORDED",
+            summary: `Temp: ${v.temperature ?? "-"}C, BP: ${v.systolicBP ?? "-"}/${v.diastolicBP ?? "-"} mmHg, HR: ${v.pulseRate ?? "-"} bpm, SpO2: ${v.oxygenSaturation ?? "-"}%, BMI: ${v.bmi ?? "-"}`,
+            createdAt: v.recordedAt
+        })),
+        ...consultations.map((c) => ({
+            id: c.id,
+            reportNumber: c.encounter?.encounterNumber || `CON-${c.id.slice(0, 6).toUpperCase()}`,
+            category: "CONSULTATION",
+            title: `Physician Consultation (${c.consultationType || "OPD"})`,
+            patientName: c.encounter?.patient ? `${c.encounter.patient.firstName} ${c.encounter.patient.lastName}` : "Patient",
+            patientMrn: c.encounter?.patient?.patientNumber || "N/A",
+            author: c.encounter?.assignedDoctorName || "Consulting Physician",
+            status: c.encounter?.status || "RECORDED",
+            summary: `Assessment: ${c.assessment || (c.encounter?.diagnoses?.[0]?.diagnosisName) || "Reviewed"} | Plan: ${c.plan || "Follow-up"}`,
+            createdAt: c.createdAt
+        })),
+        ...prescriptions.map((rx) => ({
+            id: rx.id,
+            reportNumber: rx.dispense?.dispenseNumber || `RX-${rx.id.slice(0, 6).toUpperCase()}`,
+            category: "PHARMACY",
+            title: `Prescription: ${rx.medicationName} (${rx.dosage || ""} ${rx.frequency || ""})`,
+            patientName: rx.encounter?.patient ? `${rx.encounter.patient.firstName} ${rx.encounter.patient.lastName}` : "Patient",
+            patientMrn: rx.encounter?.patient?.patientNumber || "N/A",
+            author: rx.dispense?.pharmacistName || "Pharmacy",
+            status: rx.status,
+            summary: `Duration: ${rx.duration || "N/A"} | Instructions: ${rx.instructions || "Standard"}`,
+            createdAt: rx.createdAt
+        })),
+        ...radiologyReports.map((rad) => ({
+            id: rad.id,
+            reportNumber: rad.reportNumber,
+            category: "RADIOLOGY",
+            title: `Radiology Report (${rad.modality})`,
+            patientName: rad.order?.patient ? `${rad.order.patient.firstName} ${rad.order.patient.lastName}` : "Patient",
+            patientMrn: rad.order?.patient?.patientNumber || "N/A",
+            author: rad.verifiedByName || rad.radiologistName || "Radiologist",
+            status: rad.status,
+            summary: `Impression: ${rad.impression} | Classification: ${rad.classification}`,
+            createdAt: rad.createdAt
+        }))
+    ];
+
+    const filtered = category === "ALL"
+        ? allReports
+        : allReports.filter((r) => r.category === category);
+
+    return {
+        category,
+        total: filtered.length,
+        reports: filtered
+    };
+}
+
 module.exports = {
     recordDoctorConsultation,
     getConsultationDetails,
@@ -446,5 +804,8 @@ module.exports = {
     getDoctorDashboardTelemetry,
     searchICD10,
     searchMedications,
-    searchLabTests
+    searchLabTests,
+    dispatchClinicalReport,
+    createDutyReport,
+    getClinicalAndDutyReports
 };

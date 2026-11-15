@@ -14,13 +14,20 @@ const { generateAdmissionNumber, generateWardCode, generateBedCode } = require("
 const AppError = require("../../../core/errors/app.error");
 const logger = require("../../../core/utils/logger");
 
+async function resolveDefaultHospitalId(explicitHospitalId) {
+    if (explicitHospitalId) return explicitHospitalId;
+    const firstHospital = await prisma.hospital.findFirst({ orderBy: { createdAt: "asc" } });
+    return firstHospital ? firstHospital.id : null;
+}
+
 /**
  * Create a new Hospital Ward
  * 
  * @param {Object} data - { hospitalId, name, code, description, capacity, unitId }
  */
 async function createWard(data) {
-    const { hospitalId, name, description, capacity = 0, unitId = null } = data;
+    const hospitalId = await resolveDefaultHospitalId(data.hospitalId);
+    const { name, description, capacity = 0, unitId = null } = data;
 
     if (!hospitalId || !name) {
         throw new AppError("Hospital ID and Ward name are required", 400, "MISSING_REQUIRED_FIELDS");
@@ -58,12 +65,14 @@ async function createWard(data) {
  * @param {string} hospitalId - Hospital ID
  */
 async function getHospitalWards(hospitalId) {
-    if (!hospitalId) {
-        throw new AppError("Hospital ID is required", 400, "MISSING_HOSPITAL_ID");
+    const resolvedHospitalId = await resolveDefaultHospitalId(hospitalId);
+    const whereClause = { active: true, deletedAt: null };
+    if (resolvedHospitalId) {
+        whereClause.hospitalId = resolvedHospitalId;
     }
 
     const wards = await prisma.hospitalWard.findMany({
-        where: { hospitalId, active: true, deletedAt: null },
+        where: whereClause,
         include: {
             rooms: {
                 where: { active: true, deletedAt: null },
@@ -121,10 +130,10 @@ async function getHospitalWards(hospitalId) {
  * @param {Object} data - { hospitalId, wardId, name, code, floor, roomType, description }
  */
 async function createRoom(data) {
-    const { hospitalId, wardId, name, floor, roomType = "GENERAL", description } = data;
+    let { hospitalId, wardId, name, floor, roomType = "GENERAL", description } = data;
 
-    if (!hospitalId || !wardId || !name) {
-        throw new AppError("Hospital ID, Ward ID, and Room name are required", 400, "MISSING_REQUIRED_FIELDS");
+    if (!wardId || !name) {
+        throw new AppError("Ward ID and Room name are required", 400, "MISSING_REQUIRED_FIELDS");
     }
 
     const ward = await prisma.hospitalWard.findUnique({
@@ -133,6 +142,7 @@ async function createRoom(data) {
     if (!ward) {
         throw new AppError("Ward not found", 404, "WARD_NOT_FOUND");
     }
+    hospitalId = hospitalId || ward.hospitalId;
 
     const count = await prisma.hospitalRoom.count({ where: { wardId } });
     const code = data.code || `${ward.code}-RM${String(count + 1).padStart(2, "0")}`;
@@ -159,10 +169,10 @@ async function createRoom(data) {
  * @param {Object} data - { hospitalId, roomId, name, code, bedNumber, bedType, description }
  */
 async function createBed(data) {
-    const { hospitalId, roomId, bedNumber, bedType = "STANDARD", description } = data;
+    let { hospitalId, roomId, bedNumber, bedType = "STANDARD", description } = data;
 
-    if (!hospitalId || !roomId || !bedNumber) {
-        throw new AppError("Hospital ID, Room ID, and Bed number are required", 400, "MISSING_REQUIRED_FIELDS");
+    if (!roomId || !bedNumber) {
+        throw new AppError("Room ID and Bed number are required", 400, "MISSING_REQUIRED_FIELDS");
     }
 
     const room = await prisma.hospitalRoom.findUnique({
@@ -172,6 +182,7 @@ async function createBed(data) {
     if (!room) {
         throw new AppError("Room not found", 404, "ROOM_NOT_FOUND");
     }
+    hospitalId = hospitalId || room.hospitalId;
 
     const name = data.name || `Bed ${bedNumber}`;
     const code = data.code || generateBedCode(room.code, bedNumber);
@@ -207,8 +218,8 @@ async function createBed(data) {
  * @param {string} wardId - Ward ID
  */
 async function getWardBedMatrix(hospitalId, wardId) {
-    if (!hospitalId || !wardId) {
-        throw new AppError("Hospital ID and Ward ID are required", 400, "MISSING_REQUIRED_FIELDS");
+    if (!wardId) {
+        throw new AppError("Ward ID is required", 400, "MISSING_REQUIRED_FIELDS");
     }
 
     const ward = await prisma.hospitalWard.findUnique({
@@ -291,7 +302,7 @@ async function getWardBedMatrix(hospitalId, wardId) {
  * @param {Object} staffUser - User creating the admission
  */
 async function admitPatient(data, staffUser) {
-    const {
+    let {
         hospitalId,
         patientId,
         wardId,
@@ -299,24 +310,28 @@ async function admitPatient(data, staffUser) {
         bedId,
         admissionType = "GENERAL",
         notes,
+        expectedDischargeDate,
         encounterId = null,
         admittingDoctorId = null,
         admittingDoctorName = null,
         admissionDiagnosis = null
     } = data;
 
-    if (!hospitalId || !patientId || !wardId || !bedId) {
-        throw new AppError("Hospital ID, Patient ID, Ward ID, and Bed ID are required for admission", 400, "MISSING_REQUIRED_FIELDS");
+    if (!patientId || !bedId) {
+        throw new AppError("Patient ID and Bed ID are required for admission", 400, "MISSING_REQUIRED_FIELDS");
     }
 
-    // Verify patient exists
-    const patient = await prisma.patient.findUnique({
-        where: { id: patientId },
+    // Verify patient exists (by ID or MRN patientNumber)
+    const patient = await prisma.patient.findFirst({
+        where: {
+            OR: [{ id: patientId }, { patientNumber: patientId }]
+        },
         include: { folder: true }
     });
     if (!patient) {
         throw new AppError("Patient not found", 404, "PATIENT_NOT_FOUND");
     }
+    patientId = patient.id;
 
     // Verify bed exists and is available
     const bed = await prisma.hospitalBed.findUnique({
@@ -328,6 +343,13 @@ async function admitPatient(data, staffUser) {
     }
     if (bed.status !== "AVAILABLE") {
         throw new AppError(`Bed ${bed.bedNumber} is not available (Current status: ${bed.status})`, 409, "BED_NOT_AVAILABLE");
+    }
+
+    hospitalId = hospitalId || bed.hospitalId || patient.hospitalId;
+    wardId = wardId || bed.room?.wardId;
+    roomId = roomId || bed.roomId;
+    if (expectedDischargeDate) {
+        notes = `${notes ? notes + " | " : ""}Expected Discharge: ${expectedDischargeDate}`;
     }
 
     // Generate sequential admission number
@@ -731,14 +753,14 @@ async function dischargePatient(admissionId, dischargeData, staffUser) {
  * @param {Object} [filters] - Ward / Doctor filters
  */
 async function getActiveAdmissions(hospitalId, filters = {}) {
-    if (!hospitalId) {
-        throw new AppError("Hospital ID is required", 400, "MISSING_HOSPITAL_ID");
-    }
+    const resolvedHospitalId = await resolveDefaultHospitalId(hospitalId);
 
     const where = {
-        hospitalId,
         status: "ADMITTED"
     };
+    if (resolvedHospitalId) {
+        where.hospitalId = resolvedHospitalId;
+    }
 
     if (filters.wardId) {
         where.wardId = filters.wardId;
@@ -751,7 +773,13 @@ async function getActiveAdmissions(hospitalId, filters = {}) {
                 include: { folder: true }
             },
             ward: true,
-            room: true,
+            room: {
+                include: {
+                    beds: {
+                        where: { active: true, deletedAt: null }
+                    }
+                }
+            },
             bed: true
         },
         orderBy: { admittedAt: "desc" }
@@ -761,11 +789,20 @@ async function getActiveAdmissions(hospitalId, filters = {}) {
 
     return admissions.map(adm => {
         const daysAdmitted = Math.max(1, Math.ceil((now - new Date(adm.admittedAt).getTime()) / (1000 * 60 * 60 * 24)));
+        const availableBedsInRoom = adm.room?.beds ? adm.room.beds.filter((b) => b.status === "AVAILABLE").length : 0;
+        let expectedDischargeDate = null;
+        if (adm.notes) {
+            const match = adm.notes.match(/(?:Expected Discharge|Stay Extended to)[:\s]+([0-9]{4}-[0-9]{2}-[0-9]{2})/i);
+            if (match) expectedDischargeDate = match[1];
+        }
         return {
+            id: adm.id,
             admissionId: adm.id,
             admissionNumber: adm.admissionNumber,
             admissionType: adm.admissionType,
+            status: adm.status,
             admittedAt: adm.admittedAt,
+            expectedDischargeDate,
             daysAdmitted,
             admittingDoctorName: adm.admittingDoctorName,
             admissionDiagnosis: adm.admissionDiagnosis,
@@ -774,17 +811,24 @@ async function getActiveAdmissions(hospitalId, filters = {}) {
                 id: adm.patient.id,
                 mrn: adm.patient.patientNumber,
                 patientNumber: adm.patient.patientNumber,
+                firstName: adm.patient.firstName,
+                lastName: adm.patient.lastName,
                 fullName: `${adm.patient.firstName} ${adm.patient.lastName}`,
                 gender: adm.patient.gender,
                 dateOfBirth: adm.patient.dateOfBirth,
                 folderNumber: adm.patient.folder ? adm.patient.folder.folderNumber : null,
                 shelfLocation: adm.patient.folder ? adm.patient.folder.shelfLocation : null
             },
+            ward: adm.ward ? { id: adm.ward.id, name: adm.ward.name, code: adm.ward.code } : null,
+            room: adm.room ? { id: adm.room.id, name: adm.room.name, code: adm.room.code, availableBedsInRoom } : null,
+            bed: adm.bed ? { id: adm.bed.id, bedNumber: adm.bed.bedNumber, code: adm.bed.code } : null,
             location: {
                 wardId: adm.ward ? adm.ward.id : null,
                 wardName: adm.ward ? adm.ward.name : "Unassigned Ward",
                 wardCode: adm.ward ? adm.ward.code : null,
+                roomId: adm.room ? adm.room.id : null,
                 roomName: adm.room ? adm.room.name : null,
+                availableBedsInRoom,
                 bedNumber: adm.bed ? adm.bed.bedNumber : null,
                 bedCode: adm.bed ? adm.bed.code : null
             }
@@ -836,9 +880,8 @@ async function getAdmissionById(admissionId) {
  * @param {string} hospitalId - Hospital ID
  */
 async function getIpdDashboardTelemetry(hospitalId) {
-    if (!hospitalId) {
-        throw new AppError("Hospital ID is required", 400, "MISSING_HOSPITAL_ID");
-    }
+    const resolvedHospitalId = await resolveDefaultHospitalId(hospitalId);
+    const hospitalFilter = resolvedHospitalId ? { hospitalId: resolvedHospitalId } : {};
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -853,25 +896,25 @@ async function getIpdDashboardTelemetry(hospitalId) {
         recentAdmissions
     ] = await Promise.all([
         prisma.hospitalWard.count({
-            where: { hospitalId, active: true }
+            where: { ...hospitalFilter, active: true }
         }),
         prisma.hospitalBed.count({
-            where: { hospitalId, active: true }
+            where: { ...hospitalFilter, active: true }
         }),
         prisma.hospitalBed.count({
-            where: { hospitalId, status: "OCCUPIED", active: true }
+            where: { ...hospitalFilter, status: "OCCUPIED", active: true }
         }),
         prisma.hospitalBed.count({
-            where: { hospitalId, status: "AVAILABLE", active: true }
+            where: { ...hospitalFilter, status: "AVAILABLE", active: true }
         }),
         prisma.hospitalAdmission.count({
-            where: { hospitalId, admittedAt: { gte: today } }
+            where: { ...hospitalFilter, admittedAt: { gte: today } }
         }),
         prisma.hospitalAdmission.count({
-            where: { hospitalId, status: "DISCHARGED", dischargedAt: { gte: today } }
+            where: { ...hospitalFilter, status: "DISCHARGED", dischargedAt: { gte: today } }
         }),
         prisma.hospitalAdmission.findMany({
-            where: { hospitalId },
+            where: { ...hospitalFilter },
             include: {
                 patient: {
                     select: { firstName: true, lastName: true, patientNumber: true }
@@ -923,13 +966,152 @@ async function getIpdDashboardTelemetry(hospitalId) {
     };
 }
 
+/**
+ * Get Full Hospital Bed Matrix across all Wards, Rooms & Beds
+ */
+async function getFullHospitalBedMatrix(hospitalId) {
+    const resolvedHospitalId = await resolveDefaultHospitalId(hospitalId);
+    const whereClause = { active: true, deletedAt: null };
+    if (resolvedHospitalId) {
+        whereClause.hospitalId = resolvedHospitalId;
+    }
+
+    const wards = await prisma.hospitalWard.findMany({
+        where: whereClause,
+        include: {
+            rooms: {
+                where: { active: true, deletedAt: null },
+                include: {
+                    beds: {
+                        where: { active: true, deletedAt: null },
+                        include: {
+                            admissions: {
+                                where: { status: "ADMITTED" },
+                                include: {
+                                    patient: true
+                                }
+                            }
+                        },
+                        orderBy: { bedNumber: "asc" }
+                    }
+                },
+                orderBy: { name: "asc" }
+            }
+        },
+        orderBy: { name: "asc" }
+    });
+
+    const flatBeds = [];
+    const structuredWards = wards.map((ward) => {
+        const rooms = ward.rooms.map((room) => {
+            const availableBedsInRoom = room.beds.filter((b) => b.status === "AVAILABLE").length;
+            const beds = room.beds.map((bed) => {
+                const activeAdm = bed.admissions?.[0] || null;
+                const bedItem = {
+                    id: bed.id,
+                    bedId: bed.id,
+                    bedNumber: bed.bedNumber,
+                    bedCode: bed.code,
+                    bedType: bed.bedType || "STANDARD",
+                    status: bed.status,
+                    wardId: ward.id,
+                    wardName: ward.name,
+                    wardCode: ward.code,
+                    roomId: room.id,
+                    roomName: room.name,
+                    roomCode: room.code,
+                    availableBedsInRoom,
+                    currentOccupant: activeAdm
+                        ? {
+                              admissionId: activeAdm.id,
+                              admissionNumber: activeAdm.admissionNumber,
+                              admittedAt: activeAdm.admittedAt,
+                              notes: activeAdm.notes,
+                              patientId: activeAdm.patient?.id,
+                              patientMrn: activeAdm.patient?.patientNumber,
+                              patientName: activeAdm.patient
+                                  ? `${activeAdm.patient.firstName} ${activeAdm.patient.lastName}`
+                                  : "Admitted Patient"
+                          }
+                        : null
+                };
+                flatBeds.push(bedItem);
+                return bedItem;
+            });
+            return {
+                roomId: room.id,
+                roomName: room.name,
+                roomCode: room.code,
+                totalBedsInRoom: room.beds.length,
+                availableBedsInRoom,
+                beds
+            };
+        });
+        return {
+            wardId: ward.id,
+            wardName: ward.name,
+            wardCode: ward.code,
+            rooms
+        };
+    });
+
+    const totals = {
+        totalWards: structuredWards.length,
+        totalBeds: flatBeds.length,
+        availableBeds: flatBeds.filter(b => b.status === "AVAILABLE").length,
+        occupiedBeds: flatBeds.filter(b => b.status === "OCCUPIED").length
+    };
+
+    return {
+        totals,
+        summary: totals,
+        wards: structuredWards,
+        beds: flatBeds
+    };
+}
+
+/**
+ * Extend Inpatient Admission Stay / Update Expected Discharge Date
+ */
+async function extendAdmissionStay(admissionId, extensionData = {}, staffUser = null) {
+    const { extendedDischargeDate, reason } = extensionData;
+    if (!admissionId || !extendedDischargeDate) {
+        throw new AppError("Admission ID and Extended Discharge Date are required", 400, "MISSING_EXTENSION_FIELDS");
+    }
+
+    const admission = await prisma.hospitalAdmission.findUnique({
+        where: { id: admissionId },
+        include: { patient: true, ward: true, room: true, bed: true }
+    });
+    if (!admission) {
+        throw new AppError("Admission not found", 404, "ADMISSION_NOT_FOUND");
+    }
+
+    const updatedNotes = `${admission.notes ? admission.notes + " | " : ""}Stay Extended to ${extendedDischargeDate}${reason ? ` (${reason})` : ""}`;
+    const updated = await prisma.hospitalAdmission.update({
+        where: { id: admissionId },
+        data: {
+            notes: updatedNotes
+        },
+        include: { patient: true, ward: true, room: true, bed: true }
+    });
+
+    return {
+        ...updated,
+        extendedDischargeDate,
+        extensionReason: reason || "Clinical stay extension"
+    };
+}
+
 module.exports = {
     createWard,
     getHospitalWards,
     createRoom,
     createBed,
     getWardBedMatrix,
+    getFullHospitalBedMatrix,
     admitPatient,
+    extendAdmissionStay,
     transferBed,
     recordInpatientNursingChart,
     getAdmissionNursingCharts,

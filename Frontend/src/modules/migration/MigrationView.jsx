@@ -387,24 +387,31 @@ export default function MigrationView() {
                   </h2>
                   <p className="text-xs text-slate-400">Choose the destination database table and provide raw CSV or JSON data</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setUploadForm({
-                      targetEntity: 'INVENTORY_ITEMS',
-                      sourceType: 'JSON',
-                      fileName: 'pharmacy_stock_v1.json',
-                      rawData: JSON.stringify([
-                        { DrugName: "Paracetamol 500mg", DrugClass: "ANALGESICS", Form: "TABLET", Dose: "500mg", PriceGHS: 15.00, MinStock: 50 },
-                        { DrugName: "Amoxicillin 250mg", DrugClass: "ANTIBIOTICS", Form: "CAPSULE", Dose: "250mg", PriceGHS: 30.00, MinStock: 30 },
-                        { DrugName: "Ciprofloxacin 500mg", DrugClass: "ANTIBIOTICS", Form: "TABLET", Dose: "500mg", PriceGHS: 45.00, MinStock: 20 }
-                      ], null, 2)
-                    });
-                  }}
-                  className="text-xs text-amber-400 hover:text-amber-300 underline"
-                >
-                  Load Pharmacy Inventory Sample
-                </button>
+                <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/40 text-xs font-semibold text-amber-300 hover:bg-amber-500/20">
+                  <UploadCloud className="w-4 h-4" />
+                  Select CSV / JSON File from Disk
+                  <input
+                    type="file"
+                    accept=".csv,.json,.txt"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files && e.target.files[0];
+                      if (!file) return;
+                      const reader = new FileReader();
+                      reader.onload = (ev) => {
+                        const content = String(ev.target?.result || '');
+                        const isJson = file.name.toLowerCase().endsWith('.json') || content.trim().startsWith('[') || content.trim().startsWith('{');
+                        setUploadForm((prev) => ({
+                          ...prev,
+                          sourceType: isJson ? 'JSON' : 'CSV',
+                          fileName: file.name,
+                          rawData: content
+                        }));
+                      };
+                      reader.readAsText(file);
+                    }}
+                  />
+                </label>
               </div>
 
               <form onSubmit={handleInitializeJob} className="space-y-6">

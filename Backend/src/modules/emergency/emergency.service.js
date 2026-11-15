@@ -120,13 +120,37 @@ async function updateAmbulanceTelemetry(id, telemetry) {
     });
 }
 
+function enrichDispatchTimestamps(dispatch) {
+    if (!dispatch) return dispatch;
+    const dt = dispatch.dispatchedAt ? new Date(dispatch.dispatchedAt) : new Date();
+    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const dispatchDayOfWeek = days[dt.getUTCDay()];
+    const dispatchDateFormatted = dt.toISOString().slice(0, 10);
+    const dispatchTimeFormatted = dt.toISOString().slice(11, 19);
+    return {
+        ...dispatch,
+        dispatchDayOfWeek,
+        dispatchDateFormatted,
+        dispatchTimeFormatted
+    };
+}
+
 /**
  * Create emergency ambulance dispatch callout
  */
 async function createDispatchCallout(data) {
-    const ambulance = await prisma.ambulance.findUnique({
-        where: { id: data.ambulanceId }
-    });
+    let ambulance = null;
+    if (data.ambulanceId) {
+        ambulance = await prisma.ambulance.findFirst({
+            where: {
+                OR: [{ id: data.ambulanceId }, { vehicleNumber: data.ambulanceId }]
+            }
+        });
+    } else {
+        ambulance = await prisma.ambulance.findFirst({
+            where: { status: "AVAILABLE" }
+        });
+    }
 
     if (!ambulance) {
         throw new AppError(`Ambulance not found with ID ${data.ambulanceId}`, 404, "AMBULANCE_NOT_FOUND");
@@ -142,27 +166,29 @@ async function createDispatchCallout(data) {
 
     const dispatchNumber = await generateDispatchNumber();
 
-    return await prisma.$transaction(async (tx) => {
+    const created = await prisma.$transaction(async (tx) => {
         // 1. Create dispatch record
         const dispatch = await tx.ambulanceDispatch.create({
             data: {
                 dispatchNumber,
-                ambulanceId: data.ambulanceId,
-                callerName: data.callerName,
-                callerPhone: data.callerPhone,
+                ambulanceId: ambulance.id,
+                callerName: data.callerName || "Emergency Transfer Caller",
+                callerPhone: data.callerPhone || "N/A",
                 incidentLocation: data.incidentLocation,
                 pickupLatitude: data.pickupLatitude || null,
                 pickupLongitude: data.pickupLongitude || null,
                 triageSeverity: data.triageSeverity || "ORANGE_EMERGENT",
-                chiefComplaint: data.chiefComplaint,
+                chiefComplaint: data.chiefComplaint || "Emergency Patient Transfer",
+                handoverNotes: data.handoverNotes || null,
                 status: "DISPATCHED",
-                dispatchedAt: new Date()
-            }
+                dispatchedAt: data.dispatchedAt ? new Date(data.dispatchedAt) : new Date()
+            },
+            include: { ambulance: true }
         });
 
         // 2. Transition ambulance status to DISPATCHED
         await tx.ambulance.update({
-            where: { id: data.ambulanceId },
+            where: { id: ambulance.id },
             data: { status: "DISPATCHED" }
         });
 
@@ -177,6 +203,8 @@ async function createDispatchCallout(data) {
 
         return dispatch;
     });
+
+    return enrichDispatchTimestamps(created);
 }
 
 /**
@@ -251,11 +279,12 @@ async function getDispatches(query = {}) {
     if (query.status) where.status = query.status;
     if (query.severity) where.triageSeverity = query.severity;
 
-    return await prisma.ambulanceDispatch.findMany({
+    const list = await prisma.ambulanceDispatch.findMany({
         where,
         include: { ambulance: true },
         orderBy: { dispatchedAt: "desc" }
     });
+    return list.map(enrichDispatchTimestamps);
 }
 
 /**

@@ -72,6 +72,18 @@ router.post(
 );
 
 router.get(
+    "/bed-matrix",
+    authorizeRoles(...STAFF_ROLES),
+    controller.getFullHospitalBedMatrix
+);
+
+router.get(
+    "/matrix",
+    authorizeRoles(...STAFF_ROLES),
+    controller.getFullHospitalBedMatrix
+);
+
+router.get(
     "/wards/:id/bed-matrix",
     authorizeRoles(...STAFF_ROLES),
     controller.getWardBedMatrix
@@ -82,6 +94,18 @@ router.post(
     "/admit",
     authorizeRoles(...ADMISSION_ROLES),
     controller.admitPatient
+);
+
+router.patch(
+    "/:id/extend-stay",
+    authorizeRoles(...NURSING_CHART_ROLES),
+    controller.extendAdmissionStay
+);
+
+router.post(
+    "/:id/extend-stay",
+    authorizeRoles(...NURSING_CHART_ROLES),
+    controller.extendAdmissionStay
 );
 
 router.post(

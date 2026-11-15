@@ -206,6 +206,13 @@ function applyHelmet(app){
                             "ws:"
                         ],
 
+                        frameSrc:[
+                            "'self'",
+                            "https://www.openstreetmap.org",
+                            "https://maps.google.com",
+                            "https://www.google.com"
+                        ],
+
 
                         objectSrc:[
                             "'none'"
@@ -213,7 +220,7 @@ function applyHelmet(app){
 
 
                         frameAncestors:[
-                            "'none'"
+                            "'self'"
                         ]
 
                     }
@@ -223,14 +230,13 @@ function applyHelmet(app){
 
                 : false,
 
-
-
+            crossOriginEmbedderPolicy: false,
 
             crossOriginResourcePolicy:{
 
 
                 policy:
-                    "same-site"
+                    "cross-origin"
 
 
             },

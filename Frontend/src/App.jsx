@@ -58,8 +58,10 @@ export default function App() {
   const initialRoute = typeof window !== 'undefined' ? parseUrlRoute(window.location.pathname) : { moduleKey: 'OVERVIEW', detail: null };
 
   const [currentRole, setCurrentRole] = useState('ADMINISTRATOR');
+  const [loginModalRole, setLoginModalRole] = useState('DOCTOR');
   const [currentUser, setCurrentUser] = useState(null);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [showOperatingGuide, setShowOperatingGuide] = useState(false);
   const [activeModule, setActiveModuleState] = useState(initialRoute.moduleKey);
   const [activeDetail, setActiveDetail] = useState(initialRoute.detail);
   const savedScrollRef = useRef({});
@@ -67,6 +69,7 @@ export default function App() {
   // Zero hardcoded numbers: Initialized to 0, populated exclusively from PostgreSQL
   const [globalStats, setGlobalStats] = useState({
     opdToday: 0,
+    opdEncountersToday: [],
     totalConsultations: 0,
     admissions: 0,
     surgeries: 0,
@@ -113,6 +116,7 @@ export default function App() {
       if (res && res.metrics) {
         setGlobalStats({
           opdToday: res.metrics.opdToday ?? 0,
+          opdEncountersToday: Array.isArray(res.opdEncountersToday) ? res.opdEncountersToday : [],
           totalConsultations: res.metrics.totalConsultations ?? 0,
           admissions: res.metrics.admissions ?? 0,
           surgeries: res.metrics.surgeries ?? 0,
@@ -177,8 +181,25 @@ export default function App() {
 
   const openDetailPage = (payload) => {
     const mod = payload?.moduleKey || activeModule || 'OVERVIEW';
-    const dType = payload?.detailType || 'VIEW_DETAILS';
-    const recId = payload?.recordId || 'summary';
+    const rawType = String(payload?.detailType || 'VIEW_DETAILS').toUpperCase();
+    const dTypeMap = {
+      DETAILS: 'VIEW_DETAILS',
+      PROFILE: 'VIEW_PROFILE',
+      RECORDS: 'VIEW_RECORDS',
+      REPORTS: 'VIEW_REPORTS',
+      TRANSACTIONS: 'VIEW_TRANSACTIONS',
+      HISTORY: 'VIEW_HISTORY',
+      NOTIFICATIONS: 'VIEW_NOTIFICATIONS',
+      APPLICATIONS: 'VIEW_APPLICATIONS',
+      HOSPITAL_INFORMATION: 'VIEW_HOSPITAL_INFORMATION',
+      SYSTEM_INFORMATION: 'VIEW_SYSTEM_INFORMATION'
+    };
+    const dType = dTypeMap[rawType] || (rawType.startsWith('VIEW_') ? rawType : `VIEW_${rawType}`);
+    const recData = payload?.recordData !== undefined ? payload.recordData : payload?.payload;
+    const recId =
+      payload?.recordId ||
+      (recData && !Array.isArray(recData) && (recData.id || recData.mrn || recData.patientNumber || recData.code)) ||
+      'summary';
 
     if (typeof window !== 'undefined') {
       savedScrollRef.current[mod] = window.scrollY;
@@ -188,7 +209,8 @@ export default function App() {
       ...payload,
       moduleKey: mod,
       detailType: dType,
-      recordId: recId
+      recordId: String(recId),
+      recordData: recData
     };
 
     setActiveDetail(detailObj);
@@ -294,6 +316,11 @@ export default function App() {
       <Header
         currentRole={currentRole}
         onSelectRole={(r) => {
+          if (r === 'DEVELOPER' && !isDeveloperAuthenticated) {
+            setLoginModalRole('DEVELOPER');
+            setIsLoginOpen(true);
+            return;
+          }
           setCurrentRole(r);
           if (r === 'DEVELOPER') {
             setActiveModule('DEVELOPER_NOC');
@@ -323,7 +350,10 @@ export default function App() {
             setActiveModule('OVERVIEW');
           }
         }}
-        onOpenLogin={() => setIsLoginOpen(true)}
+        onOpenLogin={(roleHint) => {
+          setLoginModalRole(typeof roleHint === 'string' && roleHint ? roleHint : currentRole);
+          setIsLoginOpen(true);
+        }}
         currentUser={currentUser}
         onLogout={handleLogout}
         onOpenQuickAction={handleQuickAction}
@@ -441,29 +471,78 @@ export default function App() {
             >
               <Mic size={14} style={{ color: 'var(--gold-400)' }} /> 14. Voice Biometrics & Security Vault
             </button>
-            {(isDeveloperAuthenticated || currentRole === 'DEVELOPER' || activeModule === 'DEVELOPER_NOC') && (
+            {isDeveloperAuthenticated && (
               <button
                 onClick={() => setActiveModule('DEVELOPER_NOC')}
                 className={activeModule === 'DEVELOPER_NOC' && !activeDetail ? 'btn-gold' : 'btn-outline-gold'}
                 style={{ fontSize: '0.8rem', padding: '6px 14px', borderColor: '#ef4444' }}
+                title="Open Hidden Developer Landlord Control Center (Restricted to gabosei48@gmail.com)"
               >
                 <Shield size={14} /> Developer Dashboard (NOC • Migration • GIS & Telemedicine)
               </button>
             )}
           </div>
 
-          {/* Active Role & Environment Indicator */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+          {/* Active Role, Operating Guide, Scroll & Environment Controls */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: 'var(--text-muted)', flexWrap: 'wrap' }}>
+            {activeModule !== 'OVERVIEW' && (
+              <button
+                type="button"
+                onClick={() => (activeDetail ? handleBackFromDetail() : setActiveModule('OVERVIEW'))}
+                className="btn-outline-gold"
+                style={{ padding: '3px 10px', fontSize: '0.74rem' }}
+                title="Return to previous view or Enterprise Overview Dashboard"
+              >
+                ← Back
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => setShowOperatingGuide((prev) => !prev)}
+              className="btn-outline-gold"
+              style={{ padding: '3px 10px', fontSize: '0.74rem' }}
+              title="Toggle Dashboard Operating Guide & Role Workflow Instructions"
+            >
+              📖 Operating Guide
+            </button>
+            <button
+              type="button"
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="btn-outline-gold"
+              style={{ padding: '3px 10px', fontSize: '0.74rem' }}
+              title="Scroll smoothly to top of dashboard"
+            >
+              ↑ Top
+            </button>
             <span>Env:</span>
-            <span style={{ color: activeEnvironment === 'PRODUCTION' ? '#22c55e' : '#38bdf8', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', border: '1px solid currentColor' }}>
+            <span style={{ color: activeEnvironment === 'PRODUCTION' ? '#22c55e' : '#38bdf8', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', border: '1px solid currentColor' }} title="Current Active Backend & Database Environment">
               {activeEnvironment}
             </span>
             <span>Role:</span>
-            <span style={{ color: 'var(--gold-400)', fontWeight: 700, background: 'var(--gold-glow)', padding: '2px 8px', borderRadius: '4px', border: '1px solid var(--border-gold)' }}>
+            <span style={{ color: 'var(--gold-400)', fontWeight: 700, background: 'var(--gold-glow)', padding: '2px 8px', borderRadius: '4px', border: '1px solid var(--border-gold)' }} title="Current Active Role Workspace">
               {currentRole}
             </span>
           </div>
         </div>
+
+        {showOperatingGuide && (
+          <div className="glass-panel" style={{ padding: '14px 18px', marginBottom: '14px', border: '1px solid var(--gold-400)', background: 'rgba(18, 15, 11, 0.95)', fontSize: '0.8rem', color: '#e5e7eb' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+              <strong style={{ color: 'var(--gold-400)', fontSize: '0.88rem' }}>
+                GBS Hospital System — Interactive Role & Dashboard Operating Guide ({currentRole})
+              </strong>
+              <button type="button" onClick={() => setShowOperatingGuide(false)} className="btn-outline-gold" style={{ padding: '2px 8px', fontSize: '0.72rem' }}>
+                Close Guide
+              </button>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '10px', color: 'var(--text-muted)' }}>
+              <div>• <strong>Dedicated Full-Page Views:</strong> Click any <em>View Details, View Profile, View Records, View Reports, View Transactions, View History, or KPI Card</em> to open a full page with a top-left <strong>Back</strong> button.</div>
+              <div>• <strong>Clinical & Specialist Routing:</strong> Doctors can record ICD-10 consultations and dispatch patient reports directly to Specialists, Lab, Pharmacy, or Radiology with real-time <code>SENT</code> status.</div>
+              <div>• <strong>Wards, Pharmacy & Finance:</strong> Admit patients to specific rooms & beds, extend stays, dispense medicines by Ward/Room/Bed, and compile Accountant Year-End Financial Reports.</div>
+              <div>• <strong>Role Isolation & Security:</strong> Sign in with your role credentials. Developer Landlord NOC is strictly isolated to the permanent Developer login on the main Sign In modal.</div>
+            </div>
+          </div>
+        )}
 
         {/* Universal Dedicated Detail Page Navigation Ribbon (Available Across All Dashboards) */}
         <div
@@ -526,6 +605,8 @@ export default function App() {
             onBack={handleBackFromDetail}
             onNavigateDetail={openDetailPage}
             currentRole={currentRole}
+            facilityBranding={facilityBranding}
+            currentUser={currentUser}
           />
         ) : (
           <>
@@ -586,9 +667,10 @@ export default function App() {
                 {/* Hospital Metrics Summary Cards (100% Real PostgreSQL Counts — Clickable to Dedicated Detail Page) */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
                   <div
-                    onClick={() => openDetailPage({ detailType: 'VIEW_RECORDS', moduleKey: 'CLINICAL', recordId: 'opd-today', title: 'OPD Encounters & Triage Queue Today', recordData: { opdToday: globalStats.opdToday, totalConsultations: globalStats.totalConsultations } })}
+                    onClick={() => openDetailPage({ detailType: 'VIEW_RECORDS', moduleKey: 'CLINICAL', recordId: 'opd-today', title: 'OPD Encounters & Triage Queue Today', recordData: { opdToday: globalStats.opdToday, totalConsultations: globalStats.totalConsultations, encountersToday: globalStats.opdEncountersToday } })}
                     className="glass-panel"
                     style={{ padding: '18px 20px', borderLeft: '4px solid var(--gold-400)', cursor: 'pointer' }}
+                    title="Click to open full-page OPD Encounters & Triage Queue registered today"
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>OPD Today</span>
@@ -781,11 +863,12 @@ export default function App() {
                             <div style={{ display: 'flex', gap: '6px' }}>
                               <button
                                 onClick={() => {
-                                  setCurrentRole(r.id);
+                                  setLoginModalRole(r.id);
                                   setIsLoginOpen(true);
                                 }}
                                 className="btn-gold"
                                 style={{ flex: 1, padding: '5px 8px', fontSize: '0.7rem', justifyContent: 'center' }}
+                                title={`Sign in to ${r.name} workspace`}
                               >
                                 Login
                               </button>
@@ -848,7 +931,7 @@ export default function App() {
                       { mod: 'NHIA_CLAIMS', title: '16. NHIA Claims & E-Claims Adjudication', desc: 'G-DRG tariff pricing, NHIS eligibility verification, 20-rule pre-submission vetting, and reconciliation vouchers.', img: '/assets/images/nhia_claims_center_real.jpg', icon: CreditCard, color: '#86efac', border: '#22c55e' },
                       { mod: 'VOICE_AUTH', title: '17. Central Voice Biometrics & Vault', desc: 'Acoustic voiceprint enrollment, zero-trust MFCC matching, anti-spoofing liveness guards, and multi-factor clinical challenges.', img: '/assets/images/voice_biometric_security_real.jpg', icon: Mic, color: 'var(--gold-300)', border: 'var(--border-gold)' }
                     ]
-                      .filter((card) => card.mod !== 'DEVELOPER_NOC' || isDeveloperAuthenticated || currentRole === 'DEVELOPER')
+                      .filter((card) => card.mod !== 'DEVELOPER_NOC' || isDeveloperAuthenticated)
                       .map((card, idx) => {
                         const CardIcon = card.icon;
                         return (
@@ -917,7 +1000,7 @@ export default function App() {
       <RoleLoginModal
         isOpen={isLoginOpen}
         onClose={() => setIsLoginOpen(false)}
-        initialRole={currentRole}
+        initialRole={loginModalRole || currentRole}
         onLoginSuccess={(user) => {
           setCurrentUser(user);
           if (user.role) setCurrentRole(user.role);

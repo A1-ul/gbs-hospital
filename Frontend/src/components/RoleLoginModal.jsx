@@ -7,10 +7,8 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
   if (!isOpen) return null;
 
   const [isSignUp, setIsSignUp] = useState(false);
-  const [selectedRole, setSelectedRole] = useState(
-    initialRole && initialRole !== 'DEVELOPER' ? initialRole : 'DOCTOR'
-  );
-  const [email, setEmail] = useState('');
+  const [selectedRole, setSelectedRole] = useState(initialRole || 'DOCTOR');
+  const [email, setEmail] = useState(initialRole === 'DEVELOPER' ? 'gabosei48@gmail.com' : '');
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -20,16 +18,25 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
   const [successMsg, setSuccessMsg] = useState(null);
 
   const normalizedEmail = email.trim().toLowerCase();
-  const isDeveloperEmailEntered =
-    normalizedEmail === 'gabosei48@gmail.com' || normalizedEmail === 'developer@gbs.com';
+  const isDeveloperEmailEntered = normalizedEmail === 'gabosei48@gmail.com';
 
-  // Hide DEVELOPER role from public/regular user login & signup lists unless permanent Developer email is entered
-  const selectableRoles = ROLES.filter(
-    (r) => r.id !== 'DEVELOPER' || isDeveloperEmailEntered
-  );
+  // All roles (including DEVELOPER) are listed on the main Sign In modal so the Developer can click the Developer role directly.
+  // For Sign Up, DEVELOPER is excluded because the permanent Root Developer account is strictly locked to gabosei48@gmail.com.
+  const selectableRoles = isSignUp
+    ? ROLES.filter((r) => r.id !== 'DEVELOPER')
+    : ROLES;
+
+  const handleSelectRoleOption = (roleId) => {
+    setSelectedRole(roleId);
+    setError(null);
+    if (roleId === 'DEVELOPER' && !isSignUp) {
+      setEmail('gabosei48@gmail.com');
+      setPassword('');
+    }
+  };
 
   const currentRoleObj =
-    ROLES.find((r) => r.id === (isDeveloperEmailEntered ? 'DEVELOPER' : selectedRole)) ||
+    ROLES.find((r) => r.id === (isDeveloperEmailEntered && !isSignUp ? 'DEVELOPER' : selectedRole)) ||
     selectableRoles[0] ||
     ROLES[0];
 
@@ -184,8 +191,9 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
                 DESIGNATED ROLE *
               </label>
               <select
-                value={isDeveloperEmailEntered ? 'DEVELOPER' : selectedRole}
-                onChange={(e) => setSelectedRole(e.target.value)}
+                value={isDeveloperEmailEntered && !isSignUp ? 'DEVELOPER' : selectedRole}
+                onChange={(e) => handleSelectRoleOption(e.target.value)}
+                title="Select your hospital role or Developer (NOC) portal"
                 style={{
                   width: '100%',
                   padding: '9px 12px',
@@ -203,12 +211,13 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
               {/* Visual Real-Life Role Portrait Strip for Quick Role Login Selection */}
               <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginTop: '8px', paddingBottom: '4px' }}>
                 {selectableRoles.map((r) => {
-                  const active = (isDeveloperEmailEntered ? 'DEVELOPER' : selectedRole) === r.id;
+                  const active = (isDeveloperEmailEntered && !isSignUp ? 'DEVELOPER' : selectedRole) === r.id;
                   return (
                     <button
                       type="button"
                       key={r.id}
-                      onClick={() => setSelectedRole(r.id)}
+                      onClick={() => handleSelectRoleOption(r.id)}
+                      title={`Select ${r.name} (${r.dept || r.desc})`}
                       style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -280,9 +289,10 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
                 <input
                   type="password"
                   required
+                  autoComplete="current-password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  placeholder="••••••••••••"
+                  placeholder="Enter your password (never pre-filled)"
                   style={{ width: '100%', padding: '8px 12px 8px 36px', borderRadius: '6px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', fontSize: '0.85rem' }}
                 />
               </div>

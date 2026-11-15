@@ -48,6 +48,9 @@
     "supertest": "7.0.0"
   },
   "jest": {
+    "roots": [
+      "<rootDir>/tests"
+    ],
     "testMatch": [
       "<rootDir>/tests/**/*.test.js"
     ],

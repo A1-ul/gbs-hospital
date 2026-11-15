@@ -31,7 +31,7 @@ const logger = require("../../../core/utils/logger");
  * @param {Object} issuingUser 
  */
 async function createBill(billData, issuingUser) {
-    const {
+    let {
         encounterId,
         patientId: explicitPatientId,
         payorType = PAYOR_TYPES.CASH,
@@ -43,24 +43,54 @@ async function createBill(billData, issuingUser) {
         notes
     } = billData;
 
-    if (!encounterId) {
-        throw new AppError("Clinical Encounter ID is required to generate bill", 400, "MISSING_ENCOUNTER_ID");
-    }
-
     if (!Array.isArray(items) || items.length === 0) {
         throw new AppError("At least one billable line item is required", 400, "EMPTY_BILL_ITEMS");
     }
 
-    const encounter = await prisma.patientEncounter.findUnique({
-        where: { id: encounterId },
-        include: { patient: true }
-    });
+    let encounter = null;
+    if (encounterId) {
+        encounter = await prisma.patientEncounter.findUnique({
+            where: { id: encounterId },
+            include: { patient: true }
+        });
+    } else if (explicitPatientId) {
+        const patient = await prisma.patient.findFirst({
+            where: {
+                OR: [{ id: explicitPatientId }, { patientNumber: explicitPatientId }]
+            }
+        });
+        if (!patient) {
+            throw new AppError("Patient not found to generate bill", 404, "PATIENT_NOT_FOUND");
+        }
+        encounter = await prisma.patientEncounter.findFirst({
+            where: { patientId: patient.id, status: { not: "CANCELLED" } },
+            include: { patient: true },
+            orderBy: { visitDate: "desc" }
+        });
+        if (!encounter) {
+            encounter = await prisma.patientEncounter.create({
+                data: {
+                    patientId: patient.id,
+                    hospitalId: patient.hospitalId,
+                    encounterNumber: `ENC-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`,
+                    encounterType: "OUTPATIENT",
+                    status: "OPEN"
+                },
+                include: { patient: true }
+            });
+        }
+        encounterId = encounter.id;
+    }
+
+    if (!encounterId) {
+        throw new AppError("Clinical Encounter ID or Patient ID is required to generate bill", 400, "MISSING_ENCOUNTER_ID");
+    }
 
     if (!encounter) {
         throw new AppError("Clinical Encounter not found", 404, "ENCOUNTER_NOT_FOUND");
     }
 
-    const patientId = explicitPatientId || encounter.patientId;
+    const patientId = encounter.patientId;
     const totals = calculateBillTotals(items, payorType, discountAmount);
 
     const billNumber = await generateBillNumber();
@@ -99,7 +129,7 @@ async function createBill(billData, issuingUser) {
                 create: items.map(item => ({
                     category: item.category || "GENERAL",
                     serviceCode: item.serviceCode || null,
-                    serviceName: item.serviceName || "Medical Service",
+                    serviceName: item.serviceName || item.description || "Medical Service",
                     unitPrice: parseFloat(item.unitPrice) || 0.0,
                     quantity: parseInt(item.quantity, 10) || 1,
                     totalAmount: parseFloat(((parseInt(item.quantity, 10) || 1) * (parseFloat(item.unitPrice) || 0.0)).toFixed(2)),
@@ -679,6 +709,215 @@ async function seedBillingTariffCatalog() {
     return results;
 }
 
+/**
+ * Record an Accountant General Ledger Entry (Salary Paid, SSNIT Contribution, Donation, Operational Expense)
+ */
+async function recordFinancialLedgerEntry(entryData = {}, user = null) {
+    const {
+        entryType,
+        category,
+        title,
+        recipientOrDonor,
+        beneficiaryOrSource,
+        amount,
+        amountGhs,
+        currency = "GHS",
+        paymentMethod = "BANK_TRANSFER",
+        referenceNumber,
+        fiscalYear = new Date().getFullYear(),
+        notes
+    } = entryData;
+
+    const resolvedType = String(entryType || category || "SALARY_PAID").toUpperCase();
+    const numericAmount = parseFloat(amount !== undefined ? amount : amountGhs);
+    if (!title || isNaN(numericAmount) || numericAmount <= 0) {
+        throw new AppError("Valid ledger entry title and positive amount are required", 400, "INVALID_LEDGER_ENTRY");
+    }
+
+    const resolvedRecipient = recipientOrDonor || beneficiaryOrSource;
+    const payload = {
+        entryNumber: `LDG-${fiscalYear}-${String(Date.now()).slice(-6)}`,
+        entryType: resolvedType,
+        category: resolvedType,
+        title: String(title).trim(),
+        recipientOrDonor: resolvedRecipient ? String(resolvedRecipient).trim() : "General Ledger",
+        beneficiaryOrSource: resolvedRecipient ? String(resolvedRecipient).trim() : "General Ledger",
+        amount: Number(numericAmount.toFixed(2)),
+        amountGhs: Number(numericAmount.toFixed(2)),
+        currency,
+        paymentMethod,
+        referenceNumber: referenceNumber || `REF-${Date.now()}`,
+        fiscalYear: Number(fiscalYear),
+        notes: notes || null,
+        recordedBy: user ? (user.name || user.email || "Accountant") : "Accountant",
+        recordedAt: new Date().toISOString()
+    };
+
+    const logRecord = await prisma.auditLog.create({
+        data: {
+            userId: user?.id || null,
+            action: "FINANCIAL_LEDGER_ENTRY",
+            module: "FINANCE_LEDGER",
+            description: JSON.stringify(payload)
+        }
+    });
+
+    return {
+        id: logRecord.id,
+        ...payload
+    };
+}
+
+/**
+ * Compile Accountant Annual / Year-End Financial Wrap Report with Expandable Breakdown
+ */
+async function getAnnualFinancialReport(yearParam) {
+    const fiscalYear = parseInt(yearParam, 10) || new Date().getFullYear();
+    const startOfYear = new Date(Date.UTC(fiscalYear, 0, 1, 0, 0, 0));
+    const endOfYear = new Date(Date.UTC(fiscalYear, 11, 31, 23, 59, 59));
+
+    const [
+        bills,
+        payments,
+        claims,
+        newPatients,
+        purchaseOrders,
+        ledgerLogs
+    ] = await Promise.all([
+        prisma.patientBill.findMany({
+            where: { createdAt: { gte: startOfYear, lte: endOfYear } },
+            include: { patient: true },
+            orderBy: { createdAt: "desc" }
+        }),
+        prisma.patientPayment.findMany({
+            where: { paymentDate: { gte: startOfYear, lte: endOfYear } },
+            include: { bill: { include: { patient: true } } },
+            orderBy: { paymentDate: "desc" }
+        }),
+        prisma.insuranceClaim.findMany({
+            where: { createdAt: { gte: startOfYear, lte: endOfYear } },
+            orderBy: { createdAt: "desc" }
+        }),
+        prisma.patient.findMany({
+            where: { createdAt: { gte: startOfYear, lte: endOfYear } },
+            orderBy: { createdAt: "desc" }
+        }),
+        prisma.purchaseOrder.findMany({
+            where: { createdAt: { gte: startOfYear, lte: endOfYear } },
+            include: { vendor: true },
+            orderBy: { createdAt: "desc" }
+        }),
+        prisma.auditLog.findMany({
+            where: {
+                module: "FINANCE_LEDGER",
+                action: "FINANCIAL_LEDGER_ENTRY",
+                createdAt: { gte: startOfYear, lte: endOfYear }
+            },
+            orderBy: { createdAt: "desc" }
+        })
+    ]);
+
+    const parsedLedgerEntries = ledgerLogs
+        .map((l) => {
+            try {
+                return { id: l.id, ...JSON.parse(l.description || "{}"), createdAt: l.createdAt };
+            } catch (_e) {
+                return null;
+            }
+        })
+        .filter(Boolean);
+
+    const salariesPaidList = parsedLedgerEntries.filter((e) => e.entryType === "SALARY_PAID" || e.entryType === "SALARIES_PAID");
+    const ssnitPaidList = parsedLedgerEntries.filter((e) => e.entryType === "SSNIT_CONTRIBUTION" || e.entryType === "SSNIT_PAID");
+    const donationsReceivedList = parsedLedgerEntries.filter((e) => e.entryType === "DONATION_RECEIVED" || e.entryType === "DONATIONS_RECEIVED");
+    const operationalExpensesList = parsedLedgerEntries.filter((e) => e.entryType === "OPERATIONAL_EXPENSE" || e.entryType === "OPERATIONAL_EXPENSES");
+
+    const sumBy = (arr, fn) => Number(arr.reduce((acc, item) => acc + (Number(fn(item)) || 0), 0).toFixed(2));
+
+    const totalBilledRevenue = sumBy(bills, (b) => b.grossAmount);
+    const totalCollectedPayments = sumBy(payments, (p) => p.amount);
+    const totalOutstandingReceivables = sumBy(bills, (b) => b.balanceDue);
+    const totalNhisClaimsSubmitted = sumBy(claims, (c) => c.claimedAmount);
+    const totalNhisApproved = sumBy(claims, (c) => c.approvedAmount || 0);
+    const totalSalariesPaid = sumBy(salariesPaidList, (s) => s.amount);
+    const totalSsnitPaid = sumBy(ssnitPaidList, (s) => s.amount);
+    const totalDonationsReceived = sumBy(donationsReceivedList, (d) => d.amount);
+    const totalOperationalExpenses = sumBy(operationalExpensesList, (o) => o.amount);
+    const totalProcurementOutflow = sumBy(purchaseOrders, (po) => po.totalAmount);
+
+    const totalInflows = Number((totalCollectedPayments + totalDonationsReceived + totalNhisApproved).toFixed(2));
+    const totalOutflows = Number((totalSalariesPaid + totalSsnitPaid + totalOperationalExpenses + totalProcurementOutflow).toFixed(2));
+    const netAnnualPosition = Number((totalInflows - totalOutflows).toFixed(2));
+
+    const summaryObj = {
+        totalBilledRevenue,
+        totalCollectedPayments,
+        totalPatientRevenueCollectedGhs: totalCollectedPayments,
+        totalOutstandingReceivables,
+        totalNhisClaimsSubmitted,
+        totalNhisApproved,
+        totalSalariesPaid,
+        totalSalariesPaidGhs: totalSalariesPaid,
+        totalSsnitPaid,
+        totalSsnitPaidGhs: totalSsnitPaid,
+        totalDonationsReceived,
+        totalDonationsReceivedGhs: totalDonationsReceived,
+        totalOperationalExpenses,
+        totalOperationalExpensesGhs: totalOperationalExpenses,
+        totalProcurementOutflow,
+        totalProcurementCommittedGhs: totalProcurementOutflow,
+        newPatientsRegisteredCount: newPatients.length,
+        totalInflows,
+        totalOutflows,
+        netAnnualPosition
+    };
+
+    const breakdownObj = {
+        salariesPaid: salariesPaidList,
+        ssnitPaid: ssnitPaidList,
+        donationsReceived: donationsReceivedList,
+        operationalExpenses: operationalExpensesList,
+        newPatientsRegistered: newPatients.map((p) => ({
+            id: p.id,
+            mrn: p.patientNumber,
+            fullName: `${p.firstName} ${p.lastName}`,
+            gender: p.gender,
+            phone: p.phone,
+            registeredAt: p.createdAt
+        })),
+        patientPayments: payments.map((p) => ({
+            id: p.id,
+            receiptNumber: p.receiptNumber,
+            billNumber: p.bill?.billNumber || "N/A",
+            patientName: p.bill?.patient ? `${p.bill.patient.firstName} ${p.bill.patient.lastName}` : "Patient",
+            amount: Number(p.amount),
+            amountGhs: Number(p.amount),
+            paymentMethod: p.paymentMethod,
+            paymentDate: p.paymentDate
+        })),
+        procurementOrders: purchaseOrders.map((po) => ({
+            id: po.id,
+            poNumber: po.poNumber,
+            vendorName: po.vendor?.name || "Vendor",
+            department: po.department,
+            totalAmount: Number(po.totalAmount),
+            amountGhs: Number(po.totalAmount),
+            status: po.status,
+            orderDate: po.orderDate
+        }))
+    };
+
+    return {
+        fiscalYear,
+        reportStatus: "WRAPPED_VERIFIED",
+        generatedAt: new Date().toISOString(),
+        summary: summaryObj,
+        executiveSummary: summaryObj,
+        breakdownCategories: breakdownObj,
+        expandableBreakdown: breakdownObj
+    };
+}
+
 module.exports = {
     createBill,
     generateBillFromEncounter,
@@ -688,5 +927,7 @@ module.exports = {
     createInsuranceClaim,
     updateClaimStatus,
     getBillingDashboardTelemetry,
-    seedBillingTariffCatalog
+    seedBillingTariffCatalog,
+    recordFinancialLedgerEntry,
+    getAnnualFinancialReport
 };

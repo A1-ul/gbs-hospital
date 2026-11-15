@@ -564,13 +564,22 @@ async function getPendingPrescriptions(filterOptions = {}) {
     const take = Math.min(Number(limit) || 50, 100);
     const skip = ((Number(page) || 1) - 1) * take;
 
-    const [prescriptions, total] = await Promise.all([
+    const [prescriptions, total, catalogItems] = await Promise.all([
         prisma.patientPrescription.findMany({
             where,
             include: {
                 encounter: {
                     include: {
-                        patient: true
+                        patient: {
+                            include: {
+                                admissions: {
+                                    where: { status: "ADMITTED" },
+                                    include: { ward: true, room: true, bed: true },
+                                    orderBy: { admittedAt: "desc" },
+                                    take: 1
+                                }
+                            }
+                        }
                     }
                 },
                 dispense: true
@@ -579,34 +588,63 @@ async function getPendingPrescriptions(filterOptions = {}) {
             take,
             skip
         }),
-        prisma.patientPrescription.count({ where })
+        prisma.patientPrescription.count({ where }),
+        prisma.pharmacyItem.findMany({ select: { id: true, name: true, genericName: true, unitPrice: true } })
     ]);
 
     const items = prescriptions.map(rx => {
         const patient = rx.encounter?.patient;
+        const activeAdm = patient?.admissions?.[0] || null;
+        const medLower = String(rx.medicationName || "").toLowerCase();
+        const matchedItem = catalogItems.find(
+            (c) =>
+                String(c.name || "").toLowerCase() === medLower ||
+                String(c.genericName || "").toLowerCase() === medLower ||
+                medLower.includes(String(c.name || "").toLowerCase())
+        );
+        const unitPrice = matchedItem ? Number(matchedItem.unitPrice || 0) : 0;
+        const estimatedAmountToPay = rx.dispense?.totalAmount != null ? Number(rx.dispense.totalAmount) : unitPrice;
+
         return {
+            id: rx.id,
             prescriptionId: rx.id,
             encounterId: rx.encounterId,
             medicationName: rx.medicationName,
+            matchedItemId: matchedItem?.id || null,
             dosage: rx.dosage,
             frequency: rx.frequency,
             duration: rx.duration,
             instructions: rx.instructions,
             status: rx.status,
+            unitPrice,
+            amountToPay: estimatedAmountToPay,
             prescribedAt: rx.createdAt,
+            inpatientLocation: {
+                isAdmitted: Boolean(activeAdm),
+                wardName: activeAdm?.ward?.name || "Outpatient (OPD)",
+                roomName: activeAdm?.room?.name || "OPD",
+                bedNumber: activeAdm?.bed?.bedNumber || "OPD"
+            },
             patient: patient ? {
                 id: patient.id,
                 mrn: patient.patientNumber,
                 patientNumber: patient.patientNumber,
+                firstName: patient.firstName,
+                lastName: patient.lastName,
                 name: `${patient.firstName} ${patient.lastName}`,
                 gender: patient.gender,
                 dateOfBirth: patient.dateOfBirth,
-                phone: patient.phone
+                phone: patient.phone,
+                wardName: activeAdm?.ward?.name || "Outpatient (OPD)",
+                roomName: activeAdm?.room?.name || "OPD",
+                bedNumber: activeAdm?.bed?.bedNumber || "OPD"
             } : null,
             dispenseInfo: rx.dispense ? {
                 dispenseNumber: rx.dispense.dispenseNumber,
                 dispensedAt: rx.dispense.dispensedAt,
                 pharmacistName: rx.dispense.pharmacistName,
+                totalAmount: rx.dispense.totalAmount,
+                paymentStatus: rx.dispense.paymentStatus,
                 status: rx.dispense.status
             } : null
         };
@@ -901,7 +939,18 @@ async function getDispenseHistory(filterOptions = {}) {
                 prescription: {
                     include: {
                         encounter: {
-                            include: { patient: true }
+                            include: {
+                                patient: {
+                                    include: {
+                                        admissions: {
+                                            where: { status: "ADMITTED" },
+                                            include: { ward: true, room: true, bed: true },
+                                            orderBy: { admittedAt: "desc" },
+                                            take: 1
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 },
@@ -918,19 +967,32 @@ async function getDispenseHistory(filterOptions = {}) {
 
     const formatted = dispenses.map(d => {
         const patient = d.prescription?.encounter?.patient;
+        const activeAdm = patient?.admissions?.[0] || null;
         return {
+            id: d.id,
             dispenseId: d.id,
             dispenseNumber: d.dispenseNumber,
+            medicationName: d.prescription?.medicationName || d.items?.[0]?.item?.name || "Medication",
             status: d.status,
             dispensedAt: d.dispensedAt,
             pharmacistName: d.pharmacistName,
             counselingNotes: d.counselingNotes,
             paymentStatus: d.paymentStatus,
             totalAmount: d.totalAmount,
+            amountToPay: d.totalAmount,
+            inpatientLocation: {
+                isAdmitted: Boolean(activeAdm),
+                wardName: activeAdm?.ward?.name || "Outpatient (OPD)",
+                roomName: activeAdm?.room?.name || "OPD",
+                bedNumber: activeAdm?.bed?.bedNumber || "OPD"
+            },
             patient: patient ? {
                 id: patient.id,
                 name: `${patient.firstName} ${patient.lastName}`,
-                mrn: patient.patientNumber
+                mrn: patient.patientNumber,
+                wardName: activeAdm?.ward?.name || "Outpatient (OPD)",
+                roomName: activeAdm?.room?.name || "OPD",
+                bedNumber: activeAdm?.bed?.bedNumber || "OPD"
             } : null,
             items: d.items.map(it => ({
                 itemId: it.itemId,

@@ -572,6 +572,164 @@ async function getLeaveRequests(filters = {}) {
     });
 }
 
+/**
+ * Retrieves Hospital Staff Records Registry
+ */
+async function getHrStaff(filters = {}) {
+    const where = { deletedAt: null };
+    if (filters.department) where.department = filters.department;
+    if (filters.staffType) where.staffType = filters.staffType;
+
+    const staffList = await prisma.hospitalStaff.findMany({
+        where,
+        orderBy: { createdAt: "desc" }
+    });
+    return staffList;
+}
+
+/**
+ * Registers a new Hospital Staff Record
+ */
+async function createHrStaff(data = {}) {
+    const {
+        firstName,
+        lastName,
+        employeeCode,
+        email,
+        phone,
+        position,
+        department,
+        staffType = "NURSE",
+        specialization,
+        licenseNumber
+    } = data;
+
+    if (!firstName || !lastName) {
+        throw new AppError("firstName and lastName are required to register staff.", 400);
+    }
+
+    let hospital = await prisma.hospital.findFirst({ orderBy: { createdAt: "asc" } });
+    if (!hospital) {
+        hospital = await prisma.hospital.create({
+            data: {
+                name: "GBS Central Hospital",
+                code: "GBS-HOSP-001",
+                active: true
+            }
+        });
+    }
+
+    const validStaffTypes = ["DOCTOR", "NURSE", "PHARMACIST", "LAB_TECHNICIAN", "CASHIER", "ADMIN"];
+    const normalizedStaffType = validStaffTypes.includes(String(staffType).toUpperCase())
+        ? String(staffType).toUpperCase()
+        : "ADMIN";
+
+    const code = employeeCode ? String(employeeCode).trim() : `EMP-${new Date().getFullYear()}-${String(Date.now()).slice(-5)}`;
+
+    const created = await prisma.hospitalStaff.create({
+        data: {
+            hospitalId: hospital.id,
+            firstName: String(firstName).trim(),
+            lastName: String(lastName).trim(),
+            employeeCode: code,
+            email: email ? String(email).trim() : null,
+            phone: phone ? String(phone).trim() : null,
+            position: position ? String(position).trim() : normalizedStaffType,
+            department: department ? String(department).trim() : "GENERAL_OPD",
+            staffType: normalizedStaffType,
+            specialization: specialization ? String(specialization).trim() : null,
+            licenseNumber: licenseNumber ? String(licenseNumber).trim() : null,
+            active: true
+        }
+    });
+
+    return created;
+}
+
+/**
+ * Records a Staff Department / Facility Transfer
+ */
+async function createHrTransfer(data = {}, user = null) {
+    const {
+        staffId,
+        staffName,
+        fromDepartment,
+        toDepartment,
+        toFacilityOrBranch = "Main Hospital Campus",
+        effectiveDate,
+        reason,
+        approvedBy
+    } = data;
+
+    if (!staffName || !fromDepartment || !toDepartment) {
+        throw new AppError("staffName, fromDepartment, and toDepartment are required to record a staff transfer.", 400);
+    }
+
+    const payload = {
+        transferNumber: `TRF-HR-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`,
+        staffId: staffId || `EMP-${String(Date.now()).slice(-4)}`,
+        staffName: String(staffName).trim(),
+        fromDepartment: String(fromDepartment).trim(),
+        toDepartment: String(toDepartment).trim(),
+        toFacilityOrBranch: String(toFacilityOrBranch).trim(),
+        effectiveDate: effectiveDate || new Date().toISOString().slice(0, 10),
+        reason: reason || "Departmental operational reassignment",
+        approvedBy: approvedBy || (user ? (user.name || user.email) : "HR Manager"),
+        status: "TRANSFERRED",
+        transferredAt: new Date().toISOString()
+    };
+
+    if (staffId) {
+        try {
+            await prisma.hospitalStaff.updateMany({
+                where: {
+                    OR: [{ id: staffId }, { employeeCode: staffId }]
+                },
+                data: {
+                    department: payload.toDepartment
+                }
+            });
+        } catch (_e) { }
+    }
+
+    const logRecord = await prisma.auditLog.create({
+        data: {
+            userId: user?.id || null,
+            action: "STAFF_TRANSFERRED",
+            module: "HR_TRANSFERS",
+            description: JSON.stringify(payload)
+        }
+    });
+
+    return {
+        id: logRecord.id,
+        ...payload
+    };
+}
+
+/**
+ * Retrieves Staff Transfer Records
+ */
+async function getHrTransfers() {
+    const logs = await prisma.auditLog.findMany({
+        where: {
+            module: "HR_TRANSFERS",
+            action: "STAFF_TRANSFERRED"
+        },
+        orderBy: { createdAt: "desc" }
+    });
+
+    return logs
+        .map((l) => {
+            try {
+                return { id: l.id, ...JSON.parse(l.description || "{}"), createdAt: l.createdAt };
+            } catch (_e) {
+                return null;
+            }
+        })
+        .filter(Boolean);
+}
+
 module.exports = {
     getHrCatalogs,
     getHrStats,
@@ -589,5 +747,9 @@ module.exports = {
     getStaffAttendance,
     requestStaffLeave,
     adjudicateLeaveRequest,
-    getLeaveRequests
+    getLeaveRequests,
+    getHrStaff,
+    createHrStaff,
+    createHrTransfer,
+    getHrTransfers
 };

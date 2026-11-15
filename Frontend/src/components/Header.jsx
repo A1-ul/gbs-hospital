@@ -45,6 +45,8 @@ export default function Header({
   const [showBrandingModal, setShowBrandingModal] = useState(false);
   const [hospitalNameInput, setHospitalNameInput] = useState('');
   const [mottoInput, setMottoInput] = useState('');
+  const [logoUrlInput, setLogoUrlInput] = useState('');
+  const [organizationTypeInput, setOrganizationTypeInput] = useState('PRIVATE_HOSPITAL');
   const [savingBranding, setSavingBranding] = useState(false);
   const [brandingFeedback, setBrandingFeedback] = useState('');
 
@@ -60,11 +62,15 @@ export default function Header({
   const visibleRoles = ROLES.filter(role => role.id !== 'DEVELOPER' || isDeveloperAuthenticated);
 
   const activeHospitalName = facilityBranding?.hospitalName || 'GBS Premier Specialist Teaching Hospital';
-  const activeHospitalMotto = facilityBranding?.motto || 'Smart Healthcare, Better Care.';
+  const activeHospitalMotto = facilityBranding?.motto || facilityBranding?.facilityTagline || 'Smart Healthcare, Better Care.';
+  const activeLogoUrl = facilityBranding?.logoUrl || '/hospital-logo.png';
+  const activeOrganizationType = facilityBranding?.organizationType || 'PRIVATE_HOSPITAL';
 
   const openHospitalNameModal = () => {
     setHospitalNameInput(activeHospitalName);
     setMottoInput(activeHospitalMotto);
+    setLogoUrlInput(facilityBranding?.logoUrl || '');
+    setOrganizationTypeInput(activeOrganizationType);
     setBrandingFeedback('');
     setShowBrandingModal(true);
   };
@@ -78,6 +84,9 @@ export default function Header({
       const updated = await api.updateFacilityBranding({
         hospitalName: hospitalNameInput.trim(),
         motto: mottoInput.trim() || 'Smart Healthcare, Better Care.',
+        facilityTagline: mottoInput.trim() || 'Smart Healthcare, Better Care.',
+        logoUrl: logoUrlInput.trim(),
+        organizationType: organizationTypeInput,
         updatedBy: currentUser?.email || currentRole || 'Administrator'
       });
       if (onUpdateFacilityBranding) {
@@ -129,28 +138,12 @@ export default function Header({
         const data = await api.getCountsByRole();
         setRoleCountsData(data);
       } catch (err) {
-        setCountsError(err.message || 'Authentication required');
+        setCountsError(err.message || 'Administrator authentication required');
       } finally {
         setLoadingCounts(false);
       }
     } else {
       setShowRoleCounts(false);
-    }
-  };
-
-  const handleAdminQuickAuth = async () => {
-    try {
-      setLoadingCounts(true);
-      const res = await api.login('admin@gbs.com', 'Admin123');
-      localStorage.setItem('gbs_token', res.token);
-      localStorage.setItem('gbs_user', JSON.stringify(res.user));
-      const data = await api.getCountsByRole();
-      setRoleCountsData(data);
-      setCountsError(null);
-    } catch (e) {
-      setCountsError(e.message);
-    } finally {
-      setLoadingCounts(false);
     }
   };
 
@@ -160,8 +153,8 @@ export default function Header({
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 20px', borderBottom: '1px solid var(--border-subtle)', flexWrap: 'wrap', gap: '12px' }}>
         {/* Hospital Branding */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <div style={{ width: '48px', height: '48px', borderRadius: '8px', border: '2px solid var(--gold-400)', overflow: 'hidden', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <img src="/hospital-logo.png" alt="GBS Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.style.display = 'none'; }} />
+          <div style={{ width: '48px', height: '48px', borderRadius: '8px', border: '2px solid var(--gold-400)', overflow: 'hidden', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title={`${activeHospitalName} Official Logo`}>
+            <img src={activeLogoUrl} alt="Hospital Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.style.display = 'none'; }} />
             <Shield style={{ color: 'var(--gold-400)', width: '28px', height: '28px' }} />
           </div>
           <div>
@@ -305,11 +298,15 @@ export default function Header({
                       Per Step 7 security, role counts query PostgreSQL securely via administrator authorization.
                     </div>
                     <button
-                      onClick={handleAdminQuickAuth}
+                      onClick={() => {
+                        setShowRoleCounts(false);
+                        if (onOpenLogin) onOpenLogin('ADMINISTRATOR');
+                      }}
                       className="btn-gold"
                       style={{ padding: '6px 14px', fontSize: '0.78rem' }}
+                      title="Sign in with Administrator credentials to query PostgreSQL role user counts"
                     >
-                      <Key size={14} /> Authorize as Administrator
+                      <Key size={14} /> Sign In as Administrator
                     </button>
                   </div>
                 ) : roleCountsData ? (
@@ -353,6 +350,7 @@ export default function Header({
             <button
               key={role.id}
               onClick={() => onSelectRole(role.id)}
+              title={`Open ${role.name} Portal (${role.dept || role.desc})`}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -397,34 +395,34 @@ export default function Header({
           <span style={{ color: 'var(--gold-400)', fontWeight: 600, textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em' }}>
             Quick Actions:
           </span>
-          <button onClick={() => onOpenQuickAction('NEW_APPOINTMENT')} className="btn-outline-gold" style={{ padding: '4px 10px', fontSize: '0.75rem' }}>
+          <button onClick={() => onOpenQuickAction('NEW_APPOINTMENT')} className="btn-outline-gold" style={{ padding: '4px 10px', fontSize: '0.75rem' }} title="Schedule a new patient appointment or register an outpatient">
             <PlusCircle size={13} /> New Appointment
           </button>
-          <button onClick={() => onOpenQuickAction('PATIENT_SEARCH')} className="btn-outline-gold" style={{ padding: '4px 10px', fontSize: '0.75rem' }}>
+          <button onClick={() => onOpenQuickAction('PATIENT_SEARCH')} className="btn-outline-gold" style={{ padding: '4px 10px', fontSize: '0.75rem' }} title="Search the Master Patient Index (MPI) and medical folders">
             <Search size={13} /> Patient Search (MPI)
           </button>
-          <button onClick={() => onOpenQuickAction('BED_AVAILABILITY')} className="btn-outline-gold" style={{ padding: '4px 10px', fontSize: '0.75rem' }}>
+          <button onClick={() => onOpenQuickAction('BED_AVAILABILITY')} className="btn-outline-gold" style={{ padding: '4px 10px', fontSize: '0.75rem' }} title="Inspect hospital wards, rooms, and real-time bed occupancy matrix">
             <Bed size={13} /> Bed Availability Matrix
           </button>
-          <button onClick={() => onOpenQuickAction('LAB_REQUESTS')} className="btn-outline-gold" style={{ padding: '4px 10px', fontSize: '0.75rem' }}>
+          <button onClick={() => onOpenQuickAction('LAB_REQUESTS')} className="btn-outline-gold" style={{ padding: '4px 10px', fontSize: '0.75rem' }} title="Open Laboratory Pathology & Diagnostic Test Requests">
             <FlaskConical size={13} /> Lab Requests
           </button>
-          <button onClick={() => onOpenQuickAction('PHARMACY_STOCK')} className="btn-outline-gold" style={{ padding: '4px 10px', fontSize: '0.75rem' }}>
+          <button onClick={() => onOpenQuickAction('PHARMACY_STOCK')} className="btn-outline-gold" style={{ padding: '4px 10px', fontSize: '0.75rem' }} title="Open Pharmacy FEFO Dispensary & Drug Inventory">
             <Pill size={13} /> Pharmacy Stock
           </button>
-          <button onClick={() => onOpenQuickAction('VIEW_REPORTS')} className="btn-outline-gold" style={{ padding: '4px 10px', fontSize: '0.75rem' }}>
+          <button onClick={() => onOpenQuickAction('VIEW_REPORTS')} className="btn-outline-gold" style={{ padding: '4px 10px', fontSize: '0.75rem' }} title="Open full-page Clinical, Operational, Duty & Annual Financial Reports">
             <FileText size={13} /> View Reports
           </button>
-          <button onClick={() => onOpenQuickAction('VIEW_NOTIFICATIONS')} className="btn-outline-gold" style={{ padding: '4px 10px', fontSize: '0.75rem' }}>
+          <button onClick={() => onOpenQuickAction('VIEW_NOTIFICATIONS')} className="btn-outline-gold" style={{ padding: '4px 10px', fontSize: '0.75rem' }} title="Open full-page Hospital Alerts & Dispatched Clinical Notifications">
             <AlertTriangle size={13} /> View Notifications
           </button>
-          <button onClick={() => onOpenQuickAction('VIEW_APPLICATIONS')} className="btn-outline-gold" style={{ padding: '4px 10px', fontSize: '0.75rem' }}>
+          <button onClick={() => onOpenQuickAction('VIEW_APPLICATIONS')} className="btn-outline-gold" style={{ padding: '4px 10px', fontSize: '0.75rem' }} title="Open Staff Account Registrations & Leave Applications">
             <UserCheck size={13} /> View Applications
           </button>
-          <button onClick={() => onOpenQuickAction('VIEW_HOSPITAL_INFORMATION')} className="btn-outline-gold" style={{ padding: '4px 10px', fontSize: '0.75rem' }}>
+          <button onClick={() => onOpenQuickAction('VIEW_HOSPITAL_INFORMATION')} className="btn-outline-gold" style={{ padding: '4px 10px', fontSize: '0.75rem' }} title="Open full-page Hospital Facility Profile, Wards & Operational Summary">
             <Database size={13} /> View Hospital Information
           </button>
-          <button onClick={() => onOpenQuickAction('VIEW_SYSTEM_INFORMATION')} className="btn-outline-gold" style={{ padding: '4px 10px', fontSize: '0.75rem' }}>
+          <button onClick={() => onOpenQuickAction('VIEW_SYSTEM_INFORMATION')} className="btn-outline-gold" style={{ padding: '4px 10px', fontSize: '0.75rem' }} title="Open full-page System Telemetry, PostgreSQL Status & Architecture Info">
             <Activity size={13} /> View System Information
           </button>
         </div>
@@ -500,6 +498,36 @@ export default function Header({
                   onChange={(e) => setMottoInput(e.target.value)}
                   placeholder="Smart Healthcare, Better Care."
                 />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '4px', fontWeight: 600 }}>
+                    Institution Organization Type
+                  </label>
+                  <select
+                    className="input-gold"
+                    value={organizationTypeInput}
+                    onChange={(e) => setOrganizationTypeInput(e.target.value)}
+                  >
+                    <option value="PRIVATE_HOSPITAL">Private Hospital</option>
+                    <option value="GOVERNMENT_HOSPITAL">Government Hospital</option>
+                    <option value="TEACHING_HOSPITAL">Teaching Hospital</option>
+                    <option value="SPECIALIST_CLINIC">Specialist Clinic / Medical Center</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '4px', fontWeight: 600 }}>
+                    Preferred Hospital Logo URL (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    className="input-gold"
+                    value={logoUrlInput}
+                    onChange={(e) => setLogoUrlInput(e.target.value)}
+                    placeholder="/hospital-logo.png or https://..."
+                  />
+                </div>
               </div>
 
               {brandingFeedback && (

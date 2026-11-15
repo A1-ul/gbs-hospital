@@ -224,14 +224,15 @@ async function getNurseTriageQueue(hospitalId, filters = {}) {
  * @param {Object} triageData - Vital signs and clinical observation
  * @param {string} nurseUserId - User ID of the nurse
  */
-async function recordNurseTriage(ticketOrEncounterId, triageData, nurseUserId) {
-    if (!ticketOrEncounterId) {
-        throw new AppError("Ticket ID or Encounter ID is required", 400, "MISSING_IDENTIFIER");
+async function recordNurseTriage(ticketOrEncounterId, triageData = {}, nurseUserId) {
+    const lookupKey = ticketOrEncounterId || triageData.encounterId || triageData.ticketId || triageData.patientId;
+    if (!lookupKey) {
+        throw new AppError("Ticket ID, Encounter ID, or Patient ID is required", 400, "MISSING_IDENTIFIER");
     }
 
     // Locate encounter and ticket
     let ticket = await prisma.opdQueueTicket.findUnique({
-        where: { id: ticketOrEncounterId },
+        where: { id: lookupKey },
         include: { encounter: true, patient: true }
     });
 
@@ -240,7 +241,7 @@ async function recordNurseTriage(ticketOrEncounterId, triageData, nurseUserId) {
         encounter = ticket.encounter;
     } else {
         encounter = await prisma.patientEncounter.findUnique({
-            where: { id: ticketOrEncounterId },
+            where: { id: lookupKey },
             include: { queueTicket: true, patient: true }
         });
         if (encounter) {
@@ -248,24 +249,54 @@ async function recordNurseTriage(ticketOrEncounterId, triageData, nurseUserId) {
         }
     }
 
+    // If lookupKey or triageData.patientId is a Patient ID or MRN, resolve or open an OPD Encounter
+    if (!encounter) {
+        const patientIdentifier = triageData.patientId || lookupKey;
+        const patient = await prisma.patient.findFirst({
+            where: {
+                OR: [{ id: patientIdentifier }, { patientNumber: patientIdentifier }]
+            }
+        });
+        if (patient) {
+            encounter = await prisma.patientEncounter.findFirst({
+                where: { patientId: patient.id, status: { not: "CANCELLED" } },
+                include: { queueTicket: true, patient: true },
+                orderBy: { visitDate: "desc" }
+            });
+            if (!encounter) {
+                encounter = await prisma.patientEncounter.create({
+                    data: {
+                        patientId: patient.id,
+                        hospitalId: patient.hospitalId,
+                        encounterNumber: `ENC-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`,
+                        encounterType: "OUTPATIENT",
+                        status: "WAITING_TRIAGE",
+                        triageStatus: "PENDING",
+                        priority: "ROUTINE"
+                    },
+                    include: { queueTicket: true, patient: true }
+                });
+            }
+            ticket = encounter.queueTicket || null;
+        }
+    }
+
     if (!encounter) {
         throw new AppError("Clinical Encounter or OPD Ticket not found", 404, "ENCOUNTER_NOT_FOUND");
     }
 
-    const {
-        temperature,
-        pulseRate,
-        respiratoryRate,
-        systolicBP,
-        diastolicBP,
-        oxygenSaturation,
-        weight,
-        height,
-        bloodGlucose,
-        painScore,
-        consciousness = "ALERT",
-        triageNotes
-    } = triageData;
+    const temperature = triageData.temperature;
+    const pulseRate = triageData.pulseRate ?? triageData.heartRate;
+    const respiratoryRate = triageData.respiratoryRate;
+    const systolicBP = triageData.systolicBP ?? triageData.systolicBp;
+    const diastolicBP = triageData.diastolicBP ?? triageData.diastolicBp;
+    const oxygenSaturation = triageData.oxygenSaturation ?? triageData.spo2;
+    const weight = triageData.weight ?? triageData.weightKg;
+    const height = triageData.height ?? triageData.heightCm;
+    const bloodGlucose = triageData.bloodGlucose;
+    const painScore = triageData.painScore;
+    const consciousness = triageData.consciousness || "ALERT";
+    const triageNotes = triageData.triageNotes;
 
     // Calculate BMI
     const bmiResult = calculateBMI(Number(weight), Number(height));

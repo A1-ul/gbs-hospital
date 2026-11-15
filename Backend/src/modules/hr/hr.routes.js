@@ -53,4 +53,10 @@ router.post("/leave", controller.requestStaffLeave);
 router.get("/leave", controller.getLeaveRequests);
 router.patch("/leave/:id/adjudicate", controller.adjudicateLeaveRequest);
 
+// Staff Registry & Department Transfers
+router.get("/staff", controller.getHrStaff);
+router.post("/staff", controller.createHrStaff);
+router.get("/transfers", controller.getHrTransfers);
+router.post("/transfers", controller.createHrTransfer);
+
 module.exports = router;

@@ -115,39 +115,49 @@ async function createDatabaseBackup(options = {}, developerUserId = null) {
         "videoCallSession",
         "hospital",
         "hospitalDepartment",
+        "hospitalSetting",
+        "hospitalStaff",
         "patient",
-        "physicalFolder",
+        "medicalFolder",
+        "folderRetrievalRequest",
         "folderMovementLog",
-        "opdQueueItem",
-        "triageRecord",
-        "consultation",
-        "ward",
-        "room",
-        "bed",
-        "inpatientAdmission",
+        "opdQueueTicket",
+        "patientEncounter",
+        "patientVitalSign",
+        "patientConsultation",
+        "patientDiagnosis",
+        "patientPrescription",
+        "patientClinicalNote",
+        "hospitalWard",
+        "hospitalRoom",
+        "hospitalBed",
+        "hospitalAdmission",
         "pharmacyItem",
+        "pharmacyInventory",
         "pharmacyBatch",
-        "prescription",
-        "prescriptionItem",
-        "labTestOrder",
-        "radiologyStudyOrder",
-        "patientInvoice",
-        "invoiceLineItem",
-        "paymentReceipt",
+        "prescriptionDispense",
+        "prescriptionDispenseItem",
+        "laboratoryRequest",
+        "laboratorySample",
+        "laboratoryTestResult",
+        "radiologyOrder",
+        "dicomStudy",
+        "radiologyReport",
+        "patientBill",
+        "billItem",
+        "patientPayment",
+        "insuranceClaim",
         "operatingTheatre",
         "surgicalCase",
-        "ambulanceVehicle",
-        "emergencyDispatch",
+        "ambulance",
+        "ambulanceDispatch",
         "emergencyCase",
         "bloodDonor",
         "bloodUnit",
         "bloodTransfusionRequest",
         "bloodCrossMatch",
         "bloodTransfusionRecord",
-        "mortuaryChamber",
         "corpseRecord",
-        "autopsyCase",
-        "corpseRelease",
         "medicalEquipment",
         "medicalWorkOrder",
         "equipmentCalibration",
@@ -348,18 +358,21 @@ async function restoreDatabaseBackup(filename, developerUserId = null) {
         "user",
         "hospital",
         "hospitalDepartment",
+        "hospitalSetting",
+        "hospitalStaff",
         "tenant",
         "tenantSubscription",
         "patient",
-        "physicalFolder",
-        "ward",
-        "room",
-        "bed",
+        "medicalFolder",
+        "hospitalWard",
+        "hospitalRoom",
+        "hospitalBed",
         "pharmacyItem",
+        "pharmacyInventory",
         "pharmacyBatch",
         "operatingTheatre",
-        "ambulanceVehicle",
-        "mortuaryChamber",
+        "ambulance",
+        "corpseRecord",
         "medicalEquipment",
         "procurementVendor",
         "staffCredential",
@@ -407,21 +420,21 @@ async function getEnvironmentAndDataIdentification() {
     const trackedModules = [
         { key: "tenant", label: "Hospital Tenants & Institutions", module: "TENANT_MANAGEMENT", idField: "tenantId", nameField: "name" },
         { key: "user", label: "System Users & Clinicians", module: "USERS_RBAC", idField: "email", nameField: "firstName" },
-        { key: "patient", label: "Master Patient Index (MPI)", module: "PATIENTS", idField: "mrn", nameField: "firstName" },
-        { key: "physicalFolder", label: "Physical Medical Folders", module: "MEDICAL_RECORDS", idField: "folderNumber", nameField: "shelfLocation" },
-        { key: "opdQueueItem", label: "OPD Queue & Triage", module: "CLINICAL_OPD", idField: "queueNumber", nameField: "status" },
-        { key: "consultation", label: "Doctor Consultations", module: "CLINICAL_OPD", idField: "consultationNumber", nameField: "primaryDiagnosis" },
-        { key: "ward", label: "Inpatient Wards", module: "WARDS_BEDS", idField: "code", nameField: "name" },
-        { key: "bed", label: "Hospital Beds", module: "WARDS_BEDS", idField: "bedNumber", nameField: "status" },
-        { key: "inpatientAdmission", label: "Inpatient Admissions", module: "WARDS_BEDS", idField: "admissionNumber", nameField: "status" },
-        { key: "pharmacyItem", label: "Pharmacy Formulary Catalog", module: "PHARMACY", idField: "itemCode", nameField: "genericName" },
-        { key: "prescription", label: "Clinical Prescriptions", module: "PHARMACY", idField: "prescriptionNumber", nameField: "status" },
-        { key: "labTestOrder", label: "Laboratory & Pathology Orders", module: "LABORATORY", idField: "orderNumber", nameField: "testName" },
-        { key: "radiologyStudyOrder", label: "Radiology & PACS Orders", module: "RADIOLOGY", idField: "orderNumber", nameField: "modality" },
-        { key: "patientInvoice", label: "Patient Billing Invoices", module: "BILLING", idField: "invoiceNumber", nameField: "status" },
+        { key: "patient", label: "Master Patient Index (MPI)", module: "PATIENTS", idField: "patientNumber", nameField: "firstName" },
+        { key: "medicalFolder", label: "Physical Medical Folders", module: "MEDICAL_RECORDS", idField: "folderNumber", nameField: "shelfLocation" },
+        { key: "opdQueueTicket", label: "OPD Queue & Triage", module: "CLINICAL_OPD", idField: "ticketNumber", nameField: "status" },
+        { key: "patientConsultation", label: "Doctor Consultations", module: "CLINICAL_OPD", idField: "consultationType", nameField: "assessment" },
+        { key: "hospitalWard", label: "Inpatient Wards", module: "WARDS_BEDS", idField: "code", nameField: "name" },
+        { key: "hospitalBed", label: "Hospital Beds", module: "WARDS_BEDS", idField: "bedNumber", nameField: "status" },
+        { key: "hospitalAdmission", label: "Inpatient Admissions", module: "WARDS_BEDS", idField: "admissionNumber", nameField: "status" },
+        { key: "pharmacyItem", label: "Pharmacy Formulary Catalog", module: "PHARMACY", idField: "itemCode", nameField: "name" },
+        { key: "patientPrescription", label: "Clinical Prescriptions", module: "PHARMACY", idField: "medicationName", nameField: "status" },
+        { key: "laboratoryRequest", label: "Laboratory & Pathology Orders", module: "LABORATORY", idField: "requestNumber", nameField: "testName" },
+        { key: "radiologyOrder", label: "Radiology & PACS Orders", module: "RADIOLOGY", idField: "accessionNumber", nameField: "modality" },
+        { key: "patientBill", label: "Patient Billing Invoices", module: "BILLING", idField: "billNumber", nameField: "paymentStatus" },
         { key: "surgicalCase", label: "Operating Theatre Surgeries", module: "SURGERY", idField: "caseNumber", nameField: "procedureName" },
-        { key: "ambulanceVehicle", label: "Ambulance Fleet", module: "EMERGENCY_EMS", idField: "vehicleCode", nameField: "registrationPlate" },
-        { key: "emergencyCase", label: "Emergency Trauma Cases", module: "EMERGENCY_EMS", idField: "caseNumber", nameField: "chiefComplaint" },
+        { key: "ambulance", label: "Ambulance Fleet", module: "EMERGENCY_EMS", idField: "vehicleNumber", nameField: "registrationPlate" },
+        { key: "emergencyCase", label: "Emergency Trauma Cases", module: "EMERGENCY_EMS", idField: "caseNumber", nameField: "triageCategory" },
         { key: "bloodDonor", label: "Blood Bank Donors", module: "BLOOD_BANK", idField: "donorNumber", nameField: "fullName" },
         { key: "bloodUnit", label: "Blood Units Inventory", module: "BLOOD_BANK", idField: "unitBarcode", nameField: "bloodGroup" },
         { key: "corpseRecord", label: "Mortuary Records", module: "MORTUARY", idField: "corpseNumber", nameField: "deceasedName" },
@@ -570,54 +583,68 @@ async function purgeDevelopmentTestData(options = {}, developerUserId = null) {
         "equipmentCalibration",
         "medicalWorkOrder",
         "medicalEquipment",
-        "corpseRelease",
-        "autopsyCase",
         "corpseRecord",
-        "mortuaryChamber",
         "bloodTransfusionRecord",
         "bloodCrossMatch",
         "bloodTransfusionRequest",
         "bloodUnit",
         "bloodDonor",
         "emergencyCase",
-        "emergencyDispatch",
-        "ambulanceVehicle",
+        "ambulanceDispatch",
+        "ambulance",
         "pacuRecord",
         "anesthesiaRecord",
         "surgicalChecklist",
         "surgicalCase",
         "operatingTheatre",
         "insuranceClaim",
-        "paymentReceipt",
-        "invoiceLineItem",
-        "patientInvoice",
+        "patientPayment",
+        "billItem",
+        "patientBill",
         "radiologyReport",
-        "radiologyStudyOrder",
-        "labResultItem",
-        "labSample",
-        "labTestOrder",
-        "dispensingLog",
-        "prescriptionItem",
-        "prescription",
+        "dicomStudy",
+        "radiologyOrder",
+        "laboratoryTestResult",
+        "laboratorySample",
+        "laboratoryRequest",
+        "pharmacyStockMovement",
+        "prescriptionDispenseItem",
+        "prescriptionDispense",
+        "patientPrescription",
         "pharmacyBatch",
+        "pharmacyInventory",
         "pharmacyItem",
-        "nursingObservation",
-        "bedTransfer",
-        "inpatientAdmission",
-        "bed",
-        "room",
-        "ward",
-        "consultation",
-        "triageRecord",
-        "opdQueueItem",
+        "nursingRecord",
+        "dischargeRecord",
+        "clinicalWorkflow",
+        "patientDiagnosis",
+        "patientConsultation",
+        "patientVitalSign",
+        "patientClinicalNote",
+        "patientMedication",
+        "patientAllergy",
+        "patientMedicalRecord",
+        "patientProfile",
+        "opdQueueTicket",
+        "patientEncounter",
         "folderMovementLog",
-        "physicalFolder",
+        "folderRetrievalRequest",
+        "medicalFolder",
+        "hospitalPatientLocation",
+        "hospitalAdmission",
+        "hospitalBed",
+        "hospitalRoom",
+        "hospitalWard",
+        "hospitalUnit",
         "patient",
         "videoCallSession",
         "tenantMessage",
         "tenantLocationPing",
         "tenantSubscription",
         "tenant",
+        "hospitalStaff",
+        "hospitalSetting",
+        "hospitalBranch",
         "hospitalDepartment",
         "hospital"
     ];
@@ -698,37 +725,71 @@ async function getGlobalOverviewStats() {
         activeUsers,
         recentAuditLogs,
         recentMessages,
-        safetyAlerts
+        safetyAlerts,
+        opdEncountersToday,
+        dispatchedClinicalNotes
     ] = await Promise.all([
-        safeCount("opdQueueItem"),
-        safeCount("consultation"),
-        safeCount("inpatientAdmission", { status: "ADMITTED" }),
-        safeCount("inpatientAdmission", { status: "DISCHARGED" }),
-        safeCount("bed"),
-        safeCount("bed", { status: "OCCUPIED" }),
+        safeCount("patientEncounter"),
+        safeCount("patientConsultation"),
+        safeCount("hospitalAdmission", { status: "ADMITTED" }),
+        safeCount("hospitalAdmission", { status: "DISCHARGED" }),
+        safeCount("hospitalBed"),
+        safeCount("hospitalBed", { status: "OCCUPIED" }),
         safeCount("operatingTheatre"),
-        safeCount("surgicalCase", { status: { in: ["SCHEDULED", "IN_PROGRESS"] } }),
-        safeCount("surgicalCase", { status: "IN_PROGRESS" }),
+        safeCount("surgicalCase", { status: { in: ["BOOKED", "PRE_OP_CLEARED", "IN_THEATRE", "SURGERY_IN_PROGRESS", "SCHEDULED", "IN_PROGRESS"] } }),
+        safeCount("surgicalCase", { status: { in: ["IN_THEATRE", "SURGERY_IN_PROGRESS", "IN_PROGRESS"] } }),
         safeCount("surgicalCase", { status: "COMPLETED" }),
         safeCount("patient"),
-        safeCount("physicalFolder"),
-        safeCount("prescription"),
-        safeCount("prescription", { status: "PENDING" }),
-        safeCount("labTestOrder"),
-        safeCount("labTestOrder", { status: { in: ["ORDERED", "SAMPLE_COLLECTED", "PROCESSING"] } }),
-        safeCount("radiologyStudyOrder"),
-        safeCount("patientInvoice"),
+        safeCount("medicalFolder"),
+        safeCount("patientPrescription"),
+        safeCount("patientPrescription", { status: { in: ["PENDING", "ACTIVE"] } }),
+        safeCount("laboratoryRequest"),
+        safeCount("laboratoryRequest", { status: { in: ["REQUESTED", "SAMPLE_COLLECTED", "IN_PROGRESS"] } }),
+        safeCount("radiologyOrder"),
+        safeCount("patientBill"),
         safeCount("tenant"),
         safeCount("user", { active: true }),
         safeFindMany("auditLog", { orderBy: { createdAt: "desc" }, take: 15 }),
         safeFindMany("tenantMessage", { orderBy: { createdAt: "desc" }, take: 10 }),
-        safeFindMany("patientSafetyAlert", { where: { broadcastActive: true }, orderBy: { issuedAt: "desc" }, take: 5 })
+        safeFindMany("patientSafetyAlert", { where: { broadcastActive: true }, orderBy: { issuedAt: "desc" }, take: 5 }),
+        safeFindMany("patientEncounter", {
+            include: { patient: true },
+            orderBy: { visitDate: "desc" },
+            take: 50
+        }),
+        safeFindMany("patientClinicalNote", {
+            where: { noteType: { startsWith: "DISPATCH_REPORT" } },
+            include: { patient: true },
+            orderBy: { createdAt: "desc" },
+            take: 15
+        })
     ]);
 
     const occupancyRate =
         totalBeds > 0 ? `${((occupiedBeds / totalBeds) * 100).toFixed(1)}%` : "0.0%";
 
     const facilityBranding = await getFacilityBranding();
+
+    const parsedDispatchedNotifications = dispatchedClinicalNotes.map((n) => {
+        let parsed = {};
+        try {
+            parsed = JSON.parse(n.content || "{}");
+        } catch (_e) { }
+        const patName = n.patient
+            ? `${n.patient.firstName} ${n.patient.lastName} (${n.patient.patientNumber})`
+            : parsed.patientName || "Patient";
+        return {
+            id: n.id,
+            type: "CLINICAL_REPORT_DISPATCH",
+            status: "SENT",
+            targetRole: parsed.targetRole || "SPECIALIST",
+            targetStaffName: parsed.targetStaffName || parsed.targetRole || "Specialist",
+            title: parsed.reportTitle || n.title || `Report Sent to ${parsed.targetRole || "Specialist"}: ${patName}`,
+            message: parsed.summary || n.content,
+            urgency: parsed.urgency || "NORMAL",
+            createdAt: n.createdAt
+        };
+    });
 
     return {
         environment: envConfig.activeEnvironment,
@@ -760,11 +821,28 @@ async function getGlobalOverviewStats() {
             totalTenants,
             activeUsers
         },
+        opdEncountersToday: opdEncountersToday.map((enc) => ({
+            id: enc.id,
+            encounterNumber: enc.encounterNumber,
+            patientId: enc.patientId,
+            mrn: enc.patient?.patientNumber || "N/A",
+            patientName: enc.patient ? `${enc.patient.firstName} ${enc.patient.lastName}` : "Unknown Patient",
+            gender: enc.patient?.gender || "N/A",
+            phone: enc.patient?.phone || "N/A",
+            encounterType: enc.encounterType,
+            status: enc.status,
+            triageStatus: enc.triageStatus,
+            priority: enc.priority,
+            chiefComplaint: enc.chiefComplaint || "OPD Visit",
+            visitDate: enc.visitDate
+        })),
         recentAuditLogs,
         recentNotifications: [
+            ...parsedDispatchedNotifications,
             ...safetyAlerts.map((a) => ({
                 id: a.id,
                 type: "SAFETY_ALERT",
+                status: "ACTIVE",
                 title: a.title,
                 message: a.message,
                 urgency: a.urgencyLevel,
@@ -773,6 +851,7 @@ async function getGlobalOverviewStats() {
             ...recentMessages.map((m) => ({
                 id: m.id,
                 type: "DEVELOPER_MESSAGE",
+                status: "SENT",
                 title: m.title,
                 message: m.message,
                 urgency: m.priority,
@@ -788,6 +867,8 @@ async function getFacilityBranding() {
     ensureBackupDir();
     let customHospitalName = "";
     let facilityTagline = "Smart Healthcare, Better Care.";
+    let logoUrl = "";
+    let organizationType = "GENERAL_HOSPITAL";
     let updatedAt = null;
     let updatedBy = null;
 
@@ -796,9 +877,42 @@ async function getFacilityBranding() {
             const parsed = JSON.parse(fs.readFileSync(BRANDING_FILE, "utf8"));
             if (parsed && typeof parsed.hospitalName === "string") {
                 customHospitalName = parsed.hospitalName.trim();
-                facilityTagline = parsed.facilityTagline || facilityTagline;
+                facilityTagline = parsed.facilityTagline || parsed.motto || facilityTagline;
+                logoUrl = parsed.logoUrl || "";
+                organizationType = parsed.organizationType || organizationType;
                 updatedAt = parsed.updatedAt || null;
                 updatedBy = parsed.updatedBy || null;
+            }
+        }
+    } catch (_e) { }
+
+    // Also synchronize from PostgreSQL HospitalSetting / Hospital if file was empty or not yet initialized
+    try {
+        const hospital = await prisma.hospital.findFirst({
+            orderBy: { updatedAt: "desc" },
+            include: { settings: true }
+        });
+        if (hospital) {
+            const settingRec = (hospital.settings || []).find((s) => s.key === "FACILITY_BRANDING");
+            if (settingRec && settingRec.value) {
+                const dbBranding = JSON.parse(settingRec.value);
+                if (!customHospitalName && dbBranding.hospitalName) {
+                    customHospitalName = dbBranding.hospitalName;
+                }
+                if (dbBranding.facilityTagline || dbBranding.motto) {
+                    facilityTagline = dbBranding.facilityTagline || dbBranding.motto;
+                }
+                if (!logoUrl && dbBranding.logoUrl) {
+                    logoUrl = dbBranding.logoUrl;
+                }
+                if (dbBranding.organizationType) {
+                    organizationType = dbBranding.organizationType;
+                }
+                updatedAt = updatedAt || dbBranding.updatedAt || hospital.updatedAt?.toISOString() || null;
+                updatedBy = updatedBy || dbBranding.updatedBy || null;
+            } else if (!customHospitalName && hospital.name) {
+                customHospitalName = hospital.name;
+                logoUrl = logoUrl || hospital.logo || "";
             }
         }
     } catch (_e) { }
@@ -807,6 +921,9 @@ async function getFacilityBranding() {
         mainSystemName: "GBS HOSPITAL MANAGEMENT SYSTEM",
         hospitalName: customHospitalName,
         facilityTagline,
+        motto: facilityTagline,
+        logoUrl,
+        organizationType,
         updatedAt,
         updatedBy
     };
@@ -819,17 +936,59 @@ async function updateFacilityBranding(data = {}, actorEmail = "Administrator") {
         throw new AppError("Hospital name is required.", 400, "MISSING_HOSPITAL_NAME");
     }
 
+    const tagline =
+        (typeof data.facilityTagline === "string" && data.facilityTagline.trim()) ||
+        (typeof data.motto === "string" && data.motto.trim()) ||
+        "Smart Healthcare, Better Care.";
+    const logoUrl = typeof data.logoUrl === "string" ? data.logoUrl.trim() : "";
+    const organizationType =
+        typeof data.organizationType === "string" && data.organizationType.trim()
+            ? data.organizationType.trim()
+            : "GENERAL_HOSPITAL";
+
     const payload = {
         mainSystemName: "GBS HOSPITAL MANAGEMENT SYSTEM",
         hospitalName: rawName,
-        facilityTagline: typeof data.facilityTagline === "string" && data.facilityTagline.trim()
-            ? data.facilityTagline.trim()
-            : "Smart Healthcare, Better Care.",
+        facilityTagline: tagline,
+        motto: tagline,
+        logoUrl,
+        organizationType,
         updatedBy: actorEmail,
         updatedAt: new Date().toISOString()
     };
 
     fs.writeFileSync(BRANDING_FILE, JSON.stringify(payload, null, 2), "utf8");
+
+    // Persist in PostgreSQL Hospital & HospitalSetting so it survives container restarts
+    try {
+        let hospital = await prisma.hospital.findFirst({ orderBy: { createdAt: "asc" } });
+        if (hospital) {
+            hospital = await prisma.hospital.update({
+                where: { id: hospital.id },
+                data: {
+                    name: rawName,
+                    logo: logoUrl || hospital.logo
+                }
+            });
+            const existingSetting = await prisma.hospitalSetting.findFirst({
+                where: { hospitalId: hospital.id, key: "FACILITY_BRANDING" }
+            });
+            if (existingSetting) {
+                await prisma.hospitalSetting.update({
+                    where: { id: existingSetting.id },
+                    data: { value: JSON.stringify(payload) }
+                });
+            } else {
+                await prisma.hospitalSetting.create({
+                    data: {
+                        hospitalId: hospital.id,
+                        key: "FACILITY_BRANDING",
+                        value: JSON.stringify(payload)
+                    }
+                });
+            }
+        }
+    } catch (_e) { }
 
     try {
         await prisma.auditLog.create({

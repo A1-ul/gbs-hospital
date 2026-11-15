@@ -76,6 +76,12 @@ router.post(
     opdController.recordNurseTriage
 );
 
+router.post(
+    "/vitals",
+    authorizeRoles(...TRIAGE_ROLES),
+    opdController.recordNurseTriage
+);
+
 router.get(
     "/nurse/dashboard",
     authorizeRoles(...TRIAGE_ROLES),
@@ -149,6 +155,30 @@ router.post(
     "/encounters/:id/consultation",
     authorizeRoles(...PHYSICIAN_ROLES),
     consultationController.recordDoctorConsultation
+);
+
+router.post(
+    "/encounters",
+    authorizeRoles(...PHYSICIAN_ROLES),
+    consultationController.recordDoctorConsultation
+);
+
+router.post(
+    "/reports/dispatch",
+    authorizeRoles(...STAFF_ROLES),
+    consultationController.dispatchClinicalReport
+);
+
+router.post(
+    "/reports/duty",
+    authorizeRoles(...STAFF_ROLES),
+    consultationController.createDutyReport
+);
+
+router.get(
+    "/reports",
+    authorizeRoles(...STAFF_ROLES),
+    consultationController.getClinicalAndDutyReports
 );
 
 router.get(

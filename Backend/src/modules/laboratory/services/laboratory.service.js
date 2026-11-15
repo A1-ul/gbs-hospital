@@ -22,28 +22,60 @@ const logger = require("../../../core/utils/logger");
  * @param {Object} requestingUser - Authenticated ordering user
  */
 async function createLabRequest(requestData, requestingUser) {
-    const {
+    let {
         encounterId,
+        patientId,
         testName,
         testCode,
         department,
+        category,
         priority = "ROUTINE",
         clinicalNotes,
         specimenType: explicitSpecimenType
     } = requestData;
 
-    if (!encounterId) {
-        throw new AppError("Clinical Encounter ID is required", 400, "MISSING_ENCOUNTER_ID");
-    }
-
     if (!testName || !testName.trim()) {
         throw new AppError("Laboratory test name is required", 400, "MISSING_TEST_NAME");
     }
 
-    const encounter = await prisma.patientEncounter.findUnique({
-        where: { id: encounterId },
-        include: { patient: true }
-    });
+    let encounter = null;
+    if (encounterId) {
+        encounter = await prisma.patientEncounter.findUnique({
+            where: { id: encounterId },
+            include: { patient: true }
+        });
+    } else if (patientId) {
+        const patient = await prisma.patient.findFirst({
+            where: {
+                OR: [{ id: patientId }, { patientNumber: patientId }]
+            }
+        });
+        if (!patient) {
+            throw new AppError("Patient not found for Laboratory request", 404, "PATIENT_NOT_FOUND");
+        }
+        encounter = await prisma.patientEncounter.findFirst({
+            where: { patientId: patient.id, status: { not: "CANCELLED" } },
+            include: { patient: true },
+            orderBy: { visitDate: "desc" }
+        });
+        if (!encounter) {
+            encounter = await prisma.patientEncounter.create({
+                data: {
+                    patientId: patient.id,
+                    hospitalId: patient.hospitalId,
+                    encounterNumber: `ENC-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`,
+                    encounterType: "OUTPATIENT",
+                    status: "OPEN"
+                },
+                include: { patient: true }
+            });
+        }
+        encounterId = encounter.id;
+    }
+
+    if (!encounterId) {
+        throw new AppError("Clinical Encounter ID or Patient ID is required", 400, "MISSING_ENCOUNTER_ID");
+    }
 
     if (!encounter) {
         throw new AppError("Clinical Encounter not found", 404, "ENCOUNTER_NOT_FOUND");
@@ -51,7 +83,7 @@ async function createLabRequest(requestData, requestingUser) {
 
     // Auto-resolve panel metadata if standard testCode provided
     const panel = testCode ? LAB_PANELS[testCode.trim().toUpperCase()] : null;
-    const resolvedDepartment = department || panel?.department || "General Pathology";
+    const resolvedDepartment = department || category || panel?.department || "General Pathology";
     const resolvedSpecimenType = explicitSpecimenType || panel?.specimenType || "WHOLE_BLOOD";
 
     const requestNumber = await generateLabRequestNumber();

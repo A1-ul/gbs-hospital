@@ -21,7 +21,9 @@ export default function UniversalDetailPage({
   detailState,
   onBack,
   onNavigateDetail,
-  currentRole
+  currentRole,
+  facilityBranding,
+  currentUser
 }) {
   const [loading, setLoading] = useState(false);
   const [liveData, setLiveData] = useState(detailState?.recordData || null);
@@ -30,6 +32,15 @@ export default function UniversalDetailPage({
   const [error, setError] = useState(null);
   const [actionFeedback, setActionFeedback] = useState(null);
   const [detailFilter, setDetailFilter] = useState('');
+  const [reportCategory, setReportCategory] = useState('ALL');
+  const [dutyForm, setDutyForm] = useState({
+    reportTitle: '',
+    department: '',
+    shiftType: 'MORNING_SHIFT',
+    dutiesSummary: '',
+    challengesNoted: ''
+  });
+  const [submittingDuty, setSubmittingDuty] = useState(false);
 
   const detailType = detailState?.detailType || 'VIEW_DETAILS';
   const moduleKey = detailState?.moduleKey || 'OVERVIEW';
@@ -42,7 +53,7 @@ export default function UniversalDetailPage({
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     loadDetailData();
-  }, [detailType, moduleKey, recordId]);
+  }, [detailType, moduleKey, recordId, reportCategory]);
 
   async function loadDetailData() {
     setLoading(true);
@@ -154,18 +165,47 @@ export default function UniversalDetailPage({
           }))
         ]);
       } else if (detailType === 'VIEW_REPORTS') {
-        const overview = await api.getGlobalOverviewStats().catch(() => null);
-        setLiveData(overview?.metrics || {});
-        setExtraRecords(overview?.recentAuditLogs || []);
-      } else if (detailType === 'VIEW_RECORDS') {
-        const overview = await api.getGlobalOverviewStats().catch(() => null);
-        if (!detailState?.recordData) {
-          setLiveData(overview?.metrics || {});
+        if (reportCategory === 'FINANCE_ANNUAL') {
+          const annual = await api.getAnnualFinancialReport().catch(() => null);
+          setLiveData(annual?.executiveSummary || annual || {});
+          setExtraRecords(annual?.ledgerEntries || []);
+        } else {
+          const [overview, reportsRes] = await Promise.all([
+            api.getGlobalOverviewStats().catch(() => null),
+            api.getClinicalReports(reportCategory).catch(() => null)
+          ]);
+          setLiveData({
+            selectedReportCategory: reportCategory,
+            totalReportsReturned: reportsRes?.totalCount ?? 0,
+            ...(overview?.metrics || {})
+          });
+          setExtraRecords(
+            Array.isArray(reportsRes?.reports)
+              ? reportsRes.reports
+              : (overview?.recentAuditLogs || [])
+          );
         }
-        if (Array.isArray(detailState?.recordsList)) {
-          setExtraRecords(detailState.recordsList);
-        } else if (envRes?.tables) {
-          setExtraRecords(envRes.tables);
+      } else if (detailType === 'VIEW_RECORDS') {
+        if (Array.isArray(detailState?.recordData)) {
+          setLiveData({
+            module: moduleKey,
+            totalRecordsLoaded: detailState.recordData.length
+          });
+          setExtraRecords(detailState.recordData);
+        } else {
+          const overview = await api.getGlobalOverviewStats().catch(() => null);
+          if (!detailState?.recordData) {
+            setLiveData(overview?.metrics || {});
+          } else {
+            setLiveData(detailState.recordData);
+          }
+          if (Array.isArray(detailState?.recordData?.encountersToday)) {
+            setExtraRecords(detailState.recordData.encountersToday);
+          } else if (Array.isArray(detailState?.recordsList)) {
+            setExtraRecords(detailState.recordsList);
+          } else if (envRes?.tables) {
+            setExtraRecords(envRes.tables);
+          }
         }
       } else if (detailType === 'VIEW_PROFILE' && recordId && recordId !== 'summary' && !detailState?.recordData) {
         const patient = await api.getPatientById(recordId).catch(() => null);
@@ -194,6 +234,43 @@ export default function UniversalDetailPage({
       await loadDetailData();
     } catch (err) {
       setActionFeedback({ type: 'error', text: err.message });
+    }
+  }
+
+  async function handleSubmitDutyReport(e) {
+    e.preventDefault();
+    if (!dutyForm.dutiesSummary.trim()) return;
+    setSubmittingDuty(true);
+    setActionFeedback(null);
+    try {
+      const staffFullName = currentUser
+        ? `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim()
+        : `${currentRole} Officer`;
+      await api.createDutyReport({
+        role: currentRole || 'STAFF',
+        staffName: staffFullName,
+        department: dutyForm.department || moduleKey,
+        shiftType: dutyForm.shiftType,
+        reportTitle: dutyForm.reportTitle || `${currentRole} Shift Duty Report`,
+        dutiesSummary: dutyForm.dutiesSummary,
+        challengesNoted: dutyForm.challengesNoted
+      });
+      setDutyForm({
+        reportTitle: '',
+        department: '',
+        shiftType: 'MORNING_SHIFT',
+        dutiesSummary: '',
+        challengesNoted: ''
+      });
+      setActionFeedback({
+        type: 'success',
+        text: `Duty report recorded in PostgreSQL for role ${currentRole}.`
+      });
+      await loadDetailData();
+    } catch (err) {
+      setActionFeedback({ type: 'error', text: err.message });
+    } finally {
+      setSubmittingDuty(false);
     }
   }
 
@@ -361,6 +438,138 @@ export default function UniversalDetailPage({
         >
           <AlertTriangle size={16} style={{ display: 'inline', marginRight: '8px' }} />
           {error}
+        </div>
+      )}
+
+      {/* Official Tenant Hospital Letterhead & Main System Branding Banner (Rendered on All Views & Printed Reports) */}
+      <div
+        className="glass-panel"
+        style={{
+          padding: '14px 20px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '12px',
+          border: '1px solid var(--border-gold)',
+          background: 'rgba(12, 10, 8, 0.92)'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <img
+            src={facilityBranding?.logoUrl || '/hospital-logo.png'}
+            alt="Hospital Logo"
+            style={{ width: '44px', height: '44px', borderRadius: '8px', border: '1px solid var(--gold-400)', objectFit: 'cover' }}
+            onError={(e) => { e.target.style.display = 'none'; }}
+          />
+          <div>
+            <div style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--gold-400)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+              {facilityBranding?.mainSystemName || 'GBS HOSPITAL MANAGEMENT SYSTEM'} • Official Report & Dossier Header
+            </div>
+            <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#10b981' }}>
+              🏥 {facilityBranding?.hospitalName || 'GBS Premier Specialist Teaching Hospital'}
+            </div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+              {facilityBranding?.motto || 'Smart Healthcare, Better Care.'} • Institution Type: {facilityBranding?.organizationType || 'PRIVATE_HOSPITAL'}
+            </div>
+          </div>
+        </div>
+        <div style={{ textAlign: 'right', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+          <div>Prepared / Viewed By Role: <strong style={{ color: 'var(--gold-400)' }}>{currentRole}</strong></div>
+          <div>Generated Timestamp: {new Date().toLocaleString()}</div>
+        </div>
+      </div>
+
+      {/* Report Category Selector & Role Duty Report Preparation Panel (Active when viewing Reports) */}
+      {detailType === 'VIEW_REPORTS' && (
+        <div className="glass-panel" style={{ padding: '20px', border: '1px solid var(--gold-400)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '14px' }}>
+            <div>
+              <h3 style={{ margin: 0, fontSize: '1rem', color: 'var(--gold-400)' }}>
+                Select Specific Hospital Report Category
+              </h3>
+              <p style={{ margin: '2px 0 0', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                Choose the specific type of clinical, laboratory, vitals, consultation, financial, or staff duty report to inspect or print
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+              {[
+                { id: 'ALL', label: 'All Reports' },
+                { id: 'LAB_REPORTS', label: 'Laboratory Reports' },
+                { id: 'VITALS_TRIAGE', label: 'Nurse Vitals & Triage' },
+                { id: 'CONSULTATION', label: 'Doctor Consultations' },
+                { id: 'DISPATCHED_REPORTS', label: 'Doctor → Specialist Sent Reports' },
+                { id: 'PHARMACY', label: 'Pharmacy Dispensing' },
+                { id: 'RADIOLOGY', label: 'Radiology & PACS' },
+                { id: 'FINANCE_ANNUAL', label: 'Accountant Annual Financial Wrap' },
+                { id: 'STAFF_DUTY', label: 'Role Duty Reports' }
+              ].map((cat) => (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => setReportCategory(cat.id)}
+                  className={reportCategory === cat.id ? 'btn-gold' : 'btn-outline-gold'}
+                  style={{ padding: '6px 12px', fontSize: '0.75rem' }}
+                  title={`Load ${cat.label} from PostgreSQL`}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmitDutyReport} style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '14px', marginTop: '10px' }}>
+            <div style={{ fontSize: '0.84rem', fontWeight: 700, color: '#fff', marginBottom: '10px' }}>
+              📝 Prepare & Submit Role Duty Report ({currentRole})
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px', marginBottom: '10px' }}>
+              <input
+                type="text"
+                className="input-gold"
+                placeholder="Report Title (e.g. Ward Shift Handover & Duties)"
+                value={dutyForm.reportTitle}
+                onChange={(e) => setDutyForm({ ...dutyForm, reportTitle: e.target.value })}
+                required
+              />
+              <input
+                type="text"
+                className="input-gold"
+                placeholder={`Department (e.g. ${moduleKey})`}
+                value={dutyForm.department}
+                onChange={(e) => setDutyForm({ ...dutyForm, department: e.target.value })}
+              />
+              <select
+                className="input-gold"
+                value={dutyForm.shiftType}
+                onChange={(e) => setDutyForm({ ...dutyForm, shiftType: e.target.value })}
+              >
+                <option value="MORNING_SHIFT">Morning Shift (07:00 - 15:00)</option>
+                <option value="AFTERNOON_SHIFT">Afternoon Shift (15:00 - 23:00)</option>
+                <option value="NIGHT_SHIFT">Night Shift (23:00 - 07:00)</option>
+                <option value="FULL_DAY_DUTY">Full Day / On-Call Duty</option>
+              </select>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr auto', gap: '10px', alignItems: 'center' }}>
+              <input
+                type="text"
+                className="input-gold"
+                placeholder="Detailed summary of duties performed during shift..."
+                value={dutyForm.dutiesSummary}
+                onChange={(e) => setDutyForm({ ...dutyForm, dutiesSummary: e.target.value })}
+                required
+              />
+              <input
+                type="text"
+                className="input-gold"
+                placeholder="Challenges / Escalations (Optional)"
+                value={dutyForm.challengesNoted}
+                onChange={(e) => setDutyForm({ ...dutyForm, challengesNoted: e.target.value })}
+              />
+              <button type="submit" disabled={submittingDuty} className="btn-gold" style={{ padding: '9px 16px', fontSize: '0.8rem' }}>
+                {submittingDuty ? 'Saving...' : 'Submit Duty Report'}
+              </button>
+            </div>
+          </form>
         </div>
       )}
 

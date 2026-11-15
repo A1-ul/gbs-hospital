@@ -111,6 +111,18 @@ router.get(
     controller.getBillingDashboardTelemetry
 );
 
+router.get(
+    "/annual-report",
+    authorizeRoles(...FINANCE_VIEW_ROLES),
+    controller.getAnnualFinancialReport
+);
+
+router.post(
+    "/ledger-entries",
+    authorizeRoles(...CASHIER_ROLES),
+    controller.recordFinancialLedgerEntry
+);
+
 router.post(
     "/tariffs/seed",
     authorizeRoles(...ADMIN_ROLES),

@@ -1,7 +1,10 @@
 {
   "mainSystemName": "GBS HOSPITAL MANAGEMENT SYSTEM",
-  "hospitalName": "Specialist Teaching Hospital",
+  "hospitalName": "GBS Premier Specialist Teaching Hospital",
   "facilityTagline": "Smart Healthcare, Better Care.",
-  "updatedBy": "gabosei48@gmail.com",
-  "updatedAt": "2026-11-07T22:21:31.390Z"
+  "motto": "Smart Healthcare, Better Care.",
+  "logoUrl": "https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?auto=format&fit=crop&w=160&q=80",
+  "organizationType": "Private Hospital",
+  "updatedBy": "Administrator",
+  "updatedAt": "2026-11-15T12:41:53.240Z"
 }

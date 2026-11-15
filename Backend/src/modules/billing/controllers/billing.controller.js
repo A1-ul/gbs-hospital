@@ -143,6 +143,33 @@ async function seedBillingTariffCatalog(req, res, next) {
     }
 }
 
+async function recordFinancialLedgerEntry(req, res, next) {
+    try {
+        const result = await billingService.recordFinancialLedgerEntry(req.body, req.user);
+        res.status(201).json({
+            success: true,
+            message: "Financial general ledger entry recorded successfully",
+            data: result,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+async function getAnnualFinancialReport(req, res, next) {
+    try {
+        const result = await billingService.getAnnualFinancialReport(req.query.year);
+        res.status(200).json({
+            success: true,
+            data: result,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
 module.exports = {
     createBill,
     generateBillFromEncounter,
@@ -152,5 +179,7 @@ module.exports = {
     createInsuranceClaim,
     updateClaimStatus,
     getBillingDashboardTelemetry,
-    seedBillingTariffCatalog
+    seedBillingTariffCatalog,
+    recordFinancialLedgerEntry,
+    getAnnualFinancialReport
 };

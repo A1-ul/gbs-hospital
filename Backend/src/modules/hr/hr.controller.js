@@ -230,6 +230,58 @@ class HrController {
             next(error);
         }
     }
+
+    async getHrStaff(req, res, next) {
+        try {
+            const staff = await hrService.getHrStaff(req.query);
+            return res.status(200).json({
+                success: true,
+                count: staff.length,
+                data: staff
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async createHrStaff(req, res, next) {
+        try {
+            const staff = await hrService.createHrStaff(req.body);
+            return res.status(201).json({
+                success: true,
+                message: `Staff member ${staff.firstName} ${staff.lastName} (${staff.employeeCode}) registered.`,
+                data: staff
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async getHrTransfers(req, res, next) {
+        try {
+            const transfers = await hrService.getHrTransfers();
+            return res.status(200).json({
+                success: true,
+                count: transfers.length,
+                data: transfers
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async createHrTransfer(req, res, next) {
+        try {
+            const transfer = await hrService.createHrTransfer(req.body, req.user);
+            return res.status(201).json({
+                success: true,
+                message: `Staff transfer ${transfer.transferNumber} recorded for ${transfer.staffName}.`,
+                data: transfer
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
 }
 
 module.exports = new HrController();

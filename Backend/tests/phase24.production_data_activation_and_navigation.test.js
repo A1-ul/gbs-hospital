@@ -11,8 +11,8 @@ describe('Phase 24 — Production Data Activation, Environment Identification, B
     const loginRes = await request(app)
       .post('/api/v1/auth/login')
       .send({
-        email: 'developer@gbs.com',
-        password: 'Admin123'
+        email: 'gabosei48@gmail.com',
+        password: '0543294615Gab'
       });
     expect(loginRes.status).toBe(200);
     devToken = loginRes.body.data.token;
@@ -105,7 +105,7 @@ describe('Phase 24 — Production Data Activation, Environment Identification, B
     expect(adminUserAfter).not.toBeNull();
   });
 
-  test('8. Permanent Root Developer (gabosei48@gmail.com) authenticates and unauthorized DEVELOPER signup is blocked', async () => {
+  test('8. Permanent Root Developer (gabosei48@gmail.com) authenticates ONLY with 0543294615Gab and unauthorized DEVELOPER signup is blocked', async () => {
     const rootLogin = await request(app)
       .post('/api/v1/auth/login')
       .send({
@@ -115,6 +115,14 @@ describe('Phase 24 — Production Data Activation, Environment Identification, B
     expect(rootLogin.statusCode).toBe(200);
     expect(rootLogin.body.data.user.email).toBe('gabosei48@gmail.com');
     expect(rootLogin.body.data.user.role).toBe('DEVELOPER');
+
+    const badPassLogin = await request(app)
+      .post('/api/v1/auth/login')
+      .send({
+        email: 'gabosei48@gmail.com',
+        password: 'Admin123'
+      });
+    expect(badPassLogin.statusCode).toBe(401);
 
     const unauthorizedDevSignup = await request(app)
       .post('/api/v1/auth/signup')
@@ -128,17 +136,20 @@ describe('Phase 24 — Production Data Activation, Environment Identification, B
     expect(unauthorizedDevSignup.statusCode).toBe(403);
   });
 
-  test('9. Admin can change preferred Hospital Facility Name while Main System Name remains locked to GBS HOSPITAL MANAGEMENT SYSTEM', async () => {
+  test('9. Admin can change preferred Hospital Facility Name, Logo & Organization Type while Main System Name remains locked to GBS HOSPITAL MANAGEMENT SYSTEM', async () => {
     const updateRes = await request(app)
       .put('/api/v1/health/facility-branding')
       .send({
         hospitalName: 'GBS Premier Specialist Teaching Hospital',
         motto: 'Smart Healthcare, Better Care.',
+        logoUrl: 'https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?auto=format&fit=crop&w=160&q=80',
+        organizationType: 'Private Hospital',
         mainSystemName: 'ATTEMPTED_OVERRIDE_IGNORED'
       });
     expect(updateRes.statusCode).toBe(200);
     const data = updateRes.body.data || updateRes.body;
     expect(data.hospitalName).toBe('GBS Premier Specialist Teaching Hospital');
+    expect(data.organizationType).toBe('Private Hospital');
     expect(data.mainSystemName).toBe('GBS HOSPITAL MANAGEMENT SYSTEM');
 
     const getRes = await request(app).get('/api/v1/health/facility-branding');
@@ -151,5 +162,58 @@ describe('Phase 24 — Production Data Activation, Environment Identification, B
     const res = await request(app).get('/module/PATIENT_MPI/detail/PROFILE/MPI_REGISTRY');
     expect(res.statusCode).toBe(200);
     expect(res.headers['content-type']).toMatch(/html/);
+  });
+
+  test('11. Clinical Report Dispatch, Role Duty Reports, Bed Matrix, Annual Financial Wrap & HR Staff/Transfers operate against PostgreSQL', async () => {
+    const dispatchRes = await request(app)
+      .post('/api/v1/clinical/reports/dispatch')
+      .set('Authorization', `Bearer ${devToken}`)
+      .send({
+        patientName: 'Kwame Boateng',
+        targetRole: 'LAB_TECHNICIAN',
+        reportCategory: 'LAB_INVESTIGATION_REPORT',
+        title: 'Urgent Hematology & Electrolyte Panel Follow-Up',
+        findingsSummary: 'Requesting immediate review of serum potassium and hemoglobin.'
+      });
+    expect(dispatchRes.statusCode).toBe(201);
+    expect(dispatchRes.body.data.status).toBe('SENT');
+
+    const dutyRes = await request(app)
+      .post('/api/v1/clinical/reports/duty')
+      .set('Authorization', `Bearer ${devToken}`)
+      .send({
+        role: 'DOCTOR',
+        staffName: 'Dr. Mensah',
+        department: 'OPD',
+        shiftType: 'MORNING',
+        dutiesSummary: 'Completed 14 outpatient consultations and 3 emergency referrals.'
+      });
+    expect(dutyRes.statusCode).toBe(201);
+
+    const matrixRes = await request(app)
+      .get('/api/v1/beds/matrix')
+      .set('Authorization', `Bearer ${devToken}`);
+    expect(matrixRes.statusCode).toBe(200);
+    expect(Array.isArray(matrixRes.body.data)).toBe(true);
+    expect(matrixRes.body.totals).toBeDefined();
+
+    const annualRes = await request(app)
+      .get('/api/v1/billing/annual-report')
+      .set('Authorization', `Bearer ${devToken}`);
+    expect(annualRes.statusCode).toBe(200);
+    expect(annualRes.body.data.executiveSummary).toBeDefined();
+    expect(annualRes.body.data.expandableBreakdown).toBeDefined();
+
+    const hrStaffRes = await request(app)
+      .get('/api/v1/hr/staff')
+      .set('Authorization', `Bearer ${devToken}`);
+    expect(hrStaffRes.statusCode).toBe(200);
+    expect(Array.isArray(hrStaffRes.body.data)).toBe(true);
+
+    const hrTransRes = await request(app)
+      .get('/api/v1/hr/transfers')
+      .set('Authorization', `Bearer ${devToken}`);
+    expect(hrTransRes.statusCode).toBe(200);
+    expect(Array.isArray(hrTransRes.body.data)).toBe(true);
   });
 });

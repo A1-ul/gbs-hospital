@@ -373,6 +373,29 @@ export function ClinicalCareView() {
   const [radForm, setRadForm] = useState({ patientId: '', modality: 'XRAY', bodyPart: 'Chest PA', clinicalIndication: '' });
   const [invoiceForm, setInvoiceForm] = useState({ patientId: '', description: 'Outpatient Consultation', amount: 150, paymentMethod: 'CASH' });
 
+  // Doctor -> Send Patient Report to Specialist / Staff State
+  const [dispatchForm, setDispatchForm] = useState({
+    patientId: '',
+    recipientRole: 'LAB_TECHNICIAN',
+    recipientName: '',
+    reportType: 'CONSULTATION_SUMMARY',
+    priority: 'URGENT',
+    clinicalSummary: ''
+  });
+  const [dispatchedReports, setDispatchedReports] = useState([]);
+
+  // Accountant Annual Financial Wrap & Ledger Entry State
+  const [annualReport, setAnnualReport] = useState(null);
+  const [expandedFinanceCategory, setExpandedFinanceCategory] = useState(null);
+  const [ledgerEntryForm, setLedgerEntryForm] = useState({
+    category: 'SALARIES_PAID',
+    title: '',
+    amountGhs: '',
+    beneficiaryOrSource: '',
+    paymentMethod: 'BANK_TRANSFER',
+    notes: ''
+  });
+
   const loadClinicalTelemetry = () => {
     Promise.all([
       api.getNurseStats().catch(() => null),
@@ -382,8 +405,10 @@ export function ClinicalCareView() {
       api.getBillingStats().catch(() => null),
       api.getLabRequests().catch(() => ({ requests: [] })),
       api.getRadiologyOrders().catch(() => ({ orders: [] })),
-      api.getBills().catch(() => ({ invoices: [] }))
-    ]).then(([nStats, dStats, lStats, rStats, bStats, lReqs, rOrds, bInvs]) => {
+      api.getBills().catch(() => ({ invoices: [] })),
+      api.getClinicalReports('DISPATCHED_REPORTS').catch(() => ({ reports: [] })),
+      api.getAnnualFinancialReport().catch(() => null)
+    ]).then(([nStats, dStats, lStats, rStats, bStats, lReqs, rOrds, bInvs, dispRes, annRes]) => {
       setStats(nStats);
       setDoctorStats(dStats);
       setLabStats(lStats);
@@ -392,6 +417,8 @@ export function ClinicalCareView() {
       setLabRequests(lReqs?.requests || lReqs?.items || (Array.isArray(lReqs) ? lReqs : []));
       setRadOrders(rOrds?.orders || rOrds?.items || (Array.isArray(rOrds) ? rOrds : []));
       setInvoices(bInvs?.invoices || bInvs?.items || (Array.isArray(bInvs) ? bInvs : []));
+      setDispatchedReports(Array.isArray(dispRes?.reports) ? dispRes.reports : []);
+      if (annRes) setAnnualReport(annRes);
     });
   };
 
@@ -474,6 +501,41 @@ export function ClinicalCareView() {
         items: [{ description: invoiceForm.description, quantity: 1, unitPrice: Number(invoiceForm.amount) }]
       });
       setFeedback({ type: 'success', msg: 'Patient Invoice generated in Hospital Revenue Ledger.' });
+      loadClinicalTelemetry();
+    } catch (err) {
+      setFeedback({ type: 'error', msg: err.message });
+    }
+  };
+
+  const handleDispatchClinicalReport = async (e) => {
+    e.preventDefault();
+    setFeedback(null);
+    try {
+      const res = await api.dispatchClinicalReport(dispatchForm);
+      setFeedback({
+        type: 'success',
+        msg: `Patient Report SENT (${res.notificationStatus || 'SENT'}) to ${dispatchForm.recipientRole} (${dispatchForm.recipientName || 'Department Queue'}).`
+      });
+      setDispatchForm({ ...dispatchForm, clinicalSummary: '' });
+      loadClinicalTelemetry();
+    } catch (err) {
+      setFeedback({ type: 'error', msg: err.message });
+    }
+  };
+
+  const handleRecordLedgerEntry = async (e) => {
+    e.preventDefault();
+    setFeedback(null);
+    try {
+      await api.recordFinancialLedgerEntry({
+        ...ledgerEntryForm,
+        amountGhs: Number(ledgerEntryForm.amountGhs)
+      });
+      setFeedback({
+        type: 'success',
+        msg: `Financial ledger entry (${ledgerEntryForm.category} — GHS ${ledgerEntryForm.amountGhs}) recorded in Annual Hospital Ledger.`
+      });
+      setLedgerEntryForm({ ...ledgerEntryForm, title: '', amountGhs: '', beneficiaryOrSource: '', notes: '' });
       loadClinicalTelemetry();
     } catch (err) {
       setFeedback({ type: 'error', msg: err.message });
@@ -655,6 +717,97 @@ export function ClinicalCareView() {
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
               <button type="submit" className="btn-gold">Save Consultation Encounter</button>
             </div>
+          </div>
+
+          {/* Doctor -> Send Patient Report to Selected Specialist / Staff with SENT Notification Status */}
+          <div style={{ marginTop: '24px', paddingTop: '18px', borderTop: '1px solid var(--border-gold)' }}>
+            <h4 style={{ fontSize: '0.95rem', color: 'var(--gold-400)', marginBottom: '8px' }}>
+              📤 Dispatch Patient Report to Specialist / Hospital Staff (Real-Time Notification Status: SENT)
+            </h4>
+            <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
+              Select the target specialist or department staff (Laboratory, Pharmacy, Radiology, Dentist, Ophthalmologist, Surgeon, Nurse, or Accountant) to transmit this patient's clinical report with live <code>SENT</code> notification confirmation.
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px', marginBottom: '10px' }}>
+              <input
+                type="text"
+                placeholder="Patient ID or MRN *"
+                value={dispatchForm.patientId}
+                onChange={(e) => setDispatchForm({ ...dispatchForm, patientId: e.target.value })}
+                style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
+              />
+              <select
+                value={dispatchForm.recipientRole}
+                onChange={(e) => setDispatchForm({ ...dispatchForm, recipientRole: e.target.value })}
+                style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px' }}
+                title="Select target specialist or staff role to receive this patient report"
+              >
+                <option value="LAB_TECHNICIAN">Lab Scientist (Laboratory)</option>
+                <option value="PHARMACIST">Pharmacist (Dispensary)</option>
+                <option value="RADIOLOGIST">Radiologist (PACS / Imaging)</option>
+                <option value="DENTIST">Dentist (Maxillofacial Clinic)</option>
+                <option value="EYE_DOCTOR">Ophthalmologist (Eye Clinic)</option>
+                <option value="SURGEON">Surgeon (Operating Theatre)</option>
+                <option value="NURSE">Nurse (Inpatient Ward / Triage)</option>
+                <option value="ACCOUNTANT">Accountant (Billing & NHIA)</option>
+                <option value="HOSPITAL_DIRECTOR">Hospital Director</option>
+              </select>
+              <input
+                type="text"
+                placeholder="Specific Staff Name (Optional)"
+                value={dispatchForm.recipientName}
+                onChange={(e) => setDispatchForm({ ...dispatchForm, recipientName: e.target.value })}
+                style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
+              />
+              <select
+                value={dispatchForm.reportType}
+                onChange={(e) => setDispatchForm({ ...dispatchForm, reportType: e.target.value })}
+                style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
+              >
+                <option value="CONSULTATION_SUMMARY">Consultation & Diagnosis Report</option>
+                <option value="LAB_RESULTS">Laboratory Investigation Report</option>
+                <option value="VITALS_REPORT">Patient Vitals & NEWS2 Report</option>
+                <option value="RADIOLOGY_REFERRAL">Radiology Imaging Referral</option>
+                <option value="PRESCRIPTION_ORDER">Medication Prescription Directives</option>
+              </select>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '10px', alignItems: 'center' }}>
+              <input
+                type="text"
+                placeholder="Enter clinical findings, instructions, or specialist referral notes to dispatch..."
+                value={dispatchForm.clinicalSummary}
+                onChange={(e) => setDispatchForm({ ...dispatchForm, clinicalSummary: e.target.value })}
+                style={{ padding: '9px 12px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
+              />
+              <button
+                type="button"
+                onClick={handleDispatchClinicalReport}
+                className="btn-gold"
+                title="Dispatch patient report to selected specialist/staff and record SENT notification in PostgreSQL"
+              >
+                Send Patient Report →
+              </button>
+            </div>
+
+            {dispatchedReports.length > 0 && (
+              <div style={{ marginTop: '14px' }}>
+                <div style={{ fontSize: '0.78rem', color: 'var(--gold-400)', fontWeight: 700, marginBottom: '6px' }}>
+                  Recently Dispatched Patient Reports ({dispatchedReports.length})
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {dispatchedReports.slice(0, 4).map((rep) => (
+                    <div key={rep.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: 'rgba(0,0,0,0.45)', borderRadius: '6px', fontSize: '0.78rem' }}>
+                      <div>
+                        <strong style={{ color: '#fff' }}>{rep.title}</strong>
+                        <div style={{ color: 'var(--text-muted)', fontSize: '0.73rem' }}>{rep.summary}</div>
+                      </div>
+                      <span style={{ padding: '2px 8px', borderRadius: '4px', background: 'rgba(16,185,129,0.2)', border: '1px solid #10b981', color: '#6ee7b7', fontWeight: 700, fontSize: '0.7rem' }}>
+                        ✓ {rep.status || 'SENT'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </form>
       )}
@@ -845,6 +998,132 @@ export function ClinicalCareView() {
               <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-dim)' }}>No records available.</div>
             )}
           </div>
+
+          {/* Accountant Year-End / Annual Financial Report Wrapping & Expandable Category Breakdown */}
+          <div className="glass-panel" style={{ padding: '20px', border: '1px solid var(--border-gold)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
+              <div>
+                <h3 style={{ fontSize: '1.05rem', color: 'var(--gold-400)', margin: 0 }}>
+                  📊 Accountant Year-End Financial Wrap & Expandable Ledger Breakdown ({annualReport?.fiscalYear || new Date().getFullYear()})
+                </h3>
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '2px 0 0' }}>
+                  Click any annual financial category card below to expand and inspect detailed salaries paid, SSNIT contributions, donations received, new patients registered, and patient payments.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
+                  detailType: 'REPORTS',
+                  recordId: 'FINANCE_ANNUAL',
+                  title: `Annual Hospital Financial Wrap Report (${annualReport?.fiscalYear || new Date().getFullYear()})`,
+                  payload: annualReport?.executiveSummary || {}
+                })}
+                className="btn-gold"
+                style={{ padding: '6px 12px', fontSize: '0.76rem' }}
+              >
+                Open Full-Page Annual Report →
+              </button>
+            </div>
+
+            {/* Record Financial Ledger Entry Form (Salaries, SSNIT, Donations, Operational Expenses) */}
+            <form onSubmit={handleRecordLedgerEntry} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '8px', marginBottom: '16px', padding: '12px', background: 'rgba(0,0,0,0.4)', borderRadius: '6px' }}>
+              <select
+                value={ledgerEntryForm.category}
+                onChange={(e) => setLedgerEntryForm({ ...ledgerEntryForm, category: e.target.value })}
+                style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px', fontSize: '0.8rem' }}
+              >
+                <option value="SALARIES_PAID">Staff Salaries Paid</option>
+                <option value="SSNIT_PAID">SSNIT Tier 1/2 Paid</option>
+                <option value="DONATIONS_RECEIVED">Donations / Grants Received</option>
+                <option value="OPERATIONAL_EXPENSE">Operational Expense</option>
+              </select>
+              <input
+                required
+                type="text"
+                placeholder="Entry Title (e.g. Monthly Nursing Payroll)"
+                value={ledgerEntryForm.title}
+                onChange={(e) => setLedgerEntryForm({ ...ledgerEntryForm, title: e.target.value })}
+                style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px', fontSize: '0.8rem' }}
+              />
+              <input
+                required
+                type="number"
+                placeholder="Amount (GHS) *"
+                value={ledgerEntryForm.amountGhs}
+                onChange={(e) => setLedgerEntryForm({ ...ledgerEntryForm, amountGhs: e.target.value })}
+                style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px', fontSize: '0.8rem' }}
+              />
+              <input
+                type="text"
+                placeholder="Beneficiary / Donor Name"
+                value={ledgerEntryForm.beneficiaryOrSource}
+                onChange={(e) => setLedgerEntryForm({ ...ledgerEntryForm, beneficiaryOrSource: e.target.value })}
+                style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px', fontSize: '0.8rem' }}
+              />
+              <button type="submit" className="btn-gold" style={{ fontSize: '0.78rem' }}>
+                + Record in Annual Ledger
+              </button>
+            </form>
+
+            {/* Expandable Annual Breakdown Cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '10px' }}>
+              {[
+                { key: 'salariesPaid', label: 'Staff Salaries Paid', val: `GHS ${(annualReport?.executiveSummary?.totalSalariesPaidGhs ?? 0).toLocaleString()}`, color: '#fca5a5' },
+                { key: 'ssnitPaid', label: 'SSNIT Contributions Paid', val: `GHS ${(annualReport?.executiveSummary?.totalSsnitPaidGhs ?? 0).toLocaleString()}`, color: '#fcd34d' },
+                { key: 'donationsReceived', label: 'Donations & Grants', val: `GHS ${(annualReport?.executiveSummary?.totalDonationsReceivedGhs ?? 0).toLocaleString()}`, color: '#6ee7b7' },
+                { key: 'patientPayments', label: 'Patient Revenue Collected', val: `GHS ${(annualReport?.executiveSummary?.totalPatientRevenueCollectedGhs ?? 0).toLocaleString()}`, color: 'var(--gold-400)' },
+                { key: 'newPatientsRegistered', label: 'New Patients Registered', val: `${annualReport?.executiveSummary?.newPatientsRegisteredCount ?? 0} Patients`, color: '#7dd3fc' },
+                { key: 'procurementOrders', label: 'Procurement Expenditure', val: `GHS ${(annualReport?.executiveSummary?.totalProcurementCommittedGhs ?? 0).toLocaleString()}`, color: '#d8b4fe' }
+              ].map((card) => {
+                const isExp = expandedFinanceCategory === card.key;
+                const items = annualReport?.expandableBreakdown?.[card.key] || [];
+                return (
+                  <div
+                    key={card.key}
+                    onClick={() => setExpandedFinanceCategory(isExp ? null : card.key)}
+                    style={{
+                      padding: '12px',
+                      background: isExp ? 'rgba(212,175,55,0.14)' : 'rgba(0,0,0,0.45)',
+                      border: isExp ? '1px solid var(--gold-400)' : '1px solid var(--border-subtle)',
+                      borderRadius: '6px',
+                      cursor: 'pointer'
+                    }}
+                    title={`Click to ${isExp ? 'collapse' : 'expand'} ${card.label} records`}
+                  >
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>{card.label}</div>
+                    <div style={{ fontSize: '1.15rem', fontWeight: 800, color: card.color, marginTop: '4px' }}>{card.val}</div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--gold-300)', marginTop: '4px' }}>
+                      {items.length} entries • {isExp ? 'Click to Collapse ▲' : 'Click to Expand ▼'}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {expandedFinanceCategory && (
+              <div style={{ marginTop: '14px', padding: '14px', background: 'rgba(0,0,0,0.55)', borderRadius: '6px', border: '1px solid var(--border-gold)' }}>
+                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--gold-400)', marginBottom: '8px' }}>
+                  Expanded Annual Category Details: {expandedFinanceCategory} ({(annualReport?.expandableBreakdown?.[expandedFinanceCategory] || []).length} records)
+                </div>
+                {(annualReport?.expandableBreakdown?.[expandedFinanceCategory] || []).length === 0 ? (
+                  <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>No records available in this category for the current fiscal year.</div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '220px', overflowY: 'auto' }}>
+                    {(annualReport?.expandableBreakdown?.[expandedFinanceCategory] || []).map((entry, idx) => (
+                      <div key={entry.id || idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: '4px', fontSize: '0.78rem' }}>
+                        <span style={{ color: '#fff', fontWeight: 600 }}>
+                          {entry.title || entry.fullName || entry.poNumber || entry.receiptNumber || entry.id}
+                        </span>
+                        <span style={{ color: 'var(--gold-300)', fontFamily: 'var(--font-mono)' }}>
+                          {entry.amountGhs !== undefined ? `GHS ${entry.amountGhs}` : entry.amount !== undefined ? `GHS ${entry.amount}` : entry.totalAmount !== undefined ? `GHS ${entry.totalAmount}` : entry.mrn || ''}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
@@ -857,10 +1136,19 @@ export function ClinicalCareView() {
 export function InpatientWardsView() {
   const [stats, setStats] = useState(null);
   const [wards, setWards] = useState([]);
+  const [rooms, setRooms] = useState([]);
+  const [beds, setBeds] = useState([]);
   const [admissions, setAdmissions] = useState([]);
   const [feedback, setFeedback] = useState(null);
   const [showWardModal, setShowWardModal] = useState(false);
   const [wardForm, setWardForm] = useState({ name: '', wardType: 'GENERAL', floor: '1st Floor', capacity: 10 });
+  const [admitForm, setAdmitForm] = useState({
+    patientId: '',
+    bedId: '',
+    admissionReason: '',
+    admissionDate: new Date().toISOString().slice(0, 10),
+    expectedDischargeDate: new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10)
+  });
 
   const loadWardData = () => {
     Promise.all([
@@ -868,8 +1156,10 @@ export function InpatientWardsView() {
       api.getBedMatrix().catch(() => null),
       api.getActiveAdmissions().catch(() => null)
     ]).then(([s, b, a]) => {
-      setStats(s);
-      setWards(b?.wards || b?.beds || (Array.isArray(b) ? b : []));
+      setStats(s || b?.summary || null);
+      setWards(b?.wards || (Array.isArray(b) ? b : []));
+      setRooms(b?.rooms || []);
+      setBeds(b?.beds || []);
       setAdmissions(a?.admissions || (Array.isArray(a) ? a : []));
     });
   };
@@ -885,6 +1175,41 @@ export function InpatientWardsView() {
       await api.createWard(wardForm);
       setFeedback({ type: 'success', msg: `Ward "${wardForm.name}" created in PostgreSQL.` });
       setShowWardModal(false);
+      loadWardData();
+    } catch (err) {
+      setFeedback({ type: 'error', msg: err.message });
+    }
+  };
+
+  const handleAdmitPatient = async (e) => {
+    e.preventDefault();
+    setFeedback(null);
+    try {
+      await api.admitPatient(admitForm);
+      setFeedback({
+        type: 'success',
+        msg: `Patient (${admitForm.patientId}) admitted to bed (${admitForm.bedId}) with expected discharge ${admitForm.expectedDischargeDate}.`
+      });
+      setAdmitForm({ ...admitForm, patientId: '', admissionReason: '' });
+      loadWardData();
+    } catch (err) {
+      setFeedback({ type: 'error', msg: err.message });
+    }
+  };
+
+  const handleExtendStay = async (admission) => {
+    setFeedback(null);
+    try {
+      const baseDate = admission.expectedDischargeDate ? new Date(admission.expectedDischargeDate) : new Date();
+      const extendedDate = new Date(baseDate.getTime() + 3 * 86400000).toISOString().slice(0, 10);
+      await api.extendAdmissionStay(admission.id, {
+        newExpectedDischargeDate: extendedDate,
+        extensionReason: 'Continued inpatient clinical monitoring & treatment'
+      });
+      setFeedback({
+        type: 'success',
+        msg: `Extended inpatient stay for admission ${admission.id.slice(0, 8)} to ${extendedDate}.`
+      });
       loadWardData();
     } catch (err) {
       setFeedback({ type: 'error', msg: err.message });
@@ -955,6 +1280,99 @@ export function InpatientWardsView() {
         </div>
       </div>
 
+      {/* Admit Patient to Specific Room & Bed Form + Rooms Holding Available Beds Matrix */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        <form onSubmit={handleAdmitPatient} className="glass-panel" style={{ padding: '18px' }}>
+          <h3 style={{ fontSize: '0.95rem', color: 'var(--gold-400)', marginBottom: '10px' }}>
+            🛏️ Admit Patient to Ward, Room & Bed (Record Admission & Discharge Dates)
+          </h3>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+            <div>
+              <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Patient ID or MRN *</label>
+              <input
+                required
+                type="text"
+                placeholder="e.g. MRN-2026-0001"
+                value={admitForm.patientId}
+                onChange={(e) => setAdmitForm({ ...admitForm, patientId: e.target.value })}
+                style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Select Available Room & Bed *</label>
+              <select
+                required
+                value={admitForm.bedId}
+                onChange={(e) => setAdmitForm({ ...admitForm, bedId: e.target.value })}
+                style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px' }}
+              >
+                <option value="">-- Choose Room & Available Bed --</option>
+                {beds
+                  .filter((b) => b.status === 'AVAILABLE')
+                  .map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.wardName} • {b.roomName || 'General Room'} • Bed {b.bedNumber}
+                    </option>
+                  ))}
+              </select>
+            </div>
+            <div>
+              <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Admission Date *</label>
+              <input
+                required
+                type="date"
+                value={admitForm.admissionDate}
+                onChange={(e) => setAdmitForm({ ...admitForm, admissionDate: e.target.value })}
+                style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Expected Discharge Date *</label>
+              <input
+                required
+                type="date"
+                value={admitForm.expectedDischargeDate}
+                onChange={(e) => setAdmitForm({ ...admitForm, expectedDischargeDate: e.target.value })}
+                style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
+              />
+            </div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '10px' }}>
+            <input
+              required
+              type="text"
+              placeholder="Clinical Admission Reason / Diagnosis *"
+              value={admitForm.admissionReason}
+              onChange={(e) => setAdmitForm({ ...admitForm, admissionReason: e.target.value })}
+              style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
+            />
+            <button type="submit" className="btn-gold">Admit to Bed</button>
+          </div>
+        </form>
+
+        <div className="glass-panel" style={{ padding: '18px', overflowY: 'auto', maxHeight: '260px' }}>
+          <h3 style={{ fontSize: '0.95rem', color: 'var(--gold-400)', marginBottom: '10px' }}>
+            🏥 Hospital Rooms Holding Available Beds ({rooms.length} Rooms)
+          </h3>
+          {rooms.length === 0 ? (
+            <div style={{ color: 'var(--text-dim)', fontSize: '0.82rem' }}>No rooms configured yet.</div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px' }}>
+              {rooms.map((rm) => (
+                <div key={rm.id} style={{ padding: '10px', background: 'rgba(0,0,0,0.45)', borderRadius: '6px', border: '1px solid var(--border-subtle)', fontSize: '0.78rem' }}>
+                  <div style={{ fontWeight: 700, color: '#fff' }}>{rm.roomName || rm.roomNumber}</div>
+                  <div style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>Ward: {rm.wardName}</div>
+                  <div style={{ marginTop: '4px', display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#6ee7b7', fontWeight: 700 }}>Available: {rm.availableBedsInRoom ?? 0}</span>
+                    <span style={{ color: 'var(--gold-300)' }}>Total: {rm.totalBedsInRoom ?? 0} Beds</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
       <div className="glass-panel" style={{ padding: '16px', overflowX: 'auto' }}>
         <h3 style={{ fontSize: '0.95rem', color: 'var(--gold-400)', marginBottom: '12px' }}>Active Inpatient Admissions ({admissions.length})</h3>
         {admissions.length > 0 ? (
@@ -963,9 +1381,10 @@ export function InpatientWardsView() {
               <tr>
                 <th>Admission ID</th>
                 <th>Patient</th>
-                <th>Bed</th>
+                <th>Ward / Room / Bed #</th>
+                <th>Admitted Date</th>
+                <th>Expected Discharge / Extension</th>
                 <th>Status</th>
-                <th>Admitted At</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -973,23 +1392,39 @@ export function InpatientWardsView() {
               {admissions.map(adm => (
                 <tr key={adm.id}>
                   <td style={{ fontFamily: 'var(--font-mono)' }}>{adm.id?.slice(0, 8)}</td>
-                  <td>{adm.patient ? `${adm.patient.firstName} ${adm.patient.lastName}` : adm.patientId}</td>
-                  <td>{adm.bed?.bedNumber || adm.bedId}</td>
-                  <td>{adm.status}</td>
-                  <td>{adm.admissionDate ? new Date(adm.admissionDate).toLocaleString() : '—'}</td>
+                  <td>{adm.patient ? `${adm.patient.firstName} ${adm.patient.lastName} (${adm.patient.patientNumber || ''})` : adm.patientId}</td>
                   <td>
-                    <button
-                      onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
-                        detailType: 'DETAILS',
-                        recordId: adm.id,
-                        title: `Inpatient Admission Details — ${adm.id}`,
-                        payload: adm
-                      })}
-                      className="btn-outline-gold"
-                      style={{ padding: '4px 8px', fontSize: '0.72rem' }}
-                    >
-                      View Details
-                    </button>
+                    <strong style={{ color: 'var(--gold-300)' }}>
+                      {adm.bed?.ward?.name || 'Ward'} • {adm.bed?.room?.roomNumber || 'Room'} • Bed {adm.bed?.bedNumber || adm.bedId}
+                    </strong>
+                  </td>
+                  <td>{adm.admissionDate ? new Date(adm.admissionDate).toLocaleDateString() : '—'}</td>
+                  <td>{adm.expectedDischargeDate ? new Date(adm.expectedDischargeDate).toLocaleDateString() : 'Not set'}</td>
+                  <td>{adm.status}</td>
+                  <td>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <button
+                        type="button"
+                        onClick={() => handleExtendStay(adm)}
+                        className="btn-gold"
+                        style={{ padding: '4px 8px', fontSize: '0.72rem' }}
+                        title="Extend patient hospital stay by 3 days in PostgreSQL"
+                      >
+                        Extend Stay (+3d)
+                      </button>
+                      <button
+                        onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
+                          detailType: 'DETAILS',
+                          recordId: adm.id,
+                          title: `Inpatient Admission Details — ${adm.id}`,
+                          payload: adm
+                        })}
+                        className="btn-outline-gold"
+                        style={{ padding: '4px 8px', fontSize: '0.72rem' }}
+                      >
+                        View Details
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -1033,6 +1468,7 @@ export function InpatientWardsView() {
 export function PharmacyView() {
   const [stats, setStats] = useState(null);
   const [prescriptions, setPrescriptions] = useState([]);
+  const [dispenseHistory, setDispenseHistory] = useState([]);
   const [items, setItems] = useState([]);
   const [feedback, setFeedback] = useState(null);
   const [showItemModal, setShowItemModal] = useState(false);
@@ -1042,10 +1478,12 @@ export function PharmacyView() {
     Promise.all([
       api.getPharmacyStats().catch(() => null),
       api.getPendingPrescriptions().catch(() => null),
+      api.getDispenseHistory().catch(() => null),
       api.getPharmacyItems().catch(() => null)
-    ]).then(([s, p, i]) => {
+    ]).then(([s, p, d, i]) => {
       setStats(s);
       setPrescriptions(p?.prescriptions || (Array.isArray(p) ? p : []));
+      setDispenseHistory(d?.history || (Array.isArray(d) ? d : []));
       setItems(i?.items || (Array.isArray(i) ? i : []));
     });
   };
@@ -1053,6 +1491,24 @@ export function PharmacyView() {
   useEffect(() => {
     loadPharmacy();
   }, []);
+
+  const handleDispenseRx = async (rx) => {
+    setFeedback(null);
+    try {
+      await api.dispensePrescription({
+        prescriptionId: rx.id,
+        quantityDispensed: rx.quantity || 1,
+        counselingNotes: 'Verified dose, frequency, and patient room/bed identity.'
+      });
+      setFeedback({
+        type: 'success',
+        msg: `Dispensed "${rx.drug?.genericName || rx.medicationName}" to patient ${rx.encounter?.patient?.firstName || ''}. Amount to pay: GHS ${rx.amountToPay ?? 0}.`
+      });
+      loadPharmacy();
+    } catch (err) {
+      setFeedback({ type: 'error', msg: err.message });
+    }
+  };
 
   const handleAddItem = async (e) => {
     e.preventDefault();
@@ -1128,6 +1584,107 @@ export function PharmacyView() {
         <div className="glass-panel" style={{ padding: '16px', textAlign: 'center' }}>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Batches Expiring (60d)</div>
           <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--status-warning)' }}>{stats?.expiringSoonBatches ?? 0}</div>
+        </div>
+      </div>
+
+      {/* Patients Waiting for Medicine vs Patients Given Medicine (With Ward, Room Number, Bed Number & Amount to Pay) */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        <div className="glass-panel" style={{ padding: '16px', overflowX: 'auto' }}>
+          <h3 style={{ fontSize: '0.95rem', color: 'var(--gold-400)', marginBottom: '10px' }}>
+            ⏳ Patients Waiting for Medicine — Pending Prescriptions ({prescriptions.length})
+          </h3>
+          {prescriptions.length > 0 ? (
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Patient</th>
+                  <th>Room # & Bed #</th>
+                  <th>Medicine & Qty</th>
+                  <th>Amount to Pay</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {prescriptions.map((rx) => {
+                  const pat = rx.encounter?.patient;
+                  const loc = rx.inpatientLocation;
+                  return (
+                    <tr key={rx.id}>
+                      <td>
+                        <div style={{ fontWeight: 700, color: '#fff' }}>{pat ? `${pat.firstName} ${pat.lastName}` : 'Outpatient'}</div>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{pat?.patientNumber || ''}</div>
+                      </td>
+                      <td>
+                        <span style={{ color: 'var(--gold-300)', fontWeight: 700 }}>
+                          {loc ? `${loc.wardName} • ${loc.roomName} • Bed ${loc.bedNumber}` : 'OPD Dispensary Window'}
+                        </span>
+                      </td>
+                      <td>{rx.drug?.genericName || rx.medicationName} (x{rx.quantity ?? 1})</td>
+                      <td style={{ fontWeight: 700, color: '#6ee7b7' }}>GHS {rx.amountToPay ?? 0}</td>
+                      <td>
+                        <button
+                          type="button"
+                          onClick={() => handleDispenseRx(rx)}
+                          className="btn-gold"
+                          style={{ padding: '4px 8px', fontSize: '0.72rem' }}
+                          title="Dispense medication using FEFO batch allocation and record amount to pay"
+                        >
+                          Dispense
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '18px', color: 'var(--text-dim)', fontSize: '0.82rem' }}>
+              No patients currently waiting in the pending prescription queue.
+            </div>
+          )}
+        </div>
+
+        <div className="glass-panel" style={{ padding: '16px', overflowX: 'auto' }}>
+          <h3 style={{ fontSize: '0.95rem', color: '#6ee7b7', marginBottom: '10px' }}>
+            ✅ Patients Given Medicine — Dispensed Ledger ({dispenseHistory.length})
+          </h3>
+          {dispenseHistory.length > 0 ? (
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Patient</th>
+                  <th>Room # & Bed #</th>
+                  <th>Medicine Given</th>
+                  <th>Amount (GHS)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {dispenseHistory.map((d) => {
+                  const pat = d.prescription?.encounter?.patient;
+                  const loc = d.inpatientLocation;
+                  return (
+                    <tr key={d.id}>
+                      <td>
+                        <div style={{ fontWeight: 700, color: '#fff' }}>{pat ? `${pat.firstName} ${pat.lastName}` : 'Patient'}</div>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{pat?.patientNumber || ''}</div>
+                      </td>
+                      <td>
+                        <span style={{ color: 'var(--gold-300)', fontWeight: 600 }}>
+                          {loc ? `${loc.wardName} • ${loc.roomName} • Bed ${loc.bedNumber}` : 'OPD Dispensary'}
+                        </span>
+                      </td>
+                      <td>{d.batch?.drug?.genericName || 'Medication'} (x{d.quantityDispensed ?? 1})</td>
+                      <td style={{ fontWeight: 700, color: '#6ee7b7' }}>GHS {d.amountToPay ?? 0}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '18px', color: 'var(--text-dim)', fontSize: '0.82rem' }}>
+              No dispensed medication records yet.
+            </div>
+          )}
         </div>
       </div>
 
@@ -1325,9 +1882,12 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
   const [loading, setLoading] = useState(true);
   const [actionMsg, setActionMsg] = useState(null);
   const [showRegisterTenantModal, setShowRegisterTenantModal] = useState(false);
+  const [tenantSearchQuery, setTenantSearchQuery] = useState('');
+  const [liveLocations, setLiveLocations] = useState([]);
   const [tenantForm, setTenantForm] = useState({
     institutionName: '',
-    institutionType: 'HOSPITAL',
+    institutionType: 'PRIVATE_HOSPITAL',
+    organizationType: 'PRIVATE_HOSPITAL',
     country: 'Ghana',
     region: 'Greater Accra',
     city: 'Accra',
@@ -1337,7 +1897,7 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
     administratorFullName: '',
     administratorEmail: '',
     administratorPhone: '',
-    subscriptionPlan: 'TRIAL'
+    subscriptionPlan: '1_MONTH_TRIAL'
   });
 
   // Developer Landlord Messaging & Video Call State
@@ -1346,22 +1906,7 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
   const [videoTargetId, setVideoTargetId] = useState('');
   const [activeVideoSession, setActiveVideoSession] = useState(null);
 
-  const ensureDeveloperToken = async () => {
-    try {
-      const savedUserRaw = localStorage.getItem('gbs_user');
-      const savedToken = localStorage.getItem('gbs_token');
-      const savedUser = savedUserRaw ? JSON.parse(savedUserRaw) : null;
-      if (!savedToken || !savedUser || savedUser.role !== 'DEVELOPER') {
-        const res = await api.login('developer@gbs.com', 'Admin123').catch(() => null);
-        if (res && res.token) {
-          localStorage.setItem('gbs_token', res.token);
-        }
-      }
-    } catch (_e) {}
-  };
-
   const loadData = async () => {
-    await ensureDeveloperToken();
     Promise.all([
       api.getDeveloperSummary().catch(() => null),
       api.getCountdownMatrix().catch(() => null),
@@ -1369,8 +1914,9 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
       api.listDeveloperBackups().catch(() => ({ backups: [] })),
       api.getTenants().catch(() => ({ tenants: [] })),
       api.getUsers().catch(() => ({ users: [] })),
-      api.getUserCountsByRole().catch(() => ({ counts: [] }))
-    ]).then(([s, c, env, bList, tList, uList, rCounts]) => {
+      api.getUserCountsByRole().catch(() => ({ counts: [] })),
+      api.getLiveTenantLocations().catch(() => [])
+    ]).then(([s, c, env, bList, tList, uList, rCounts, locList]) => {
       setSummary(s);
       setCountdown(c);
       setEnvStatus(env);
@@ -1378,6 +1924,7 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
       setBackups(bArr);
       const tArr = tList?.tenants || (Array.isArray(tList) ? tList : c?.countdowns || []);
       setTenants(tArr);
+      setLiveLocations(Array.isArray(locList) ? locList : (locList?.locations || []));
       if (tArr.length > 0 && !msgForm.targetTenantId) {
         setMsgForm(prev => ({ ...prev, targetTenantId: tArr[0].id || tArr[0].tenantId || '' }));
         setVideoTargetId(tArr[0].id || tArr[0].tenantId || '');
@@ -1662,620 +2209,672 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
 
       {(devSubTab === 'ALL' || devSubTab === 'NOC') && (
         <>
-      {/* Environment & Data Identification + Backup/Purge Console */}
-      <div className="glass-panel" style={{ padding: '20px', border: '1px solid var(--border-gold)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '16px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px' }}>
-          <div>
-            <h3 style={{ fontSize: '1.05rem', color: 'var(--gold-400)', fontWeight: 700 }}>
-              GBS Developer — Development vs. Production Data Identification & Database Protection
-            </h3>
-            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              Database: {dbHostDisplay} ({dbMeta.engine || 'PostgreSQL'}) • Official Account: {envStatus?.officialCompanyEmail || 'gabosei48@gmail.com'} • Hosting: {envStatus?.cloudHostingProvider || 'Render.com'} (gbs-hospital.onrender.com)
-            </p>
-          </div>
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            <button onClick={handleCreateBackup} className="btn-gold" style={{ fontSize: '0.75rem', padding: '6px 12px' }}>
-              1. Create & Verify Database Backup
-            </button>
-            <button onClick={handlePurgeTestData} className="btn-danger" style={{ fontSize: '0.75rem', padding: '6px 12px' }}>
-              2. Backup & Purge Test Data Only
-            </button>
-            <button
-              onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
-                detailType: 'VIEW_SYSTEM_INFORMATION',
-                recordId: 'ENV_DATA_IDENTIFICATION',
-                title: 'Development vs. Production Data Identification & Backup Manifest'
-              })}
-              className="btn-outline-gold"
-              style={{ fontSize: '0.75rem', padding: '6px 12px' }}
-            >
-              View System Information Page
-            </button>
-          </div>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '16px' }}>
-          <div style={{ padding: '12px', background: 'rgba(0,0,0,0.45)', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Active Environment</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--gold-300)', fontFamily: 'var(--font-mono)' }}>
-              {activeEnvLabel}
-            </div>
-          </div>
-          <div style={{ padding: '12px', background: 'rgba(0,0,0,0.45)', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Genuine Production Records</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--status-online)', fontFamily: 'var(--font-mono)' }}>
-              {envStatus?.summary?.totalProductionRecords ?? 0}
-            </div>
-          </div>
-          <div style={{ padding: '12px', background: 'rgba(0,0,0,0.45)', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Development / Test Records</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--status-warning)', fontFamily: 'var(--font-mono)' }}>
-              {envStatus?.summary?.totalDevelopmentTestRecords ?? 0}
-            </div>
-          </div>
-          <div style={{ padding: '12px', background: 'rgba(0,0,0,0.45)', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Verified Backups Available</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#fff', fontFamily: 'var(--font-mono)' }}>
-              {backups.length}
-            </div>
-          </div>
-        </div>
-
-        {/* Verified Database Backups & Restore Protection Table */}
-        <div style={{ marginTop: '12px' }}>
-          <h4 style={{ fontSize: '0.88rem', color: 'var(--gold-300)', marginBottom: '8px' }}>
-            Database Backup & Restore Protection Archives ({backups.length})
-          </h4>
-          {backups.length > 0 ? (
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Backup Filename</th>
-                  <th>Environment</th>
-                  <th>Records Backed Up</th>
-                  <th>Size</th>
-                  <th>SHA-256 Checksum</th>
-                  <th>Created At</th>
-                  <th>Protection Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {backups.map((bk, i) => (
-                  <tr key={bk.filename || i}>
-                    <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--gold-300)', fontWeight: 700 }}>{bk.filename}</td>
-                    <td>{bk.environment || activeEnvLabel}</td>
-                    <td style={{ fontFamily: 'var(--font-mono)' }}>{bk.totalRecordsBackedUp ?? 0}</td>
-                    <td>{bk.sizeBytes ? `${(bk.sizeBytes / 1024).toFixed(1)} KB` : '—'}</td>
-                    <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--status-online)' }}>
-                      {bk.checksumSha256 ? `${bk.checksumSha256.slice(0, 16)}...` : 'Verified'}
-                    </td>
-                    <td style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                      {bk.createdAt ? new Date(bk.createdAt).toLocaleString() : '—'}
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                        <button onClick={() => handleVerifyBackup(bk.filename)} className="btn-outline-gold" style={{ padding: '3px 8px', fontSize: '0.7rem' }}>
-                          Verify SHA-256
-                        </button>
-                        <button onClick={() => handleRestoreBackup(bk.filename)} className="btn-gold" style={{ padding: '3px 8px', fontSize: '0.7rem' }}>
-                          Restore Backup
-                        </button>
-                        <button
-                          onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
-                            detailType: 'VIEW_SYSTEM_INFORMATION',
-                            recordId: bk.filename,
-                            title: `Database Backup Archive — ${bk.filename}`,
-                            payload: bk
-                          })}
-                          className="btn-outline-gold"
-                          style={{ padding: '3px 8px', fontSize: '0.7rem' }}
-                        >
-                          View Details
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <div style={{ padding: '14px', textAlign: 'center', color: 'var(--text-dim)', fontSize: '0.8rem' }}>
-              No backup archives listed yet. Click "1. Create & Verify Database Backup" above.
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Table-by-Table Data Source & Creation Date Inspector */}
-      <div className="glass-panel" style={{ padding: '20px', overflowX: 'auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-          <div>
-            <h3 style={{ fontSize: '1rem', color: 'var(--gold-400)', fontWeight: 700 }}>
-              Production vs. Development/Test Data Source Inspector ({envStatus?.tables?.length ?? 0} Core Tables)
-            </h3>
-            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              Tracks record origin, production vs. development/test count, and latest creation timestamp across PostgreSQL tables.
-            </p>
-          </div>
-          <button
-            onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
-              detailType: 'VIEW_RECORDS',
-              recordId: 'DATABASE_TABLES_INSPECTOR',
-              title: 'PostgreSQL Database Tables & Record Provenance Inspector',
-              payload: envStatus
-            })}
-            className="btn-outline-gold"
-            style={{ fontSize: '0.75rem', padding: '5px 10px' }}
-          >
-            Open Full Data Inspector Page
-          </button>
-        </div>
-        {envStatus?.tables && envStatus.tables.length > 0 ? (
-          <div style={{ maxHeight: '260px', overflowY: 'auto' }}>
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Table / Entity</th>
-                  <th>Subsystem Module</th>
-                  <th>Total Records</th>
-                  <th>Production Source</th>
-                  <th>Dev/Test Source</th>
-                  <th>Latest Created Date</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {envStatus.tables.map(tb => (
-                  <tr key={tb.tableKey}>
-                    <td style={{ fontWeight: 700, color: '#fff' }}>{tb.label}</td>
-                    <td style={{ fontSize: '0.75rem', color: 'var(--gold-300)' }}>{tb.module}</td>
-                    <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 700 }}>{tb.totalCount ?? 0}</td>
-                    <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--status-online)' }}>{tb.productionCount ?? 0}</td>
-                    <td style={{ fontFamily: 'var(--font-mono)', color: tb.developmentTestCount > 0 ? 'var(--status-warning)' : 'var(--text-dim)' }}>
-                      {tb.developmentTestCount ?? 0}
-                    </td>
-                    <td style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                      {tb.latestCreatedAt ? new Date(tb.latestCreatedAt).toLocaleString() : 'No records'}
-                    </td>
-                    <td>
-                      <button
-                        onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
-                          detailType: 'VIEW_RECORDS',
-                          recordId: tb.tableKey,
-                          title: `${tb.label} — Production & Provenance Records`,
-                          payload: tb
-                        })}
-                        className="btn-outline-gold"
-                        style={{ padding: '3px 8px', fontSize: '0.7rem' }}
-                      >
-                        View Records
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div style={{ textAlign: 'center', padding: '18px', color: 'var(--text-dim)', fontSize: '0.82rem' }}>
-            Sign in with Developer NOC authority to inspect table-by-table data provenance.
-          </div>
-        )}
-      </div>
-
-      {/* 10 Live Database Counts for Tenant Registration & Command Center */}
-      <div className="glass-panel" style={{ padding: '20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-          <h3 style={{ fontSize: '1rem', color: 'var(--gold-400)', fontWeight: 700 }}>
-            Tenant Registration Console — Live Database Counts
-          </h3>
-          <button
-            onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
-              detailType: 'VIEW_APPLICATIONS',
-              recordId: 'TENANT_APPLICATIONS',
-              title: 'Hospital Tenant Applications & Verification Queue'
-            })}
-            className="btn-outline-gold"
-            style={{ fontSize: '0.75rem', padding: '5px 10px' }}
-          >
-            View Applications Page
-          </button>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px' }}>
-          {[
-            { label: 'Total Tenants', val: counts.totalTenants ?? 0 },
-            { label: 'Active Tenants', val: counts.activeTenants ?? 0 },
-            { label: 'Trial Tenants', val: counts.trialTenants ?? 0 },
-            { label: 'Paid Tenants', val: counts.paidTenants ?? 0 },
-            { label: 'Expiring Soon', val: counts.expiringTenants ?? 0 },
-            { label: 'Expired Tenants', val: counts.expiredTenants ?? 0 },
-            { label: 'Suspended Tenants', val: counts.suspendedTenants ?? 0 },
-            { label: 'Cancelled Tenants', val: counts.cancelledTenants ?? 0 },
-            { label: 'Locked Tenants', val: counts.lockedTenants ?? 0 },
-            { label: 'Unverified Apps', val: counts.unverifiedTenants ?? 0 }
-          ].map((item, idx) => (
-            <div key={idx} style={{ padding: '10px', background: 'rgba(0,0,0,0.4)', borderRadius: '6px', textAlign: 'center', border: '1px solid var(--border-subtle)' }}>
-              <div style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--gold-300)', fontFamily: 'var(--font-mono)' }}>{item.val}</div>
-              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{item.label}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Countdown Engine Live Status */}
-      <div className="glass-panel" style={{ padding: '20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '10px' }}>
-          <div>
-            <h3 style={{ fontSize: '1.1rem', color: 'var(--gold-400)', fontWeight: 700 }}>
-              Live Countdown Engine (Backend-Authoritative)
-            </h3>
-            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              Computed in real time from PostgreSQL trial / subscription expiration timestamps. Zero hardcoded countdown values.
-            </p>
-          </div>
-          <span style={{ fontSize: '0.75rem', color: 'var(--status-online)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span className="pulse-live"></span> Live Telemetry (15s polling)
-          </span>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
-          <div style={{ padding: '16px', background: 'rgba(0,0,0,0.5)', borderRadius: '6px', textAlign: 'center', border: '1px solid var(--border-gold)' }}>
-            <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--gold-300)', fontFamily: 'var(--font-mono)' }}>
-              {firstTenantCountdown?.days ?? countdown?.remainingDays ?? 0}
-            </div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Days Remaining</div>
-          </div>
-
-          <div style={{ padding: '16px', background: 'rgba(0,0,0,0.5)', borderRadius: '6px', textAlign: 'center', border: '1px solid var(--border-gold)' }}>
-            <div style={{ fontSize: '2rem', fontWeight: 800, color: '#fff', fontFamily: 'var(--font-mono)' }}>
-              {firstTenantCountdown?.hours ?? countdown?.remainingHours ?? 0}
-            </div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Hours</div>
-          </div>
-
-          <div style={{ padding: '16px', background: 'rgba(0,0,0,0.5)', borderRadius: '6px', textAlign: 'center', border: '1px solid var(--border-gold)' }}>
-            <div style={{ fontSize: '2rem', fontWeight: 800, color: '#fff', fontFamily: 'var(--font-mono)' }}>
-              {firstTenantCountdown?.minutes ?? countdown?.remainingMinutes ?? 0}
-            </div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Minutes</div>
-          </div>
-
-          <div style={{ padding: '16px', background: 'rgba(0,0,0,0.5)', borderRadius: '6px', textAlign: 'center', border: '1px solid var(--border-gold)' }}>
-            <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--status-online)', fontFamily: 'var(--font-mono)' }}>
-              {firstTenantCountdown?.seconds ?? countdown?.remainingSeconds ?? 0}
-            </div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Seconds</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Tenant Lifecycle Command Center Table */}
-      <div className="glass-panel" style={{ padding: '20px', overflowX: 'auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-          <h3 style={{ fontSize: '1rem', color: 'var(--gold-400)' }}>
-            Registered Hospital Facilities & Landlord Lifecycle Command Center ({tenants.length})
-          </h3>
-          <button
-            onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
-              detailType: 'VIEW_HOSPITAL_INFORMATION',
-              recordId: 'ALL_TENANTS',
-              title: 'Registered Hospital Facilities & Subscriptions Directory',
-              payload: tenants
-            })}
-            className="btn-outline-gold"
-            style={{ fontSize: '0.75rem', padding: '5px 10px' }}
-          >
-            View Hospital Information Page
-          </button>
-        </div>
-        {tenants.length > 0 ? (
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Tenant Code</th>
-                <th>Hospital / Facility Name</th>
-                <th>Plan</th>
-                <th>Status</th>
-                <th>Lock State</th>
-                <th>Countdown</th>
-                <th>Landlord Command Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tenants.map(t => {
-                const tid = t.id || t.tenantId;
-                return (
-                  <tr key={tid}>
-                    <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--gold-300)' }}>{t.tenantCode}</td>
-                    <td style={{ fontWeight: 700, color: '#fff' }}>{t.institutionName || t.name}</td>
-                    <td>{t.subscriptionPlan}</td>
-                    <td>{t.subscriptionStatus || t.onboardingStatus}</td>
-                    <td style={{ color: t.isLocked ? 'var(--status-danger)' : 'var(--status-online)', fontWeight: 700 }}>
-                      {t.isLocked ? 'LOCKED' : 'UNLOCKED'}
-                    </td>
-                    <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem' }}>
-                      {t.countdown ? `${t.countdown.days}d ${t.countdown.hours}h ${t.countdown.minutes}m` : '—'}
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                        <button
-                          onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
-                            detailType: 'VIEW_HOSPITAL_INFORMATION',
-                            recordId: tid,
-                            title: `Hospital Facility Information — ${t.institutionName || t.name}`,
-                            payload: t
-                          })}
-                          className="btn-outline-gold"
-                          style={{ padding: '3px 7px', fontSize: '0.7rem' }}
-                        >
-                          View Details
-                        </button>
-                        <button onClick={() => api.approveTenant(tid).then(loadData)} className="btn-gold" style={{ padding: '3px 7px', fontSize: '0.7rem' }}>
-                          Approve
-                        </button>
-                        <button onClick={() => handleTenantLifecycle(tid, 'ACTIVATE')} className="btn-outline-gold" style={{ padding: '3px 7px', fontSize: '0.7rem' }}>
-                          Activate
-                        </button>
-                        <button onClick={() => handleExtendSubscription(tid, 30, 'MONTHLY')} className="btn-outline-gold" style={{ padding: '3px 7px', fontSize: '0.7rem' }}>
-                          +30d Sub
-                        </button>
-                        <button onClick={() => handleTenantLifecycle(tid, 'SUSPEND')} className="btn-outline-gold" style={{ padding: '3px 7px', fontSize: '0.7rem' }}>
-                          Suspend
-                        </button>
-                        {t.isLocked ? (
-                          <button onClick={() => handleUnlock(tid)} className="btn-gold" style={{ padding: '3px 7px', fontSize: '0.7rem' }}>
-                            Unlock
-                          </button>
-                        ) : (
-                          <button onClick={() => handleLock(tid)} className="btn-danger" style={{ padding: '3px 7px', fontSize: '0.7rem' }}>
-                            Lock
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        ) : (
-          <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-dim)', fontSize: '0.85rem' }}>
-            No records available. Click "Register Hospital Facility" to onboard a hospital tenant.
-          </div>
-        )}
-      </div>
-
-      {/* System Users & Role Registry (Developer Dashboard -> System Users -> User Details) */}
-      <div className="glass-panel" style={{ padding: '20px', overflowX: 'auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-          <div>
-            <h3 style={{ fontSize: '1rem', color: 'var(--gold-400)', fontWeight: 700 }}>
-              System Users & Role Registry ({systemUsers.length} Users)
-            </h3>
-            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              Live PostgreSQL user accounts across all 17 hospital roles. Click "View Profile" or "View Details" to open the dedicated User Details page.
-            </p>
-          </div>
-          <button
-            onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
-              detailType: 'VIEW_PROFILE',
-              recordId: 'SYSTEM_USERS_DIRECTORY',
-              title: 'System Users & Hospital Role Directory',
-              payload: { users: systemUsers, roleCounts }
-            })}
-            className="btn-outline-gold"
-            style={{ fontSize: '0.75rem', padding: '5px 10px' }}
-          >
-            View All Users Page
-          </button>
-        </div>
-
-        {systemUsers.length > 0 ? (
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Full Name</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Status</th>
-                <th>Created At</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {systemUsers.map(u => (
-                <tr key={u.id}>
-                  <td style={{ fontWeight: 700, color: '#fff' }}>{u.firstName} {u.lastName}</td>
-                  <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.78rem', color: 'var(--gold-300)' }}>{u.email}</td>
-                  <td>{u.role?.code || u.role?.name || u.role || 'STAFF'}</td>
-                  <td style={{ color: u.active !== false ? 'var(--status-online)' : 'var(--status-warning)', fontWeight: 700 }}>
-                    {u.active !== false ? 'ACTIVE' : 'PENDING_APPROVAL'}
-                  </td>
-                  <td style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                    {u.createdAt ? new Date(u.createdAt).toLocaleString() : '—'}
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                      <button
-                        onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
-                          detailType: 'VIEW_PROFILE',
-                          recordId: u.id,
-                          title: `User Profile & Security Dossier — ${u.email}`,
-                          payload: u
-                        })}
-                        className="btn-outline-gold"
-                        style={{ padding: '3px 8px', fontSize: '0.7rem' }}
-                      >
-                        View Profile
-                      </button>
-                      <button
-                        onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
-                          detailType: 'VIEW_DETAILS',
-                          recordId: u.id,
-                          title: `System User Details — ${u.firstName || ''} ${u.lastName || ''}`,
-                          payload: u
-                        })}
-                        className="btn-outline-gold"
-                        style={{ padding: '3px 8px', fontSize: '0.7rem' }}
-                      >
-                        View Details
-                      </button>
-                      {u.active === false && (
-                        <button onClick={() => handleApproveUser(u.id)} className="btn-gold" style={{ padding: '3px 8px', fontSize: '0.7rem' }}>
-                          Approve User
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-dim)', fontSize: '0.82rem' }}>
-            No records available.
-          </div>
-        )}
-      </div>
-
-      {/* Tenant Communication & Video Call (Developer Landlord Panel matching Blueprint) */}
-      <div className="glass-panel" style={{ padding: '20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-          <h3 style={{ fontSize: '1rem', color: 'var(--gold-400)', fontWeight: 700 }}>
-            Tenant Communication & Video Call (Developer Landlord Authority)
-          </h3>
-          <button
-            onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
-              detailType: 'VIEW_HISTORY',
-              recordId: 'DEVELOPER_COMMUNICATIONS',
-              title: 'Developer Landlord Tenant Messages & Video Call History'
-            })}
-            className="btn-outline-gold"
-            style={{ fontSize: '0.75rem', padding: '5px 10px' }}
-          >
-            View Communication History Page
-          </button>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
-          {/* Send Message to Specific Tenant */}
-          <form onSubmit={handleSendTenantMsg} style={{ background: '#12100d', padding: '16px', borderRadius: '6px', border: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--gold-300)' }}>Send Message to Tenant</div>
-            <select
-              value={msgForm.targetTenantId}
-              onChange={e => setMsgForm({ ...msgForm, targetTenantId: e.target.value })}
-              style={{ padding: '8px', background: '#0a0907', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
-            >
-              <option value="">Select Hospital Tenant...</option>
-              {tenants.map(t => (
-                <option key={t.id || t.tenantId} value={t.id || t.tenantId}>
-                  {t.institutionName || t.name} ({t.tenantCode})
-                </option>
-              ))}
-            </select>
-            <input
-              required
-              type="text"
-              placeholder="Message Title"
-              value={msgForm.title}
-              onChange={e => setMsgForm({ ...msgForm, title: e.target.value })}
-              style={{ padding: '8px', background: '#0a0907', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
-            />
-            <textarea
-              required
-              rows={3}
-              placeholder="Type your message here..."
-              value={msgForm.message}
-              onChange={e => setMsgForm({ ...msgForm, message: e.target.value })}
-              style={{ padding: '8px', background: '#0a0907', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
-            />
-            <button type="submit" className="btn-gold" style={{ alignSelf: 'flex-end' }}>
-              <Send size={14} /> Send Message
-            </button>
-          </form>
-
-          {/* Send Message to All Tenants */}
-          <form onSubmit={handleBroadcastMsg} style={{ background: '#12100d', padding: '16px', borderRadius: '6px', border: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--gold-300)' }}>Send Message to All Tenants</div>
-            <input
-              required
-              type="text"
-              placeholder="Broadcast Title"
-              value={broadcastForm.title}
-              onChange={e => setBroadcastForm({ ...broadcastForm, title: e.target.value })}
-              style={{ padding: '8px', background: '#0a0907', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
-            />
-            <textarea
-              required
-              rows={4}
-              placeholder="Type system-wide broadcast message here..."
-              value={broadcastForm.message}
-              onChange={e => setBroadcastForm({ ...broadcastForm, message: e.target.value })}
-              style={{ padding: '8px', background: '#0a0907', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
-            />
-            <button type="submit" className="btn-gold" style={{ alignSelf: 'flex-end' }}>
-              <Bell size={14} /> Send to All
-            </button>
-          </form>
-
-          {/* Video Call with Tenant Admin */}
-          <div style={{ background: '#12100d', padding: '16px', borderRadius: '6px', border: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--gold-300)' }}>Video Call with Tenant Admin</div>
-            <select
-              value={videoTargetId}
-              onChange={e => setVideoTargetId(e.target.value)}
-              style={{ padding: '8px', background: '#0a0907', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
-            >
-              <option value="">Select Tenant Admin...</option>
-              {tenants.map(t => (
-                <option key={t.id || t.tenantId} value={t.id || t.tenantId}>
-                  {t.institutionName || t.name} — {t.adminName || 'Hospital Admin'}
-                </option>
-              ))}
-            </select>
-            <div style={{ position: 'relative', height: '120px', borderRadius: '6px', overflow: 'hidden', border: '1px solid var(--border-gold)' }}>
-              <img src="/assets/images/telemedicine_command_center_real.jpg" alt="Tenant Video Feed" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              <div style={{ position: 'absolute', bottom: '6px', left: '8px', background: 'rgba(0,0,0,0.75)', padding: '2px 8px', borderRadius: '4px', fontSize: '0.7rem', color: 'var(--status-online)' }}>
-                {activeVideoSession ? `LIVE: ${activeVideoSession.roomCode || 'CONNECTED'}` : 'WebRTC Channel Standby'}
+          {/* Environment & Data Identification + Backup/Purge Console */}
+          <div className="glass-panel" style={{ padding: '20px', border: '1px solid var(--border-gold)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '16px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px' }}>
+              <div>
+                <h3 style={{ fontSize: '1.05rem', color: 'var(--gold-400)', fontWeight: 700 }}>
+                  GBS Developer — Development vs. Production Data Identification & Database Protection
+                </h3>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                  Database: {dbHostDisplay} ({dbMeta.engine || 'PostgreSQL'}) • Official Account: {envStatus?.officialCompanyEmail || 'gabosei48@gmail.com'} • Hosting: {envStatus?.cloudHostingProvider || 'Render.com'} (gbs-hospital.onrender.com)
+                </p>
+              </div>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <button onClick={handleCreateBackup} className="btn-gold" style={{ fontSize: '0.75rem', padding: '6px 12px' }}>
+                  1. Create & Verify Database Backup
+                </button>
+                <button onClick={handlePurgeTestData} className="btn-danger" style={{ fontSize: '0.75rem', padding: '6px 12px' }}>
+                  2. Backup & Purge Test Data Only
+                </button>
+                <button
+                  onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
+                    detailType: 'VIEW_SYSTEM_INFORMATION',
+                    recordId: 'ENV_DATA_IDENTIFICATION',
+                    title: 'Development vs. Production Data Identification & Backup Manifest'
+                  })}
+                  className="btn-outline-gold"
+                  style={{ fontSize: '0.75rem', padding: '6px 12px' }}
+                >
+                  View System Information Page
+                </button>
               </div>
             </div>
-            <button type="button" onClick={handleStartVideoCall} className="btn-gold" style={{ width: '100%', justifyContent: 'center' }}>
-              <Video size={14} /> Start Live Video Call
-            </button>
-          </div>
-        </div>
-      </div>
 
-      {/* Central GBS Company GitHub & Render Hosting Policy Registry */}
-      <div className="glass-panel" style={{ padding: '20px', border: '1px solid var(--border-subtle)' }}>
-        <h3 style={{ fontSize: '0.95rem', color: 'var(--gold-400)', fontWeight: 700, marginBottom: '10px' }}>
-          Central GBS Company GitHub & Render Continuous Deployment Registry
-        </h3>
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>System Name</th>
-              <th>Official GBS Account</th>
-              <th>Render Service Name</th>
-              <th>Live Website Address</th>
-              <th>Cloud Hosting Provider</th>
-              <th>Database Status</th>
-              <th>Deployment Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td style={{ fontWeight: 700, color: '#fff' }}>GBS Hospital Management System</td>
-              <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--gold-300)' }}>gabosei48@gmail.com</td>
-              <td style={{ fontFamily: 'var(--font-mono)' }}>gbs-hospital</td>
-              <td style={{ fontFamily: 'var(--font-mono)', color: '#38bdf8' }}>https://gbs-hospital.onrender.com</td>
-              <td>Render.com (Exclusive)</td>
-              <td style={{ color: 'var(--status-online)', fontWeight: 700 }}>PostgreSQL Connected</td>
-              <td style={{ color: 'var(--status-online)', fontWeight: 700 }}>CI/CD Auto-Deploy Ready</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '16px' }}>
+              <div style={{ padding: '12px', background: 'rgba(0,0,0,0.45)', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Active Environment</div>
+                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--gold-300)', fontFamily: 'var(--font-mono)' }}>
+                  {activeEnvLabel}
+                </div>
+              </div>
+              <div style={{ padding: '12px', background: 'rgba(0,0,0,0.45)', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Genuine Production Records</div>
+                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--status-online)', fontFamily: 'var(--font-mono)' }}>
+                  {envStatus?.summary?.totalProductionRecords ?? 0}
+                </div>
+              </div>
+              <div style={{ padding: '12px', background: 'rgba(0,0,0,0.45)', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Development / Test Records</div>
+                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--status-warning)', fontFamily: 'var(--font-mono)' }}>
+                  {envStatus?.summary?.totalDevelopmentTestRecords ?? 0}
+                </div>
+              </div>
+              <div style={{ padding: '12px', background: 'rgba(0,0,0,0.45)', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Verified Backups Available</div>
+                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#fff', fontFamily: 'var(--font-mono)' }}>
+                  {backups.length}
+                </div>
+              </div>
+            </div>
+
+            {/* Verified Database Backups & Restore Protection Table */}
+            <div style={{ marginTop: '12px' }}>
+              <h4 style={{ fontSize: '0.88rem', color: 'var(--gold-300)', marginBottom: '8px' }}>
+                Database Backup & Restore Protection Archives ({backups.length})
+              </h4>
+              {backups.length > 0 ? (
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Backup Filename</th>
+                      <th>Environment</th>
+                      <th>Records Backed Up</th>
+                      <th>Size</th>
+                      <th>SHA-256 Checksum</th>
+                      <th>Created At</th>
+                      <th>Protection Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {backups.map((bk, i) => (
+                      <tr key={bk.filename || i}>
+                        <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--gold-300)', fontWeight: 700 }}>{bk.filename}</td>
+                        <td>{bk.environment || activeEnvLabel}</td>
+                        <td style={{ fontFamily: 'var(--font-mono)' }}>{bk.totalRecordsBackedUp ?? 0}</td>
+                        <td>{bk.sizeBytes ? `${(bk.sizeBytes / 1024).toFixed(1)} KB` : '—'}</td>
+                        <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--status-online)' }}>
+                          {bk.checksumSha256 ? `${bk.checksumSha256.slice(0, 16)}...` : 'Verified'}
+                        </td>
+                        <td style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                          {bk.createdAt ? new Date(bk.createdAt).toLocaleString() : '—'}
+                        </td>
+                        <td>
+                          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                            <button onClick={() => handleVerifyBackup(bk.filename)} className="btn-outline-gold" style={{ padding: '3px 8px', fontSize: '0.7rem' }}>
+                              Verify SHA-256
+                            </button>
+                            <button onClick={() => handleRestoreBackup(bk.filename)} className="btn-gold" style={{ padding: '3px 8px', fontSize: '0.7rem' }}>
+                              Restore Backup
+                            </button>
+                            <button
+                              onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
+                                detailType: 'VIEW_SYSTEM_INFORMATION',
+                                recordId: bk.filename,
+                                title: `Database Backup Archive — ${bk.filename}`,
+                                payload: bk
+                              })}
+                              className="btn-outline-gold"
+                              style={{ padding: '3px 8px', fontSize: '0.7rem' }}
+                            >
+                              View Details
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <div style={{ padding: '14px', textAlign: 'center', color: 'var(--text-dim)', fontSize: '0.8rem' }}>
+                  No backup archives listed yet. Click "1. Create & Verify Database Backup" above.
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Table-by-Table Data Source & Creation Date Inspector */}
+          <div className="glass-panel" style={{ padding: '20px', overflowX: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <div>
+                <h3 style={{ fontSize: '1rem', color: 'var(--gold-400)', fontWeight: 700 }}>
+                  Production vs. Development/Test Data Source Inspector ({envStatus?.tables?.length ?? 0} Core Tables)
+                </h3>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                  Tracks record origin, production vs. development/test count, and latest creation timestamp across PostgreSQL tables.
+                </p>
+              </div>
+              <button
+                onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
+                  detailType: 'VIEW_RECORDS',
+                  recordId: 'DATABASE_TABLES_INSPECTOR',
+                  title: 'PostgreSQL Database Tables & Record Provenance Inspector',
+                  payload: envStatus
+                })}
+                className="btn-outline-gold"
+                style={{ fontSize: '0.75rem', padding: '5px 10px' }}
+              >
+                Open Full Data Inspector Page
+              </button>
+            </div>
+            {envStatus?.tables && envStatus.tables.length > 0 ? (
+              <div style={{ maxHeight: '260px', overflowY: 'auto' }}>
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Table / Entity</th>
+                      <th>Subsystem Module</th>
+                      <th>Total Records</th>
+                      <th>Production Source</th>
+                      <th>Dev/Test Source</th>
+                      <th>Latest Created Date</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {envStatus.tables.map(tb => (
+                      <tr key={tb.tableKey}>
+                        <td style={{ fontWeight: 700, color: '#fff' }}>{tb.label}</td>
+                        <td style={{ fontSize: '0.75rem', color: 'var(--gold-300)' }}>{tb.module}</td>
+                        <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 700 }}>{tb.totalCount ?? 0}</td>
+                        <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--status-online)' }}>{tb.productionCount ?? 0}</td>
+                        <td style={{ fontFamily: 'var(--font-mono)', color: tb.developmentTestCount > 0 ? 'var(--status-warning)' : 'var(--text-dim)' }}>
+                          {tb.developmentTestCount ?? 0}
+                        </td>
+                        <td style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                          {tb.latestCreatedAt ? new Date(tb.latestCreatedAt).toLocaleString() : 'No records'}
+                        </td>
+                        <td>
+                          <button
+                            onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
+                              detailType: 'VIEW_RECORDS',
+                              recordId: tb.tableKey,
+                              title: `${tb.label} — Production & Provenance Records`,
+                              payload: tb
+                            })}
+                            className="btn-outline-gold"
+                            style={{ padding: '3px 8px', fontSize: '0.7rem' }}
+                          >
+                            View Records
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '18px', color: 'var(--text-dim)', fontSize: '0.82rem' }}>
+                Sign in with Developer NOC authority to inspect table-by-table data provenance.
+              </div>
+            )}
+          </div>
+
+          {/* 10 Live Database Counts for Tenant Registration & Command Center */}
+          <div className="glass-panel" style={{ padding: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <h3 style={{ fontSize: '1rem', color: 'var(--gold-400)', fontWeight: 700 }}>
+                Tenant Registration Console — Live Database Counts
+              </h3>
+              <button
+                onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
+                  detailType: 'VIEW_APPLICATIONS',
+                  recordId: 'TENANT_APPLICATIONS',
+                  title: 'Hospital Tenant Applications & Verification Queue'
+                })}
+                className="btn-outline-gold"
+                style={{ fontSize: '0.75rem', padding: '5px 10px' }}
+              >
+                View Applications Page
+              </button>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px' }}>
+              {[
+                { label: 'Total Tenants', val: counts.totalTenants ?? 0 },
+                { label: 'Active Tenants', val: counts.activeTenants ?? 0 },
+                { label: 'Trial Tenants', val: counts.trialTenants ?? 0 },
+                { label: 'Paid Tenants', val: counts.paidTenants ?? 0 },
+                { label: 'Expiring Soon', val: counts.expiringTenants ?? 0 },
+                { label: 'Expired Tenants', val: counts.expiredTenants ?? 0 },
+                { label: 'Suspended Tenants', val: counts.suspendedTenants ?? 0 },
+                { label: 'Cancelled Tenants', val: counts.cancelledTenants ?? 0 },
+                { label: 'Locked Tenants', val: counts.lockedTenants ?? 0 },
+                { label: 'Unverified Apps', val: counts.unverifiedTenants ?? 0 }
+              ].map((item, idx) => (
+                <div key={idx} style={{ padding: '10px', background: 'rgba(0,0,0,0.4)', borderRadius: '6px', textAlign: 'center', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--gold-300)', fontFamily: 'var(--font-mono)' }}>{item.val}</div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{item.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Countdown Engine Live Status */}
+          <div className="glass-panel" style={{ padding: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '10px' }}>
+              <div>
+                <h3 style={{ fontSize: '1.1rem', color: 'var(--gold-400)', fontWeight: 700 }}>
+                  Live Countdown Engine (Backend-Authoritative)
+                </h3>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                  Computed in real time from PostgreSQL trial / subscription expiration timestamps. Zero hardcoded countdown values.
+                </p>
+              </div>
+              <span style={{ fontSize: '0.75rem', color: 'var(--status-online)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span className="pulse-live"></span> Live Telemetry (15s polling)
+              </span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+              <div style={{ padding: '16px', background: 'rgba(0,0,0,0.5)', borderRadius: '6px', textAlign: 'center', border: '1px solid var(--border-gold)' }}>
+                <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--gold-300)', fontFamily: 'var(--font-mono)' }}>
+                  {firstTenantCountdown?.days ?? countdown?.remainingDays ?? 0}
+                </div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Days Remaining</div>
+              </div>
+
+              <div style={{ padding: '16px', background: 'rgba(0,0,0,0.5)', borderRadius: '6px', textAlign: 'center', border: '1px solid var(--border-gold)' }}>
+                <div style={{ fontSize: '2rem', fontWeight: 800, color: '#fff', fontFamily: 'var(--font-mono)' }}>
+                  {firstTenantCountdown?.hours ?? countdown?.remainingHours ?? 0}
+                </div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Hours</div>
+              </div>
+
+              <div style={{ padding: '16px', background: 'rgba(0,0,0,0.5)', borderRadius: '6px', textAlign: 'center', border: '1px solid var(--border-gold)' }}>
+                <div style={{ fontSize: '2rem', fontWeight: 800, color: '#fff', fontFamily: 'var(--font-mono)' }}>
+                  {firstTenantCountdown?.minutes ?? countdown?.remainingMinutes ?? 0}
+                </div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Minutes</div>
+              </div>
+
+              <div style={{ padding: '16px', background: 'rgba(0,0,0,0.5)', borderRadius: '6px', textAlign: 'center', border: '1px solid var(--border-gold)' }}>
+                <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--status-online)', fontFamily: 'var(--font-mono)' }}>
+                  {firstTenantCountdown?.seconds ?? countdown?.remainingSeconds ?? 0}
+                </div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Seconds</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Tenant Lifecycle Command Center Table + Live Google Map Search by Administrator Phone/Number */}
+          <div className="glass-panel" style={{ padding: '20px', overflowX: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
+              <div>
+                <h3 style={{ fontSize: '1rem', color: 'var(--gold-400)', margin: 0 }}>
+                  Registered Hospital Facilities, Subscriptions & Google Map Locator ({tenants.length})
+                </h3>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '2px 0 0' }}>
+                  Search any tenant facility by Institution Name, Tenant ID, or Administrator Phone Number to locate on Google Maps or manage subscriptions.
+                </p>
+              </div>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <input
+                  type="text"
+                  placeholder="Search by Admin Phone, Tenant ID or Name..."
+                  value={tenantSearchQuery}
+                  onChange={(e) => setTenantSearchQuery(e.target.value)}
+                  style={{ padding: '6px 12px', background: '#12100d', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px', fontSize: '0.78rem', minWidth: '250px' }}
+                />
+                <button
+                  onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
+                    detailType: 'VIEW_HOSPITAL_INFORMATION',
+                    recordId: 'ALL_TENANTS',
+                    title: 'Registered Hospital Facilities & Subscriptions Directory',
+                    payload: tenants
+                  })}
+                  className="btn-outline-gold"
+                  style={{ fontSize: '0.75rem', padding: '5px 10px' }}
+                >
+                  View Hospital Information Page
+                </button>
+              </div>
+            </div>
+            {tenants.length > 0 ? (
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Tenant Code</th>
+                    <th>Hospital / Type</th>
+                    <th>Admin & Phone</th>
+                    <th>Plan & Status</th>
+                    <th>Lock State</th>
+                    <th>Countdown</th>
+                    <th>Google Map & Landlord Subscription Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tenants
+                    .filter((t) => {
+                      if (!tenantSearchQuery.trim()) return true;
+                      const q = tenantSearchQuery.trim().toLowerCase();
+                      return JSON.stringify(t).toLowerCase().includes(q);
+                    })
+                    .map(t => {
+                      const tid = t.id || t.tenantId;
+                      const lat = t.latitude ?? 5.6037;
+                      const lng = t.longitude ?? -0.1870;
+                      const mapUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+                      return (
+                        <tr key={tid}>
+                          <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--gold-300)' }}>{t.tenantCode || t.tenantId}</td>
+                          <td>
+                            <div style={{ fontWeight: 700, color: '#fff' }}>{t.institutionName || t.name}</div>
+                            <div style={{ fontSize: '0.7rem', color: 'var(--gold-400)' }}>{t.type || t.institutionType || 'PRIVATE_HOSPITAL'}</div>
+                          </td>
+                          <td style={{ fontSize: '0.76rem' }}>
+                            <div style={{ color: '#fff', fontWeight: 600 }}>{t.representativeName || t.administratorFullName || 'Hospital Admin'}</div>
+                            <div style={{ color: '#6ee7b7', fontFamily: 'var(--font-mono)' }}>{t.representativePhone || t.officialPhone || '—'}</div>
+                          </td>
+                          <td>
+                            <div style={{ fontWeight: 700, color: 'var(--gold-300)' }}>{t.subscriptionPlan}</div>
+                            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{t.subscriptionStatus || t.onboardingStatus || t.status}</div>
+                          </td>
+                          <td style={{ color: t.isLocked ? 'var(--status-danger)' : 'var(--status-online)', fontWeight: 700 }}>
+                            {t.isLocked ? 'LOCKED' : 'UNLOCKED'}
+                          </td>
+                          <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem' }}>
+                            {t.subscriptionPlan === 'LIFETIME'
+                              ? 'LIFETIME (∞)'
+                              : t.countdown
+                                ? `${t.countdown.days ?? t.countdown.remainingDays ?? 0}d ${t.countdown.hours ?? t.countdown.remainingHours ?? 0}h`
+                                : '—'}
+                          </td>
+                          <td>
+                            <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                              <a
+                                href={mapUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="btn-outline-gold"
+                                style={{ padding: '3px 7px', fontSize: '0.68rem', textDecoration: 'none' }}
+                                title={`Locate ${t.institutionName || t.name} (${t.representativePhone || t.officialPhone || ''}) on Google Maps`}
+                              >
+                                📍 Google Map
+                              </a>
+                              <button
+                                onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
+                                  detailType: 'VIEW_HOSPITAL_INFORMATION',
+                                  recordId: tid,
+                                  title: `Hospital Facility Information — ${t.institutionName || t.name}`,
+                                  payload: t
+                                })}
+                                className="btn-outline-gold"
+                                style={{ padding: '3px 7px', fontSize: '0.68rem' }}
+                              >
+                                View Details
+                              </button>
+                              <button onClick={() => api.approveTenant(tid, { subscriptionPlan: t.subscriptionPlan || '1_MONTH_TRIAL' }).then(loadData)} className="btn-gold" style={{ padding: '3px 7px', fontSize: '0.68rem' }}>
+                                Approve
+                              </button>
+                              <button onClick={() => handleExtendSubscription(tid, 30, '1_MONTH_TRIAL')} className="btn-outline-gold" style={{ padding: '3px 7px', fontSize: '0.68rem' }} title="Grant 1-Month Trial (30 Days)">
+                                1-Mo Trial
+                              </button>
+                              <button onClick={() => handleExtendSubscription(tid, 90, '3_MONTHS')} className="btn-outline-gold" style={{ padding: '3px 7px', fontSize: '0.68rem' }} title="Extend Subscription by 3 Months (90 Days)">
+                                +3 Months
+                              </button>
+                              <button onClick={() => handleExtendSubscription(tid, 180, '6_MONTHS')} className="btn-outline-gold" style={{ padding: '3px 7px', fontSize: '0.68rem' }} title="Extend Subscription by 6 Months (180 Days)">
+                                +6 Months
+                              </button>
+                              <button onClick={() => handleExtendSubscription(tid, 365, '1_YEAR')} className="btn-outline-gold" style={{ padding: '3px 7px', fontSize: '0.68rem' }} title="Extend Subscription by 1 Year (365 Days)">
+                                +1 Year
+                              </button>
+                              <button onClick={() => handleExtendSubscription(tid, 36500, 'LIFETIME')} className="btn-gold" style={{ padding: '3px 7px', fontSize: '0.68rem' }} title="Grant Permanent Lifetime License">
+                                Lifetime
+                              </button>
+                              {t.isLocked ? (
+                                <button onClick={() => handleUnlock(tid)} className="btn-gold" style={{ padding: '3px 7px', fontSize: '0.68rem' }}>
+                                  Unlock
+                                </button>
+                              ) : (
+                                <button onClick={() => handleLock(tid)} className="btn-danger" style={{ padding: '3px 7px', fontSize: '0.68rem' }}>
+                                  Lock
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-dim)', fontSize: '0.85rem' }}>
+                No records available. Click "Register Hospital Facility" to onboard a hospital tenant.
+              </div>
+            )}
+          </div>
+
+          {/* System Users & Role Registry (Developer Dashboard -> System Users -> User Details) */}
+          <div className="glass-panel" style={{ padding: '20px', overflowX: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <div>
+                <h3 style={{ fontSize: '1rem', color: 'var(--gold-400)', fontWeight: 700 }}>
+                  System Users & Role Registry ({systemUsers.length} Users)
+                </h3>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                  Live PostgreSQL user accounts across all 17 hospital roles. Click "View Profile" or "View Details" to open the dedicated User Details page.
+                </p>
+              </div>
+              <button
+                onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
+                  detailType: 'VIEW_PROFILE',
+                  recordId: 'SYSTEM_USERS_DIRECTORY',
+                  title: 'System Users & Hospital Role Directory',
+                  payload: { users: systemUsers, roleCounts }
+                })}
+                className="btn-outline-gold"
+                style={{ fontSize: '0.75rem', padding: '5px 10px' }}
+              >
+                View All Users Page
+              </button>
+            </div>
+
+            {systemUsers.length > 0 ? (
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Full Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Created At</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {systemUsers.map(u => (
+                    <tr key={u.id}>
+                      <td style={{ fontWeight: 700, color: '#fff' }}>{u.firstName} {u.lastName}</td>
+                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.78rem', color: 'var(--gold-300)' }}>{u.email}</td>
+                      <td>{u.role?.code || u.role?.name || u.role || 'STAFF'}</td>
+                      <td style={{ color: u.active !== false ? 'var(--status-online)' : 'var(--status-warning)', fontWeight: 700 }}>
+                        {u.active !== false ? 'ACTIVE' : 'PENDING_APPROVAL'}
+                      </td>
+                      <td style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                        {u.createdAt ? new Date(u.createdAt).toLocaleString() : '—'}
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                          <button
+                            onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
+                              detailType: 'VIEW_PROFILE',
+                              recordId: u.id,
+                              title: `User Profile & Security Dossier — ${u.email}`,
+                              payload: u
+                            })}
+                            className="btn-outline-gold"
+                            style={{ padding: '3px 8px', fontSize: '0.7rem' }}
+                          >
+                            View Profile
+                          </button>
+                          <button
+                            onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
+                              detailType: 'VIEW_DETAILS',
+                              recordId: u.id,
+                              title: `System User Details — ${u.firstName || ''} ${u.lastName || ''}`,
+                              payload: u
+                            })}
+                            className="btn-outline-gold"
+                            style={{ padding: '3px 8px', fontSize: '0.7rem' }}
+                          >
+                            View Details
+                          </button>
+                          {u.active === false && (
+                            <button onClick={() => handleApproveUser(u.id)} className="btn-gold" style={{ padding: '3px 8px', fontSize: '0.7rem' }}>
+                              Approve User
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-dim)', fontSize: '0.82rem' }}>
+                No records available.
+              </div>
+            )}
+          </div>
+
+          {/* Tenant Communication & Video Call (Developer Landlord Panel matching Blueprint) */}
+          <div className="glass-panel" style={{ padding: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+              <h3 style={{ fontSize: '1rem', color: 'var(--gold-400)', fontWeight: 700 }}>
+                Tenant Communication & Video Call (Developer Landlord Authority)
+              </h3>
+              <button
+                onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
+                  detailType: 'VIEW_HISTORY',
+                  recordId: 'DEVELOPER_COMMUNICATIONS',
+                  title: 'Developer Landlord Tenant Messages & Video Call History'
+                })}
+                className="btn-outline-gold"
+                style={{ fontSize: '0.75rem', padding: '5px 10px' }}
+              >
+                View Communication History Page
+              </button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+              {/* Send Message to Specific Tenant */}
+              <form onSubmit={handleSendTenantMsg} style={{ background: '#12100d', padding: '16px', borderRadius: '6px', border: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--gold-300)' }}>Send Message to Tenant</div>
+                <select
+                  value={msgForm.targetTenantId}
+                  onChange={e => setMsgForm({ ...msgForm, targetTenantId: e.target.value })}
+                  style={{ padding: '8px', background: '#0a0907', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
+                >
+                  <option value="">Select Hospital Tenant...</option>
+                  {tenants.map(t => (
+                    <option key={t.id || t.tenantId} value={t.id || t.tenantId}>
+                      {t.institutionName || t.name} ({t.tenantCode})
+                    </option>
+                  ))}
+                </select>
+                <input
+                  required
+                  type="text"
+                  placeholder="Message Title"
+                  value={msgForm.title}
+                  onChange={e => setMsgForm({ ...msgForm, title: e.target.value })}
+                  style={{ padding: '8px', background: '#0a0907', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
+                />
+                <textarea
+                  required
+                  rows={3}
+                  placeholder="Type your message here..."
+                  value={msgForm.message}
+                  onChange={e => setMsgForm({ ...msgForm, message: e.target.value })}
+                  style={{ padding: '8px', background: '#0a0907', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
+                />
+                <button type="submit" className="btn-gold" style={{ alignSelf: 'flex-end' }}>
+                  <Send size={14} /> Send Message
+                </button>
+              </form>
+
+              {/* Send Message to All Tenants */}
+              <form onSubmit={handleBroadcastMsg} style={{ background: '#12100d', padding: '16px', borderRadius: '6px', border: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--gold-300)' }}>Send Message to All Tenants</div>
+                <input
+                  required
+                  type="text"
+                  placeholder="Broadcast Title"
+                  value={broadcastForm.title}
+                  onChange={e => setBroadcastForm({ ...broadcastForm, title: e.target.value })}
+                  style={{ padding: '8px', background: '#0a0907', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
+                />
+                <textarea
+                  required
+                  rows={4}
+                  placeholder="Type system-wide broadcast message here..."
+                  value={broadcastForm.message}
+                  onChange={e => setBroadcastForm({ ...broadcastForm, message: e.target.value })}
+                  style={{ padding: '8px', background: '#0a0907', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
+                />
+                <button type="submit" className="btn-gold" style={{ alignSelf: 'flex-end' }}>
+                  <Bell size={14} /> Send to All
+                </button>
+              </form>
+
+              {/* Video Call with Tenant Admin */}
+              <div style={{ background: '#12100d', padding: '16px', borderRadius: '6px', border: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--gold-300)' }}>Video Call with Tenant Admin</div>
+                <select
+                  value={videoTargetId}
+                  onChange={e => setVideoTargetId(e.target.value)}
+                  style={{ padding: '8px', background: '#0a0907', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
+                >
+                  <option value="">Select Tenant Admin...</option>
+                  {tenants.map(t => (
+                    <option key={t.id || t.tenantId} value={t.id || t.tenantId}>
+                      {t.institutionName || t.name} — {t.adminName || 'Hospital Admin'}
+                    </option>
+                  ))}
+                </select>
+                <div style={{ position: 'relative', height: '120px', borderRadius: '6px', overflow: 'hidden', border: '1px solid var(--border-gold)' }}>
+                  <img src="/assets/images/telemedicine_command_center_real.jpg" alt="Tenant Video Feed" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <div style={{ position: 'absolute', bottom: '6px', left: '8px', background: 'rgba(0,0,0,0.75)', padding: '2px 8px', borderRadius: '4px', fontSize: '0.7rem', color: 'var(--status-online)' }}>
+                    {activeVideoSession ? `LIVE: ${activeVideoSession.roomCode || 'CONNECTED'}` : 'WebRTC Channel Standby'}
+                  </div>
+                </div>
+                <button type="button" onClick={handleStartVideoCall} className="btn-gold" style={{ width: '100%', justifyContent: 'center' }}>
+                  <Video size={14} /> Start Live Video Call
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Central GBS Company GitHub & Render Hosting Policy Registry */}
+          <div className="glass-panel" style={{ padding: '20px', border: '1px solid var(--border-subtle)' }}>
+            <h3 style={{ fontSize: '0.95rem', color: 'var(--gold-400)', fontWeight: 700, marginBottom: '10px' }}>
+              Central GBS Company GitHub & Render Continuous Deployment Registry
+            </h3>
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>System Name</th>
+                  <th>Official GBS Account</th>
+                  <th>Render Service Name</th>
+                  <th>Live Website Address</th>
+                  <th>Cloud Hosting Provider</th>
+                  <th>Database Status</th>
+                  <th>Deployment Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style={{ fontWeight: 700, color: '#fff' }}>GBS Hospital Management System</td>
+                  <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--gold-300)' }}>gabosei48@gmail.com</td>
+                  <td style={{ fontFamily: 'var(--font-mono)' }}>gbs-hospital</td>
+                  <td style={{ fontFamily: 'var(--font-mono)', color: '#38bdf8' }}>https://gbs-hospital.onrender.com</td>
+                  <td>Render.com (Exclusive)</td>
+                  <td style={{ color: 'var(--status-online)', fontWeight: 700 }}>PostgreSQL Connected</td>
+                  <td style={{ color: 'var(--status-online)', fontWeight: 700 }}>CI/CD Auto-Deploy Ready</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </>
       )}
 
@@ -2319,7 +2918,20 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
           <div className="glass-panel" style={{ width: '100%', maxWidth: '580px', padding: '24px', border: '1px solid var(--gold-400)', maxHeight: '90vh', overflowY: 'auto' }}>
             <h3 style={{ fontSize: '1.15rem', color: '#fff', marginBottom: '14px' }}>Register New Hospital Facility (Tenant)</h3>
             <form onSubmit={handleRegisterTenant} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <input required type="text" placeholder="Hospital / Facility Name *" value={tenantForm.institutionName} onChange={e => setTenantForm({ ...tenantForm, institutionName: e.target.value })} style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <input required type="text" placeholder="Hospital / Facility Name *" value={tenantForm.institutionName} onChange={e => setTenantForm({ ...tenantForm, institutionName: e.target.value })} style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <select
+                  value={tenantForm.institutionType}
+                  onChange={e => setTenantForm({ ...tenantForm, institutionType: e.target.value, organizationType: e.target.value })}
+                  style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px' }}
+                  title="Select Hospital Organization Type (Private Hospital, Government Hospital, etc.)"
+                >
+                  <option value="PRIVATE_HOSPITAL">Private Hospital</option>
+                  <option value="GOVERNMENT_HOSPITAL">Government Hospital</option>
+                  <option value="TEACHING_HOSPITAL">Teaching Hospital</option>
+                  <option value="SPECIALIST_CLINIC">Specialist Clinic / Medical Center</option>
+                </select>
+              </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <input required type="email" placeholder="Official Facility Email *" value={tenantForm.officialEmail} onChange={e => setTenantForm({ ...tenantForm, officialEmail: e.target.value })} style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 <input required type="text" placeholder="Official Phone *" value={tenantForm.officialPhone} onChange={e => setTenantForm({ ...tenantForm, officialPhone: e.target.value })} style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
@@ -2330,11 +2942,12 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <input required type="text" placeholder="Administrator Phone *" value={tenantForm.administratorPhone} onChange={e => setTenantForm({ ...tenantForm, administratorPhone: e.target.value })} style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
-                <select value={tenantForm.subscriptionPlan} onChange={e => setTenantForm({ ...tenantForm, subscriptionPlan: e.target.value })} style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
-                  <option value="TRIAL">30-Day Trial</option>
-                  <option value="MONTHLY">Monthly Subscription</option>
-                  <option value="QUARTERLY">Quarterly Subscription</option>
-                  <option value="ANNUAL">Annual Enterprise Subscription</option>
+                <select value={tenantForm.subscriptionPlan} onChange={e => setTenantForm({ ...tenantForm, subscriptionPlan: e.target.value })} style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px' }}>
+                  <option value="1_MONTH_TRIAL">1-Month Free Trial (30 Days)</option>
+                  <option value="3_MONTHS">3 Months Subscription (90 Days)</option>
+                  <option value="6_MONTHS">6 Months Subscription (180 Days)</option>
+                  <option value="1_YEAR">1 Year Enterprise Subscription (365 Days)</option>
+                  <option value="LIFETIME">Lifetime Enterprise License (Permanent)</option>
                 </select>
               </div>
               <input required type="text" placeholder="Street Address / City *" value={tenantForm.address} onChange={e => setTenantForm({ ...tenantForm, address: e.target.value })} style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
@@ -2356,6 +2969,7 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
 export function EmergencyAmbulanceView() {
   const [stats, setStats] = useState(null);
   const [ambulances, setAmbulances] = useState([]);
+  const [dispatches, setDispatches] = useState([]);
   const [cases, setCases] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showDispatchModal, setShowDispatchModal] = useState(false);
@@ -2373,10 +2987,12 @@ export function EmergencyAmbulanceView() {
     Promise.all([
       api.getEmergencyStats().catch(() => null),
       api.getAmbulances().catch(() => []),
+      api.getEmergencyDispatches().catch(() => []),
       api.getEmergencyCases().catch(() => [])
-    ]).then(([s, a, c]) => {
+    ]).then(([s, a, d, c]) => {
       setStats(s);
       setAmbulances(a || []);
+      setDispatches(Array.isArray(d) ? d : (d?.dispatches || []));
       setCases(c || []);
       setLoading(false);
     });
@@ -2513,6 +3129,45 @@ export function EmergencyAmbulanceView() {
         ) : (
           <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-dim)' }}>
             No ambulances registered yet. Dispatches will allocate to available vehicles automatically.
+          </div>
+        )}
+      </div>
+
+      {/* Ambulance Dispatches & Patient Transfers Log (Recording Day, Date & Time) */}
+      <div className="glass-panel" style={{ padding: '20px', overflowX: 'auto' }}>
+        <h3 style={{ fontSize: '1rem', color: 'var(--gold-400)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          🚑 Ambulance Patient Transfers & Emergency Dispatches — Day, Date & Time Log ({dispatches.length})
+        </h3>
+        {dispatches.length > 0 ? (
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Dispatch #</th>
+                <th>Patient / Caller</th>
+                <th>Pickup / Transfer Location</th>
+                <th>Day of Week</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {dispatches.map((dsp) => (
+                <tr key={dsp.id}>
+                  <td style={{ fontWeight: 700, color: 'var(--gold-300)', fontFamily: 'var(--font-mono)' }}>{dsp.dispatchNumber || dsp.id?.slice(0, 8)}</td>
+                  <td>{dsp.callerName || 'Emergency Transfer'} ({dsp.callerPhone || '—'})</td>
+                  <td>{dsp.incidentLocation || dsp.destinationFacility || 'Hospital Trauma Bay'}</td>
+                  <td style={{ fontWeight: 700, color: '#fff' }}>{dsp.dispatchDayOfWeek || '—'}</td>
+                  <td style={{ color: 'var(--gold-300)' }}>{dsp.dispatchDateFormatted || (dsp.dispatchedAt ? new Date(dsp.dispatchedAt).toLocaleDateString() : '—')}</td>
+                  <td style={{ fontFamily: 'var(--font-mono)', color: '#6ee7b7' }}>{dsp.dispatchTimeFormatted || (dsp.dispatchedAt ? new Date(dsp.dispatchedAt).toLocaleTimeString() : '—')}</td>
+                  <td>{dsp.status}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <div style={{ textAlign: 'center', padding: '18px', color: 'var(--text-dim)', fontSize: '0.82rem' }}>
+            No ambulance transfers recorded yet. Click "New Emergency Dispatch" to dispatch an ambulance and record transfer day, date, and time.
           </div>
         )}
       </div>
@@ -4134,16 +4789,22 @@ export function BiomedicalView() {
   };
 
   const handleSafetyOverride = async (equipmentId, equipmentName) => {
-    const clinicianName = prompt(`Enter Authorizing Clinician Name for Emergency Override on ${equipmentName}:`, 'Dr. Mensah, MD (Chief Intensivist)');
-    if (!clinicianName) return;
-    const reason = prompt('Enter Clinical Emergency Justification:', 'Surge capacity life-support emergency allocation.');
-    if (!reason) return;
+    let currentOfficer = 'Authorized Clinical Officer';
+    try {
+      const u = JSON.parse(localStorage.getItem('gbs_user') || 'null');
+      if (u && (u.firstName || u.email)) {
+        currentOfficer = `${u.firstName || ''} ${u.lastName || ''} (${u.role || 'CLINICAL'})`.trim();
+      }
+    } catch (_e) { }
 
     try {
-      await api.recordSafetyOverride(equipmentId, { clinicianName, reason });
+      await api.recordSafetyOverride(equipmentId, {
+        clinicianName: currentOfficer,
+        reason: `Emergency clinical safety override authorized by ${currentOfficer}`
+      });
       setFeedback({
         type: 'success',
-        msg: `Emergency safety override authorized for ${equipmentName}. Co-signature audit log updated.`
+        msg: `Emergency safety override authorized for ${equipmentName} by ${currentOfficer}. Co-signature audit log updated.`
       });
       loadAll();
     } catch (err) {
@@ -4905,15 +5566,22 @@ export function ProcurementView() {
   };
 
   const handleApprovePo = async (poId) => {
+    let approverName = 'Authorized Procurement Officer';
+    try {
+      const u = JSON.parse(localStorage.getItem('gbs_user') || 'null');
+      if (u && (u.firstName || u.email)) {
+        approverName = `${u.firstName || ''} ${u.lastName || ''} (${u.role || 'PROCUREMENT'})`.trim();
+      }
+    } catch (_e) { }
     try {
       const res = await api.updatePurchaseOrderStatus(poId, {
         status: 'APPROVED',
-        approvedBy: 'Procurement Director K. Mensah',
+        approvedBy: approverName,
         notes: 'Approved under clinical budget allocation.'
       });
       setFeedback({
         type: 'success',
-        msg: `PO ${res.data.poNumber} approved successfully.`
+        msg: `PO ${res.data.poNumber} approved successfully by ${approverName}.`
       });
       loadAll();
     } catch (err) {
@@ -5794,6 +6462,24 @@ export function HRManagementView() {
   const [credentials, setCredentials] = useState([]);
   const [attendance, setAttendance] = useState([]);
   const [leaveRequests, setLeaveRequests] = useState([]);
+  const [hrStaffList, setHrStaffList] = useState([]);
+  const [hrTransfers, setHrTransfers] = useState([]);
+  const [newStaffForm, setNewStaffForm] = useState({
+    fullName: '',
+    role: 'NURSE',
+    department: 'INTERNAL_MEDICINE',
+    cadre: 'SENIOR_NURSE_OFFICER',
+    phone: '',
+    email: ''
+  });
+  const [transferForm, setTransferForm] = useState({
+    staffName: '',
+    fromDepartment: 'INTERNAL_MEDICINE',
+    toDepartment: 'ACCIDENT_AND_EMERGENCY',
+    transferType: 'INTER_DEPARTMENTAL',
+    effectiveDate: new Date().toISOString().slice(0, 10),
+    reason: ''
+  });
 
   // Modals
   const [showRosterModal, setShowRosterModal] = useState(false);
@@ -5869,17 +6555,20 @@ export function HRManagementView() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [statsRes, catalogsRes, rostersRes, handoversRes, credsRes, attRes, leavesRes] = await Promise.all([
+      const [statsRes, catalogsRes, rostersRes, handoversRes, credsRes, attRes, leavesRes, staffRes, transfersRes] = await Promise.all([
         api.getHrStats().catch(() => null),
         api.getHrCatalogs().catch(() => null),
         api.getDutyRosters().catch(() => []),
         api.getShiftHandovers().catch(() => []),
         api.getCredentials().catch(() => []),
         api.getStaffAttendance().catch(() => []),
-        api.getLeaveRequests().catch(() => [])
+        api.getLeaveRequests().catch(() => []),
+        api.getHrStaff().catch(() => []),
+        api.getHrTransfers().catch(() => [])
       ]);
 
       if (statsRes?.data) setStats(statsRes.data);
+      else if (statsRes) setStats(statsRes);
       if (catalogsRes?.data) setCatalogs(catalogsRes.data);
       if (Array.isArray(rostersRes)) setRosters(rostersRes);
       else if (rostersRes?.data) setRosters(rostersRes.data);
@@ -5895,6 +6584,14 @@ export function HRManagementView() {
 
       if (Array.isArray(leavesRes)) setLeaveRequests(leavesRes);
       else if (leavesRes?.data) setLeaveRequests(leavesRes.data);
+
+      if (Array.isArray(staffRes)) setHrStaffList(staffRes);
+      else if (Array.isArray(staffRes?.staff)) setHrStaffList(staffRes.staff);
+      else if (Array.isArray(staffRes?.data)) setHrStaffList(staffRes.data);
+
+      if (Array.isArray(transfersRes)) setHrTransfers(transfersRes);
+      else if (Array.isArray(transfersRes?.transfers)) setHrTransfers(transfersRes.transfers);
+      else if (Array.isArray(transfersRes?.data)) setHrTransfers(transfersRes.data);
     } catch (err) {
       setFeedback({ type: 'error', msg: `Failed loading HR data: ${err.message}` });
     } finally {
@@ -6012,10 +6709,34 @@ export function HRManagementView() {
     try {
       await api.adjudicateLeaveRequest(id, {
         status,
-        approvedBy: 'Mrs. Evelyn Boateng (Director of Human Resources)',
+        approvedBy: 'HR Directorate',
         comments: status === 'APPROVED' ? 'Relieving clinician verified and clinical duties covered.' : 'Requires roster adjustment before leave can be cleared.'
       });
       setFeedback({ type: 'success', msg: `Leave request for ${staffName} marked as ${status}` });
+      loadData();
+    } catch (err) {
+      setFeedback({ type: 'error', msg: err.message });
+    }
+  };
+
+  const handleCreateHrStaff = async (e) => {
+    e.preventDefault();
+    try {
+      await api.createHrStaff(newStaffForm);
+      setFeedback({ type: 'success', msg: `Staff member ${newStaffForm.fullName} added to Hospital HR Registry.` });
+      setNewStaffForm({ fullName: '', role: 'NURSE', department: 'INTERNAL_MEDICINE', cadre: 'SENIOR_NURSE_OFFICER', phone: '', email: '' });
+      loadData();
+    } catch (err) {
+      setFeedback({ type: 'error', msg: err.message });
+    }
+  };
+
+  const handleCreateHrTransfer = async (e) => {
+    e.preventDefault();
+    try {
+      await api.createHrTransfer(transferForm);
+      setFeedback({ type: 'success', msg: `Staff transfer recorded for ${transferForm.staffName} (${transferForm.fromDepartment} → ${transferForm.toDepartment}).` });
+      setTransferForm({ ...transferForm, staffName: '', reason: '' });
       loadData();
     } catch (err) {
       setFeedback({ type: 'error', msg: err.message });
@@ -6184,6 +6905,13 @@ export function HRManagementView() {
           style={{ fontSize: '0.78rem', padding: '6px 14px' }}
         >
           Biometric Attendance & Leave ({attendance.length} / {leaveRequests.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('STAFF_TRANSFERS')}
+          className={activeTab === 'STAFF_TRANSFERS' ? 'btn-gold' : 'btn-outline-gold'}
+          style={{ fontSize: '0.78rem', padding: '6px 14px' }}
+        >
+          Staff Registry, On-Duty, On-Leave & Transfers ({hrStaffList.length} Staff • {hrTransfers.length} Transfers)
         </button>
       </div>
 
@@ -6538,6 +7266,144 @@ export function HRManagementView() {
         </div>
       )}
 
+      {/* Tab 5: Staff Registry, Staff On Duty, Staff On Leave & Transferred Staff */}
+      {activeTab === 'STAFF_TRANSFERS' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+          {/* Summary Grid: Staff On Duty vs Staff On Leave vs Transferred Staff */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+            <div className="glass-panel" style={{ padding: '16px' }}>
+              <h4 style={{ fontSize: '0.9rem', color: '#86efac', marginBottom: '8px' }}>
+                🟢 Staff On Duty ({attendance.filter(a => !a.clockOutTime).length})
+              </h4>
+              {attendance.filter(a => !a.clockOutTime).length === 0 ? (
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>No staff currently clocked in on active duty.</div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {attendance.filter(a => !a.clockOutTime).map(a => (
+                    <div key={a.id} style={{ padding: '6px 8px', background: 'rgba(0,0,0,0.4)', borderRadius: '4px', fontSize: '0.76rem', display: 'flex', justifyContent: 'space-between' }}>
+                      <strong style={{ color: '#fff' }}>{a.staffName}</strong>
+                      <span style={{ color: 'var(--gold-300)' }}>{a.department} (In: {a.clockInTime})</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="glass-panel" style={{ padding: '16px' }}>
+              <h4 style={{ fontSize: '0.9rem', color: '#fde047', marginBottom: '8px' }}>
+                🟡 Staff On Leave ({leaveRequests.length})
+              </h4>
+              {leaveRequests.length === 0 ? (
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>No staff on leave.</div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {leaveRequests.map(l => (
+                    <div key={l.id} style={{ padding: '6px 8px', background: 'rgba(0,0,0,0.4)', borderRadius: '4px', fontSize: '0.76rem', display: 'flex', justifyContent: 'space-between' }}>
+                      <strong style={{ color: '#fff' }}>{l.staffName}</strong>
+                      <span style={{ color: '#fde047' }}>{l.leaveType} ({l.daysRequested}d • {l.status})</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="glass-panel" style={{ padding: '16px' }}>
+              <h4 style={{ fontSize: '0.9rem', color: '#93c5fd', marginBottom: '8px' }}>
+                🔵 Transferred Staff ({hrTransfers.length})
+              </h4>
+              {hrTransfers.length === 0 ? (
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>No staff transfers recorded yet.</div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {hrTransfers.map(t => (
+                    <div key={t.id} style={{ padding: '6px 8px', background: 'rgba(0,0,0,0.4)', borderRadius: '4px', fontSize: '0.76rem' }}>
+                      <div style={{ fontWeight: 700, color: '#fff' }}>{t.staffName} ({t.transferNumber})</div>
+                      <div style={{ color: '#93c5fd', fontSize: '0.72rem' }}>{t.fromDepartment} → {t.toDepartment} ({t.effectiveDate})</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Forms to Register Staff & Record Staff Transfer */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <form onSubmit={handleCreateHrStaff} className="glass-panel" style={{ padding: '18px' }}>
+              <h4 style={{ fontSize: '0.95rem', color: 'var(--gold-400)', marginBottom: '10px' }}>+ Add Hospital Staff Record</h4>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                <input required type="text" placeholder="Full Name *" value={newStaffForm.fullName} onChange={e => setNewStaffForm({ ...newStaffForm, fullName: e.target.value })} style={{ padding: '7px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="text" placeholder="Role (e.g. DOCTOR, NURSE) *" value={newStaffForm.role} onChange={e => setNewStaffForm({ ...newStaffForm, role: e.target.value })} style={{ padding: '7px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="text" placeholder="Department *" value={newStaffForm.department} onChange={e => setNewStaffForm({ ...newStaffForm, department: e.target.value })} style={{ padding: '7px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input type="text" placeholder="Phone Number" value={newStaffForm.phone} onChange={e => setNewStaffForm({ ...newStaffForm, phone: e.target.value })} style={{ padding: '7px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+              </div>
+              <button type="submit" className="btn-gold" style={{ fontSize: '0.78rem' }}>Save Staff Record</button>
+            </form>
+
+            <form onSubmit={handleCreateHrTransfer} className="glass-panel" style={{ padding: '18px' }}>
+              <h4 style={{ fontSize: '0.95rem', color: 'var(--gold-400)', marginBottom: '10px' }}>+ Record Staff Departmental / Facility Transfer</h4>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                <input required type="text" placeholder="Staff Full Name *" value={transferForm.staffName} onChange={e => setTransferForm({ ...transferForm, staffName: e.target.value })} style={{ padding: '7px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="text" placeholder="From Dept *" value={transferForm.fromDepartment} onChange={e => setTransferForm({ ...transferForm, fromDepartment: e.target.value })} style={{ padding: '7px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="text" placeholder="To Dept *" value={transferForm.toDepartment} onChange={e => setTransferForm({ ...transferForm, toDepartment: e.target.value })} style={{ padding: '7px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px' }}>
+                <input required type="text" placeholder="Transfer Reason / Authorization *" value={transferForm.reason} onChange={e => setTransferForm({ ...transferForm, reason: e.target.value })} style={{ padding: '7px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <button type="submit" className="btn-gold" style={{ fontSize: '0.78rem' }}>Record Transfer</button>
+              </div>
+            </form>
+          </div>
+
+          {/* Complete HR Staff Registry Table */}
+          <div className="glass-panel" style={{ padding: '18px', overflowX: 'auto' }}>
+            <h4 style={{ fontSize: '0.95rem', color: 'var(--gold-400)', marginBottom: '10px' }}>
+              Hospital Staff Registry ({hrStaffList.length} Staff Records)
+            </h4>
+            {hrStaffList.length === 0 ? (
+              <div style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>No staff records found.</div>
+            ) : (
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Staff ID</th>
+                    <th>Full Name</th>
+                    <th>Role</th>
+                    <th>Department</th>
+                    <th>Duty Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {hrStaffList.map(st => (
+                    <tr key={st.id || st.staffId}>
+                      <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--gold-300)' }}>{st.staffId || st.id}</td>
+                      <td style={{ fontWeight: 700, color: '#fff' }}>{st.fullName}</td>
+                      <td>{st.role}</td>
+                      <td>{st.department}</td>
+                      <td>{st.dutyStatus || st.status || 'ACTIVE'}</td>
+                      <td>
+                        <button
+                          type="button"
+                          onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
+                            detailType: 'PROFILE',
+                            recordId: st.staffId || st.id,
+                            title: `HR Staff Profile — ${st.fullName}`,
+                            payload: st
+                          })}
+                          className="btn-outline-gold"
+                          style={{ padding: '3px 8px', fontSize: '0.72rem' }}
+                        >
+                          View Profile
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Modal 1: Schedule Shift */}
       {showRosterModal && (
         <div className="modal-backdrop">
@@ -6795,7 +7661,7 @@ export function HRManagementView() {
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
                 <button type="button" onClick={() => setShowClockInModal(false)} className="btn-outline-gold">Cancel</button>
-                <button type="submit" className="btn-gold">Simulate Fingerprint Clock-In</button>
+                <button type="submit" className="btn-gold">Record Biometric Clock-In</button>
               </div>
             </form>
           </div>

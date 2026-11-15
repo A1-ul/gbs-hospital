@@ -30,6 +30,31 @@ function calculateCountdown(subscription, isSystemLocked = false) {
         };
     }
 
+    if (
+        String(subscription.plan || "").toUpperCase().includes("LIFETIME") ||
+        String(subscription.billingCycle || "").toUpperCase() === "LIFETIME"
+    ) {
+        return {
+            hasSubscription: true,
+            subscriptionId: subscription.subscriptionId,
+            plan: subscription.plan || "ENTERPRISE_LIFETIME",
+            trialStartDate: subscription.trialStartDate,
+            trialEndDate: subscription.trialEndDate,
+            subscriptionEndDate: subscription.subscriptionEndDate,
+            gracePeriodEndDate: subscription.gracePeriodEndDate,
+            remainingDays: 99999,
+            remainingHours: 23,
+            remainingMinutes: 59,
+            remainingSeconds: 59,
+            totalSeconds: 8639999999,
+            formattedCountdown: "LIFETIME LICENSE (Permanent Access)",
+            warningTier: "LIFETIME_ACTIVE",
+            warningMessage: "Lifetime subscription active and operational",
+            isExpired: false,
+            isLocked: Boolean(isSystemLocked)
+        };
+    }
+
     const now = new Date().getTime();
     const expiryTarget = subscription.subscriptionEndDate
         ? new Date(subscription.subscriptionEndDate).getTime()

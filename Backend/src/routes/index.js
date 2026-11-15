@@ -80,6 +80,12 @@ registerRoute(
 );
 
 registerRoute(
+    "/beds",
+    require("../modules/admissions/routes/admissions.routes"),
+    "Hospital Bed Matrix & Allocation"
+);
+
+registerRoute(
     "/pharmacy",
     require("../modules/pharmacy/routes/pharmacy.routes"),
     "Pharmacy & Dispensing"

@@ -274,13 +274,45 @@ async function getIpdDashboardTelemetry(req, res, next) {
     }
 }
 
+async function getFullHospitalBedMatrix(req, res, next) {
+    try {
+        const hospitalId = req.query.hospitalId || (req.user ? req.user.hospitalId : null);
+        const matrix = await inpatientService.getFullHospitalBedMatrix(hospitalId);
+        return res.status(200).json({
+            success: true,
+            data: matrix.beds,
+            wards: matrix.wards,
+            totals: matrix.totals,
+            summary: matrix.summary
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+async function extendAdmissionStay(req, res, next) {
+    try {
+        const admissionId = req.params.id;
+        const result = await inpatientService.extendAdmissionStay(admissionId, req.body, req.user);
+        return res.status(200).json({
+            success: true,
+            message: `Inpatient stay extended to ${result.extendedDischargeDate}`,
+            data: result
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
 module.exports = {
     createWard,
     getHospitalWards,
     createRoom,
     createBed,
     getWardBedMatrix,
+    getFullHospitalBedMatrix,
     admitPatient,
+    extendAdmissionStay,
     transferBed,
     recordInpatientNursingChart,
     getAdmissionNursingCharts,

@@ -145,6 +145,44 @@ async function searchLabTestsCatalog(req, res, next) {
     }
 }
 
+async function dispatchClinicalReport(req, res, next) {
+    try {
+        const result = await consultationService.dispatchClinicalReport(req.body, req.user);
+        return res.status(201).json({
+            success: true,
+            message: `Patient report sent to ${result.targetStaffName || result.targetRole}. Notification status: SENT.`,
+            data: result
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+async function createDutyReport(req, res, next) {
+    try {
+        const result = await consultationService.createDutyReport(req.body, req.user);
+        return res.status(201).json({
+            success: true,
+            message: "Role duty report submitted and archived in PostgreSQL.",
+            data: result
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+async function getClinicalAndDutyReports(req, res, next) {
+    try {
+        const result = await consultationService.getClinicalAndDutyReports(req.query);
+        return res.status(200).json({
+            success: true,
+            data: result
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
 module.exports = {
     recordDoctorConsultation,
     getConsultationDetails,
@@ -152,5 +190,8 @@ module.exports = {
     getDoctorDashboardTelemetry,
     searchICD10Catalog,
     searchMedicationsCatalog,
-    searchLabTestsCatalog
+    searchLabTestsCatalog,
+    dispatchClinicalReport,
+    createDutyReport,
+    getClinicalAndDutyReports
 };

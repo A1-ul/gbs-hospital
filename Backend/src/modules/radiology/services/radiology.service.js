@@ -9,6 +9,7 @@ LOCATION: src/modules/radiology/services/radiology.service.js
 ====================================================
 */
 
+const fs = require("fs");
 const prisma = require("../../../core/database/prisma.client");
 const {
     generateAccessionNumber,
@@ -33,8 +34,9 @@ const logger = require("../../../core/utils/logger");
  * @param {Object} requestingUser 
  */
 async function createRadiologyOrder(orderData, requestingUser) {
-    const {
+    let {
         encounterId,
+        patientId,
         procedureName: explicitProcedureName,
         procedureCode,
         modality: explicitModality,
@@ -44,14 +46,44 @@ async function createRadiologyOrder(orderData, requestingUser) {
         scheduledDate
     } = orderData;
 
-    if (!encounterId) {
-        throw new AppError("Clinical Encounter ID is required", 400, "MISSING_ENCOUNTER_ID");
+    let encounter = null;
+    if (encounterId) {
+        encounter = await prisma.patientEncounter.findUnique({
+            where: { id: encounterId },
+            include: { patient: true }
+        });
+    } else if (patientId) {
+        const patient = await prisma.patient.findFirst({
+            where: {
+                OR: [{ id: patientId }, { patientNumber: patientId }]
+            }
+        });
+        if (!patient) {
+            throw new AppError("Patient not found for Radiology order", 404, "PATIENT_NOT_FOUND");
+        }
+        encounter = await prisma.patientEncounter.findFirst({
+            where: { patientId: patient.id, status: { not: "CANCELLED" } },
+            include: { patient: true },
+            orderBy: { visitDate: "desc" }
+        });
+        if (!encounter) {
+            encounter = await prisma.patientEncounter.create({
+                data: {
+                    patientId: patient.id,
+                    hospitalId: patient.hospitalId,
+                    encounterNumber: `ENC-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`,
+                    encounterType: "OUTPATIENT",
+                    status: "OPEN"
+                },
+                include: { patient: true }
+            });
+        }
+        encounterId = encounter.id;
     }
 
-    const encounter = await prisma.patientEncounter.findUnique({
-        where: { id: encounterId },
-        include: { patient: true }
-    });
+    if (!encounterId) {
+        throw new AppError("Clinical Encounter ID or Patient ID is required", 400, "MISSING_ENCOUNTER_ID");
+    }
 
     if (!encounter) {
         throw new AppError("Clinical Encounter not found", 404, "ENCOUNTER_NOT_FOUND");
@@ -59,9 +91,9 @@ async function createRadiologyOrder(orderData, requestingUser) {
 
     // Auto-resolve catalog metadata if standard procedure code provided
     const catalogItem = procedureCode ? STANDARD_RADIOLOGY_PROCEDURES[procedureCode.trim().toUpperCase()] : null;
-    const procedureName = explicitProcedureName || catalogItem?.procedureName;
     const modality = explicitModality || catalogItem?.modality || MODALITIES.XRAY;
     const bodyPart = explicitBodyPart || catalogItem?.bodyPart || BODY_PARTS.CHEST;
+    const procedureName = explicitProcedureName || catalogItem?.procedureName || (explicitBodyPart ? `${modality} ${bodyPart}` : null);
 
     if (!procedureName || !procedureName.trim()) {
         throw new AppError("Radiology procedure name is required", 400, "MISSING_PROCEDURE_NAME");
@@ -615,6 +647,16 @@ async function getRadiologyDashboardTelemetry() {
         priorityQueue[item.priority] = item._count.id;
     }
 
+    let storageAvailableGb = 0;
+    try {
+        if (typeof fs.statfsSync === "function") {
+            const stats = fs.statfsSync(process.cwd());
+            storageAvailableGb = Number(((stats.bavail * stats.bsize) / (1024 ** 3)).toFixed(1));
+        }
+    } catch (_e) {
+        storageAvailableGb = 0;
+    }
+
     return {
         totalOrdersToday,
         pendingAcquisition,
@@ -626,7 +668,7 @@ async function getRadiologyDashboardTelemetry() {
         systemHealth: {
             pacsArchiveOnline: true,
             dicomRouterActive: true,
-            storageAvailableGb: 1845.6
+            storageAvailableGb
         }
     };
 }
