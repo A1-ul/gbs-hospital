@@ -10,6 +10,7 @@ LOCATION: src/modules/clinical/services/consultation.service.js
 */
 
 const prisma = require("../../../core/database/prisma.client");
+const { ensureDefaultHospitalId } = require("../../../core/database/hospital-resolver");
 const { searchICD10, searchMedications, searchLabTests, ICD10_CATALOG } = require("../helpers/clinical-catalogs");
 const AppError = require("../../../core/errors/app.error");
 const logger = require("../../../core/utils/logger");
@@ -370,10 +371,8 @@ async function getPatientClinicalHistory(patientId) {
  * @param {string} hospitalId - Hospital ID
  * @param {string} doctorUserId - Doctor User ID
  */
-async function getDoctorDashboardTelemetry(hospitalId, doctorUserId) {
-    if (!hospitalId) {
-        throw new AppError("Hospital ID is required", 400, "MISSING_HOSPITAL_ID");
-    }
+async function getDoctorDashboardTelemetry(explicitHospitalId, doctorUserId) {
+    const hospitalId = await ensureDefaultHospitalId(explicitHospitalId);
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);

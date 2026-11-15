@@ -158,8 +158,8 @@ export default function Header({
             <Shield style={{ color: 'var(--gold-400)', width: '28px', height: '28px' }} />
           </div>
           <div>
-            <h1 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              <span className="gold-gradient-text">GBS HOSPITAL</span> MANAGEMENT SYSTEM
+            <h1 className="header-3d" style={{ fontSize: '1.52rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <span className="header-3d-gold">GBS HOSPITAL</span> MANAGEMENT SYSTEM
             </h1>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginTop: '2px' }}>
               <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#10b981', letterSpacing: '0.03em' }}>

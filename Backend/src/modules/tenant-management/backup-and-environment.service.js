@@ -14,6 +14,7 @@ LOCATION: Backend/src/modules/tenant-management/backup-and-environment.service.j
 */
 
 const fs = require("fs");
+const os = require("os");
 const path = require("path");
 const crypto = require("crypto");
 const prisma = require("../../core/database/prisma.client");
@@ -510,6 +511,17 @@ async function getEnvironmentAndDataIdentification() {
 
     const backups = await listDatabaseBackups();
 
+    const networkInterfaces = os.networkInterfaces();
+    const lanAccessUrls = [];
+    const activePort = envConfig.PORT || process.env.PORT || 5000;
+    for (const ifaceList of Object.values(networkInterfaces)) {
+        for (const iface of ifaceList || []) {
+            if (iface.family === "IPv4" && !iface.internal) {
+                lanAccessUrls.push(`http://${iface.address}:${activePort}`);
+            }
+        }
+    }
+
     return {
         activeEnvironment: envConfig.activeEnvironment,
         nodeEnv: envConfig.NODE_ENV,
@@ -517,6 +529,8 @@ async function getEnvironmentAndDataIdentification() {
         allowDemoSeedingInProduction: envConfig.allowDemoSeedingInProduction,
         officialCompanyEmail: envConfig.officialCompanyEmail,
         cloudHostingProvider: envConfig.cloudHostingProvider,
+        localAccessUrl: `http://localhost:${activePort}`,
+        lanAccessUrls,
         databaseMetadata: envConfig.getSafeDatabaseMetadata(),
         summary: {
             totalRecords,
@@ -676,6 +690,14 @@ async function purgeDevelopmentTestData(options = {}, developerUserId = null) {
         totalDeleted += deletedUsers.count || 0;
     } catch (_err) {
         deletedCounts.user = 0;
+    }
+
+    // Re-provision primary GBS Hospital facility record so production workflows stay immediately operational
+    try {
+        const { ensureDefaultHospitalId } = require("../../core/database/hospital-resolver");
+        await ensureDefaultHospitalId();
+    } catch (_err) {
+        // Non-fatal fallback
     }
 
     // Record clean production activation in AuditLog

@@ -29,6 +29,12 @@ const logger =
 require("../utils/logger");
 
 
+const {
+    environment
+} =
+require("../../config/environment");
+
+
 
 
 
@@ -132,11 +138,10 @@ function extractToken(req){
 
 
 function verifyToken(token){
-
-
+    const secret = environment.JWT_SECRET || process.env.JWT_SECRET;
 
     if(
-        !process.env.JWT_SECRET
+        !secret
     ){
 
         throw new AppError(
@@ -151,11 +156,6 @@ function verifyToken(token){
 
     }
 
-
-
-
-
-
     try{
 
 
@@ -163,7 +163,7 @@ function verifyToken(token){
 
             token,
 
-            process.env.JWT_SECRET,
+            secret,
 
             JWT_OPTIONS
 

@@ -10,6 +10,7 @@ LOCATION: src/modules/migration/services/migration.service.js
 */
 
 const prisma = require("../../../core/database/prisma.client");
+const { ensureDefaultHospitalId } = require("../../../core/database/hospital-resolver");
 const AppError = require("../../../core/errors/app.error");
 const logger = require("../../../core/utils/logger");
 const { generateJobCode, generateTemplateCode } = require("../helpers/migration-id.generator");
@@ -27,14 +28,7 @@ const { generateItemCode } = require("../../pharmacy/helpers/pharmacy-id.generat
  * Resolves active hospital ID
  */
 async function resolveHospitalId(explicitHospitalId) {
-    if (explicitHospitalId) return explicitHospitalId;
-    const defaultHospital = await prisma.hospital.findFirst({
-        orderBy: { createdAt: "asc" }
-    });
-    if (!defaultHospital) {
-        throw new AppError("No active hospital record found in system", 500, "HOSPITAL_NOT_FOUND");
-    }
-    return defaultHospital.id;
+    return ensureDefaultHospitalId(explicitHospitalId);
 }
 
 /**

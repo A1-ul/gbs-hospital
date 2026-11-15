@@ -5,8 +5,10 @@
 
 const API_BASE = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_BASE_URL) || '/api/v1';
 
-async function request(endpoint, options = {}) {
+async function coreRequest(endpoint, options = {}) {
   const token = localStorage.getItem('gbs_token');
+  const method = (options.method || 'GET').toUpperCase();
+  const activeRole = localStorage.getItem('gbs_role') || 'ACTIVE_USER';
   const headers = {
     'Content-Type': 'application/json',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -24,6 +26,16 @@ async function request(endpoint, options = {}) {
       `Unable to reach the GBS Hospital Backend API at ${API_BASE}${endpoint}. Ensure the PostgreSQL & Express backend server is running.`
     );
     err.cause = networkErr;
+    if (typeof window !== 'undefined' && typeof window.gbsBrainNotify === 'function') {
+      window.gbsBrainNotify({
+        type: 'error',
+        method,
+        endpoint,
+        title: `Network Error (${method})`,
+        message: err.message,
+        role: activeRole,
+      });
+    }
     throw err;
   }
 
@@ -44,10 +56,55 @@ async function request(endpoint, options = {}) {
     const err = new Error(errorMsg);
     err.status = response.status;
     err.data = data;
+    if (typeof window !== 'undefined' && typeof window.gbsBrainNotify === 'function') {
+      window.gbsBrainNotify({
+        type: 'error',
+        method,
+        endpoint,
+        status: response.status,
+        title: `API Error (${response.status})`,
+        message: `${endpoint}: ${errorMsg}`,
+        role: activeRole,
+      });
+    }
     throw err;
   }
 
-  return (data && data.data !== undefined) ? data.data : data;
+  const resolved = (data && data.data !== undefined) ? data.data : data;
+  if (typeof window !== 'undefined' && typeof window.gbsBrainNotify === 'function' && method !== 'GET') {
+    const serverMsg =
+      (data && data.message) ||
+      (resolved && resolved.message) ||
+      `${method} ${endpoint} completed cleanly.`;
+    window.gbsBrainNotify({
+      type: 'success',
+      method,
+      endpoint,
+      status: response.status,
+      title: `Action Executed (${method})`,
+      message: serverMsg,
+      role: activeRole,
+    });
+  }
+
+  return { raw: data, data: resolved };
+}
+
+async function request(endpoint, options = {}) {
+  const { data } = await coreRequest(endpoint, options);
+  return data;
+}
+
+async function requestEnvelope(endpoint, options = {}) {
+  const { raw, data } = await coreRequest(endpoint, options);
+  if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+    return {
+      ...raw,
+      success: raw.success !== undefined ? raw.success : true,
+      data,
+    };
+  }
+  return { success: true, data };
 }
 
 export const api = {
@@ -428,417 +485,417 @@ export const api = {
     }),
 
   // Mortuary Management, Cold Storage & Deceased Patient Release (Phase 14)
-  getMortuaryStats: () => request('/mortuary/stats'),
-  getMortuaryCatalogs: () => request('/mortuary/catalogs'),
-  getMortuaryChambers: (q) => request('/mortuary/chambers' + (q ? `?${q}` : '')),
+  getMortuaryStats: () => requestEnvelope('/mortuary/stats'),
+  getMortuaryCatalogs: () => requestEnvelope('/mortuary/catalogs'),
+  getMortuaryChambers: (q) => requestEnvelope('/mortuary/chambers' + (q ? `?${q}` : '')),
   createMortuaryChamber: (payload) =>
-    request('/mortuary/chambers', {
+    requestEnvelope('/mortuary/chambers', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
-  getCorpses: (q) => request('/mortuary/corpses' + (q ? `?${q}` : '')),
+  getCorpses: (q) => requestEnvelope('/mortuary/corpses' + (q ? `?${q}` : '')),
   registerCorpse: (payload) =>
-    request('/mortuary/corpses', {
+    requestEnvelope('/mortuary/corpses', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
-  getCorpseById: (id) => request(`/mortuary/corpses/${id}`),
+  getCorpseById: (id) => requestEnvelope(`/mortuary/corpses/${id}`),
   assignCorpseChamber: (id, payload) =>
-    request(`/mortuary/corpses/${id}/assign-chamber`, {
+    requestEnvelope(`/mortuary/corpses/${id}/assign-chamber`, {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
   scheduleAutopsy: (payload) =>
-    request('/mortuary/autopsies', {
+    requestEnvelope('/mortuary/autopsies', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
   completeAutopsy: (id, payload) =>
-    request(`/mortuary/autopsies/${id}/complete`, {
+    requestEnvelope(`/mortuary/autopsies/${id}/complete`, {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
-  getCorpseReleases: (q) => request('/mortuary/releases' + (q ? `?${q}` : '')),
+  getCorpseReleases: (q) => requestEnvelope('/mortuary/releases' + (q ? `?${q}` : '')),
   releaseCorpse: (payload) =>
-    request('/mortuary/releases', {
+    requestEnvelope('/mortuary/releases', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
 
   // Biomedical Engineering & Medical Equipment Maintenance (Phase 15)
-  getBiomedicalStats: () => request('/biomedical/stats'),
-  getBiomedicalCatalogs: () => request('/biomedical/catalogs'),
-  getEquipmentList: (q) => request('/biomedical/equipment' + (q ? `?${q}` : '')),
+  getBiomedicalStats: () => requestEnvelope('/biomedical/stats'),
+  getBiomedicalCatalogs: () => requestEnvelope('/biomedical/catalogs'),
+  getEquipmentList: (q) => requestEnvelope('/biomedical/equipment' + (q ? `?${q}` : '')),
   registerEquipment: (payload) =>
-    request('/biomedical/equipment', {
+    requestEnvelope('/biomedical/equipment', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
-  getEquipmentById: (id) => request(`/biomedical/equipment/${id}`),
+  getEquipmentById: (id) => requestEnvelope(`/biomedical/equipment/${id}`),
   updateEquipmentStatus: (id, payload) =>
-    request(`/biomedical/equipment/${id}/status`, {
+    requestEnvelope(`/biomedical/equipment/${id}/status`, {
       method: 'PATCH',
       body: JSON.stringify(payload),
     }),
   recordSafetyOverride: (id, payload) =>
-    request(`/biomedical/equipment/${id}/safety-override`, {
+    requestEnvelope(`/biomedical/equipment/${id}/safety-override`, {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
-  getWorkOrders: (q) => request('/biomedical/work-orders' + (q ? `?${q}` : '')),
+  getWorkOrders: (q) => requestEnvelope('/biomedical/work-orders' + (q ? `?${q}` : '')),
   createWorkOrder: (payload) =>
-    request('/biomedical/work-orders', {
+    requestEnvelope('/biomedical/work-orders', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
   updateWorkOrder: (id, payload) =>
-    request(`/biomedical/work-orders/${id}`, {
+    requestEnvelope(`/biomedical/work-orders/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(payload),
     }),
   completeWorkOrder: (id, payload) =>
-    request(`/biomedical/work-orders/${id}/complete`, {
+    requestEnvelope(`/biomedical/work-orders/${id}/complete`, {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
   recordCalibration: (payload) =>
-    request('/biomedical/calibrations', {
+    requestEnvelope('/biomedical/calibrations', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
 
   // Supply Chain, Procurement & Vendor Contracts (Phase 16)
-  getProcurementStats: () => request('/procurement/stats'),
-  getProcurementCatalogs: () => request('/procurement/catalogs'),
-  getVendors: (q) => request('/procurement/vendors' + (q ? `?${q}` : '')),
+  getProcurementStats: () => requestEnvelope('/procurement/stats'),
+  getProcurementCatalogs: () => requestEnvelope('/procurement/catalogs'),
+  getVendors: (q) => requestEnvelope('/procurement/vendors' + (q ? `?${q}` : '')),
   registerVendor: (payload) =>
-    request('/procurement/vendors', {
+    requestEnvelope('/procurement/vendors', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
-  getVendorById: (id) => request(`/procurement/vendors/${id}`),
+  getVendorById: (id) => requestEnvelope(`/procurement/vendors/${id}`),
   updateVendor: (id, payload) =>
-    request(`/procurement/vendors/${id}`, {
+    requestEnvelope(`/procurement/vendors/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(payload),
     }),
-  getVendorContracts: (q) => request('/procurement/contracts' + (q ? `?${q}` : '')),
+  getVendorContracts: (q) => requestEnvelope('/procurement/contracts' + (q ? `?${q}` : '')),
   registerVendorContract: (payload) =>
-    request('/procurement/contracts', {
+    requestEnvelope('/procurement/contracts', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
-  getPurchaseOrders: (q) => request('/procurement/purchase-orders' + (q ? `?${q}` : '')),
+  getPurchaseOrders: (q) => requestEnvelope('/procurement/purchase-orders' + (q ? `?${q}` : '')),
   createPurchaseOrder: (payload) =>
-    request('/procurement/purchase-orders', {
+    requestEnvelope('/procurement/purchase-orders', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
-  getPurchaseOrderById: (id) => request(`/procurement/purchase-orders/${id}`),
+  getPurchaseOrderById: (id) => requestEnvelope(`/procurement/purchase-orders/${id}`),
   updatePurchaseOrderStatus: (id, payload) =>
-    request(`/procurement/purchase-orders/${id}/status`, {
+    requestEnvelope(`/procurement/purchase-orders/${id}/status`, {
       method: 'PATCH',
       body: JSON.stringify(payload),
     }),
-  getGoodsReceiptNotes: (q) => request('/procurement/goods-receipt-notes' + (q ? `?${q}` : '')),
+  getGoodsReceiptNotes: (q) => requestEnvelope('/procurement/goods-receipt-notes' + (q ? `?${q}` : '')),
   createGoodsReceiptNote: (payload) =>
-    request('/procurement/goods-receipt-notes', {
+    requestEnvelope('/procurement/goods-receipt-notes', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
-  getGoodsReceiptNoteById: (id) => request(`/procurement/goods-receipt-notes/${id}`),
+  getGoodsReceiptNoteById: (id) => requestEnvelope(`/procurement/goods-receipt-notes/${id}`),
   verifyThreeWayMatch: (id, payload) =>
-    request(`/procurement/goods-receipt-notes/${id}/three-way-match`, {
+    requestEnvelope(`/procurement/goods-receipt-notes/${id}/three-way-match`, {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
   completeGrnInspection: (id, payload) =>
-    request(`/procurement/goods-receipt-notes/${id}/inspection`, {
+    requestEnvelope(`/procurement/goods-receipt-notes/${id}/inspection`, {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
 
   // Human Resources, Duty Rostering & Staff Credentialing (Phase 17)
-  getHrStats: () => request('/hr/stats'),
-  getHrCatalogs: () => request('/hr/catalogs'),
-  getCredentials: (q) => request('/hr/credentials' + (q ? `?${q}` : '')),
+  getHrStats: () => requestEnvelope('/hr/stats'),
+  getHrCatalogs: () => requestEnvelope('/hr/catalogs'),
+  getCredentials: (q) => requestEnvelope('/hr/credentials' + (q ? `?${q}` : '')),
   registerCredential: (payload) =>
-    request('/hr/credentials', {
+    requestEnvelope('/hr/credentials', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
   verifyCredential: (id, payload) =>
-    request(`/hr/credentials/${id}/verify`, {
+    requestEnvelope(`/hr/credentials/${id}/verify`, {
       method: 'PATCH',
       body: JSON.stringify(payload),
     }),
-  getDutyRosters: (q) => request('/hr/roster' + (q ? `?${q}` : '')),
+  getDutyRosters: (q) => requestEnvelope('/hr/roster' + (q ? `?${q}` : '')),
   scheduleDutyShift: (payload) =>
-    request('/hr/roster', {
+    requestEnvelope('/hr/roster', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
   updateRosterStatus: (id, payload) =>
-    request(`/hr/roster/${id}/status`, {
+    requestEnvelope(`/hr/roster/${id}/status`, {
       method: 'PATCH',
       body: JSON.stringify(payload),
     }),
-  getShiftHandovers: (q) => request('/hr/handovers' + (q ? `?${q}` : '')),
+  getShiftHandovers: (q) => requestEnvelope('/hr/handovers' + (q ? `?${q}` : '')),
   recordShiftHandover: (payload) =>
-    request('/hr/handovers', {
+    requestEnvelope('/hr/handovers', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
   coSignShiftHandover: (id, payload) =>
-    request(`/hr/handovers/${id}/cosign`, {
+    requestEnvelope(`/hr/handovers/${id}/cosign`, {
       method: 'PATCH',
       body: JSON.stringify(payload),
     }),
-  getStaffAttendance: (q) => request('/hr/attendance' + (q ? `?${q}` : '')),
+  getStaffAttendance: (q) => requestEnvelope('/hr/attendance' + (q ? `?${q}` : '')),
   clockInStaff: (payload) =>
-    request('/hr/attendance/clock-in', {
+    requestEnvelope('/hr/attendance/clock-in', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
   clockOutStaff: (id, payload) =>
-    request(`/hr/attendance/${id}/clock-out`, {
+    requestEnvelope(`/hr/attendance/${id}/clock-out`, {
       method: 'PATCH',
       body: JSON.stringify(payload),
     }),
-  getLeaveRequests: (q) => request('/hr/leave' + (q ? `?${q}` : '')),
+  getLeaveRequests: (q) => requestEnvelope('/hr/leave' + (q ? `?${q}` : '')),
   requestStaffLeave: (payload) =>
-    request('/hr/leave', {
+    requestEnvelope('/hr/leave', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
   adjudicateLeaveRequest: (id, payload) =>
-    request(`/hr/leave/${id}/adjudicate`, {
+    requestEnvelope(`/hr/leave/${id}/adjudicate`, {
       method: 'PATCH',
       body: JSON.stringify(payload),
     }),
 
   // Quality Assurance, Incident Reporting, IPC & Clinical Audits (Phase 18)
-  getQualityStats: () => request('/quality/stats'),
-  getQualityCatalogs: () => request('/quality/catalogs'),
-  getClinicalIncidents: (q) => request('/quality/incidents' + (q ? `?${q}` : '')),
+  getQualityStats: () => requestEnvelope('/quality/stats'),
+  getQualityCatalogs: () => requestEnvelope('/quality/catalogs'),
+  getClinicalIncidents: (q) => requestEnvelope('/quality/incidents' + (q ? `?${q}` : '')),
   reportClinicalIncident: (payload) =>
-    request('/quality/incidents', {
+    requestEnvelope('/quality/incidents', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
   investigateIncident: (id, payload) =>
-    request(`/quality/incidents/${id}/investigate`, {
+    requestEnvelope(`/quality/incidents/${id}/investigate`, {
       method: 'PATCH',
       body: JSON.stringify(payload),
     }),
   closeIncident: (id, payload) =>
-    request(`/quality/incidents/${id}/close`, {
+    requestEnvelope(`/quality/incidents/${id}/close`, {
       method: 'PATCH',
       body: JSON.stringify(payload),
     }),
-  getIpcCases: (q) => request('/quality/infection-control' + (q ? `?${q}` : '')),
+  getIpcCases: (q) => requestEnvelope('/quality/infection-control' + (q ? `?${q}` : '')),
   registerIpcCase: (payload) =>
-    request('/quality/infection-control', {
+    requestEnvelope('/quality/infection-control', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
   clearIpcCase: (id, payload) =>
-    request(`/quality/infection-control/${id}/clear`, {
+    requestEnvelope(`/quality/infection-control/${id}/clear`, {
       method: 'PATCH',
       body: JSON.stringify(payload),
     }),
-  getClinicalAudits: (q) => request('/quality/audits' + (q ? `?${q}` : '')),
+  getClinicalAudits: (q) => requestEnvelope('/quality/audits' + (q ? `?${q}` : '')),
   createClinicalAudit: (payload) =>
-    request('/quality/audits', {
+    requestEnvelope('/quality/audits', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
-  getCapaPlans: (q) => request('/quality/capa' + (q ? `?${q}` : '')),
+  getCapaPlans: (q) => requestEnvelope('/quality/capa' + (q ? `?${q}` : '')),
   createCapa: (payload) =>
-    request('/quality/capa', {
+    requestEnvelope('/quality/capa', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
   verifyCapa: (id, payload) =>
-    request(`/quality/capa/${id}/verify`, {
+    requestEnvelope(`/quality/capa/${id}/verify`, {
       method: 'PATCH',
       body: JSON.stringify(payload),
     }),
-  getSafetyAlerts: (q) => request('/quality/alerts' + (q ? `?${q}` : '')),
+  getSafetyAlerts: (q) => requestEnvelope('/quality/alerts' + (q ? `?${q}` : '')),
   broadcastSafetyAlert: (payload) =>
-    request('/quality/alerts', {
+    requestEnvelope('/quality/alerts', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
   acknowledgeSafetyAlert: (id) =>
-    request(`/quality/alerts/${id}/acknowledge`, {
+    requestEnvelope(`/quality/alerts/${id}/acknowledge`, {
       method: 'POST',
     }),
 
   // NHIA Claims Batches, E-Claims & Electronic Adjudication (Phase 19)
-  getNhiaTelemetry: () => request('/nhia/telemetry'),
-  getNhiaCatalogs: () => request('/nhia/catalogs'),
-  getNhiaBatches: (q) => request('/nhia/batches' + (q ? `?${q}` : '')),
-  getNhiaBatch: (id) => request(`/nhia/batches/${id}`),
+  getNhiaTelemetry: () => requestEnvelope('/nhia/telemetry'),
+  getNhiaCatalogs: () => requestEnvelope('/nhia/catalogs'),
+  getNhiaBatches: (q) => requestEnvelope('/nhia/batches' + (q ? `?${q}` : '')),
+  getNhiaBatch: (id) => requestEnvelope(`/nhia/batches/${id}`),
   createNhiaBatch: (payload) =>
-    request('/nhia/batches', {
+    requestEnvelope('/nhia/batches', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
-  getNhiaBatchClaims: (batchId, q) => request(`/nhia/batches/${batchId}/claims` + (q ? `?${q}` : '')),
+  getNhiaBatchClaims: (batchId, q) => requestEnvelope(`/nhia/batches/${batchId}/claims` + (q ? `?${q}` : '')),
   addNhiaClaim: (batchId, payload) =>
-    request(`/nhia/batches/${batchId}/claims`, {
+    requestEnvelope(`/nhia/batches/${batchId}/claims`, {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
   vetNhiaBatch: (batchId) =>
-    request(`/nhia/batches/${batchId}/vet`, {
+    requestEnvelope(`/nhia/batches/${batchId}/vet`, {
       method: 'POST',
     }),
-  getNhiaEClaimsPayload: (batchId) => request(`/nhia/batches/${batchId}/eclaims-payload`),
+  getNhiaEClaimsPayload: (batchId) => requestEnvelope(`/nhia/batches/${batchId}/eclaims-payload`),
   submitNhiaBatch: (batchId) =>
-    request(`/nhia/batches/${batchId}/submit`, {
+    requestEnvelope(`/nhia/batches/${batchId}/submit`, {
       method: 'POST',
     }),
   adjudicateNhiaBatch: (batchId, payload) =>
-    request(`/nhia/batches/${batchId}/adjudicate`, {
+    requestEnvelope(`/nhia/batches/${batchId}/adjudicate`, {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
   generateNhiaVoucher: (batchId, payload) =>
-    request(`/nhia/batches/${batchId}/reconcile-voucher`, {
+    requestEnvelope(`/nhia/batches/${batchId}/reconcile-voucher`, {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
   appealNhiaClaim: (claimId, payload) =>
-    request(`/nhia/claims/${claimId}/appeal`, {
+    requestEnvelope(`/nhia/claims/${claimId}/appeal`, {
       method: 'PATCH',
       body: JSON.stringify(payload),
     }),
   // NHIA Claims Batches, E-Claims & Electronic Adjudication (Phase 19)
-  checkNhisEligibility: (nhisNumber) => request(`/nhia/eligibility/${nhisNumber}`),
+  checkNhisEligibility: (nhisNumber) => requestEnvelope(`/nhia/eligibility/${nhisNumber}`),
   registerNhisMember: (payload) =>
-    request('/nhia/members', {
+    requestEnvelope('/nhia/members', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
 
   // Migration Service Module & Data Import Hub (Phase 20)
-  getMigrationCatalogs: () => request('/migration/catalogs'),
-  getMigrationTelemetry: () => request('/migration/telemetry'),
-  getMigrationJobs: (q) => request('/migration/jobs' + (q ? `?${q}` : '')),
-  getMigrationJob: (jobId) => request(`/migration/jobs/${jobId}`),
+  getMigrationCatalogs: () => requestEnvelope('/migration/catalogs'),
+  getMigrationTelemetry: () => requestEnvelope('/migration/telemetry'),
+  getMigrationJobs: (q) => requestEnvelope('/migration/jobs' + (q ? `?${q}` : '')),
+  getMigrationJob: (jobId) => requestEnvelope(`/migration/jobs/${jobId}`),
   initializeMigrationJob: (payload) =>
-    request('/migration/jobs', {
+    requestEnvelope('/migration/jobs', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
   applyMigrationMapping: (jobId, payload) =>
-    request(`/migration/jobs/${jobId}/mapping`, {
+    requestEnvelope(`/migration/jobs/${jobId}/mapping`, {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
   approveMigrationJob: (jobId) =>
-    request(`/migration/jobs/${jobId}/approve`, {
+    requestEnvelope(`/migration/jobs/${jobId}/approve`, {
       method: 'POST',
     }),
   executeMigrationImport: (jobId, payload) =>
-    request(`/migration/jobs/${jobId}/execute`, {
+    requestEnvelope(`/migration/jobs/${jobId}/execute`, {
       method: 'POST',
       body: JSON.stringify(payload || {}),
     }),
   rollbackMigrationJob: (jobId, payload) =>
-    request(`/migration/jobs/${jobId}/rollback`, {
+    requestEnvelope(`/migration/jobs/${jobId}/rollback`, {
       method: 'POST',
       body: JSON.stringify(payload || {}),
     }),
-  getMigrationTemplates: (q) => request('/migration/templates' + (q ? `?${q}` : '')),
+  getMigrationTemplates: (q) => requestEnvelope('/migration/templates' + (q ? `?${q}` : '')),
   saveMigrationTemplate: (payload) =>
-    request('/migration/templates', {
+    requestEnvelope('/migration/templates', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
 
   // GIS Facility Tracking, Geofencing & Floor Plans (Phase 21)
-  getGisTelemetry: () => request('/gis/telemetry'),
-  getGeofences: (q) => request('/gis/geofences' + (q ? `?${q}` : '')),
+  getGisTelemetry: () => requestEnvelope('/gis/telemetry'),
+  getGeofences: (q) => requestEnvelope('/gis/geofences' + (q ? `?${q}` : '')),
   createGeofence: (payload) =>
-    request('/gis/geofences', {
+    requestEnvelope('/gis/geofences', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
   sendLocationPing: (payload) =>
-    request('/gis/ping', {
+    requestEnvelope('/gis/ping', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
-  getGeofenceBreaches: (q) => request('/gis/breaches' + (q ? `?${q}` : '')),
-  getFloorPlans: (q) => request('/gis/floor-plans' + (q ? `?${q}` : '')),
-  getFloorPlan: (id) => request(`/gis/floor-plans/${id}`),
+  getGeofenceBreaches: (q) => requestEnvelope('/gis/breaches' + (q ? `?${q}` : '')),
+  getFloorPlans: (q) => requestEnvelope('/gis/floor-plans' + (q ? `?${q}` : '')),
+  getFloorPlan: (id) => requestEnvelope(`/gis/floor-plans/${id}`),
   createFloorPlan: (payload) =>
-    request('/gis/floor-plans', {
+    requestEnvelope('/gis/floor-plans', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
 
   // WebRTC Video Telemedicine Subsystem (Phase 21)
-  getTelemedicineTelemetry: () => request('/telemedicine/telemetry'),
-  getTelemedicineConsultations: (q) => request('/telemedicine/consultations' + (q ? `?${q}` : '')),
-  getTelemedicineConsultation: (idOrCode) => request(`/telemedicine/consultations/${idOrCode}`),
+  getTelemedicineTelemetry: () => requestEnvelope('/telemedicine/telemetry'),
+  getTelemedicineConsultations: (q) => requestEnvelope('/telemedicine/consultations' + (q ? `?${q}` : '')),
+  getTelemedicineConsultation: (idOrCode) => requestEnvelope(`/telemedicine/consultations/${idOrCode}`),
   scheduleTelemedicineConsultation: (payload) =>
-    request('/telemedicine/consultations', {
+    requestEnvelope('/telemedicine/consultations', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
   joinTelemedicineWaitingRoom: (sessionCode, payload) =>
-    request(`/telemedicine/consultations/${sessionCode}/waiting-room`, {
+    requestEnvelope(`/telemedicine/consultations/${sessionCode}/waiting-room`, {
       method: 'POST',
       body: JSON.stringify(payload || {}),
     }),
   startTelemedicineCall: (sessionCode, payload) =>
-    request(`/telemedicine/consultations/${sessionCode}/start`, {
+    requestEnvelope(`/telemedicine/consultations/${sessionCode}/start`, {
       method: 'POST',
       body: JSON.stringify(payload || {}),
     }),
   sendTelemedicineSignal: (sessionCode, payload) =>
-    request(`/telemedicine/consultations/${sessionCode}/signal`, {
+    requestEnvelope(`/telemedicine/consultations/${sessionCode}/signal`, {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
   endTelemedicineCall: (sessionCode, payload) =>
-    request(`/telemedicine/consultations/${sessionCode}/end`, {
+    requestEnvelope(`/telemedicine/consultations/${sessionCode}/end`, {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
   cancelTelemedicineConsultation: (sessionCode, payload) =>
-    request(`/telemedicine/consultations/${sessionCode}/cancel`, {
+    requestEnvelope(`/telemedicine/consultations/${sessionCode}/cancel`, {
       method: 'POST',
       body: JSON.stringify(payload || {}),
     }),
 
   // Central Voice Authentication & Biometric Security Vault (Phase 22)
-  getBiometricsTelemetry: () => request('/biometrics/telemetry'),
-  getBiometricSecurityPolicy: () => request('/biometrics/policy'),
+  getBiometricsTelemetry: () => requestEnvelope('/biometrics/telemetry'),
+  getBiometricSecurityPolicy: () => requestEnvelope('/biometrics/policy'),
   updateBiometricSecurityPolicy: (payload) =>
-    request('/biometrics/policy', {
+    requestEnvelope('/biometrics/policy', {
       method: 'PUT',
       body: JSON.stringify(payload),
     }),
-  getBiometricLogs: (q) => request('/biometrics/logs' + (q ? `?${q}` : '')),
-  getVoiceprintStatus: (userId) => request('/biometrics/voiceprint/status' + (userId ? `/${userId}` : '')),
+  getBiometricLogs: (q) => requestEnvelope('/biometrics/logs' + (q ? `?${q}` : '')),
+  getVoiceprintStatus: (userId) => requestEnvelope('/biometrics/voiceprint/status' + (userId ? `/${userId}` : '')),
   enrollVoiceprint: (payload) =>
-    request('/biometrics/voiceprint/enroll', {
+    requestEnvelope('/biometrics/voiceprint/enroll', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
   verifyVoiceprint: (payload) =>
-    request('/biometrics/voiceprint/verify', {
+    requestEnvelope('/biometrics/voiceprint/verify', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
-  getBiometricCredentials: (userId) => request('/biometrics/credentials' + (userId ? `/${userId}` : '')),
+  getBiometricCredentials: (userId) => requestEnvelope('/biometrics/credentials' + (userId ? `/${userId}` : '')),
   enrollBiometricCredential: (payload) =>
-    request('/biometrics/credentials/enroll', {
+    requestEnvelope('/biometrics/credentials/enroll', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),

@@ -10,6 +10,7 @@ LOCATION: src/modules/clinical/services/opd-triage.service.js
 */
 
 const prisma = require("../../../core/database/prisma.client");
+const { ensureDefaultHospitalId } = require("../../../core/database/hospital-resolver");
 const { generateOpdToken, generateEncounterNumber } = require("../helpers/opd-token.generator");
 const { calculateBMI, calculateNEWS2 } = require("../helpers/triage-scorer");
 const AppError = require("../../../core/errors/app.error");
@@ -24,7 +25,7 @@ const logger = require("../../../core/utils/logger");
  */
 async function checkInPatient(data, createdById) {
     const {
-        hospitalId,
+        hospitalId: explicitHospitalId,
         patientId,
         department = "GENERAL_OPD",
         priority = "ROUTINE",
@@ -32,17 +33,11 @@ async function checkInPatient(data, createdById) {
         notes
     } = data;
 
-    if (!hospitalId || !patientId) {
-        throw new AppError("Hospital ID and Patient ID are required for OPD check-in", 400, "MISSING_REQUIRED_FIELDS");
+    if (!patientId) {
+        throw new AppError("Patient ID is required for OPD check-in", 400, "MISSING_REQUIRED_FIELDS");
     }
 
-    // Verify hospital exists
-    const hospital = await prisma.hospital.findUnique({
-        where: { id: hospitalId }
-    });
-    if (!hospital) {
-        throw new AppError("Hospital not found", 404, "HOSPITAL_NOT_FOUND");
-    }
+    const hospitalId = await ensureDefaultHospitalId(explicitHospitalId);
 
     // Verify patient exists
     const patient = await prisma.patient.findUnique({
@@ -130,10 +125,8 @@ async function checkInPatient(data, createdById) {
  * @param {string} hospitalId - Hospital ID
  * @param {Object} [filters] - Optional status/priority filters
  */
-async function getNurseTriageQueue(hospitalId, filters = {}) {
-    if (!hospitalId) {
-        throw new AppError("Hospital ID is required", 400, "MISSING_HOSPITAL_ID");
-    }
+async function getNurseTriageQueue(explicitHospitalId, filters = {}) {
+    const hospitalId = await ensureDefaultHospitalId(explicitHospitalId);
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -554,10 +547,8 @@ async function completeConsultation(encounterId, notes, doctorUserId) {
  * @param {string} [doctorId] - Optional specific doctor ID
  * @param {Object} [options] - Optional filter options
  */
-async function getDoctorWaitingQueue(hospitalId, doctorId = null, options = {}) {
-    if (!hospitalId) {
-        throw new AppError("Hospital ID is required", 400, "MISSING_HOSPITAL_ID");
-    }
+async function getDoctorWaitingQueue(explicitHospitalId, doctorId = null, options = {}) {
+    const hospitalId = await ensureDefaultHospitalId(explicitHospitalId);
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -639,10 +630,8 @@ async function getDoctorWaitingQueue(hospitalId, doctorId = null, options = {}) 
  * 
  * @param {string} hospitalId - Hospital ID
  */
-async function getNurseDashboardTelemetry(hospitalId) {
-    if (!hospitalId) {
-        throw new AppError("Hospital ID is required", 400, "MISSING_HOSPITAL_ID");
-    }
+async function getNurseDashboardTelemetry(explicitHospitalId) {
+    const hospitalId = await ensureDefaultHospitalId(explicitHospitalId);
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);

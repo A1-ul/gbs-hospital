@@ -2,6 +2,48 @@ import React, { useState, useEffect, useRef } from 'react';
 import Header, { ROLES } from './components/Header';
 import RoleLoginModal from './components/RoleLoginModal';
 import UniversalDetailPage from './components/UniversalDetailPage';
+import SystemFeedbackBrain from './components/SystemFeedbackBrain';
+
+const MODULE_BACKGROUND_MAP = {
+  OVERVIEW: '/assets/images/hospital_hero_exterior.jpg',
+  PATIENTS: '/assets/images/patient_registration_archive_real.jpg',
+  CLINICAL: '/assets/images/doctor_consultation_real.jpg',
+  WARDS: '/assets/images/inpatient_ward_bed_real.jpg',
+  PHARMACY: '/assets/images/pharmacy_dispensary_real.jpg',
+  SURGERY: '/assets/images/operating_theatre_real.jpg',
+  EMERGENCY: '/assets/images/emergency_ambulance_fleet_real.jpg',
+  BLOOD_BANK: '/assets/images/blood_bank_transfusion_real.jpg',
+  MORTUARY: '/assets/images/mortuary_cold_storage_real.jpg',
+  BIOMEDICAL: '/assets/images/biomedical_engineering_equipment_real.jpg',
+  PROCUREMENT: '/assets/images/procurement_supply_chain_real.jpg',
+  HR: '/assets/images/hr_medical_staff_real.jpg',
+  QUALITY: '/assets/images/quality_infection_control_real.jpg',
+  NHIA_CLAIMS: '/assets/images/nhia_claims_center_real.jpg',
+  VOICE_AUTH: '/assets/images/voice_biometric_security_real.jpg',
+  DEVELOPER_NOC: '/assets/images/developer_control_center_real.jpg',
+  MIGRATION: '/assets/images/migration_data_center_real.jpg',
+  TELEMEDICINE: '/assets/images/telemedicine_command_center_real.jpg',
+};
+
+const ROLE_BACKGROUND_MAP = {
+  ADMINISTRATOR: '/assets/images/hospital_admin_office_real.jpg',
+  SUPER_ADMIN: '/assets/images/hospital_admin_office_real.jpg',
+  HOSPITAL_DIRECTOR: '/assets/images/hospital_director_boardroom_real.jpg',
+  DEVELOPER: '/assets/images/developer_control_center_real.jpg',
+  DOCTOR: '/assets/images/doctor_consultation_real.jpg',
+  SURGEON: '/assets/images/operating_theatre_real.jpg',
+  DENTIST: '/assets/images/dental_clinic_real.jpg',
+  EYE_DOCTOR: '/assets/images/ophthalmology_eye_clinic_real.jpg',
+  RADIOLOGIST: '/assets/images/radiology_pacs_mri_real.jpg',
+  NURSE: '/assets/images/nurse_triage_station.jpg',
+  PHARMACIST: '/assets/images/pharmacy_dispensary_real.jpg',
+  LAB_TECHNICIAN: '/assets/images/laboratory_pathology_real.jpg',
+  RECEPTIONIST: '/assets/images/patient_registration_archive_real.jpg',
+  FOLDER_RETRIEVER: '/assets/images/medical_records_archive_real.jpg',
+  ACCOUNTANT: '/assets/images/nhia_claims_center_real.jpg',
+  HR_MANAGER: '/assets/images/hr_medical_staff_real.jpg',
+  PATIENT: '/assets/images/hospital_hero_exterior.jpg',
+};
 import {
   PatientManagementView,
   ClinicalCareView,
@@ -310,20 +352,48 @@ export default function App() {
     }
   };
 
+  const activeBgSrc =
+    activeModule === 'OVERVIEW'
+      ? (ROLE_BACKGROUND_MAP[currentRole] || MODULE_BACKGROUND_MAP.OVERVIEW)
+      : (MODULE_BACKGROUND_MAP[activeModule] || ROLE_BACKGROUND_MAP[currentRole] || MODULE_BACKGROUND_MAP.OVERVIEW);
+
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-primary)' }}>
+    <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'transparent' }}>
+      {/* Full-Page Real-Life Dashboard Background Layer */}
+      <div className="dashboard-bg-stage" aria-hidden="true">
+        <img
+          key={activeBgSrc}
+          src={activeBgSrc}
+          alt={`${activeModule} Dashboard Background`}
+          className="dashboard-bg-image"
+        />
+        <div className="dashboard-bg-scrim" />
+      </div>
+
       {/* Blueprint Header */}
-      <Header
-        currentRole={currentRole}
-        onSelectRole={(r) => {
-          if (r === 'DEVELOPER' && !isDeveloperAuthenticated) {
-            setLoginModalRole('DEVELOPER');
-            setIsLoginOpen(true);
-            return;
-          }
-          setCurrentRole(r);
-          if (r === 'DEVELOPER') {
-            setActiveModule('DEVELOPER_NOC');
+      <div style={{ position: 'relative', zIndex: 5 }}>
+        <Header
+          currentRole={currentRole}
+          onSelectRole={(r) => {
+            if (r === 'DEVELOPER' && !isDeveloperAuthenticated) {
+              setLoginModalRole('DEVELOPER');
+              setIsLoginOpen(true);
+              return;
+            }
+            if (typeof window !== 'undefined') localStorage.setItem('gbs_role', r);
+            setCurrentRole(r);
+            if (typeof window !== 'undefined' && typeof window.gbsBrainNotify === 'function') {
+              window.gbsBrainNotify({
+                type: 'info',
+                method: 'ROLE',
+                title: `Role Switched to ${r}`,
+                message: `Loaded dedicated dashboard background & commands for ${r}.`,
+                role: r,
+                module: activeModule,
+              });
+            }
+            if (r === 'DEVELOPER') {
+              setActiveModule('DEVELOPER_NOC');
           } else if (r === 'DOCTOR' || r === 'NURSE' || r === 'DENTIST' || r === 'EYE_DOCTOR' || r === 'RADIOLOGIST') {
             setActiveModule('CLINICAL');
           } else if (r === 'SURGEON') {
@@ -360,9 +430,10 @@ export default function App() {
         facilityBranding={facilityBranding}
         onUpdateFacilityBranding={setFacilityBranding}
       />
+      </div>
 
       {/* Main Content Area */}
-      <main style={{ flex: 1, padding: '0 16px 24px', maxWidth: '1600px', margin: '0 auto', width: '100%' }}>
+      <main style={{ position: 'relative', zIndex: 4, flex: 1, padding: '0 16px 68px', maxWidth: '1600px', margin: '0 auto', width: '100%' }}>
         {/* Navigation Breadcrumb / Module Switcher Tabs */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
           <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
@@ -470,6 +541,13 @@ export default function App() {
               style={{ fontSize: '0.8rem', padding: '6px 14px', borderColor: 'var(--gold-400)' }}
             >
               <Mic size={14} style={{ color: 'var(--gold-400)' }} /> 14. Voice Biometrics & Security Vault
+            </button>
+            <button
+              onClick={() => setActiveModule('TELEMEDICINE')}
+              className={activeModule === 'TELEMEDICINE' && !activeDetail ? 'btn-gold' : 'btn-outline-gold'}
+              style={{ fontSize: '0.8rem', padding: '6px 14px', borderColor: '#06b6d4' }}
+            >
+              <Video size={14} style={{ color: '#06b6d4' }} /> 15. Telemedicine, Online Meetings & GIS
             </button>
             {isDeveloperAuthenticated && (
               <button
@@ -637,10 +715,10 @@ export default function App() {
 
                   <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'flex-end', flexWrap: 'wrap', gap: '16px' }}>
                     <div>
-                      <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--gold-400)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                      <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--gold-300)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                         Welcome to GBS Hospital Management System • {facilityBranding?.hospitalName || 'GBS Premier Specialist Teaching Hospital'}
                       </span>
-                      <h2 style={{ fontSize: '2rem', fontWeight: 800, color: '#fff', marginTop: '4px' }}>
+                      <h2 className="header-3d" style={{ fontSize: '2.1rem', marginTop: '4px' }}>
                         {facilityBranding?.hospitalName || 'Enterprise Clinical & Operational Command Center'}
                       </h2>
                       <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', maxWidth: '700px' }}>
@@ -989,7 +1067,8 @@ export default function App() {
             {activeModule === 'QUALITY' && <QualityAssuranceView onNavigateDetail={openDetailPage} />}
             {activeModule === 'NHIA_CLAIMS' && <NhiaClaimsView onNavigateDetail={openDetailPage} />}
             {activeModule === 'VOICE_AUTH' && <VoiceBiometricsView onNavigateDetail={openDetailPage} />}
-            {(activeModule === 'DEVELOPER_NOC' || activeModule === 'MIGRATION' || activeModule === 'TELEMEDICINE') && (
+            {activeModule === 'TELEMEDICINE' && <TelemedicineGisView onNavigateDetail={openDetailPage} />}
+            {(activeModule === 'DEVELOPER_NOC' || activeModule === 'MIGRATION') && (
               <DeveloperControlCenterView onNavigateDetail={openDetailPage} />
             )}
           </>
@@ -1003,24 +1082,42 @@ export default function App() {
         initialRole={loginModalRole || currentRole}
         onLoginSuccess={(user) => {
           setCurrentUser(user);
-          if (user.role) setCurrentRole(user.role);
+          if (user.role) {
+            setCurrentRole(user.role);
+            if (typeof window !== 'undefined') localStorage.setItem('gbs_role', user.role);
+          }
           if (user.role === 'DEVELOPER' || String(user.email || '').toLowerCase() === 'gabosei48@gmail.com') {
             setCurrentRole('DEVELOPER');
+            if (typeof window !== 'undefined') localStorage.setItem('gbs_role', 'DEVELOPER');
             setActiveModule('DEVELOPER_NOC');
+          }
+          if (typeof window !== 'undefined' && typeof window.gbsBrainNotify === 'function') {
+            window.gbsBrainNotify({
+              type: 'success',
+              method: 'AUTH',
+              title: `Authenticated as ${user.fullName || user.email}`,
+              message: `Signed into ${user.role} dashboard cleanly. Live telemetry active.`,
+              role: user.role || currentRole,
+              module: activeModule,
+              forceToast: true,
+            });
           }
           loadGlobalOverview();
         }}
       />
 
       {/* Footer Banner */}
-      <footer style={{ borderTop: '1px solid var(--border-gold)', background: 'rgba(10,9,7,0.95)', padding: '16px 20px', textAlign: 'center', fontSize: '0.78rem', color: 'var(--gold-400)', letterSpacing: '0.04em' }}>
+      <footer style={{ position: 'relative', zIndex: 4, borderTop: '1px solid var(--border-gold)', background: 'rgba(10,9,7,0.82)', backdropFilter: 'blur(8px)', padding: '16px 20px 64px', textAlign: 'center', fontSize: '0.8rem', color: 'var(--gold-300)', letterSpacing: '0.04em' }}>
         <div style={{ fontWeight: 700, textTransform: 'uppercase', marginBottom: '4px' }}>
           ONE SYSTEM - ONE TASK • SIMPLE FRONTEND - POWERFUL BACKEND • AUTOMATE & ELIMINATE MANUAL WORK • BUILD FOR SCALE - FROM DAY 1 • SECURE BY DESIGN
         </div>
-        <div style={{ color: 'var(--text-dim)', fontSize: '0.7rem' }}>
+        <div style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>
           © 2026 GBS HOSPITAL SYSTEM (Official Account: gabosei48@gmail.com • Render.com Cloud). All Rights Reserved. Production-Grade Connected Architecture.
         </div>
       </footer>
+
+      {/* Central GBS System Feedback Brain */}
+      <SystemFeedbackBrain currentRole={currentRole} activeModule={activeModule} />
     </div>
   );
 }

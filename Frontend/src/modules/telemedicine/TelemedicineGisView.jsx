@@ -486,6 +486,18 @@ export default function TelemedicineGisView() {
                   </button>
                   <div className="text-xs text-slate-400">
                     Channel: <span className="font-mono text-amber-300 block">{activeSession.channelName}</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const roomCode = activeSession.sessionCode || activeSession.channelName || 'GBS-MEETING';
+                        const link = `${window.location.origin}/module/TELEMEDICINE?room=${encodeURIComponent(roomCode)}`;
+                        if (navigator.clipboard) navigator.clipboard.writeText(link);
+                        setFeedback({ type: 'success', text: `Meeting Link Copied: ${link}` });
+                      }}
+                      className="mt-1 px-2 py-0.5 rounded border border-amber-500/40 text-amber-300 text-[11px] hover:bg-amber-500/20"
+                    >
+                      Copy Meeting Invite Link
+                    </button>
                   </div>
                 </div>
 

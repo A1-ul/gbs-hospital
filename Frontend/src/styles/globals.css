@@ -1,140 +1,246 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
-
 :root {
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-heading: 'Outfit', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-sans: 'Times New Roman', Times, Georgia, serif;
+  --font-heading: 'Times New Roman', Times, Georgia, serif;
+  --font-mono: 'Times New Roman', Times, Georgia, serif;
 
   /* Master Blueprint Palette: Dark Amber Gold Luxury */
   --bg-primary: #0a0907;
   --bg-secondary: #12100d;
-  --bg-surface: #1a1713;
-  --bg-surface-elevated: #24201a;
-  --bg-surface-hover: #2e2820;
+  --bg-surface: rgba(26, 23, 19, 0.78);
+  --bg-surface-elevated: rgba(36, 32, 26, 0.86);
+  --bg-surface-hover: rgba(46, 40, 32, 0.9);
 
-  --border-gold: rgba(212, 175, 55, 0.28);
-  --border-gold-strong: rgba(212, 175, 55, 0.55);
-  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-gold: rgba(212, 175, 55, 0.38);
+  --border-gold-strong: rgba(229, 195, 88, 0.72);
+  --border-subtle: rgba(255, 255, 255, 0.14);
 
   --gold-500: #d4af37;
   --gold-400: #e5c358;
   --gold-300: #f3d97e;
-  --gold-glow: rgba(212, 175, 55, 0.18);
+  --gold-glow: rgba(212, 175, 55, 0.24);
 
-  --text-main: #f5f5f4;
-  --text-muted: #a8a29e;
-  --text-dim: #78716c;
-  --text-gold: #e5c358;
+  --text-main: #ffffff;
+  --text-muted: #e7e2d8;
+  --text-dim: #cbbba0;
+  --text-gold: #f3d97e;
 
   --status-online: #10b981;
   --status-warning: #f59e0b;
   --status-danger: #ef4444;
   --status-info: #3b82f6;
 
-  --shadow-gold: 0 4px 20px -2px rgba(212, 175, 55, 0.15);
-  --shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.7);
+  --shadow-gold: 0 6px 22px -2px rgba(212, 175, 55, 0.28);
+  --shadow-card: 0 12px 32px -8px rgba(0, 0, 0, 0.78);
 }
 
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  font-family: 'Times New Roman', Times, Georgia, serif;
 }
 
 body {
-  background-color: var(--bg-primary);
+  background-color: #090806;
   color: var(--text-main);
-  font-family: var(--font-sans);
+  font-family: 'Times New Roman', Times, Georgia, serif;
   line-height: 1.5;
   min-height: 100vh;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.75);
+}
+
+h1, h2, h3, h4, h5, h6, button, input, select, textarea, table, th, td, label {
+  font-family: 'Times New Roman', Times, Georgia, serif;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-heading);
-  letter-spacing: -0.02em;
+  letter-spacing: 0.01em;
 }
 
-/* Glassmorphism Panels */
+/* Full-page Clear Real-Life Dashboard Background Layer */
+.dashboard-bg-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  background-color: #080705;
+}
+
+.dashboard-bg-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  opacity: 0.46;
+  filter: contrast(1.08) saturate(1.12) brightness(0.95);
+  transition: opacity 0.45s ease-in-out, transform 0.6s ease;
+}
+
+.dashboard-bg-scrim {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 20%, rgba(10, 8, 6, 0.34) 0%, rgba(10, 8, 6, 0.66) 65%, rgba(8, 7, 5, 0.84) 100%);
+}
+
+/* Glassmorphism Panels with Translucent Clarity so Background Shows Through Clearly */
 .glass-panel {
-  background: linear-gradient(135deg, rgba(26, 23, 19, 0.85) 0%, rgba(18, 16, 13, 0.95) 100%);
-  backdrop-filter: blur(12px);
+  background: linear-gradient(145deg, rgba(22, 18, 14, 0.74) 0%, rgba(14, 12, 9, 0.82) 100%);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border: 1px solid var(--border-gold);
-  border-radius: 8px;
-  box-shadow: var(--shadow-card);
+  border-radius: 10px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.62), inset 0 1px 0 rgba(255, 232, 160, 0.14);
 }
 
 .glass-panel-subtle {
-  background: rgba(26, 23, 19, 0.5);
-  backdrop-filter: blur(8px);
+  background: rgba(18, 15, 11, 0.66);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   border: 1px solid var(--border-subtle);
-  border-radius: 6px;
+  border-radius: 8px;
+}
+
+/* 3D Metallic Gold & Embossed Headers */
+.header-3d {
+  color: #fff6d6;
+  font-family: 'Times New Roman', Times, Georgia, serif;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-shadow:
+    0 1px 0 #c99e2c,
+    0 2px 0 #9f7919,
+    0 3px 0 #70530d,
+    0 4px 0 #473305,
+    0 6px 14px rgba(0, 0, 0, 0.92);
+}
+
+.header-3d-gold {
+  color: #fde68a;
+  font-family: 'Times New Roman', Times, Georgia, serif;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-shadow:
+    0 1px 0 #d4af37,
+    0 2px 0 #a37b18,
+    0 3px 0 #6b4e0b,
+    0 5px 12px rgba(0, 0, 0, 0.95);
+}
+
+.header-3d-panel {
+  background: linear-gradient(180deg, rgba(58, 44, 19, 0.88) 0%, rgba(28, 22, 13, 0.90) 58%, rgba(16, 13, 8, 0.94) 100%);
+  border: 1px solid rgba(243, 217, 126, 0.62);
+  border-bottom: 3px solid #785912;
+  border-radius: 10px;
+  box-shadow:
+    0 6px 0 rgba(62, 45, 11, 0.85),
+    0 12px 24px rgba(0, 0, 0, 0.78),
+    inset 0 1px 0 rgba(255, 244, 194, 0.42);
 }
 
 .gold-gradient-text {
-  background: linear-gradient(135deg, #fef08a 0%, #d4af37 50%, #b45309 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #f7df8d;
+  text-shadow:
+    0 1px 0 #b88b1e,
+    0 2px 0 #825f10,
+    0 4px 10px rgba(0, 0, 0, 0.9);
+}
+
+@media print {
+  .dashboard-bg-stage, .gbs-brain-bar, .no-print {
+    display: none !important;
+  }
+  body, * {
+    font-family: 'Times New Roman', Times, Georgia, serif !important;
+    color: #000000 !important;
+    background: #ffffff !important;
+    text-shadow: none !important;
+  }
 }
 
 /* Buttons */
 .btn-gold {
-  background: linear-gradient(135deg, #e5c358 0%, #d4af37 50%, #b8860b 100%);
+  background: linear-gradient(135deg, #f3d97e 0%, #d4af37 55%, #9c720c 100%);
   color: #0a0907;
-  font-weight: 600;
-  border: none;
+  font-weight: 700;
+  font-family: 'Times New Roman', Times, Georgia, serif;
+  border: 1px solid rgba(255, 243, 189, 0.65);
   border-radius: 6px;
   padding: 8px 16px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.875rem;
+  font-size: 0.88rem;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 10px rgba(212, 175, 55, 0.25);
+  box-shadow: 0 3px 0 #5f4506, 0 4px 14px rgba(212, 175, 55, 0.3);
 }
 
 .btn-gold:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
-  filter: brightness(1.05);
+  box-shadow: 0 4px 0 #5f4506, 0 6px 18px rgba(212, 175, 55, 0.45);
+  filter: brightness(1.06);
 }
 
 .btn-gold:active {
-  transform: translateY(0);
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 #5f4506;
 }
 
 .btn-outline-gold {
-  background: transparent;
-  color: var(--gold-400);
+  background: rgba(16, 13, 9, 0.65);
+  color: var(--gold-300);
   border: 1px solid var(--border-gold-strong);
-  font-weight: 500;
+  font-weight: 600;
+  font-family: 'Times New Roman', Times, Georgia, serif;
   border-radius: 6px;
   padding: 8px 16px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.875rem;
+  font-size: 0.88rem;
   transition: all 0.2s ease;
 }
 
 .btn-outline-gold:hover {
-  background: var(--gold-glow);
-  border-color: var(--gold-400);
+  background: rgba(212, 175, 55, 0.24);
+  border-color: var(--gold-300);
   color: #fff;
 }
 
 .btn-danger {
-  background: #dc2626;
+  background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
   color: white;
-  border: none;
+  border: 1px solid rgba(254, 202, 202, 0.35);
   border-radius: 6px;
   padding: 8px 16px;
   cursor: pointer;
-  font-weight: 600;
-  font-size: 0.875rem;
+  font-weight: 700;
+  font-family: 'Times New Roman', Times, Georgia, serif;
+  font-size: 0.88rem;
+  box-shadow: 0 3px 0 #7f1d1d, 0 4px 12px rgba(220, 38, 38, 0.35);
+}
+
+.input-gold, input, select, textarea {
+  font-family: 'Times New Roman', Times, Georgia, serif;
+}
+
+h1, h2 {
+  text-shadow:
+    0 1px 0 #c99e2c,
+    0 2px 0 #8a6d1c,
+    0 4px 10px rgba(0, 0, 0, 0.9);
+}
+
+.glass-panel h3 {
+  text-shadow:
+    0 1px 0 rgba(165, 128, 30, 0.8),
+    0 2px 6px rgba(0, 0, 0, 0.88);
 }
 
 /* Custom Scrollbar */
@@ -157,29 +263,29 @@ h1, h2, h3, h4, h5, h6 {
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.85rem;
+  font-size: 0.87rem;
 }
 
 .data-table th {
-  background: rgba(36, 32, 26, 0.9);
-  color: var(--gold-400);
+  background: rgba(38, 31, 20, 0.78);
+  color: var(--gold-300);
   text-align: left;
   padding: 10px 14px;
-  border-bottom: 1px solid var(--border-gold);
-  font-weight: 600;
+  border-bottom: 2px solid var(--border-gold-strong);
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  font-size: 0.75rem;
+  font-size: 0.78rem;
 }
 
 .data-table td {
   padding: 10px 14px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   color: var(--text-main);
 }
 
 .data-table tr:hover td {
-  background: rgba(212, 175, 55, 0.04);
+  background: rgba(212, 175, 55, 0.11);
 }
 
 /* Pulse animation for live online indicators */

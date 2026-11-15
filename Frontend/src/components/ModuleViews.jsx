@@ -17,6 +17,7 @@ export function PatientManagementView() {
   const [results, setResults] = useState([]);
   const [folderQueue, setFolderQueue] = useState([]);
   const [searching, setSearching] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [formData, setFormData] = useState({
     firstName: '', lastName: '', dateOfBirth: '1990-01-01', gender: 'MALE',
@@ -145,18 +146,60 @@ export function PatientManagementView() {
           <button type="button" onClick={() => { setQuery(''); loadInitialPatients(''); }} className="btn-outline-gold">
             Refresh
           </button>
+          <button
+            type="button"
+            onClick={() => {
+              const targetRows = selectedIds.length > 0 ? results.filter((p) => selectedIds.includes(p.id)) : results;
+              if (targetRows.length === 0) {
+                setFeedback({ type: 'error', msg: 'No patient rows available to export.' });
+                return;
+              }
+              const header = 'MRN,FirstName,LastName,Gender,Phone,Address,RegisteredAt';
+              const csvRows = targetRows.map((p) =>
+                [p.mrn, p.firstName, p.lastName, p.gender, p.phone || '', (p.address || '').replace(/,/g, ';'), p.createdAt || ''].join(',')
+              );
+              const blob = new Blob([[header, ...csvRows].join('\n')], { type: 'text/csv;charset=utf-8;' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `gbs-patients-${Date.now()}.csv`;
+              a.click();
+              URL.revokeObjectURL(url);
+              if (window.gbsBrainNotify) {
+                window.gbsBrainNotify({ type: 'success', method: 'EXPORT', title: 'Patient CSV Downloaded', message: `Exported ${targetRows.length} patient record(s) to CSV.`, forceToast: true });
+              }
+            }}
+            className="btn-outline-gold"
+          >
+            Export CSV ({selectedIds.length > 0 ? selectedIds.length : results.length})
+          </button>
         </form>
       </div>
 
       {/* Results Table */}
       <div className="glass-panel" style={{ padding: '16px', overflowX: 'auto' }}>
-        <h3 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--gold-400)', marginBottom: '12px' }}>
-          Registered Patient Records ({results.length})
-        </h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+          <h3 className="header-3d-gold" style={{ fontSize: '1rem', fontWeight: 700, margin: 0 }}>
+            Registered Patient Records ({results.length}) {selectedIds.length > 0 ? `• ${selectedIds.length} Selected` : ''}
+          </h3>
+          {selectedIds.length > 0 && (
+            <button type="button" onClick={() => setSelectedIds([])} className="btn-outline-gold" style={{ padding: '4px 10px', fontSize: '0.72rem' }}>
+              Clear Multi-Select
+            </button>
+          )}
+        </div>
         {results.length > 0 ? (
           <table className="data-table">
             <thead>
               <tr>
+                <th style={{ width: '36px' }}>
+                  <input
+                    type="checkbox"
+                    checked={results.length > 0 && selectedIds.length === results.length}
+                    onChange={(e) => setSelectedIds(e.target.checked ? results.map((p) => p.id) : [])}
+                    title="Select / Deselect All Patients"
+                  />
+                </th>
                 <th>MRN</th>
                 <th>Full Name</th>
                 <th>Gender</th>
@@ -170,7 +213,33 @@ export function PatientManagementView() {
             <tbody>
               {results.map(pt => (
                 <tr key={pt.id}>
-                  <td style={{ fontWeight: 700, color: 'var(--gold-300)', fontFamily: 'var(--font-mono)' }}>{pt.mrn}</td>
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.includes(pt.id)}
+                      onChange={(e) => {
+                        setSelectedIds((prev) =>
+                          e.target.checked ? [...prev, pt.id] : prev.filter((id) => id !== pt.id)
+                        );
+                      }}
+                    />
+                  </td>
+                  <td style={{ fontWeight: 700, color: 'var(--gold-300)' }}>
+                    {pt.mrn}{' '}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (navigator.clipboard) navigator.clipboard.writeText(pt.mrn);
+                        if (window.gbsBrainNotify) {
+                          window.gbsBrainNotify({ type: 'success', method: 'COPY', title: 'MRN Copied', message: `Copied Patient MRN ${pt.mrn} to clipboard.`, forceToast: true });
+                        }
+                      }}
+                      style={{ background: 'none', border: '1px solid var(--border-gold)', color: 'var(--gold-300)', borderRadius: '4px', padding: '1px 5px', fontSize: '0.65rem', cursor: 'pointer', marginLeft: '4px' }}
+                      title="Copy Patient MRN"
+                    >
+                      Copy
+                    </button>
+                  </td>
                   <td style={{ fontWeight: 600 }}>{pt.firstName} {pt.lastName}</td>
                   <td>{pt.gender}</td>
                   <td>{pt.phone || '—'}</td>
@@ -934,18 +1003,30 @@ export function ClinicalCareView() {
       {activeTab === 'BILLING_FINANCE' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <form onSubmit={handleCreateInvoice} className="glass-panel" style={{ padding: '20px' }}>
-            <h3 style={{ fontSize: '1rem', color: 'var(--gold-400)', marginBottom: '12px' }}>Create Patient Billing Invoice</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
+            <h3 className="header-3d-gold" style={{ fontSize: '1.05rem', marginBottom: '12px' }}>Create Patient Billing Invoice & Multi-Channel Payment Gateway</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
               <input required type="text" placeholder="Patient ID *" value={invoiceForm.patientId} onChange={e => setInvoiceForm({ ...invoiceForm, patientId: e.target.value })} style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               <input required type="text" placeholder="Service Description *" value={invoiceForm.description} onChange={e => setInvoiceForm({ ...invoiceForm, description: e.target.value })} style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               <input required type="number" placeholder="Amount (GHS) *" value={invoiceForm.amount} onChange={e => setInvoiceForm({ ...invoiceForm, amount: e.target.value })} style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+              <select
+                value={invoiceForm.paymentMethod}
+                onChange={e => setInvoiceForm({ ...invoiceForm, paymentMethod: e.target.value })}
+                style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px' }}
+                title="Payment Gateway Channel"
+              >
+                <option value="CASH">Cash Counter</option>
+                <option value="MOBILE_MONEY">Mobile Money (MTN / Telecel / AT)</option>
+                <option value="CARD">Bank Debit / Credit Card</option>
+                <option value="BANK_TRANSFER">Direct Bank Transfer</option>
+                <option value="NHIS">NHIS Reimbursement</option>
+              </select>
               <button type="submit" className="btn-gold">Generate Invoice</button>
             </div>
           </form>
 
           <div className="glass-panel" style={{ padding: '16px', overflowX: 'auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-              <h3 style={{ fontSize: '0.95rem', color: 'var(--gold-400)' }}>Patient Invoices & Financial Transactions ({invoices.length})</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+              <h3 className="header-3d-gold" style={{ fontSize: '1rem' }}>Patient Invoices & Payment Gateway Transactions ({invoices.length})</h3>
               <button
                 onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
                   detailType: 'TRANSACTIONS',
@@ -962,36 +1043,70 @@ export function ClinicalCareView() {
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>Invoice #</th>
-                    <th>Total Amount</th>
+                    <th>Bill / Invoice #</th>
+                    <th>Gross Total</th>
                     <th>Paid Amount</th>
+                    <th>Balance Due</th>
                     <th>Status</th>
-                    <th>Action</th>
+                    <th>Payment Gateway & Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {invoices.map(inv => (
-                    <tr key={inv.id}>
-                      <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--gold-300)' }}>{inv.invoiceNumber || inv.id?.slice(0, 8)}</td>
-                      <td>GHS {inv.totalAmount ?? 0}</td>
-                      <td>GHS {inv.paidAmount ?? 0}</td>
-                      <td>{inv.status}</td>
-                      <td>
-                        <button
-                          onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
-                            detailType: 'TRANSACTIONS',
-                            recordId: inv.id,
-                            title: `Invoice Transaction — ${inv.invoiceNumber || inv.id}`,
-                            payload: inv
-                          })}
-                          className="btn-outline-gold"
-                          style={{ padding: '4px 8px', fontSize: '0.72rem' }}
-                        >
-                          View Details
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {invoices.map(inv => {
+                    const gross = Number(inv.grossAmount ?? inv.totalAmount ?? inv.amount ?? 0);
+                    const paid = Number(inv.paidAmount ?? 0);
+                    const balance = Number(inv.balanceDue ?? Math.max(0, gross - paid));
+                    const payStatus = inv.paymentStatus || inv.status || 'UNPAID';
+                    return (
+                      <tr key={inv.id}>
+                        <td style={{ color: 'var(--gold-300)', fontWeight: 700 }}>{inv.billNumber || inv.invoiceNumber || inv.id?.slice(0, 8)}</td>
+                        <td>GHS {gross.toFixed(2)}</td>
+                        <td style={{ color: 'var(--status-online)' }}>GHS {paid.toFixed(2)}</td>
+                        <td style={{ color: balance > 0 ? 'var(--status-warning)' : 'var(--status-online)', fontWeight: 700 }}>GHS {balance.toFixed(2)}</td>
+                        <td>{payStatus}</td>
+                        <td>
+                          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                            {balance > 0 && (
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  try {
+                                    const res = await api.recordPayment(inv.id, {
+                                      amount: balance,
+                                      paymentMethod: invoiceForm.paymentMethod || 'CASH',
+                                    });
+                                    setFeedback({
+                                      type: 'success',
+                                      msg: `Payment of GHS ${balance.toFixed(2)} via ${invoiceForm.paymentMethod || 'CASH'} confirmed cleanly! Receipt: ${res?.payment?.receiptNumber || res?.receiptNumber || 'ISSUED'}`,
+                                    });
+                                    loadClinicalTelemetry();
+                                  } catch (err) {
+                                    setFeedback({ type: 'error', msg: err.message });
+                                  }
+                                }}
+                                className="btn-gold"
+                                style={{ padding: '4px 9px', fontSize: '0.72rem' }}
+                              >
+                                Pay Balance ({invoiceForm.paymentMethod || 'CASH'})
+                              </button>
+                            )}
+                            <button
+                              onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
+                                detailType: 'TRANSACTIONS',
+                                recordId: inv.id,
+                                title: `Invoice Transaction — ${inv.billNumber || inv.invoiceNumber || inv.id}`,
+                                payload: inv
+                              })}
+                              className="btn-outline-gold"
+                              style={{ padding: '4px 8px', fontSize: '0.72rem' }}
+                            >
+                              View Details
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             ) : (
@@ -5171,6 +5286,7 @@ export function BiomedicalView() {
                     <option value="MONITORING">MONITORING (ICU Monitors, Infusion Pumps)</option>
                     <option value="LABORATORY">LABORATORY (Analyzers, Centrifuges)</option>
                     <option value="STERILIZATION">STERILIZATION (Autoclaves)</option>
+                    <option value="CCTV_SURVEILLANCE">CCTV_SURVEILLANCE (IP Security Cameras & NVR)</option>
                     <option value="GENERAL_BIOMEDICAL">GENERAL_BIOMEDICAL (Auxiliary)</option>
                   </select>
                 </div>
@@ -5194,6 +5310,8 @@ export function BiomedicalView() {
                     <option value="RADIOLOGY">Radiology & PACS Imaging</option>
                     <option value="LABORATORY">Pathology & Laboratory</option>
                     <option value="INPATIENT_WARDS">Inpatient Wards</option>
+                    <option value="SECURITY_GATE">Security Gate, Lobby & CCTV Hub</option>
+                    <option value="PHARMACY_VAULT">Pharmacy Dispensary & Controlled Vault</option>
                   </select>
                 </div>
                 <div>

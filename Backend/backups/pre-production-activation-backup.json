@@ -10,10 +10,10 @@
     "sslMode": "prefer"
   },
   "filename": "pre-production-activation-backup.json",
-  "createdAt": "2026-11-15T12:41:50.566Z",
+  "createdAt": "2026-11-15T16:30:55.658Z",
   "createdBy": "ac0fdc97-7c2d-4d2e-b92b-23ac332d91ff",
-  "totalRecordsBackedUp": 1611,
-  "checksumSha256": "1b5a005388ee4f3e250921eaa1e9627a255e621693315a9391603fb23f1367fa",
+  "totalRecordsBackedUp": 1631,
+  "checksumSha256": "f991d10a361e9dba16f5e6ad67d0c81628837ee9e544fc71ce23be025378b389",
   "tableCounts": {
     "role": 18,
     "permission": 75,
@@ -69,7 +69,7 @@
     "bloodCrossMatch": 0,
     "bloodTransfusionRecord": 0,
     "corpseRecord": 0,
-    "medicalEquipment": 0,
+    "medicalEquipment": 1,
     "medicalWorkOrder": 0,
     "equipmentCalibration": 0,
     "procurementVendor": 0,
@@ -103,7 +103,7 @@
     "biometricSecurityCredential": 0,
     "biometricVerificationLog": 0,
     "biometricSecurityPolicy": 1,
-    "auditLog": 1514
+    "auditLog": 1533
   },
   "tables": {
     "role": [
@@ -689,6 +689,18 @@
     "rolePermission": [],
     "user": [
       {
+        "id": "ac0fdc97-7c2d-4d2e-b92b-23ac332d91ff",
+        "firstName": "Gabriel",
+        "lastName": "Osei",
+        "email": "gabosei48@gmail.com",
+        "password": "$2b$12$erMl6mv2aL3DzBSSmGmYHe81lQqxv6sadxlt1aDWmW.5kVUbADyLy",
+        "roleId": "8176e25d-2ef7-4e60-9c52-b3da19028dc3",
+        "active": true,
+        "lastLogin": "2026-11-15T16:30:51.689Z",
+        "createdAt": "2026-11-07T21:40:38.820Z",
+        "updatedAt": "2026-11-15T16:30:51.691Z"
+      },
+      {
         "id": "e70398b7-37ee-4a0a-a8f5-c89bbac2e441",
         "firstName": "System",
         "lastName": "Administrator",
@@ -711,18 +723,6 @@
         "lastLogin": "2026-11-07T22:08:01.072Z",
         "createdAt": "2026-10-30T02:11:19.580Z",
         "updatedAt": "2026-11-07T22:08:01.074Z"
-      },
-      {
-        "id": "ac0fdc97-7c2d-4d2e-b92b-23ac332d91ff",
-        "firstName": "Gabriel",
-        "lastName": "Osei",
-        "email": "gabosei48@gmail.com",
-        "password": "$2b$12$erMl6mv2aL3DzBSSmGmYHe81lQqxv6sadxlt1aDWmW.5kVUbADyLy",
-        "roleId": "8176e25d-2ef7-4e60-9c52-b3da19028dc3",
-        "active": true,
-        "lastLogin": "2026-11-15T12:41:47.414Z",
-        "createdAt": "2026-11-07T21:40:38.820Z",
-        "updatedAt": "2026-11-15T12:41:47.431Z"
       }
     ],
     "tenant": [],
@@ -775,7 +775,35 @@
     "bloodCrossMatch": [],
     "bloodTransfusionRecord": [],
     "corpseRecord": [],
-    "medicalEquipment": [],
+    "medicalEquipment": [
+      {
+        "id": "6153320c-eeb0-48ab-90e3-161f8e7bd670",
+        "assetTag": "EQP-2026-000001",
+        "name": "Test-Gate CCTV IP Camera",
+        "modelNumber": "HIK-DS2CD",
+        "serialNumber": "TEST-CCTV-1794759635858",
+        "manufacturer": "Hikvision",
+        "category": "GENERAL_BIOMEDICAL",
+        "riskLevel": "LOW_RISK",
+        "department": "SECURITY_GATE",
+        "roomLocation": "Main Entrance Security Gate",
+        "status": "OPERATIONAL",
+        "acquisitionDate": "2026-11-15T16:20:35.868Z",
+        "warrantyExpiry": null,
+        "ppmIntervalDays": 180,
+        "lastPpmDate": "2026-11-15T16:20:35.868Z",
+        "nextPpmDate": "2027-05-14T16:20:35.868Z",
+        "calibrationIntervalDays": 365,
+        "lastCalibrationDate": "2026-11-15T16:20:35.868Z",
+        "nextCalibrationDate": "2027-11-15T16:20:35.868Z",
+        "powerRatingWatts": null,
+        "electricalSafetyCertified": true,
+        "safetyOverrideActive": false,
+        "safetyOverrideReason": null,
+        "createdAt": "2026-11-15T16:20:35.910Z",
+        "updatedAt": "2026-11-15T16:20:35.910Z"
+      }
+    ],
     "medicalWorkOrder": [],
     "equipmentCalibration": [],
     "procurementVendor": [],
@@ -14453,6 +14481,177 @@
         "description": "Full PostgreSQL backup created and verified: pre-production-activation-backup.json (1610 records, SHA-256: f488508e2bec4c74...)",
         "ipAddress": null,
         "createdAt": "2026-11-15T12:41:50.213Z"
+      },
+      {
+        "id": "1670e3c4-9e1f-4cdb-82f7-94aade5b4ee0",
+        "userId": "ac0fdc97-7c2d-4d2e-b92b-23ac332d91ff",
+        "action": "DATABASE_BACKUP_CREATED",
+        "module": "DEVELOPER_PLATFORM",
+        "description": "Full PostgreSQL backup created and verified: pre-production-activation-backup.json (1611 records, SHA-256: 1b5a005388ee4f3e...)",
+        "ipAddress": null,
+        "createdAt": "2026-11-15T12:41:50.615Z"
+      },
+      {
+        "id": "c6d073d4-664f-4e8a-9f80-91ec24447011",
+        "userId": "ac0fdc97-7c2d-4d2e-b92b-23ac332d91ff",
+        "action": "PRODUCTION_CLEAN_DATA_ACTIVATION",
+        "module": "DEVELOPER_PLATFORM",
+        "description": "Verified backup pre-production-activation-backup.json created. Purged 0 test/demo records. Preserved permanent system accounts (gabosei48@gmail.com, developer@gbs.com, admin@gbs.com) and RBAC roles.",
+        "ipAddress": null,
+        "createdAt": "2026-11-15T12:41:51.085Z"
+      },
+      {
+        "id": "edee3ccf-b2ca-4f3b-ac7b-20564ad94347",
+        "userId": "ac0fdc97-7c2d-4d2e-b92b-23ac332d91ff",
+        "action": "USER_LOGIN_SUCCESS",
+        "module": "AUTH",
+        "description": "Login success for role DEVELOPER",
+        "ipAddress": "::ffff:127.0.0.1",
+        "createdAt": "2026-11-15T12:41:52.575Z"
+      },
+      {
+        "id": "56f1bee7-2ceb-4619-ac0d-80738d0ea5a0",
+        "userId": null,
+        "action": "HOSPITAL_FACILITY_NAME_UPDATED",
+        "module": "HOSPITAL_ADMINISTRATION",
+        "description": "Admin (Administrator) updated facility hospital name to \"GBS Premier Specialist Teaching Hospital\" while preserving permanent main system name \"GBS HOSPITAL MANAGEMENT SYSTEM\".",
+        "ipAddress": null,
+        "createdAt": "2026-11-15T12:41:53.250Z"
+      },
+      {
+        "id": "8683443e-4ad2-41da-8a2f-4d00865ff437",
+        "userId": "ac0fdc97-7c2d-4d2e-b92b-23ac332d91ff",
+        "action": "CLINICAL_REPORT_DISPATCHED",
+        "module": "CLINICAL_REPORTS",
+        "description": "{\"dispatchNumber\":\"RPT-2026-513470\",\"status\":\"SENT\",\"notificationStatus\":\"SENT\",\"patientId\":null,\"patientMrn\":\"N/A\",\"patientName\":\"Kwame Boateng\",\"senderName\":\"Gabriel Osei\",\"senderRole\":\"DEVELOPER\",\"targetRole\":\"LAB_TECHNICIAN\",\"targetStaffName\":\"LAB_TECHNICIAN\",\"reportCategory\":\"LAB_INVESTIGATION_REPORT\",\"reportTitle\":\"Urgent Hematology & Electrolyte Panel Follow-Up\",\"title\":\"Urgent Hematology & Electrolyte Panel Follow-Up\",\"summary\":\"Requesting immediate review of serum potassium and hemoglobin.\",\"clinicalFindings\":\"Requesting immediate review of serum potassium and hemoglobin.\",\"findingsSummary\":\"Requesting immediate review of serum potassium and hemoglobin.\",\"recommendations\":null,\"recommendedAction\":null,\"urgency\":\"NORMAL\",\"sentAt\":\"2026-11-15T12:41:53.470Z\"}",
+        "ipAddress": null,
+        "createdAt": "2026-11-15T12:41:53.471Z"
+      },
+      {
+        "id": "8fb10a2c-e61c-4910-a350-73f8546dc3e0",
+        "userId": "ac0fdc97-7c2d-4d2e-b92b-23ac332d91ff",
+        "action": "ROLE_DUTY_REPORT_SUBMITTED",
+        "module": "DUTY_REPORTS",
+        "description": "{\"reportNumber\":\"DUTY-2026-513540\",\"reportCategory\":\"STAFF_DUTY\",\"title\":\"DOCTOR Duty Report — Dr. Mensah (MORNING)\",\"authorName\":\"Dr. Mensah\",\"staffName\":\"Dr. Mensah\",\"authorRole\":\"DOCTOR\",\"role\":\"DOCTOR\",\"department\":\"OPD\",\"shift\":\"MORNING\",\"shiftType\":\"MORNING\",\"dutiesPerformed\":\"Completed 14 outpatient consultations and 3 emergency referrals.\",\"dutiesSummary\":\"Completed 14 outpatient consultations and 3 emergency referrals.\",\"challengesOrIncidents\":null,\"handoverNotes\":null,\"status\":\"SUBMITTED\",\"submittedAt\":\"2026-11-15T12:41:53.540Z\"}",
+        "ipAddress": null,
+        "createdAt": "2026-11-15T12:41:53.568Z"
+      },
+      {
+        "id": "e9527f02-daf2-4933-94dd-a1ac5332b068",
+        "userId": "ac0fdc97-7c2d-4d2e-b92b-23ac332d91ff",
+        "action": "USER_LOGIN_SUCCESS",
+        "module": "AUTH",
+        "description": "Login success for role DEVELOPER",
+        "ipAddress": "::ffff:127.0.0.1",
+        "createdAt": "2026-11-15T16:12:18.726Z"
+      },
+      {
+        "id": "5f24ae19-8278-4dab-a077-ebce48ce6e97",
+        "userId": "ac0fdc97-7c2d-4d2e-b92b-23ac332d91ff",
+        "action": "DATABASE_BACKUP_CREATED",
+        "module": "DEVELOPER_PLATFORM",
+        "description": "Full PostgreSQL backup created and verified: pre-production-activation-backup.json (1618 records, SHA-256: 42affa95881aa1c0...)",
+        "ipAddress": null,
+        "createdAt": "2026-11-15T16:12:25.275Z"
+      },
+      {
+        "id": "bd2fd13c-64b5-4d7b-a21d-5be5b4094a5d",
+        "userId": "ac0fdc97-7c2d-4d2e-b92b-23ac332d91ff",
+        "action": "DATABASE_BACKUP_CREATED",
+        "module": "DEVELOPER_PLATFORM",
+        "description": "Full PostgreSQL backup created and verified: pre-production-activation-backup.json (1619 records, SHA-256: 4637f4d3637cc99b...)",
+        "ipAddress": null,
+        "createdAt": "2026-11-15T16:12:25.609Z"
+      },
+      {
+        "id": "da938242-7e59-4ab6-aa2d-b26c9a9a8862",
+        "userId": "ac0fdc97-7c2d-4d2e-b92b-23ac332d91ff",
+        "action": "PRODUCTION_CLEAN_DATA_ACTIVATION",
+        "module": "DEVELOPER_PLATFORM",
+        "description": "Verified backup pre-production-activation-backup.json created. Purged 0 test/demo records. Preserved permanent system accounts (gabosei48@gmail.com, developer@gbs.com, admin@gbs.com) and RBAC roles.",
+        "ipAddress": null,
+        "createdAt": "2026-11-15T16:12:26.800Z"
+      },
+      {
+        "id": "e587bd75-487c-4404-bf49-ad8a8a871652",
+        "userId": "ac0fdc97-7c2d-4d2e-b92b-23ac332d91ff",
+        "action": "USER_LOGIN_SUCCESS",
+        "module": "AUTH",
+        "description": "Login success for role DEVELOPER",
+        "ipAddress": "::ffff:127.0.0.1",
+        "createdAt": "2026-11-15T16:12:28.271Z"
+      },
+      {
+        "id": "cc0a821c-f63f-432c-92f4-382bae4838b3",
+        "userId": null,
+        "action": "HOSPITAL_FACILITY_NAME_UPDATED",
+        "module": "HOSPITAL_ADMINISTRATION",
+        "description": "Admin (Administrator) updated facility hospital name to \"GBS Premier Specialist Teaching Hospital\" while preserving permanent main system name \"GBS HOSPITAL MANAGEMENT SYSTEM\".",
+        "ipAddress": null,
+        "createdAt": "2026-11-15T16:12:32.361Z"
+      },
+      {
+        "id": "80d0c902-7f6c-4ac5-b05f-5b1ba2a6f80b",
+        "userId": "ac0fdc97-7c2d-4d2e-b92b-23ac332d91ff",
+        "action": "CLINICAL_REPORT_DISPATCHED",
+        "module": "CLINICAL_REPORTS",
+        "description": "{\"dispatchNumber\":\"RPT-2026-152545\",\"status\":\"SENT\",\"notificationStatus\":\"SENT\",\"patientId\":null,\"patientMrn\":\"N/A\",\"patientName\":\"Kwame Boateng\",\"senderName\":\"Gabriel Osei\",\"senderRole\":\"DEVELOPER\",\"targetRole\":\"LAB_TECHNICIAN\",\"targetStaffName\":\"LAB_TECHNICIAN\",\"reportCategory\":\"LAB_INVESTIGATION_REPORT\",\"reportTitle\":\"Urgent Hematology & Electrolyte Panel Follow-Up\",\"title\":\"Urgent Hematology & Electrolyte Panel Follow-Up\",\"summary\":\"Requesting immediate review of serum potassium and hemoglobin.\",\"clinicalFindings\":\"Requesting immediate review of serum potassium and hemoglobin.\",\"findingsSummary\":\"Requesting immediate review of serum potassium and hemoglobin.\",\"recommendations\":null,\"recommendedAction\":null,\"urgency\":\"NORMAL\",\"sentAt\":\"2026-11-15T16:12:32.545Z\"}",
+        "ipAddress": null,
+        "createdAt": "2026-11-15T16:12:32.547Z"
+      },
+      {
+        "id": "1723ae69-5ec5-478b-a032-ed96125d1ba8",
+        "userId": "ac0fdc97-7c2d-4d2e-b92b-23ac332d91ff",
+        "action": "ROLE_DUTY_REPORT_SUBMITTED",
+        "module": "DUTY_REPORTS",
+        "description": "{\"reportNumber\":\"DUTY-2026-152561\",\"reportCategory\":\"STAFF_DUTY\",\"title\":\"DOCTOR Duty Report — Dr. Mensah (MORNING)\",\"authorName\":\"Dr. Mensah\",\"staffName\":\"Dr. Mensah\",\"authorRole\":\"DOCTOR\",\"role\":\"DOCTOR\",\"department\":\"OPD\",\"shift\":\"MORNING\",\"shiftType\":\"MORNING\",\"dutiesPerformed\":\"Completed 14 outpatient consultations and 3 emergency referrals.\",\"dutiesSummary\":\"Completed 14 outpatient consultations and 3 emergency referrals.\",\"challengesOrIncidents\":null,\"handoverNotes\":null,\"status\":\"SUBMITTED\",\"submittedAt\":\"2026-11-15T16:12:32.561Z\"}",
+        "ipAddress": null,
+        "createdAt": "2026-11-15T16:12:32.589Z"
+      },
+      {
+        "id": "dd0042cd-0f35-49f0-b738-36ec0862c3bc",
+        "userId": "ac0fdc97-7c2d-4d2e-b92b-23ac332d91ff",
+        "action": "USER_LOGIN_SUCCESS",
+        "module": "AUTH",
+        "description": "Login success for role DEVELOPER",
+        "ipAddress": "127.0.0.1",
+        "createdAt": "2026-11-15T16:15:04.052Z"
+      },
+      {
+        "id": "2ff52b86-8ee1-4f54-a872-a7bcbcfd5081",
+        "userId": "ac0fdc97-7c2d-4d2e-b92b-23ac332d91ff",
+        "action": "USER_LOGIN_SUCCESS",
+        "module": "AUTH",
+        "description": "Login success for role DEVELOPER",
+        "ipAddress": "127.0.0.1",
+        "createdAt": "2026-11-15T16:16:06.874Z"
+      },
+      {
+        "id": "9d9305d3-e92d-493e-8411-b5842fe157e5",
+        "userId": "ac0fdc97-7c2d-4d2e-b92b-23ac332d91ff",
+        "action": "USER_LOGIN_SUCCESS",
+        "module": "AUTH",
+        "description": "Login success for role DEVELOPER",
+        "ipAddress": "127.0.0.1",
+        "createdAt": "2026-11-15T16:20:31.271Z"
+      },
+      {
+        "id": "4ba2ff54-d8c8-49f3-96fe-76b05ac1eb71",
+        "userId": "ac0fdc97-7c2d-4d2e-b92b-23ac332d91ff",
+        "action": "USER_LOGIN_SUCCESS",
+        "module": "AUTH",
+        "description": "Login success for role DEVELOPER",
+        "ipAddress": "::ffff:127.0.0.1",
+        "createdAt": "2026-11-15T16:30:51.703Z"
+      },
+      {
+        "id": "2caacff1-0666-494e-b35c-68463b13fff1",
+        "userId": "ac0fdc97-7c2d-4d2e-b92b-23ac332d91ff",
+        "action": "DATABASE_BACKUP_CREATED",
+        "module": "DEVELOPER_PLATFORM",
+        "description": "Full PostgreSQL backup created and verified: pre-production-activation-backup.json (1630 records, SHA-256: cac44c89193b4775...)",
+        "ipAddress": null,
+        "createdAt": "2026-11-15T16:30:54.973Z"
       }
     ]
   }

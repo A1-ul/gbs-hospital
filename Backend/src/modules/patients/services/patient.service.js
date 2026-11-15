@@ -10,6 +10,7 @@ LOCATION: src/modules/patients/services/patient.service.js
 */
 
 const prisma = require("../../../core/database/prisma.client");
+const { ensureDefaultHospitalId } = require("../../../core/database/hospital-resolver");
 const { generatePatientMRN, generateFolderIdentifiers, calculatePhysicalShelfLocation } = require("../helpers/patient-id.generator");
 const AppError = require("../../../core/errors/app.error");
 const logger = require("../../../core/utils/logger");
@@ -20,7 +21,7 @@ const logger = require("../../../core/utils/logger");
  */
 async function registerPatient(data, creatorUserId) {
     const {
-        hospitalId,
+        hospitalId: explicitHospitalId,
         firstName,
         lastName,
         middleName,
@@ -46,17 +47,12 @@ async function registerPatient(data, creatorUserId) {
         archiveZone = "MAIN_ARCHIVE"
     } = data;
 
-    if (!hospitalId || !firstName || !lastName || !gender || !phone) {
-        throw new AppError("Hospital ID, patient first name, last name, gender, and phone number are required", 400, "MISSING_REQUIRED_FIELDS");
+    if (!firstName || !lastName || !gender || !phone) {
+        throw new AppError("Patient first name, last name, gender, and phone number are required", 400, "MISSING_REQUIRED_FIELDS");
     }
 
-    // Verify hospital exists
-    const hospital = await prisma.hospital.findUnique({
-        where: { id: hospitalId }
-    });
-    if (!hospital) {
-        throw new AppError("Hospital not found", 404, "HOSPITAL_NOT_FOUND");
-    }
+    // Resolve and verify active hospital (auto-provisions primary hospital if omitted/Developer)
+    const hospitalId = await ensureDefaultHospitalId(explicitHospitalId);
 
     // Check duplicate nationalId or nhisNumber if provided
     if (nationalId) {

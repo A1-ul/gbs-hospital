@@ -44,7 +44,7 @@ try {
 
 
 }
-catch(error){
+catch (error) {
 
 
     console.error(
@@ -65,8 +65,8 @@ catch(error){
 const {
     environment
 }
-=
-require("../../config/environment");
+    =
+    require("../../config/environment");
 
 
 
@@ -88,12 +88,12 @@ NORMALIZE CORS ORIGINS
 */
 
 
-function getAllowedOrigins(){
+function getAllowedOrigins() {
 
 
-    if(
+    if (
         !environment.CORS_ORIGIN
-    ){
+    ) {
 
 
         return [
@@ -139,7 +139,7 @@ SECURITY HEADERS
 */
 
 
-function applyHelmet(app){
+function applyHelmet(app) {
 
 
 
@@ -147,7 +147,7 @@ function applyHelmet(app){
 
         helmet({
 
-            frameguard:{
+            frameguard: {
 
                 action:
                     "deny"
@@ -155,10 +155,10 @@ function applyHelmet(app){
             },
 
 
-            hidePoweredBy:true,
+            hidePoweredBy: true,
 
 
-            noSniff:true,
+            noSniff: true,
 
 
 
@@ -166,73 +166,73 @@ function applyHelmet(app){
 
                 environment.IS_PRODUCTION
 
-                ? {
+                    ? {
 
-                    directives:{
+                        directives: {
 
 
-                        defaultSrc:[
+                            defaultSrc: [
+                                "'self'"
+                            ],
+
+                            scriptSrc: [
+                                "'self'",
+                                "'unsafe-inline'"
+                            ],
+
+                            styleSrc: [
+                                "'self'",
+                                "'unsafe-inline'",
+                                "https://fonts.googleapis.com"
+                            ],
+
+                            fontSrc: [
+                                "'self'",
+                                "https://fonts.gstatic.com",
+                                "data:"
+                            ],
+
+                            imgSrc: [
+                                "'self'",
+                                "data:",
+                                "blob:",
+                                "https:"
+                            ],
+
+                            connectSrc: [
+                                "'self'",
+                                "https:",
+                                "wss:",
+                                "ws:"
+                            ],
+
+                            frameSrc: [
+                                "'self'",
+                                "https://www.openstreetmap.org",
+                                "https://maps.google.com",
+                                "https://www.google.com"
+                            ],
+
+
+                            objectSrc: [
+                                "'none'"
+                            ],
+
+
+                            frameAncestors: [
                             "'self'"
-                        ],
+                            ]
 
-                        scriptSrc:[
-                            "'self'",
-                            "'unsafe-inline'"
-                        ],
+                        }
 
-                        styleSrc:[
-                            "'self'",
-                            "'unsafe-inline'",
-                            "https://fonts.googleapis.com"
-                        ],
-
-                        fontSrc:[
-                            "'self'",
-                            "https://fonts.gstatic.com",
-                            "data:"
-                        ],
-
-                        imgSrc:[
-                            "'self'",
-                            "data:",
-                            "blob:",
-                            "https:"
-                        ],
-
-                        connectSrc:[
-                            "'self'",
-                            "https:",
-                            "wss:",
-                            "ws:"
-                        ],
-
-                        frameSrc:[
-                            "'self'",
-                            "https://www.openstreetmap.org",
-                            "https://maps.google.com",
-                            "https://www.google.com"
-                        ],
-
-
-                        objectSrc:[
-                            "'none'"
-                        ],
-
-
-                        frameAncestors:[
-                            "'self'"
-                        ]
 
                     }
 
-
-                }
-
-                : false,
+                    : false,
 
             crossOriginEmbedderPolicy: false,
 
-            crossOriginResourcePolicy:{
+            crossOriginResourcePolicy: {
 
 
                 policy:
@@ -248,27 +248,27 @@ function applyHelmet(app){
 
                 environment.IS_PRODUCTION
 
-                ? {
+                    ? {
 
 
-                    maxAge:
-                        31536000,
+                        maxAge:
+                            31536000,
 
 
-                    includeSubDomains:
-                        true,
+                        includeSubDomains:
+                            true,
 
 
-                    preload:
-                        true
+                        preload:
+                            true
 
 
-                }
+                    }
 
 
-                :
+                    :
 
-                false
+                    false
 
 
 
@@ -295,7 +295,7 @@ COMPRESSION
 */
 
 
-function applyCompression(app){
+function applyCompression(app) {
 
 
     app.use(
@@ -332,7 +332,7 @@ CORS CONFIGURATION
 */
 
 
-function applyCors(app){
+function applyCors(app) {
 
 
 
@@ -349,13 +349,13 @@ function applyCors(app){
 
 
 
-            origin:function(
+            origin: function (
 
                 origin,
 
                 callback
 
-            ){
+            ) {
 
 
 
@@ -365,9 +365,9 @@ function applyCors(app){
                 Allow internal services
                 */
 
-                if(
+                if (
                     !origin
-                ){
+                ) {
 
                     return callback(
                         null,
@@ -381,7 +381,10 @@ function applyCors(app){
 
 
 
-                if(
+                const isPrivateLanOrigin =
+                    /^https?:\/\/(192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3})(:\d+)?$/.test(origin);
+
+                if (
 
                     allowedOrigins.includes(
                         origin
@@ -391,9 +394,10 @@ function applyCors(app){
                     origin.endsWith(".loca.lt") ||
                     origin.endsWith(".trycloudflare.com") ||
                     origin.startsWith("http://localhost:") ||
-                    origin.startsWith("http://127.0.0.1:")
+                    origin.startsWith("http://127.0.0.1:") ||
+                    isPrivateLanOrigin
 
-                ){
+                ) {
 
                     return callback(
                         null,
@@ -439,12 +443,12 @@ function applyCors(app){
 
 
 
-            credentials:true,
+            credentials: true,
 
 
 
 
-            methods:[
+            methods: [
 
                 "GET",
 
@@ -463,7 +467,7 @@ function applyCors(app){
 
 
 
-            allowedHeaders:[
+            allowedHeaders: [
 
                 "Content-Type",
 
@@ -477,7 +481,7 @@ function applyCors(app){
 
 
 
-            exposedHeaders:[
+            exposedHeaders: [
 
                 "X-Request-ID"
 
@@ -508,15 +512,15 @@ RATE LIMITING
 */
 
 
-function applyRateLimit(app){
+function applyRateLimit(app) {
 
 
 
-    if(
+    if (
 
         environment.IS_PRODUCTION
 
-    ){
+    ) {
 
         app.set(
 
@@ -536,59 +540,59 @@ function applyRateLimit(app){
 
     const limiter =
 
-    rateLimit({
+        rateLimit({
 
 
 
-        windowMs:
+            windowMs:
 
-            15 *
+                15 *
 
-            60 *
+                60 *
 
-            1000,
+                1000,
 
 
 
 
 
-        max:
+            max:
 
 
-            environment.IS_PRODUCTION
+                environment.IS_PRODUCTION
 
-            ? 500
+                    ? 500
 
-            : 1000,
+                    : 1000,
 
 
 
 
 
 
-        standardHeaders:true,
+            standardHeaders: true,
 
 
 
-        legacyHeaders:false,
+            legacyHeaders: false,
 
 
 
 
 
 
-        skip:function(req){
+            skip: function (req) {
 
 
 
-            return (
+                return (
 
-                req.path === "/health"
+                    req.path === "/health"
 
-            );
+                );
 
 
-        },
+            },
 
 
 
@@ -596,51 +600,51 @@ function applyRateLimit(app){
 
 
 
-        handler:function(
+            handler: function (
 
-            req,
+                req,
 
-            res
+                res
 
-        ){
+            ) {
 
 
 
-            res.status(429)
+                res.status(429)
 
-            .json({
+                    .json({
 
 
 
-                success:false,
+                        success: false,
 
 
-                error:{
+                        error: {
 
 
-                    code:
-                        "RATE_LIMIT_EXCEEDED",
+                            code:
+                                "RATE_LIMIT_EXCEEDED",
 
 
 
-                    message:
-                        "Too many requests. Try again later."
+                            message:
+                                "Too many requests. Try again later."
 
-                }
+                        }
 
 
 
-            });
+                    });
 
 
 
-        }
+            }
 
 
 
 
 
-    });
+        });
 
 
 
@@ -671,13 +675,13 @@ SECURITY RESPONSE HEADERS
 */
 
 
-function applyCustomHeaders(app){
+function applyCustomHeaders(app) {
 
 
 
     app.use(
 
-        function(
+        function (
 
             req,
 
@@ -685,7 +689,7 @@ function applyCustomHeaders(app){
 
             next
 
-        ){
+        ) {
 
 
 
@@ -782,17 +786,17 @@ MAIN SECURITY INITIALIZER
 */
 
 
-function securityMiddleware(app){
+function securityMiddleware(app) {
 
 
 
-    if(
+    if (
 
         !app ||
 
         typeof app.use !== "function"
 
-    ){
+    ) {
 
 
         throw new Error(

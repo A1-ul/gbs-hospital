@@ -10,14 +10,13 @@ LOCATION: src/modules/admissions/services/inpatient.service.js
 */
 
 const prisma = require("../../../core/database/prisma.client");
+const { ensureDefaultHospitalId } = require("../../../core/database/hospital-resolver");
 const { generateAdmissionNumber, generateWardCode, generateBedCode } = require("../helpers/admission-id.generator");
 const AppError = require("../../../core/errors/app.error");
 const logger = require("../../../core/utils/logger");
 
 async function resolveDefaultHospitalId(explicitHospitalId) {
-    if (explicitHospitalId) return explicitHospitalId;
-    const firstHospital = await prisma.hospital.findFirst({ orderBy: { createdAt: "asc" } });
-    return firstHospital ? firstHospital.id : null;
+    return ensureDefaultHospitalId(explicitHospitalId);
 }
 
 /**

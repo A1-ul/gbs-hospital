@@ -110,10 +110,11 @@ export default function UniversalDetailPage({
           api.getNhiaBatches().catch(() => [])
         ]);
         const billList = Array.isArray(bills) ? bills : (bills?.bills || []);
+        const nhiaList = Array.isArray(nhiaBatches) ? nhiaBatches : (nhiaBatches?.data || nhiaBatches?.batches || []);
         setLiveData({
           billingTelemetry: billingStats,
           totalInvoices: billList.length,
-          totalNhiaBatches: Array.isArray(nhiaBatches) ? nhiaBatches.length : 0
+          totalNhiaBatches: nhiaList.length
         });
         setExtraRecords(billList);
       } else if (detailType === 'VIEW_APPLICATIONS') {
@@ -124,7 +125,7 @@ export default function UniversalDetailPage({
         ]);
         const tenantList = Array.isArray(tenants) ? tenants : (tenants?.tenants || []);
         const userList = Array.isArray(users) ? users : (users?.users || []);
-        const leaveList = Array.isArray(leaves) ? leaves : [];
+        const leaveList = Array.isArray(leaves) ? leaves : (leaves?.data || leaves?.requests || []);
         setLiveData({
           totalTenantApplications: tenantList.length,
           pendingTenantApplications: tenantList.filter(t => t.status === 'PENDING' || t.status === 'VERIFICATION_REQUIRED').length,
@@ -368,7 +369,7 @@ export default function UniversalDetailPage({
                 </>
               )}
             </div>
-            <h2 style={{ margin: '4px 0 0', fontSize: '1.45rem', fontWeight: 800, color: '#fff' }}>
+            <h2 className="header-3d" style={{ margin: '4px 0 0', fontSize: '1.52rem', fontWeight: 800 }}>
               {pageTitle}
             </h2>
             <p style={{ margin: '2px 0 0', fontSize: '0.82rem', color: 'var(--text-muted)' }}>

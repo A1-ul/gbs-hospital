@@ -115,7 +115,7 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
             <div style={{ display: 'inline-block', padding: '4px 8px', borderRadius: '4px', background: 'var(--gold-glow)', border: '1px solid var(--gold-400)', fontSize: '0.7rem', color: 'var(--gold-300)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px' }}>
               {currentRoleObj.dept || 'Authorized Hospital Portal'}
             </div>
-            <h3 style={{ fontSize: '1.45rem', color: '#fff', fontWeight: 800 }}>
+            <h3 className="header-3d" style={{ fontSize: '1.52rem', fontWeight: 800 }}>
               {currentRoleObj.name} Login Portal
             </h3>
             <p style={{ fontSize: '0.82rem', color: '#e5e7eb', marginTop: '4px' }}>
@@ -161,7 +161,7 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
             <X size={20} />
           </button>
 
-          <h2 style={{ fontSize: '1.3rem', fontWeight: 700, color: '#fff', marginBottom: '6px' }}>
+          <h2 className="header-3d" style={{ fontSize: '1.38rem', fontWeight: 700, marginBottom: '6px' }}>
             {isSignUp ? 'Request Role Account' : 'Sign In to Your Workspace'}
           </h2>
           <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '20px' }}>
