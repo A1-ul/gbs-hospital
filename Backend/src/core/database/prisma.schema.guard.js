@@ -34,6 +34,14 @@ require("../utils/logger");
 
 function getSchemaPath(){
 
+    const resolvedFromModule = path.resolve(
+        __dirname,
+        "../../../prisma/schema.prisma"
+    );
+
+    if(fs.existsSync(resolvedFromModule)){
+        return resolvedFromModule;
+    }
 
     return path.resolve(
 

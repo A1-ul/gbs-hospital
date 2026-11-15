@@ -55,18 +55,21 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:Admin123@localhost:5432/gbs_hospital?schema=public
           NODE_ENV: test
+          JWT_SECRET: gbs_ci_jwt_secret_key_2026_hospital_enterprise
           JWT_ACCESS_SECRET: gbs_ci_access_secret_key_2026_hospital_enterprise
           JWT_REFRESH_SECRET: gbs_ci_refresh_secret_key_2026_hospital_enterprise
         run: |
           npm install
           npx prisma generate
           npx prisma db push
+          node prisma/seed.js
 
       - name: Run Backend Automated Verification Suite
         working-directory: ./Backend
         env:
           DATABASE_URL: postgresql://postgres:Admin123@localhost:5432/gbs_hospital?schema=public
           NODE_ENV: test
+          JWT_SECRET: gbs_ci_jwt_secret_key_2026_hospital_enterprise
           JWT_ACCESS_SECRET: gbs_ci_access_secret_key_2026_hospital_enterprise
           JWT_REFRESH_SECRET: gbs_ci_refresh_secret_key_2026_hospital_enterprise
         run: |
