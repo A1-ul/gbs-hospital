@@ -268,7 +268,7 @@ export default function NhiaClaimsView() {
           alt="NHIA Claims Office and Electronic Adjudication Complex" 
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
         />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,9,7,0.96) 25%, rgba(10,9,7,0.5) 80%, rgba(10,9,7,0.2) 100%)' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(6, 12, 24,0.96) 25%, rgba(6, 12, 24,0.5) 80%, rgba(6, 12, 24,0.2) 100%)' }} />
         
         <div style={{ position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', width: '100%', flexWrap: 'wrap', gap: '16px' }}>
           <div>
@@ -661,7 +661,7 @@ export default function NhiaClaimsView() {
                 value={eligibilityQuery} 
                 onChange={e => setEligibilityQuery(e.target.value)} 
                 required 
-                style={{ flex: 1, padding: '10px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
+                style={{ flex: 1, padding: '10px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
               />
               <button type="submit" className="btn-gold" disabled={eligibilityLoading}>
                 {eligibilityLoading ? 'Verifying...' : 'Verify Member'}
@@ -776,7 +776,7 @@ export default function NhiaClaimsView() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Period Month *</label>
-                  <select value={batchForm.periodMonth} onChange={e => setBatchForm({ ...batchForm, periodMonth: parseInt(e.target.value, 10) })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                  <select value={batchForm.periodMonth} onChange={e => setBatchForm({ ...batchForm, periodMonth: parseInt(e.target.value, 10) })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                     {Array.from({ length: 12 }, (_, i) => (
                       <option key={i + 1} value={i + 1}>Month {i + 1}</option>
                     ))}
@@ -784,23 +784,23 @@ export default function NhiaClaimsView() {
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Period Year *</label>
-                  <input type="number" value={batchForm.periodYear} onChange={e => setBatchForm({ ...batchForm, periodYear: parseInt(e.target.value, 10) })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="number" value={batchForm.periodYear} onChange={e => setBatchForm({ ...batchForm, periodYear: parseInt(e.target.value, 10) })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Provider Code *</label>
-                <input type="text" value={batchForm.providerNumber} onChange={e => setBatchForm({ ...batchForm, providerNumber: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input type="text" value={batchForm.providerNumber} onChange={e => setBatchForm({ ...batchForm, providerNumber: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Provider Facility Name *</label>
-                <input type="text" value={batchForm.providerName} onChange={e => setBatchForm({ ...batchForm, providerName: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input type="text" value={batchForm.providerName} onChange={e => setBatchForm({ ...batchForm, providerName: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>E-Claims Schema Format *</label>
-                <select value={batchForm.submissionType} onChange={e => setBatchForm({ ...batchForm, submissionType: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                <select value={batchForm.submissionType} onChange={e => setBatchForm({ ...batchForm, submissionType: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                   <option value="E_CLAIMS_XML">NHIA XML Standard v2.4 (Encrypted)</option>
                   <option value="E_CLAIMS_JSON">NHIA JSON REST Transmission</option>
                 </select>
@@ -828,18 +828,18 @@ export default function NhiaClaimsView() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Patient Name *</label>
-                  <input required type="text" placeholder="e.g. Abena Serwaa" value={claimForm.patientName} onChange={e => setClaimForm({ ...claimForm, patientName: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="text" placeholder="e.g. Abena Serwaa" value={claimForm.patientName} onChange={e => setClaimForm({ ...claimForm, patientName: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>NHIS Card Number *</label>
-                  <input required type="text" placeholder="e.g. NHIS-GH-789012" value={claimForm.nhisNumber} onChange={e => setClaimForm({ ...claimForm, nhisNumber: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="text" placeholder="e.g. NHIS-GH-789012" value={claimForm.nhisNumber} onChange={e => setClaimForm({ ...claimForm, nhisNumber: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Encounter Type</label>
-                  <select value={claimForm.encounterType} onChange={e => setClaimForm({ ...claimForm, encounterType: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                  <select value={claimForm.encounterType} onChange={e => setClaimForm({ ...claimForm, encounterType: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                     <option value="OPD">OPD Consultation</option>
                     <option value="IPD">Inpatient Admission</option>
                     <option value="SURGERY">Surgical Case</option>
@@ -848,14 +848,14 @@ export default function NhiaClaimsView() {
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Gender</label>
-                  <select value={claimForm.gender} onChange={e => setClaimForm({ ...claimForm, gender: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                  <select value={claimForm.gender} onChange={e => setClaimForm({ ...claimForm, gender: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                     <option value="M">Male</option>
                     <option value="F">Female</option>
                   </select>
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Primary ICD-10 Code *</label>
-                  <input required type="text" placeholder="e.g. B54.0 or O80.0" value={claimForm.primaryDiagnosisIcd10} onChange={e => setClaimForm({ ...claimForm, primaryDiagnosisIcd10: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="text" placeholder="e.g. B54.0 or O80.0" value={claimForm.primaryDiagnosisIcd10} onChange={e => setClaimForm({ ...claimForm, primaryDiagnosisIcd10: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
 
@@ -872,7 +872,7 @@ export default function NhiaClaimsView() {
                       claimedAmount: tariff ? tariff.tariffGhs : claimForm.claimedAmount
                     });
                   }}
-                  style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
+                  style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
                 >
                   {catalogs.gdrgTariffs.map(t => (
                     <option key={t.code} value={t.code}>
@@ -885,11 +885,11 @@ export default function NhiaClaimsView() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Claimed Amount (GHS) *</label>
-                  <input required type="number" step="0.01" value={claimForm.claimedAmount} onChange={e => setClaimForm({ ...claimForm, claimedAmount: parseFloat(e.target.value) })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="number" step="0.01" value={claimForm.claimedAmount} onChange={e => setClaimForm({ ...claimForm, claimedAmount: parseFloat(e.target.value) })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Patient Copay Paid (GHS)</label>
-                  <input type="number" step="0.01" value={claimForm.copayPaid} onChange={e => setClaimForm({ ...claimForm, copayPaid: parseFloat(e.target.value) })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="number" step="0.01" value={claimForm.copayPaid} onChange={e => setClaimForm({ ...claimForm, copayPaid: parseFloat(e.target.value) })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
 
@@ -916,7 +916,7 @@ export default function NhiaClaimsView() {
               <button onClick={() => setShowPayloadModal(false)} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer' }}><X size={18} /></button>
             </div>
 
-            <pre style={{ background: '#0a0907', padding: '14px', borderRadius: '6px', border: '1px solid var(--border-subtle)', color: '#86efac', fontSize: '0.75rem', overflowX: 'auto', maxHeight: '400px' }}>
+            <pre style={{ background: '#060c18', padding: '14px', borderRadius: '6px', border: '1px solid var(--border-subtle)', color: '#86efac', fontSize: '0.75rem', overflowX: 'auto', maxHeight: '400px' }}>
               {eclaimsPayload.xmlPayload}
             </pre>
 
@@ -966,17 +966,17 @@ export default function NhiaClaimsView() {
             <form onSubmit={handleIssueVoucher} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Withholding Tax (%) *</label>
-                <input required type="number" step="0.1" value={voucherForm.withholdingTaxPercent} onChange={e => setVoucherForm({ ...voucherForm, withholdingTaxPercent: parseFloat(e.target.value) })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="number" step="0.1" value={voucherForm.withholdingTaxPercent} onChange={e => setVoucherForm({ ...voucherForm, withholdingTaxPercent: parseFloat(e.target.value) })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Electronic Treasury Transfer Reference *</label>
-                <input required type="text" value={voucherForm.paymentReference} onChange={e => setVoucherForm({ ...voucherForm, paymentReference: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="text" value={voucherForm.paymentReference} onChange={e => setVoucherForm({ ...voucherForm, paymentReference: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Auditor Certification Note *</label>
-                <textarea rows={3} required value={voucherForm.adjudicatorNote} onChange={e => setVoucherForm({ ...voucherForm, adjudicatorNote: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <textarea rows={3} required value={voucherForm.adjudicatorNote} onChange={e => setVoucherForm({ ...voucherForm, adjudicatorNote: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '14px' }}>
@@ -1005,12 +1005,12 @@ export default function NhiaClaimsView() {
             <form onSubmit={handleAppealClaim} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Corrective ICD-10 Diagnosis (if applicable)</label>
-                <input type="text" placeholder="e.g. B50.9" value={appealForm.correctiveIcd10} onChange={e => setAppealForm({ ...appealForm, correctiveIcd10: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input type="text" placeholder="e.g. B50.9" value={appealForm.correctiveIcd10} onChange={e => setAppealForm({ ...appealForm, correctiveIcd10: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Clinical Justification & Regulatory Evidence *</label>
-                <textarea rows={4} required placeholder="State clinical rationale, attaching proof of card renewal or consultant co-signature..." value={appealForm.appealNotes} onChange={e => setAppealForm({ ...appealForm, appealNotes: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <textarea rows={4} required placeholder="State clinical rationale, attaching proof of card renewal or consultant co-signature..." value={appealForm.appealNotes} onChange={e => setAppealForm({ ...appealForm, appealNotes: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '14px' }}>

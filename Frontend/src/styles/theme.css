@@ -1,0 +1,28 @@
+/**
+ * GBS Universal Enterprise Design System - Theme Tokens
+ * Fetched & Synchronized with GBS LOAN SYSTEM
+ */
+:root {
+  --gbs-bg-dark: #060c18;
+  --gbs-bg-card: rgba(15, 27, 49, 0.78);
+  --gbs-bg-card-hover: rgba(22, 38, 68, 0.88);
+  --gbs-bg-glass: rgba(11, 23, 44, 0.65);
+
+  --gbs-border-color: rgba(212, 175, 55, 0.22);
+  --gbs-border-glow: rgba(212, 175, 55, 0.45);
+  --gbs-border-gold-strong: rgba(244, 224, 123, 0.68);
+
+  --gbs-gold-primary: #D4AF37;
+  --gbs-gold-light: #F4E07B;
+  --gbs-gold-dark: #AA820A;
+
+  --gbs-cyan-accent: #00F2FE;
+  --gbs-blue-accent: #4FACFE;
+  --gbs-green-success: #10B981;
+  --gbs-red-danger: #EF4444;
+  --gbs-amber-warning: #F59E0B;
+
+  --gbs-text-main: #F1F5F9;
+  --gbs-text-muted: #94A3B8;
+  --gbs-text-dim: #64748B;
+}

@@ -227,7 +227,7 @@ export default function VoiceBiometricsView() {
           alt="Biometric Security Vault"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
         />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,9,7,0.95) 20%, rgba(10,9,7,0.4) 100%)' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(6, 12, 24,0.95) 20%, rgba(6, 12, 24,0.4) 100%)' }} />
         <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'flex-end', flexWrap: 'wrap', gap: '12px' }}>
           <div>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 10px', borderRadius: '4px', background: 'rgba(234, 179, 8, 0.15)', border: '1px solid var(--border-gold)', fontSize: '0.72rem', color: 'var(--gold-400)', fontWeight: 800, textTransform: 'uppercase', marginBottom: '8px' }}>
@@ -360,7 +360,7 @@ export default function VoiceBiometricsView() {
                   required
                   value={passphraseText}
                   onChange={e => setPassphraseText(e.target.value)}
-                  style={{ width: '100%', padding: '9px 12px', background: '#12100d', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px', fontSize: '0.85rem' }}
+                  style={{ width: '100%', padding: '9px 12px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px', fontSize: '0.85rem' }}
                 />
                 <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
                   <button
@@ -381,7 +381,7 @@ export default function VoiceBiometricsView() {
               </div>
 
               {/* Acoustic Waveform Monitor Simulation */}
-              <div style={{ background: '#0a0907', padding: '16px', borderRadius: '6px', border: '1px solid var(--border-subtle)', textAlign: 'center' }}>
+              <div style={{ background: '#060c18', padding: '16px', borderRadius: '6px', border: '1px solid var(--border-subtle)', textAlign: 'center' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                   <span style={{ fontSize: '0.72rem', color: 'var(--gold-400)', fontWeight: 700, textTransform: 'uppercase' }}>
                     Acoustic Spectrum & Waveform Analyzer
@@ -464,25 +464,25 @@ export default function VoiceBiometricsView() {
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <div style={{ background: '#12100d', padding: '10px', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ background: 'rgba(6, 12, 24, 0.88)', padding: '10px', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
                     <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Acoustic Quality</div>
                     <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#22c55e' }}>
                       {((voiceprintStatus.qualityScore || 0.94) * 100).toFixed(1)}%
                     </div>
                   </div>
-                  <div style={{ background: '#12100d', padding: '10px', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ background: 'rgba(6, 12, 24, 0.88)', padding: '10px', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
                     <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Sample Frequency</div>
                     <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#38bdf8' }}>
                       {voiceprintStatus.sampleRate || 16000} Hz
                     </div>
                   </div>
-                  <div style={{ background: '#12100d', padding: '10px', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ background: 'rgba(6, 12, 24, 0.88)', padding: '10px', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
                     <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Liveness Threshold</div>
                     <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--gold-300)' }}>
                       &ge; {voiceprintStatus.livenessThreshold || 0.85}
                     </div>
                   </div>
-                  <div style={{ background: '#12100d', padding: '10px', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ background: 'rgba(6, 12, 24, 0.88)', padding: '10px', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
                     <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Sample Duration</div>
                     <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff' }}>
                       {voiceprintStatus.durationSeconds ?? 0}s
@@ -490,7 +490,7 @@ export default function VoiceBiometricsView() {
                   </div>
                 </div>
 
-                <div style={{ background: '#12100d', padding: '10px', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ background: 'rgba(6, 12, 24, 0.88)', padding: '10px', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
                   <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Enrolled Security Passphrase:</div>
                   <div style={{ fontSize: '0.8rem', color: '#fff', fontStyle: 'italic', marginTop: '2px' }}>
                     "{voiceprintStatus.passphraseText}"
@@ -530,7 +530,7 @@ export default function VoiceBiometricsView() {
                 <select
                   value={actionAttempted}
                   onChange={e => setActionAttempted(e.target.value)}
-                  style={{ width: '100%', padding: '9px', background: '#12100d', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px', fontSize: '0.85rem' }}
+                  style={{ width: '100%', padding: '9px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px', fontSize: '0.85rem' }}
                 >
                   <option value="NARCOTICS_DISPENSE">NARCOTICS_DISPENSE (Controlled Substances Vault Release)</option>
                   <option value="SYSTEM_LOCK_ENGAGE">SYSTEM_LOCK_ENGAGE (Developer NOC Global Lock)</option>
@@ -549,7 +549,7 @@ export default function VoiceBiometricsView() {
                   required
                   value={verifyPassphrase}
                   onChange={e => setVerifyPassphrase(e.target.value)}
-                  style={{ width: '100%', padding: '9px 12px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px', fontSize: '0.85rem' }}
+                  style={{ width: '100%', padding: '9px 12px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px', fontSize: '0.85rem' }}
                 />
               </div>
 
@@ -608,28 +608,28 @@ export default function VoiceBiometricsView() {
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <div style={{ background: '#12100d', padding: '10px', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ background: 'rgba(6, 12, 24, 0.88)', padding: '10px', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
                     <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Computed Confidence</div>
                     <div style={{ fontSize: '1.3rem', fontWeight: 800, color: verificationResult.confidenceScore >= verificationResult.thresholdRequired ? '#22c55e' : '#ef4444' }}>
                       {((verificationResult.confidenceScore || 0) * 100).toFixed(1)}%
                     </div>
                   </div>
 
-                  <div style={{ background: '#12100d', padding: '10px', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ background: 'rgba(6, 12, 24, 0.88)', padding: '10px', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
                     <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Threshold Floor</div>
                     <div style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--gold-300)' }}>
                       &ge; {((verificationResult.thresholdRequired || 0.85) * 100).toFixed(0)}%
                     </div>
                   </div>
 
-                  <div style={{ background: '#12100d', padding: '10px', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ background: 'rgba(6, 12, 24, 0.88)', padding: '10px', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
                     <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Liveness Status</div>
                     <div style={{ fontSize: '1rem', fontWeight: 700, color: verificationResult.livenessPassed ? '#22c55e' : '#ef4444' }}>
                       {verificationResult.livenessPassed ? 'PASSED (LIVE)' : 'FAILED (SYNTHETIC)'}
                     </div>
                   </div>
 
-                  <div style={{ background: '#12100d', padding: '10px', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ background: 'rgba(6, 12, 24, 0.88)', padding: '10px', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
                     <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Anti-Spoofing Guard</div>
                     <div style={{ fontSize: '1rem', fontWeight: 700, color: verificationResult.antiSpoofingStatus === 'PASSED' ? '#22c55e' : '#ef4444' }}>
                       {verificationResult.antiSpoofingStatus}
@@ -637,7 +637,7 @@ export default function VoiceBiometricsView() {
                   </div>
                 </div>
 
-                <div style={{ background: '#12100d', padding: '10px', borderRadius: '4px', border: '1px solid var(--border-subtle)', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                <div style={{ background: 'rgba(6, 12, 24, 0.88)', padding: '10px', borderRadius: '4px', border: '1px solid var(--border-subtle)', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                   Audit Code: <strong style={{ color: 'var(--gold-400)', fontFamily: 'var(--font-mono)' }}>{verificationResult.verificationLogCode}</strong>
                   {verificationResult.rejectionReason && (
                     <div style={{ color: '#fca5a5', marginTop: '4px' }}>

@@ -1,36 +1,57 @@
 :root {
   --font-sans: 'Times New Roman', Times, Georgia, serif;
   --font-heading: 'Times New Roman', Times, Georgia, serif;
-  --font-mono: 'Times New Roman', Times, Georgia, serif;
+  --font-body: 'Times New Roman', Times, Georgia, serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', Consolas, 'Times New Roman', monospace;
 
-  /* Master Blueprint Palette: Dark Amber Gold Luxury */
-  --bg-primary: #0a0907;
-  --bg-secondary: #12100d;
-  --bg-surface: rgba(26, 23, 19, 0.78);
-  --bg-surface-elevated: rgba(36, 32, 26, 0.86);
-  --bg-surface-hover: rgba(46, 40, 32, 0.9);
+  /* GBS Universal Enterprise Design System - Smart Hospital & Loan System Palette */
+  --bg-dark: #060c18;
+  --bg-primary: #060c18;
+  --bg-secondary: #0b172c;
+  --bg-card: rgba(15, 27, 49, 0.78);
+  --bg-card-hover: rgba(22, 38, 68, 0.88);
+  --bg-glass: rgba(11, 23, 44, 0.65);
+  --bg-surface: rgba(15, 27, 49, 0.78);
+  --bg-surface-elevated: rgba(22, 38, 68, 0.88);
+  --bg-surface-hover: rgba(28, 48, 85, 0.92);
 
-  --border-gold: rgba(212, 175, 55, 0.38);
-  --border-gold-strong: rgba(229, 195, 88, 0.72);
-  --border-subtle: rgba(255, 255, 255, 0.14);
+  --border-color: rgba(212, 175, 55, 0.22);
+  --border-glow: rgba(212, 175, 55, 0.45);
+  --border-gold: rgba(212, 175, 55, 0.32);
+  --border-gold-strong: rgba(244, 224, 123, 0.68);
+  --border-subtle: rgba(212, 175, 55, 0.16);
 
-  --gold-500: #d4af37;
-  --gold-400: #e5c358;
-  --gold-300: #f3d97e;
-  --gold-glow: rgba(212, 175, 55, 0.24);
+  --gold-primary: #D4AF37;
+  --gold-light: #F4E07B;
+  --gold-dark: #AA820A;
+  --gold-500: #D4AF37;
+  --gold-400: #F4E07B;
+  --gold-300: #FFF099;
+  --gold-glow: rgba(212, 175, 55, 0.25);
 
-  --text-main: #ffffff;
-  --text-muted: #e7e2d8;
-  --text-dim: #cbbba0;
-  --text-gold: #f3d97e;
+  --cyan-accent: #00F2FE;
+  --blue-accent: #4FACFE;
+  --green-success: #10B981;
+  --red-danger: #EF4444;
+  --amber-warning: #F59E0B;
+  --status-online: #10B981;
+  --status-warning: #F59E0B;
+  --status-danger: #EF4444;
+  --status-info: #00F2FE;
 
-  --status-online: #10b981;
-  --status-warning: #f59e0b;
-  --status-danger: #ef4444;
-  --status-info: #3b82f6;
+  --text-main: #F1F5F9;
+  --text-muted: #94A3B8;
+  --text-dim: #64748B;
+  --text-gold: #F4E07B;
 
-  --shadow-gold: 0 6px 22px -2px rgba(212, 175, 55, 0.28);
-  --shadow-card: 0 12px 32px -8px rgba(0, 0, 0, 0.78);
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+
+  --shadow-glow: 0 0 22px rgba(212, 175, 55, 0.18);
+  --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.55);
+  --shadow-gold: 0 6px 22px -2px rgba(212, 175, 55, 0.35);
+  --transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 * {
@@ -40,33 +61,56 @@
   font-family: 'Times New Roman', Times, Georgia, serif;
 }
 
+html,
 body {
-  background-color: #090806;
+  background-color: var(--bg-dark);
+  background-image:
+    radial-gradient(circle at 10% 20%, rgba(212, 175, 55, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(0, 242, 254, 0.06) 0%, transparent 40%),
+    linear-gradient(180deg, #040810 0%, #081224 100%);
   color: var(--text-main);
   font-family: 'Times New Roman', Times, Georgia, serif;
-  line-height: 1.5;
+  line-height: 1.55;
   min-height: 100vh;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.75);
+  -moz-osx-font-smoothing: grayscale;
 }
 
-h1, h2, h3, h4, h5, h6, button, input, select, textarea, table, th, td, label {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+button,
+input,
+select,
+textarea,
+table,
+th,
+td,
+label {
   font-family: 'Times New Roman', Times, Georgia, serif;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  letter-spacing: 0.01em;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  letter-spacing: 0.02em;
 }
 
-/* Full-page Clear Real-Life Dashboard Background Layer */
+/* Full-page Real-Life Hospital Dashboard Background Layer with Loan System Navy Tint */
 .dashboard-bg-stage {
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
-  background-color: #080705;
+  background-color: #060c18;
 }
 
 .dashboard-bg-image {
@@ -76,190 +120,431 @@ h1, h2, h3, h4, h5, h6 {
   height: 100%;
   object-fit: cover;
   object-position: center;
-  opacity: 0.46;
-  filter: contrast(1.08) saturate(1.12) brightness(0.95);
+  opacity: 0.38;
+  filter: contrast(1.08) saturate(1.12) brightness(0.92);
   transition: opacity 0.45s ease-in-out, transform 0.6s ease;
 }
 
 .dashboard-bg-scrim {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 20%, rgba(10, 8, 6, 0.34) 0%, rgba(10, 8, 6, 0.66) 65%, rgba(8, 7, 5, 0.84) 100%);
+  background: radial-gradient(circle at 50% 20%, rgba(6, 12, 24, 0.42) 0%, rgba(6, 12, 24, 0.72) 65%, rgba(4, 8, 16, 0.92) 100%);
 }
 
-/* Glassmorphism Panels with Translucent Clarity so Background Shows Through Clearly */
+/* GBS Loan System Obsidian Navy Glassmorphism Panels */
 .glass-panel {
-  background: linear-gradient(145deg, rgba(22, 18, 14, 0.74) 0%, rgba(14, 12, 9, 0.82) 100%);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid var(--border-gold);
-  border-radius: 10px;
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.62), inset 0 1px 0 rgba(255, 232, 160, 0.14);
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  transition: var(--transition);
+}
+
+.glass-panel:hover {
+  border-color: var(--border-glow);
 }
 
 .glass-panel-subtle {
-  background: rgba(18, 15, 11, 0.66);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  background: rgba(11, 23, 44, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border: 1px solid var(--border-subtle);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
 }
 
-/* 3D Metallic Gold & Embossed Headers */
+/* 3D Metallic Gold Headers (GBS Prestige Style) */
 .header-3d {
-  color: #fff6d6;
+  color: #FFF099;
+  font-family: 'Times New Roman', Times, Georgia, serif;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.2),
+    0 2px 2px rgba(0, 0, 0, 0.72),
+    0 4px 12px rgba(0, 0, 0, 0.85);
+}
+
+.header-3d-gold {
+  color: #F4E07B;
   font-family: 'Times New Roman', Times, Georgia, serif;
   font-weight: 800;
   letter-spacing: 0.04em;
   text-shadow:
-    0 1px 0 #c99e2c,
-    0 2px 0 #9f7919,
-    0 3px 0 #70530d,
-    0 4px 0 #473305,
-    0 6px 14px rgba(0, 0, 0, 0.92);
-}
-
-.header-3d-gold {
-  color: #fde68a;
-  font-family: 'Times New Roman', Times, Georgia, serif;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  text-shadow:
-    0 1px 0 #d4af37,
-    0 2px 0 #a37b18,
-    0 3px 0 #6b4e0b,
-    0 5px 12px rgba(0, 0, 0, 0.95);
+    0 1px 0 #D4AF37,
+    0 2px 0 #AA820A,
+    0 4px 12px rgba(0, 0, 0, 0.9);
 }
 
 .header-3d-panel {
-  background: linear-gradient(180deg, rgba(58, 44, 19, 0.88) 0%, rgba(28, 22, 13, 0.90) 58%, rgba(16, 13, 8, 0.94) 100%);
-  border: 1px solid rgba(243, 217, 126, 0.62);
-  border-bottom: 3px solid #785912;
+  background: linear-gradient(180deg, rgba(22, 38, 68, 0.92) 0%, rgba(15, 27, 49, 0.94) 58%, rgba(6, 12, 24, 0.96) 100%);
+  border: 1px solid rgba(244, 224, 123, 0.55);
+  border-bottom: 3px solid #AA820A;
   border-radius: 10px;
   box-shadow:
-    0 6px 0 rgba(62, 45, 11, 0.85),
+    0 6px 0 rgba(10, 22, 44, 0.85),
     0 12px 24px rgba(0, 0, 0, 0.78),
-    inset 0 1px 0 rgba(255, 244, 194, 0.42);
+    inset 0 1px 0 rgba(255, 244, 194, 0.35);
 }
 
 .gold-gradient-text {
-  color: #f7df8d;
-  text-shadow:
-    0 1px 0 #b88b1e,
-    0 2px 0 #825f10,
-    0 4px 10px rgba(0, 0, 0, 0.9);
+  background: linear-gradient(135deg, #FFF099 0%, #D4AF37 50%, #AA820A 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-family: var(--font-heading);
 }
 
-@media print {
-  .dashboard-bg-stage, .gbs-brain-bar, .no-print {
-    display: none !important;
-  }
-  body, * {
-    font-family: 'Times New Roman', Times, Georgia, serif !important;
-    color: #000000 !important;
-    background: #ffffff !important;
-    text-shadow: none !important;
-  }
+.cyan-gradient-text {
+  background: linear-gradient(135deg, #00F2FE 0%, #4FACFE 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-/* Buttons */
-.btn-gold {
-  background: linear-gradient(135deg, #f3d97e 0%, #d4af37 55%, #9c720c 100%);
-  color: #0a0907;
+/* GBS Loan System Gold & Luxury Action Buttons */
+.btn-gold,
+.btn-primary {
+  background: linear-gradient(135deg, #F4E07B 0%, #D4AF37 65%, #AA820A 100%);
+  color: #060C18;
   font-weight: 700;
   font-family: 'Times New Roman', Times, Georgia, serif;
-  border: 1px solid rgba(255, 243, 189, 0.65);
-  border-radius: 6px;
-  padding: 8px 16px;
+  border: 1px solid rgba(244, 224, 123, 0.75);
+  border-radius: var(--radius-sm);
+  padding: 8px 18px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   font-size: 0.88rem;
-  transition: all 0.2s ease;
-  box-shadow: 0 3px 0 #5f4506, 0 4px 14px rgba(212, 175, 55, 0.3);
+  transition: var(--transition);
+  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.28);
+  text-decoration: none;
 }
 
-.btn-gold:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 0 #5f4506, 0 6px 18px rgba(212, 175, 55, 0.45);
-  filter: brightness(1.06);
+.btn-gold:hover,
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 22px rgba(212, 175, 55, 0.48);
+  background: linear-gradient(135deg, #FFF099 0%, #F4E07B 50%, #D4AF37 100%);
 }
 
-.btn-gold:active {
-  transform: translateY(1px);
-  box-shadow: 0 1px 0 #5f4506;
+.btn-gold:active,
+.btn-primary:active {
+  transform: translateY(0) scale(0.98);
 }
 
-.btn-outline-gold {
-  background: rgba(16, 13, 9, 0.65);
-  color: var(--gold-300);
-  border: 1px solid var(--border-gold-strong);
+.btn-outline-gold,
+.btn-secondary {
+  background: rgba(15, 27, 49, 0.78);
+  color: var(--gold-light);
+  border: 1px solid var(--border-color);
   font-weight: 600;
   font-family: 'Times New Roman', Times, Georgia, serif;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   padding: 8px 16px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   font-size: 0.88rem;
-  transition: all 0.2s ease;
+  transition: var(--transition);
+  text-decoration: none;
 }
 
-.btn-outline-gold:hover {
-  background: rgba(212, 175, 55, 0.24);
-  border-color: var(--gold-300);
-  color: #fff;
+.btn-outline-gold:hover,
+.btn-secondary:hover {
+  background: rgba(212, 175, 55, 0.16);
+  border-color: var(--gold-primary);
+  color: #FFF;
+  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.18);
+  transform: translateY(-1px);
 }
 
 .btn-danger {
-  background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
-  color: white;
+  background: linear-gradient(135deg, #EF4444 0%, #991B1B 100%);
+  color: #FFF;
   border: 1px solid rgba(254, 202, 202, 0.35);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   padding: 8px 16px;
   cursor: pointer;
   font-weight: 700;
   font-family: 'Times New Roman', Times, Georgia, serif;
   font-size: 0.88rem;
-  box-shadow: 0 3px 0 #7f1d1d, 0 4px 12px rgba(220, 38, 38, 0.35);
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.35);
+  transition: var(--transition);
 }
 
-.input-gold, input, select, textarea {
-  font-family: 'Times New Roman', Times, Georgia, serif;
+.btn-danger:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.48);
+  background: linear-gradient(135deg, #F87171 0%, #B91C1C 100%);
 }
 
-h1, h2 {
-  text-shadow:
-    0 1px 0 #c99e2c,
-    0 2px 0 #8a6d1c,
-    0 4px 10px rgba(0, 0, 0, 0.9);
+/* Badges: GBS Loan System Spectrum */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.glass-panel h3 {
-  text-shadow:
-    0 1px 0 rgba(165, 128, 30, 0.8),
-    0 2px 6px rgba(0, 0, 0, 0.88);
+.badge-gold {
+  background: rgba(212, 175, 55, 0.15);
+  color: var(--gold-primary);
+  border: 1px solid var(--border-color);
 }
 
-/* Custom Scrollbar */
+.badge-cyan {
+  background: rgba(0, 242, 254, 0.15);
+  color: var(--cyan-accent);
+  border: 1px solid rgba(0, 242, 254, 0.3);
+}
+
+.badge-success {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--green-success);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.badge-warning {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--amber-warning);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.badge-danger {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--red-danger);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* GBS Loan System Interactive Tab Bar & Tab Pills */
+.dashboard-tab-bar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 12px 14px;
+  background: rgba(8, 16, 32, 0.92);
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.4);
+}
+
+.dashboard-tab-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 15px;
+  border-radius: 9px;
+  font-size: 0.90rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: #E2E8F0;
+  background: rgba(15, 27, 49, 0.78);
+  border: 1px solid rgba(212, 175, 55, 0.18);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.dashboard-tab-pill:hover {
+  color: #F8FAFC;
+  background: rgba(212, 175, 55, 0.15);
+  border-color: rgba(212, 175, 55, 0.48);
+  transform: translateY(-1px);
+}
+
+.dashboard-tab-pill.active {
+  color: #060C18;
+  font-weight: 800;
+  background: linear-gradient(135deg, #F4E07B 0%, #D4AF37 65%, #AA820A 100%);
+  border-color: #F4E07B;
+  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.35);
+}
+
+.dashboard-tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 6px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  background: rgba(212, 175, 55, 0.2);
+  color: #F4E07B;
+  font-variant-numeric: tabular-nums;
+}
+
+.dashboard-tab-pill.active .dashboard-tab-badge {
+  background: rgba(6, 12, 24, 0.85);
+  color: #F4E07B;
+}
+
+/* Metric Cards with Loan System 3D Gold Left Accent */
+.metric-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+  transition: var(--transition);
+}
+
+.metric-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  background: linear-gradient(180deg, var(--gold-primary), transparent);
+  opacity: 0.65;
+  transition: var(--transition);
+}
+
+.metric-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(212, 175, 55, 0.48);
+  background: var(--bg-card-hover);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.55), 0 0 18px rgba(212, 175, 55, 0.16);
+}
+
+.metric-card:hover::before {
+  opacity: 1;
+  width: 4px;
+}
+
+.metric-value {
+  font-size: 1.75rem;
+  font-weight: 800;
+  font-family: var(--font-heading);
+  margin-top: 4px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* Quick Command Cards */
+.quick-command-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 14px;
+}
+
+.quick-command-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 15px 16px;
+  border-radius: 12px;
+  background: rgba(11, 22, 42, 0.82);
+  border: 1px solid rgba(212, 175, 55, 0.22);
+  color: var(--text-main);
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 100%;
+}
+
+.quick-command-card:hover {
+  transform: translateY(-3px);
+  background: rgba(20, 36, 66, 0.95);
+  border-color: var(--gold-primary);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45), 0 0 14px rgba(212, 175, 55, 0.18);
+}
+
+.quick-command-card:active {
+  transform: translateY(-1px) scale(0.99);
+}
+
+.quick-command-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(212, 175, 55, 0.14);
+  border: 1px solid rgba(212, 175, 55, 0.32);
+  color: var(--gold-primary);
+  flex-shrink: 0;
+  transition: var(--transition);
+}
+
+.quick-command-card:hover .quick-command-icon {
+  background: linear-gradient(135deg, #D4AF37, #AA820A);
+  color: #060C18;
+  box-shadow: 0 0 12px rgba(212, 175, 55, 0.4);
+}
+
+/* Inputs & Form Fields (GBS Loan System Obsidian Navy) */
+.gbs-input,
+.gbs-select,
+.gbs-textarea,
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 9px 13px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  background: rgba(6, 12, 24, 0.88);
+  color: var(--text-main);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  outline: none;
+  transition: var(--transition);
+}
+
+.gbs-input:focus,
+.gbs-select:focus,
+.gbs-textarea:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--gold-primary);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.16);
+}
+
+.gbs-input:hover:not(:focus),
+.gbs-select:hover:not(:focus),
+.gbs-textarea:hover:not(:focus) {
+  border-color: rgba(212, 175, 55, 0.45);
+}
+
+/* Custom Scrollbar with GBS Gold Accent */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
+
 ::-webkit-scrollbar-track {
-  background: var(--bg-primary);
-}
-::-webkit-scrollbar-thumb {
-  background: #332d24;
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--gold-500);
+  background: var(--bg-dark);
 }
 
-/* Table styling */
+::-webkit-scrollbar-thumb {
+  background: rgba(212, 175, 55, 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gold-primary);
+}
+
+/* Data Table with Obsidian Navy & Gold Border Styling */
 .data-table {
   width: 100%;
   border-collapse: collapse;
@@ -267,10 +552,10 @@ h1, h2 {
 }
 
 .data-table th {
-  background: rgba(38, 31, 20, 0.78);
-  color: var(--gold-300);
+  background: rgba(15, 27, 49, 0.88);
+  color: var(--gold-light);
   text-align: left;
-  padding: 10px 14px;
+  padding: 12px 14px;
   border-bottom: 2px solid var(--border-gold-strong);
   font-weight: 700;
   text-transform: uppercase;
@@ -279,19 +564,28 @@ h1, h2 {
 }
 
 .data-table td {
-  padding: 10px 14px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.08);
   color: var(--text-main);
 }
 
 .data-table tr:hover td {
-  background: rgba(212, 175, 55, 0.11);
+  background: rgba(212, 175, 55, 0.08);
 }
 
 /* Pulse animation for live online indicators */
 @keyframes pulseGlow {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(1.15); }
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.6;
+    transform: scale(1.15);
+  }
 }
 
 .pulse-live {
@@ -302,4 +596,58 @@ h1, h2 {
   background-color: var(--status-online);
   box-shadow: 0 0 10px var(--status-online);
   animation: pulseGlow 2s infinite ease-in-out;
+}
+
+/* Official GBS® Gold Repeating Monogram Watermark (Extracted from GBS Loan System) */
+.gbs-watermark-bg {
+  background-color: #060e1f;
+  background-image:
+    radial-gradient(circle at 50% 25%, rgba(212, 175, 55, 0.14) 0%, rgba(10, 22, 46, 0.45) 55%, rgba(4, 9, 20, 0.96) 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='136' height='96' viewBox='0 0 136 96'%3E%3Cg opacity='0.22'%3E%3Cpath d='M0 48 L68 0 L136 48 L68 96 Z' fill='none' stroke='%23D4AF37' stroke-width='0.55'/%3E%3Ctext x='34' y='28' text-anchor='middle' font-family='Times New Roman, Georgia, serif' font-weight='700' font-size='14' letter-spacing='1.5' fill='%23E6C15A'%3EGBS%3C/text%3E%3Ctext x='102' y='28' text-anchor='middle' font-family='Times New Roman, Georgia, serif' font-weight='700' font-size='14' letter-spacing='1.5' fill='%23E6C15A'%3EGBS%3C/text%3E%3Ctext x='68' y='53' text-anchor='middle' font-family='Times New Roman, Georgia, serif' font-weight='700' font-size='14' letter-spacing='1.5' fill='%23D4AF37'%3EGBS%3C/text%3E%3Ctext x='34' y='78' text-anchor='middle' font-family='Times New Roman, Georgia, serif' font-weight='700' font-size='14' letter-spacing='1.5' fill='%23E6C15A'%3EGBS%3C/text%3E%3Ctext x='102' y='78' text-anchor='middle' font-family='Times New Roman, Georgia, serif' font-weight='700' font-size='14' letter-spacing='1.5' fill='%23E6C15A'%3EGBS%3C/text%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: repeat;
+}
+
+.gbs-watermark-banner {
+  background-color: rgba(15, 23, 42, 0.92);
+  background-image:
+    linear-gradient(90deg, rgba(120, 53, 15, 0.42), rgba(9, 17, 34, 0.88)),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='112' height='74' viewBox='0 0 112 74'%3E%3Cg opacity='0.18'%3E%3Cpath d='M0 37 L56 0 L112 37 L56 74 Z' fill='none' stroke='%23D4AF37' stroke-width='0.5'/%3E%3Ctext x='28' y='22' text-anchor='middle' font-family='Times New Roman, Georgia, serif' font-weight='700' font-size='11' letter-spacing='1.2' fill='%23F4D47A'%3EGBS%3C/text%3E%3Ctext x='84' y='22' text-anchor='middle' font-family='Times New Roman, Georgia, serif' font-weight='700' font-size='11' letter-spacing='1.2' fill='%23F4D47A'%3EGBS%3C/text%3E%3Ctext x='56' y='41' text-anchor='middle' font-family='Times New Roman, Georgia, serif' font-weight='700' font-size='11' letter-spacing='1.2' fill='%23D4AF37'%3EGBS%3C/text%3E%3Ctext x='28' y='60' text-anchor='middle' font-family='Times New Roman, Georgia, serif' font-weight='700' font-size='11' letter-spacing='1.2' fill='%23F4D47A'%3EGBS%3C/text%3E%3Ctext x='84' y='60' text-anchor='middle' font-family='Times New Roman, Georgia, serif' font-weight='700' font-size='11' letter-spacing='1.2' fill='%23F4D47A'%3EGBS%3C/text%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: repeat;
+}
+
+/* GBS Gold-Wine Onboarding Gradient (GBS Loan System Enterprise) */
+.onboarding-gold-wine-gradient {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 12% 15%, rgba(212, 175, 55, 0.38) 0%, transparent 48%),
+    radial-gradient(circle at 86% 18%, rgba(107, 29, 47, 0.55) 0%, transparent 50%),
+    radial-gradient(circle at 75% 85%, rgba(75, 78, 83, 0.52) 0%, transparent 48%),
+    linear-gradient(135deg, #3D2B1F 0%, #6B1D2F 28%, #4B4E53 62%, #4E342E 84%, #8E6E1E 100%);
+  color: #F8FAFC;
+}
+
+.onboarding-gold-wine-glass {
+  background: linear-gradient(155deg, rgba(30, 18, 24, 0.84) 0%, rgba(44, 46, 52, 0.86) 55%, rgba(56, 37, 28, 0.88) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(212, 175, 55, 0.42);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.55);
+}
+
+@media print {
+
+  .dashboard-bg-stage,
+  .gbs-brain-bar,
+  .no-print {
+    display: none !important;
+  }
+
+  body,
+  * {
+    font-family: 'Times New Roman', Times, Georgia, serif !important;
+    color: #000000 !important;
+    background: #ffffff !important;
+    text-shadow: none !important;
+  }
 }

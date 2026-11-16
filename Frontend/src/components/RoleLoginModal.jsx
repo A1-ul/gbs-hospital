@@ -78,7 +78,7 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
     <div style={{
       position: 'fixed',
       inset: 0,
-      background: 'rgba(0,0,0,0.85)',
+      background: 'rgba(4, 8, 16, 0.88)',
       backdropFilter: 'blur(8px)',
       display: 'flex',
       alignItems: 'center',
@@ -93,14 +93,14 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
           maxWidth: '820px',
           display: 'grid',
           gridTemplateColumns: '340px 1fr',
-          borderRadius: '12px',
+          borderRadius: '14px',
           overflow: 'hidden',
-          border: '1px solid var(--gold-400)',
-          boxShadow: '0 25px 60px rgba(0,0,0,0.95)'
+          border: '1px solid var(--gold-primary)',
+          boxShadow: '0 25px 60px rgba(0,0,0,0.95), 0 0 35px rgba(212, 175, 55, 0.22)'
         }}
       >
         {/* Left Side: Real-Life Role & Hospital Department Imagery */}
-        <div style={{ position: 'relative', background: '#000', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '24px', borderRight: '1px solid var(--border-gold)' }}>
+        <div style={{ position: 'relative', background: '#060c18', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '24px', borderRight: '1px solid var(--border-color)' }}>
           {/* Real Hospital Workspace Background for this Role */}
           <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', opacity: 0.55 }}>
             <img
@@ -109,7 +109,7 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               onError={(e) => { e.target.src = '/assets/images/hospital_hero_exterior.jpg'; }}
             />
-            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, #0a0907 8%, rgba(10,9,7,0.35) 100%)' }} />
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, #060c18 8%, rgba(6,12,24,0.35) 100%)' }} />
           </div>
 
           <div style={{ position: 'relative', zIndex: 2 }}>
@@ -153,8 +153,8 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
           </div>
         </div>
 
-        {/* Right Side: Authentication Form */}
-        <div style={{ padding: '32px', position: 'relative', background: 'rgba(26, 23, 19, 0.95)' }}>
+        {/* Right Side: Authentication Form (GBS Loan System Obsidian Navy) */}
+        <div style={{ padding: '32px', position: 'relative', background: 'rgba(15, 27, 49, 0.96)' }}>
           <button
             onClick={onClose}
             style={{ position: 'absolute', top: '16px', right: '16px', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
@@ -240,7 +240,7 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
                   width: '100%',
                   padding: '7px 10px',
                   borderRadius: '6px',
-                  background: '#12100d',
+                  background: 'rgba(6, 12, 24, 0.88)',
                   border: '1px solid var(--border-gold)',
                   color: '#fff',
                   fontSize: '0.82rem',
@@ -261,9 +261,9 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
                   maxHeight: '140px',
                   overflowY: 'auto',
                   padding: '6px',
-                  background: 'rgba(10, 8, 6, 0.7)',
+                  background: 'rgba(6, 12, 24, 0.75)',
                   borderRadius: '8px',
-                  border: '1px solid rgba(255,255,255,0.08)'
+                  border: '1px solid var(--border-color)'
                 }}
               >
                 {selectableRoles
@@ -282,8 +282,8 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
                           gap: '8px',
                           padding: '6px 8px',
                           borderRadius: '6px',
-                          border: active ? '1.5px solid var(--gold-400)' : '1px solid rgba(255,255,255,0.08)',
-                          background: active ? 'linear-gradient(135deg, rgba(212,175,55,0.25) 0%, rgba(20,17,13,0.9) 100%)' : 'rgba(20, 17, 13, 0.7)',
+                          border: active ? '1.5px solid var(--gold-light)' : '1px solid var(--border-subtle)',
+                          background: active ? 'linear-gradient(135deg, rgba(212, 175, 55, 0.28) 0%, rgba(15, 27, 49, 0.95) 100%)' : 'rgba(15, 27, 49, 0.78)',
                           color: active ? '#fff' : '#d1d5db',
                           cursor: 'pointer',
                           textAlign: 'left',
@@ -299,7 +299,7 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
                             height: '26px',
                             borderRadius: '50%',
                             objectFit: 'cover',
-                            border: active ? '1.5px solid var(--gold-400)' : '1px solid var(--border-subtle)',
+                            border: active ? '1.5px solid var(--gold-light)' : '1px solid var(--border-subtle)',
                             flexShrink: 0
                           }}
                           onError={(e) => { e.target.src = '/assets/images/portrait_doctor.jpg'; }}
@@ -313,7 +313,7 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
                           </div>
                         </div>
                         {active && (
-                          <Check size={12} style={{ color: 'var(--gold-400)', flexShrink: 0 }} />
+                          <Check size={12} style={{ color: 'var(--gold-light)', flexShrink: 0 }} />
                         )}
                       </button>
                     );
@@ -331,7 +331,7 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
                     value={firstName}
                     onChange={e => setFirstName(e.target.value)}
                     placeholder="e.g. Samuel"
-                    style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', fontSize: '0.85rem' }}
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', fontSize: '0.85rem' }}
                   />
                 </div>
                 <div>
@@ -342,7 +342,7 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
                     value={lastName}
                     onChange={e => setLastName(e.target.value)}
                     placeholder="e.g. Mensah"
-                    style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', fontSize: '0.85rem' }}
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', fontSize: '0.85rem' }}
                   />
                 </div>
               </div>
@@ -358,7 +358,7 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="name@gbs-hospital.org"
-                  style={{ width: '100%', padding: '8px 12px 8px 36px', borderRadius: '6px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', fontSize: '0.85rem' }}
+                  style={{ width: '100%', padding: '8px 12px 8px 36px', borderRadius: '6px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', fontSize: '0.85rem' }}
                 />
               </div>
             </div>
@@ -374,7 +374,7 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="Enter your password (never pre-filled)"
-                  style={{ width: '100%', padding: '8px 12px 8px 36px', borderRadius: '6px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', fontSize: '0.85rem' }}
+                  style={{ width: '100%', padding: '8px 12px 8px 36px', borderRadius: '6px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', fontSize: '0.85rem' }}
                 />
               </div>
             </div>

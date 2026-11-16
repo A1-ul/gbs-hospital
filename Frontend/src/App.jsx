@@ -468,48 +468,48 @@ export default function App() {
             }
             if (r === 'DEVELOPER') {
               setActiveModule('DEVELOPER_NOC');
-          } else if (r === 'DOCTOR' || r === 'NURSE' || r === 'DENTIST' || r === 'EYE_DOCTOR' || r === 'RADIOLOGIST') {
-            setActiveModule('CLINICAL');
-          } else if (r === 'SURGEON') {
-            setActiveModule('SURGERY');
-          } else if (r === 'PHARMACIST') {
-            setActiveModule('PHARMACY');
-          } else if (r === 'LAB_TECHNICIAN') {
-            setActiveModule('BLOOD_BANK');
-          } else if (r === 'EMERGENCY_PHYSICIAN' || r === 'PARAMEDIC' || r === 'AMBULANCE_DRIVER') {
-            setActiveModule('EMERGENCY');
-          } else if (r === 'MORTUARY_OFFICER' || r === 'PATHOLOGIST') {
-            setActiveModule('MORTUARY');
-          } else if (r === 'BIOMEDICAL_ENGINEER') {
-            setActiveModule('BIOMEDICAL');
-          } else if (r === 'FOLDER_RETRIEVER' || r === 'RECEPTIONIST') {
-            setActiveModule('PATIENTS');
-          } else if (r === 'ACCOUNTANT') {
-            setActiveModule('NHIA_CLAIMS');
-          } else if (r === 'HR_MANAGER') {
-            setActiveModule('HR');
-          } else if (r === 'PATIENT') {
-            setActiveModule('PATIENTS');
-          } else {
-            setActiveModule('OVERVIEW');
-          }
-        }}
-        onOpenLogin={(roleHint) => {
-          setLoginModalRole(typeof roleHint === 'string' && roleHint ? roleHint : currentRole);
-          setIsLoginOpen(true);
-        }}
-        currentUser={currentUser}
-        onLogout={handleLogout}
-        onOpenQuickAction={handleQuickAction}
-        facilityBranding={facilityBranding}
-        onUpdateFacilityBranding={setFacilityBranding}
-      />
+            } else if (r === 'DOCTOR' || r === 'NURSE' || r === 'DENTIST' || r === 'EYE_DOCTOR' || r === 'RADIOLOGIST') {
+              setActiveModule('CLINICAL');
+            } else if (r === 'SURGEON') {
+              setActiveModule('SURGERY');
+            } else if (r === 'PHARMACIST') {
+              setActiveModule('PHARMACY');
+            } else if (r === 'LAB_TECHNICIAN') {
+              setActiveModule('BLOOD_BANK');
+            } else if (r === 'EMERGENCY_PHYSICIAN' || r === 'PARAMEDIC' || r === 'AMBULANCE_DRIVER') {
+              setActiveModule('EMERGENCY');
+            } else if (r === 'MORTUARY_OFFICER' || r === 'PATHOLOGIST') {
+              setActiveModule('MORTUARY');
+            } else if (r === 'BIOMEDICAL_ENGINEER') {
+              setActiveModule('BIOMEDICAL');
+            } else if (r === 'FOLDER_RETRIEVER' || r === 'RECEPTIONIST') {
+              setActiveModule('PATIENTS');
+            } else if (r === 'ACCOUNTANT') {
+              setActiveModule('NHIA_CLAIMS');
+            } else if (r === 'HR_MANAGER') {
+              setActiveModule('HR');
+            } else if (r === 'PATIENT') {
+              setActiveModule('PATIENTS');
+            } else {
+              setActiveModule('OVERVIEW');
+            }
+          }}
+          onOpenLogin={(roleHint) => {
+            setLoginModalRole(typeof roleHint === 'string' && roleHint ? roleHint : currentRole);
+            setIsLoginOpen(true);
+          }}
+          currentUser={currentUser}
+          onLogout={handleLogout}
+          onOpenQuickAction={handleQuickAction}
+          facilityBranding={facilityBranding}
+          onUpdateFacilityBranding={setFacilityBranding}
+        />
       </div>
 
       {/* Main Content Area */}
       <main style={{ position: 'relative', zIndex: 4, flex: 1, padding: '0 16px 68px', maxWidth: '1600px', margin: '0 auto', width: '100%' }}>
         {/* Navigation Breadcrumb & Subsystem Category Switcher */}
-        <div className="glass-panel" style={{ padding: '10px 14px', marginBottom: '12px', border: '1px solid var(--border-subtle)', background: 'rgba(12, 10, 8, 0.92)' }}>
+        <div className="glass-panel" style={{ padding: '10px 14px', marginBottom: '12px', border: '1px solid var(--border-color)', background: 'rgba(8, 16, 32, 0.92)' }}>
           {/* Top Row: Subsystem Category Pills & Global Controls */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '10px', borderBottom: '1px solid rgba(212,175,55,0.12)', paddingBottom: '8px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
@@ -645,7 +645,7 @@ export default function App() {
         </div>
 
         {showOperatingGuide && (
-          <div className="glass-panel" style={{ padding: '14px 18px', marginBottom: '14px', border: '1px solid var(--gold-400)', background: 'rgba(18, 15, 11, 0.95)', fontSize: '0.8rem', color: '#e5e7eb' }}>
+          <div className="glass-panel" style={{ padding: '14px 18px', marginBottom: '14px', border: '1px solid var(--gold-400)', background: 'rgba(11, 23, 44, 0.95)', fontSize: '0.8rem', color: '#e5e7eb' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
               <strong style={{ color: 'var(--gold-400)', fontSize: '0.88rem' }}>
                 GBS Hospital System — Interactive Role & Dashboard Operating Guide ({currentRole})
@@ -772,7 +772,7 @@ export default function App() {
                     alt="Hospital Facility Exterior"
                     style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
                   />
-                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,9,7,0.96) 20%, rgba(10,9,7,0.45) 80%, rgba(10,9,7,0.2) 100%)' }} />
+                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(6,12,24,0.96) 20%, rgba(6,12,24,0.45) 80%, rgba(6,12,24,0.2) 100%)' }} />
 
                   <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'flex-end', flexWrap: 'wrap', gap: '16px' }}>
                     <div>
@@ -1028,14 +1028,14 @@ export default function App() {
                             justifyContent: 'space-between'
                           }}
                         >
-                          <div style={{ position: 'relative', height: '130px', overflow: 'hidden', background: '#0a0907' }}>
+                          <div style={{ position: 'relative', height: '130px', overflow: 'hidden', background: '#060c18' }}>
                             <img
                               src={r.img}
                               alt={r.name}
                               style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }}
                               onError={(e) => { e.target.src = '/assets/images/portrait_doctor.jpg'; }}
                             />
-                            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,9,7,0.95) 8%, rgba(10,9,7,0.15) 75%)' }} />
+                            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(6,12,24,0.95) 8%, rgba(6,12,24,0.15) 75%)' }} />
                             <div style={{ position: 'absolute', bottom: '8px', left: '10px', right: '10px' }}>
                               <div style={{ fontSize: '0.88rem', fontWeight: 800, color: 'var(--gold-400)' }}>{r.name}</div>
                               <div style={{ fontSize: '0.68rem', color: '#e5e7eb', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.dept || r.desc}</div>
@@ -1159,14 +1159,14 @@ export default function App() {
                               border: `1px solid ${card.border}`
                             }}
                           >
-                            <div style={{ position: 'relative', height: '135px', overflow: 'hidden', background: '#0a0907' }}>
+                            <div style={{ position: 'relative', height: '135px', overflow: 'hidden', background: '#060c18' }}>
                               <img
                                 src={card.img}
                                 alt={card.title}
                                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                 onError={(e) => { e.target.src = '/assets/images/hospital_hero_exterior.jpg'; }}
                               />
-                              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,9,7,0.96) 10%, rgba(10,9,7,0.25) 75%)' }} />
+                              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(6,12,24,0.96) 10%, rgba(6,12,24,0.25) 75%)' }} />
                               <div style={{ position: 'absolute', bottom: '10px', left: '14px', right: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <CardIcon size={18} style={{ color: card.color, flexShrink: 0 }} />
                                 <h4 style={{ fontSize: '0.95rem', color: '#fff', margin: 0 }}>{card.title}</h4>
@@ -1242,7 +1242,7 @@ export default function App() {
       />
 
       {/* Footer Banner */}
-      <footer style={{ position: 'relative', zIndex: 4, borderTop: '1px solid var(--border-gold)', background: 'rgba(10,9,7,0.82)', backdropFilter: 'blur(8px)', padding: '16px 20px 64px', textAlign: 'center', fontSize: '0.8rem', color: 'var(--gold-300)', letterSpacing: '0.04em' }}>
+      <footer style={{ position: 'relative', zIndex: 4, borderTop: '1px solid var(--border-color)', background: 'rgba(4, 8, 16, 0.95)', backdropFilter: 'blur(8px)', padding: '16px 20px 64px', textAlign: 'center', fontSize: '0.8rem', color: 'var(--gold-light)', letterSpacing: '0.04em' }}>
         <div style={{ fontWeight: 700, textTransform: 'uppercase', marginBottom: '4px' }}>
           ONE SYSTEM - ONE TASK • SIMPLE FRONTEND - POWERFUL BACKEND • AUTOMATE & ELIMINATE MANUAL WORK • BUILD FOR SCALE - FROM DAY 1 • SECURE BY DESIGN
         </div>

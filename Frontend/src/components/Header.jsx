@@ -193,8 +193,8 @@ export default function Header({
           </div>
         </div>
 
-        {/* Live System Telemetry Status Card */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', background: 'rgba(0,0,0,0.5)', padding: '8px 16px', borderRadius: '6px', border: '1px solid var(--border-gold)' }}>
+        {/* Live System Telemetry Status Card (Loan System Navy) */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', background: 'rgba(11, 23, 44, 0.85)', padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--border-color)', boxShadow: '0 4px 14px rgba(0,0,0,0.45)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span className="pulse-live"></span>
             <div>
@@ -221,7 +221,7 @@ export default function Header({
 
           <div>
             <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Current Time</div>
-            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fff', fontFamily: 'var(--font-mono)' }}>{time}</div>
+            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--cyan-accent)', fontFamily: 'var(--font-mono)' }}>{time}</div>
           </div>
         </div>
 
@@ -352,10 +352,10 @@ export default function Header({
         </div>
       </div>
 
-      {/* Blueprint Roles Navigation Ribbon with Departmental Categorization Tabs */}
-      <div style={{ background: 'rgba(12, 10, 8, 0.94)', borderBottom: '1px solid var(--border-gold)' }}>
+      {/* Blueprint Roles Navigation Ribbon with Departmental Categorization Tabs (GBS Loan System Navy) */}
+      <div style={{ background: 'rgba(8, 16, 32, 0.95)', borderBottom: '1px solid var(--border-color)' }}>
         {/* Departmental Filter Tabs for Quick Role Identification */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)', flexWrap: 'wrap', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 16px', borderBottom: '1px solid rgba(212,175,55,0.12)', flexWrap: 'wrap', gap: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
             <span style={{ fontSize: '0.74rem', color: 'var(--gold-400)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginRight: '4px' }}>
               Staff Portals:
@@ -377,8 +377,8 @@ export default function Header({
                     padding: '3px 10px',
                     borderRadius: '16px',
                     border: isSelected ? '1px solid var(--gold-400)' : '1px solid var(--border-subtle)',
-                    background: isSelected ? 'var(--gold-glow)' : 'rgba(255,255,255,0.03)',
-                    color: isSelected ? 'var(--gold-300)' : 'var(--text-muted)',
+                    background: isSelected ? 'var(--gold-glow)' : 'rgba(15, 27, 49, 0.65)',
+                    color: isSelected ? 'var(--gold-light)' : 'var(--text-muted)',
                     fontSize: '0.74rem',
                     fontWeight: isSelected ? 700 : 500,
                     cursor: 'pointer',
@@ -392,8 +392,8 @@ export default function Header({
                     fontSize: '0.68rem',
                     padding: '1px 5px',
                     borderRadius: '10px',
-                    background: isSelected ? 'var(--gold-500)' : 'rgba(255,255,255,0.08)',
-                    color: isSelected ? '#0a0907' : '#aaa',
+                    background: isSelected ? 'var(--gold-primary)' : 'rgba(212, 175, 55, 0.14)',
+                    color: isSelected ? '#060C18' : 'var(--gold-light)',
                     fontWeight: 700
                   }}>
                     {count}
@@ -423,14 +423,14 @@ export default function Header({
                   gap: '10px',
                   padding: '7px 14px',
                   borderRadius: '8px',
-                  border: isActive ? '1.5px solid var(--gold-400)' : '1px solid var(--border-subtle)',
-                  background: isActive ? 'linear-gradient(135deg, rgba(212,175,55,0.22) 0%, rgba(26,23,19,0.85) 100%)' : 'rgba(22, 19, 15, 0.72)',
+                  border: isActive ? '1.5px solid var(--gold-light)' : '1px solid var(--border-color)',
+                  background: isActive ? 'linear-gradient(135deg, rgba(212, 175, 55, 0.28) 0%, rgba(15, 27, 49, 0.95) 100%)' : 'rgba(15, 27, 49, 0.78)',
                   color: isActive ? '#fff' : 'var(--text-muted)',
                   cursor: 'pointer',
                   whiteSpace: 'nowrap',
                   transition: 'all 0.2s ease',
                   flexShrink: 0,
-                  boxShadow: isActive ? '0 0 14px rgba(212,175,55,0.32)' : 'none'
+                  boxShadow: isActive ? '0 0 16px rgba(212, 175, 55, 0.35)' : 'none'
                 }}
               >
                 {/* Real Life Headshot Thumbnail */}

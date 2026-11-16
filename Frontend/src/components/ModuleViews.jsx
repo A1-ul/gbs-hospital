@@ -85,7 +85,7 @@ export function PatientManagementView() {
           alt="Patient Registration & Medical Records Archive"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
         />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,9,7,0.96) 20%, rgba(10,9,7,0.4) 100%)' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(6, 12, 24, 0.96) 20%, rgba(6, 12, 24, 0.4) 100%)' }} />
         <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'flex-end', flexWrap: 'wrap', gap: '12px' }}>
           <div>
             <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--gold-400)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
@@ -137,7 +137,7 @@ export function PatientManagementView() {
               placeholder="Search Master Patient Index by MRN, Name, Phone, or National ID..."
               value={query}
               onChange={e => setQuery(e.target.value)}
-              style={{ width: '100%', padding: '10px 14px 10px 40px', borderRadius: '6px', background: '#12100d', border: '1px solid var(--border-gold)', color: '#fff', fontSize: '0.875rem' }}
+              style={{ width: '100%', padding: '10px 14px 10px 40px', borderRadius: '6px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-gold)', color: '#fff', fontSize: '0.875rem' }}
             />
           </div>
           <button type="submit" disabled={searching} className="btn-gold" style={{ padding: '0 24px' }}>
@@ -365,22 +365,22 @@ export function PatientManagementView() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>First Name *</label>
-                  <input required type="text" value={formData.firstName} onChange={e => setFormData({ ...formData, firstName: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="text" value={formData.firstName} onChange={e => setFormData({ ...formData, firstName: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Last Name *</label>
-                  <input required type="text" value={formData.lastName} onChange={e => setFormData({ ...formData, lastName: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="text" value={formData.lastName} onChange={e => setFormData({ ...formData, lastName: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Date of Birth</label>
-                  <input type="date" value={formData.dateOfBirth} onChange={e => setFormData({ ...formData, dateOfBirth: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="date" value={formData.dateOfBirth} onChange={e => setFormData({ ...formData, dateOfBirth: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Gender</label>
-                  <select value={formData.gender} onChange={e => setFormData({ ...formData, gender: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                  <select value={formData.gender} onChange={e => setFormData({ ...formData, gender: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                     <option value="MALE">Male</option>
                     <option value="FEMALE">Female</option>
                   </select>
@@ -390,11 +390,11 @@ export function PatientManagementView() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Phone Number</label>
-                  <input type="text" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} placeholder="+233..." style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="text" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} placeholder="+233..." style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Residential Address</label>
-                  <input type="text" value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value })} placeholder="City / Region" style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="text" value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value })} placeholder="City / Region" style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
 
@@ -630,7 +630,7 @@ export function ClinicalCareView() {
           alt="Clinical Station"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
         />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,9,7,0.95) 20%, rgba(10,9,7,0.4) 100%)' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(6, 12, 24, 0.95) 20%, rgba(6, 12, 24, 0.4) 100%)' }} />
         <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'flex-end', flexWrap: 'wrap', gap: '12px' }}>
           <div>
             <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--gold-400)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
@@ -711,32 +711,32 @@ export function ClinicalCareView() {
             <h3 style={{ fontSize: '1rem', color: 'var(--gold-400)', marginBottom: '14px' }}>Record Patient Vitals & Compute NEWS2</h3>
             <div style={{ marginBottom: '12px' }}>
               <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Patient ID or MRN *</label>
-              <input required type="text" placeholder="Enter Patient UUID or MRN" value={vitals.patientId} onChange={e => setVitals({ ...vitals, patientId: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+              <input required type="text" placeholder="Enter Patient UUID or MRN" value={vitals.patientId} onChange={e => setVitals({ ...vitals, patientId: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Systolic BP (mmHg)</label>
-                <input type="number" value={vitals.systolicBP} onChange={e => setVitals({ ...vitals, systolicBP: +e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input type="number" value={vitals.systolicBP} onChange={e => setVitals({ ...vitals, systolicBP: +e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Diastolic BP (mmHg)</label>
-                <input type="number" value={vitals.diastolicBP} onChange={e => setVitals({ ...vitals, diastolicBP: +e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input type="number" value={vitals.diastolicBP} onChange={e => setVitals({ ...vitals, diastolicBP: +e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Pulse Rate (bpm)</label>
-                <input type="number" value={vitals.pulseRate} onChange={e => setVitals({ ...vitals, pulseRate: +e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input type="number" value={vitals.pulseRate} onChange={e => setVitals({ ...vitals, pulseRate: +e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Respiratory Rate (bpm)</label>
-                <input type="number" value={vitals.respiratoryRate} onChange={e => setVitals({ ...vitals, respiratoryRate: +e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input type="number" value={vitals.respiratoryRate} onChange={e => setVitals({ ...vitals, respiratoryRate: +e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Oxygen SpO2 (%)</label>
-                <input type="number" value={vitals.oxygenSaturation} onChange={e => setVitals({ ...vitals, oxygenSaturation: +e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input type="number" value={vitals.oxygenSaturation} onChange={e => setVitals({ ...vitals, oxygenSaturation: +e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Temperature (°C)</label>
-                <input type="number" step="0.1" value={vitals.temperature} onChange={e => setVitals({ ...vitals, temperature: +e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input type="number" step="0.1" value={vitals.temperature} onChange={e => setVitals({ ...vitals, temperature: +e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
             </div>
             <div style={{ marginTop: '14px', display: 'flex', justifyContent: 'flex-end' }}>
@@ -770,7 +770,7 @@ export function ClinicalCareView() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
             <div>
               <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Patient ID / MRN *</label>
-              <input required type="text" value={consultNotes.patientId} onChange={e => setConsultNotes({ ...consultNotes, patientId: e.target.value })} placeholder="Enter Patient UUID" style={{ width: '100%', padding: '9px 12px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+              <input required type="text" value={consultNotes.patientId} onChange={e => setConsultNotes({ ...consultNotes, patientId: e.target.value })} placeholder="Enter Patient UUID" style={{ width: '100%', padding: '9px 12px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
             </div>
             <div>
               <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Search ICD-10 Database</label>
@@ -779,7 +779,7 @@ export function ClinicalCareView() {
                 value={icdQuery}
                 onChange={e => searchICD(e.target.value)}
                 placeholder="e.g. Malaria, Hypertension, Diabetes..."
-                style={{ width: '100%', padding: '9px 12px', background: '#12100d', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px' }}
+                style={{ width: '100%', padding: '9px 12px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px' }}
               />
               {icdResults.length > 0 && (
                 <div style={{ maxHeight: '180px', overflowY: 'auto', background: '#171511', border: '1px solid var(--border-subtle)', borderRadius: '4px', marginTop: '4px' }}>
@@ -800,11 +800,11 @@ export function ClinicalCareView() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <div>
               <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Chief Complaint *</label>
-              <textarea required rows={2} value={consultNotes.chiefComplaint} onChange={e => setConsultNotes({ ...consultNotes, chiefComplaint: e.target.value })} placeholder="Document patient presenting complaints..." style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+              <textarea required rows={2} value={consultNotes.chiefComplaint} onChange={e => setConsultNotes({ ...consultNotes, chiefComplaint: e.target.value })} placeholder="Document patient presenting complaints..." style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
             </div>
             <div>
               <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Clinical Assessment & Treatment Plan *</label>
-              <textarea required rows={3} value={consultNotes.plan} onChange={e => setConsultNotes({ ...consultNotes, plan: e.target.value })} placeholder="Document clinical findings and therapeutic plan..." style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+              <textarea required rows={3} value={consultNotes.plan} onChange={e => setConsultNotes({ ...consultNotes, plan: e.target.value })} placeholder="Document clinical findings and therapeutic plan..." style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
               <button type="submit" className="btn-gold">Save Consultation Encounter</button>
@@ -825,12 +825,12 @@ export function ClinicalCareView() {
                 placeholder="Patient ID or MRN *"
                 value={dispatchForm.patientId}
                 onChange={(e) => setDispatchForm({ ...dispatchForm, patientId: e.target.value })}
-                style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
+                style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
               />
               <select
                 value={dispatchForm.recipientRole}
                 onChange={(e) => setDispatchForm({ ...dispatchForm, recipientRole: e.target.value })}
-                style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px' }}
+                style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px' }}
                 title="Select target specialist or staff role to receive this patient report"
               >
                 <option value="LAB_TECHNICIAN">Lab Scientist (Laboratory)</option>
@@ -848,12 +848,12 @@ export function ClinicalCareView() {
                 placeholder="Specific Staff Name (Optional)"
                 value={dispatchForm.recipientName}
                 onChange={(e) => setDispatchForm({ ...dispatchForm, recipientName: e.target.value })}
-                style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
+                style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
               />
               <select
                 value={dispatchForm.reportType}
                 onChange={(e) => setDispatchForm({ ...dispatchForm, reportType: e.target.value })}
-                style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
+                style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
               >
                 <option value="CONSULTATION_SUMMARY">Consultation & Diagnosis Report</option>
                 <option value="LAB_RESULTS">Laboratory Investigation Report</option>
@@ -868,7 +868,7 @@ export function ClinicalCareView() {
                 placeholder="Enter clinical findings, instructions, or specialist referral notes to dispatch..."
                 value={dispatchForm.clinicalSummary}
                 onChange={(e) => setDispatchForm({ ...dispatchForm, clinicalSummary: e.target.value })}
-                style={{ padding: '9px 12px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
+                style={{ padding: '9px 12px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
               />
               <button
                 type="button"
@@ -909,9 +909,9 @@ export function ClinicalCareView() {
           <form onSubmit={handleOrderLab} className="glass-panel" style={{ padding: '20px' }}>
             <h3 style={{ fontSize: '1rem', color: 'var(--gold-400)', marginBottom: '12px' }}>Order Laboratory Diagnostic Test (LIS)</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
-              <input required type="text" placeholder="Patient ID *" value={labForm.patientId} onChange={e => setLabForm({ ...labForm, patientId: e.target.value })} style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
-              <input required type="text" placeholder="Test Code (e.g. FBC-01)" value={labForm.testCode} onChange={e => setLabForm({ ...labForm, testCode: e.target.value })} style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
-              <input required type="text" placeholder="Test Name *" value={labForm.testName} onChange={e => setLabForm({ ...labForm, testName: e.target.value })} style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+              <input required type="text" placeholder="Patient ID *" value={labForm.patientId} onChange={e => setLabForm({ ...labForm, patientId: e.target.value })} style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+              <input required type="text" placeholder="Test Code (e.g. FBC-01)" value={labForm.testCode} onChange={e => setLabForm({ ...labForm, testCode: e.target.value })} style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+              <input required type="text" placeholder="Test Name *" value={labForm.testName} onChange={e => setLabForm({ ...labForm, testName: e.target.value })} style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               <button type="submit" className="btn-gold">Submit Lab Order</button>
             </div>
           </form>
@@ -966,14 +966,14 @@ export function ClinicalCareView() {
           <form onSubmit={handleOrderRadiology} className="glass-panel" style={{ padding: '20px' }}>
             <h3 style={{ fontSize: '1rem', color: 'var(--gold-400)', marginBottom: '12px' }}>Order Radiology Imaging Study (RIS/PACS)</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
-              <input required type="text" placeholder="Patient ID *" value={radForm.patientId} onChange={e => setRadForm({ ...radForm, patientId: e.target.value })} style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
-              <select value={radForm.modality} onChange={e => setRadForm({ ...radForm, modality: e.target.value })} style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+              <input required type="text" placeholder="Patient ID *" value={radForm.patientId} onChange={e => setRadForm({ ...radForm, patientId: e.target.value })} style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+              <select value={radForm.modality} onChange={e => setRadForm({ ...radForm, modality: e.target.value })} style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                 <option value="XRAY">X-Ray</option>
                 <option value="CT">CT Scan</option>
                 <option value="MRI">MRI</option>
                 <option value="ULTRASOUND">Ultrasound</option>
               </select>
-              <input required type="text" placeholder="Body Part / Study *" value={radForm.bodyPart} onChange={e => setRadForm({ ...radForm, bodyPart: e.target.value })} style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+              <input required type="text" placeholder="Body Part / Study *" value={radForm.bodyPart} onChange={e => setRadForm({ ...radForm, bodyPart: e.target.value })} style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               <button type="submit" className="btn-gold">Submit Imaging Order</button>
             </div>
           </form>
@@ -1028,13 +1028,13 @@ export function ClinicalCareView() {
           <form onSubmit={handleCreateInvoice} className="glass-panel" style={{ padding: '20px' }}>
             <h3 className="header-3d-gold" style={{ fontSize: '1.05rem', marginBottom: '12px' }}>Create Patient Billing Invoice & Multi-Channel Payment Gateway</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
-              <input required type="text" placeholder="Patient ID *" value={invoiceForm.patientId} onChange={e => setInvoiceForm({ ...invoiceForm, patientId: e.target.value })} style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
-              <input required type="text" placeholder="Service Description *" value={invoiceForm.description} onChange={e => setInvoiceForm({ ...invoiceForm, description: e.target.value })} style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
-              <input required type="number" placeholder="Amount (GHS) *" value={invoiceForm.amount} onChange={e => setInvoiceForm({ ...invoiceForm, amount: e.target.value })} style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+              <input required type="text" placeholder="Patient ID *" value={invoiceForm.patientId} onChange={e => setInvoiceForm({ ...invoiceForm, patientId: e.target.value })} style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+              <input required type="text" placeholder="Service Description *" value={invoiceForm.description} onChange={e => setInvoiceForm({ ...invoiceForm, description: e.target.value })} style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+              <input required type="number" placeholder="Amount (GHS) *" value={invoiceForm.amount} onChange={e => setInvoiceForm({ ...invoiceForm, amount: e.target.value })} style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               <select
                 value={invoiceForm.paymentMethod}
                 onChange={e => setInvoiceForm({ ...invoiceForm, paymentMethod: e.target.value })}
-                style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px' }}
+                style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px' }}
                 title="Payment Gateway Channel"
               >
                 <option value="CASH">Cash Counter</option>
@@ -1168,7 +1168,7 @@ export function ClinicalCareView() {
               <select
                 value={ledgerEntryForm.category}
                 onChange={(e) => setLedgerEntryForm({ ...ledgerEntryForm, category: e.target.value })}
-                style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px', fontSize: '0.8rem' }}
+                style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px', fontSize: '0.8rem' }}
               >
                 <option value="SALARIES_PAID">Staff Salaries Paid</option>
                 <option value="SSNIT_PAID">SSNIT Tier 1/2 Paid</option>
@@ -1181,7 +1181,7 @@ export function ClinicalCareView() {
                 placeholder="Entry Title (e.g. Monthly Nursing Payroll)"
                 value={ledgerEntryForm.title}
                 onChange={(e) => setLedgerEntryForm({ ...ledgerEntryForm, title: e.target.value })}
-                style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px', fontSize: '0.8rem' }}
+                style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px', fontSize: '0.8rem' }}
               />
               <input
                 required
@@ -1189,14 +1189,14 @@ export function ClinicalCareView() {
                 placeholder="Amount (GHS) *"
                 value={ledgerEntryForm.amountGhs}
                 onChange={(e) => setLedgerEntryForm({ ...ledgerEntryForm, amountGhs: e.target.value })}
-                style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px', fontSize: '0.8rem' }}
+                style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px', fontSize: '0.8rem' }}
               />
               <input
                 type="text"
                 placeholder="Beneficiary / Donor Name"
                 value={ledgerEntryForm.beneficiaryOrSource}
                 onChange={(e) => setLedgerEntryForm({ ...ledgerEntryForm, beneficiaryOrSource: e.target.value })}
-                style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px', fontSize: '0.8rem' }}
+                style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px', fontSize: '0.8rem' }}
               />
               <button type="submit" className="btn-gold" style={{ fontSize: '0.78rem' }}>
                 + Record in Annual Ledger
@@ -1362,7 +1362,7 @@ export function InpatientWardsView() {
           alt="Inpatient Ward"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
         />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,9,7,0.95) 20%, rgba(10,9,7,0.4) 100%)' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(6, 12, 24, 0.95) 20%, rgba(6, 12, 24, 0.4) 100%)' }} />
         <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'flex-end', flexWrap: 'wrap', gap: '12px' }}>
           <div>
             <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--gold-400)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
@@ -1433,7 +1433,7 @@ export function InpatientWardsView() {
                 placeholder="e.g. MRN-2026-0001"
                 value={admitForm.patientId}
                 onChange={(e) => setAdmitForm({ ...admitForm, patientId: e.target.value })}
-                style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
+                style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
               />
             </div>
             <div>
@@ -1442,7 +1442,7 @@ export function InpatientWardsView() {
                 required
                 value={admitForm.bedId}
                 onChange={(e) => setAdmitForm({ ...admitForm, bedId: e.target.value })}
-                style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px' }}
+                style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px' }}
               >
                 <option value="">-- Choose Room & Available Bed --</option>
                 {beds
@@ -1461,7 +1461,7 @@ export function InpatientWardsView() {
                 type="date"
                 value={admitForm.admissionDate}
                 onChange={(e) => setAdmitForm({ ...admitForm, admissionDate: e.target.value })}
-                style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
+                style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
               />
             </div>
             <div>
@@ -1471,7 +1471,7 @@ export function InpatientWardsView() {
                 type="date"
                 value={admitForm.expectedDischargeDate}
                 onChange={(e) => setAdmitForm({ ...admitForm, expectedDischargeDate: e.target.value })}
-                style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
+                style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
               />
             </div>
           </div>
@@ -1482,7 +1482,7 @@ export function InpatientWardsView() {
               placeholder="Clinical Admission Reason / Diagnosis *"
               value={admitForm.admissionReason}
               onChange={(e) => setAdmitForm({ ...admitForm, admissionReason: e.target.value })}
-              style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
+              style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
             />
             <button type="submit" className="btn-gold">Admit to Bed</button>
           </div>
@@ -1580,14 +1580,14 @@ export function InpatientWardsView() {
           <div className="glass-panel" style={{ width: '100%', maxWidth: '480px', padding: '24px', border: '1px solid var(--gold-400)' }}>
             <h3 style={{ fontSize: '1.1rem', color: '#fff', marginBottom: '14px' }}>Create Hospital Ward</h3>
             <form onSubmit={handleCreateWard} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <input required type="text" placeholder="Ward Name (e.g. Male Medical Ward A)" value={wardForm.name} onChange={e => setWardForm({ ...wardForm, name: e.target.value })} style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
-              <select value={wardForm.wardType} onChange={e => setWardForm({ ...wardForm, wardType: e.target.value })} style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+              <input required type="text" placeholder="Ward Name (e.g. Male Medical Ward A)" value={wardForm.name} onChange={e => setWardForm({ ...wardForm, name: e.target.value })} style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+              <select value={wardForm.wardType} onChange={e => setWardForm({ ...wardForm, wardType: e.target.value })} style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                 <option value="GENERAL">General Ward</option>
                 <option value="ICU">Intensive Care Unit (ICU)</option>
                 <option value="MATERNITY">Maternity Ward</option>
                 <option value="PEDIATRIC">Pediatric Ward</option>
               </select>
-              <input type="number" placeholder="Bed Capacity" value={wardForm.capacity} onChange={e => setWardForm({ ...wardForm, capacity: +e.target.value })} style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+              <input type="number" placeholder="Bed Capacity" value={wardForm.capacity} onChange={e => setWardForm({ ...wardForm, capacity: +e.target.value })} style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
                 <button type="button" onClick={() => setShowWardModal(false)} className="btn-outline-gold">Cancel</button>
                 <button type="submit" className="btn-gold">Save Ward</button>
@@ -1669,7 +1669,7 @@ export function PharmacyView() {
           alt="Pharmacy Dispensary"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
         />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,9,7,0.95) 20%, rgba(10,9,7,0.4) 100%)' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(6, 12, 24, 0.95) 20%, rgba(6, 12, 24, 0.4) 100%)' }} />
         <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'flex-end', flexWrap: 'wrap', gap: '12px' }}>
           <div>
             <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--gold-400)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
@@ -1874,9 +1874,9 @@ export function PharmacyView() {
           <div className="glass-panel" style={{ width: '100%', maxWidth: '480px', padding: '24px', border: '1px solid var(--gold-400)' }}>
             <h3 style={{ fontSize: '1.1rem', color: '#fff', marginBottom: '14px' }}>Add Medication to Formulary</h3>
             <form onSubmit={handleAddItem} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <input required type="text" placeholder="Generic Name *" value={itemForm.genericName} onChange={e => setItemForm({ ...itemForm, genericName: e.target.value })} style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
-              <input type="text" placeholder="Brand Name" value={itemForm.brandName} onChange={e => setItemForm({ ...itemForm, brandName: e.target.value })} style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
-              <input required type="text" placeholder="Strength (e.g. 500mg)" value={itemForm.strength} onChange={e => setItemForm({ ...itemForm, strength: e.target.value })} style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+              <input required type="text" placeholder="Generic Name *" value={itemForm.genericName} onChange={e => setItemForm({ ...itemForm, genericName: e.target.value })} style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+              <input type="text" placeholder="Brand Name" value={itemForm.brandName} onChange={e => setItemForm({ ...itemForm, brandName: e.target.value })} style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+              <input required type="text" placeholder="Strength (e.g. 500mg)" value={itemForm.strength} onChange={e => setItemForm({ ...itemForm, strength: e.target.value })} style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '8px' }}>
                 <button type="button" onClick={() => setShowItemModal(false)} className="btn-outline-gold">Cancel</button>
                 <button type="submit" className="btn-gold">Save Medication</button>
@@ -1914,7 +1914,7 @@ export function SurgeryView() {
           alt="Operating Theatre"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
         />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,9,7,0.95) 20%, rgba(10,9,7,0.4) 100%)' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(6, 12, 24, 0.95) 20%, rgba(6, 12, 24, 0.4) 100%)' }} />
         <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'flex-end', flexWrap: 'wrap', gap: '12px' }}>
           <div>
             <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--gold-400)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
@@ -2265,7 +2265,7 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
           alt="NOC Control Center"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
         />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,9,7,0.95) 20%, rgba(10,9,7,0.4) 100%)' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(6, 12, 24, 0.95) 20%, rgba(6, 12, 24, 0.4) 100%)' }} />
         <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'flex-end', flexWrap: 'wrap', gap: '12px' }}>
           <div>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
@@ -2651,7 +2651,7 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
                   placeholder="Search by Admin Phone, Tenant ID or Name..."
                   value={tenantSearchQuery}
                   onChange={(e) => setTenantSearchQuery(e.target.value)}
-                  style={{ padding: '6px 12px', background: '#12100d', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px', fontSize: '0.78rem', minWidth: '250px' }}
+                  style={{ padding: '6px 12px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px', fontSize: '0.78rem', minWidth: '250px' }}
                 />
                 <button
                   onClick={() => window.gbsNavigateDetail && window.gbsNavigateDetail({
@@ -2896,12 +2896,12 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
               {/* Send Message to Specific Tenant */}
-              <form onSubmit={handleSendTenantMsg} style={{ background: '#12100d', padding: '16px', borderRadius: '6px', border: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <form onSubmit={handleSendTenantMsg} style={{ background: 'rgba(6, 12, 24, 0.88)', padding: '16px', borderRadius: '6px', border: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--gold-300)' }}>Send Message to Tenant</div>
                 <select
                   value={msgForm.targetTenantId}
                   onChange={e => setMsgForm({ ...msgForm, targetTenantId: e.target.value })}
-                  style={{ padding: '8px', background: '#0a0907', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
+                  style={{ padding: '8px', background: '#060c18', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
                 >
                   <option value="">Select Hospital Tenant...</option>
                   {tenants.map(t => (
@@ -2916,7 +2916,7 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
                   placeholder="Message Title"
                   value={msgForm.title}
                   onChange={e => setMsgForm({ ...msgForm, title: e.target.value })}
-                  style={{ padding: '8px', background: '#0a0907', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
+                  style={{ padding: '8px', background: '#060c18', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
                 />
                 <textarea
                   required
@@ -2924,7 +2924,7 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
                   placeholder="Type your message here..."
                   value={msgForm.message}
                   onChange={e => setMsgForm({ ...msgForm, message: e.target.value })}
-                  style={{ padding: '8px', background: '#0a0907', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
+                  style={{ padding: '8px', background: '#060c18', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
                 />
                 <button type="submit" className="btn-gold" style={{ alignSelf: 'flex-end' }}>
                   <Send size={14} /> Send Message
@@ -2932,7 +2932,7 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
               </form>
 
               {/* Send Message to All Tenants */}
-              <form onSubmit={handleBroadcastMsg} style={{ background: '#12100d', padding: '16px', borderRadius: '6px', border: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <form onSubmit={handleBroadcastMsg} style={{ background: 'rgba(6, 12, 24, 0.88)', padding: '16px', borderRadius: '6px', border: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--gold-300)' }}>Send Message to All Tenants</div>
                 <input
                   required
@@ -2940,7 +2940,7 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
                   placeholder="Broadcast Title"
                   value={broadcastForm.title}
                   onChange={e => setBroadcastForm({ ...broadcastForm, title: e.target.value })}
-                  style={{ padding: '8px', background: '#0a0907', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
+                  style={{ padding: '8px', background: '#060c18', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
                 />
                 <textarea
                   required
@@ -2948,7 +2948,7 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
                   placeholder="Type system-wide broadcast message here..."
                   value={broadcastForm.message}
                   onChange={e => setBroadcastForm({ ...broadcastForm, message: e.target.value })}
-                  style={{ padding: '8px', background: '#0a0907', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
+                  style={{ padding: '8px', background: '#060c18', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
                 />
                 <button type="submit" className="btn-gold" style={{ alignSelf: 'flex-end' }}>
                   <Bell size={14} /> Send to All
@@ -2956,12 +2956,12 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
               </form>
 
               {/* Video Call with Tenant Admin */}
-              <div style={{ background: '#12100d', padding: '16px', borderRadius: '6px', border: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div style={{ background: 'rgba(6, 12, 24, 0.88)', padding: '16px', borderRadius: '6px', border: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--gold-300)' }}>Video Call with Tenant Admin</div>
                 <select
                   value={videoTargetId}
                   onChange={e => setVideoTargetId(e.target.value)}
-                  style={{ padding: '8px', background: '#0a0907', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
+                  style={{ padding: '8px', background: '#060c18', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
                 >
                   <option value="">Select Tenant Admin...</option>
                   {tenants.map(t => (
@@ -3057,11 +3057,11 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
             <h3 style={{ fontSize: '1.15rem', color: '#fff', marginBottom: '14px' }}>Register New Hospital Facility (Tenant)</h3>
             <form onSubmit={handleRegisterTenant} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                <input required type="text" placeholder="Hospital / Facility Name *" value={tenantForm.institutionName} onChange={e => setTenantForm({ ...tenantForm, institutionName: e.target.value })} style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="text" placeholder="Hospital / Facility Name *" value={tenantForm.institutionName} onChange={e => setTenantForm({ ...tenantForm, institutionName: e.target.value })} style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 <select
                   value={tenantForm.institutionType}
                   onChange={e => setTenantForm({ ...tenantForm, institutionType: e.target.value, organizationType: e.target.value })}
-                  style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px' }}
+                  style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px' }}
                   title="Select Hospital Organization Type (Private Hospital, Government Hospital, etc.)"
                 >
                   <option value="PRIVATE_HOSPITAL">Private Hospital</option>
@@ -3071,16 +3071,16 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
                 </select>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                <input required type="email" placeholder="Official Facility Email *" value={tenantForm.officialEmail} onChange={e => setTenantForm({ ...tenantForm, officialEmail: e.target.value })} style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
-                <input required type="text" placeholder="Official Phone *" value={tenantForm.officialPhone} onChange={e => setTenantForm({ ...tenantForm, officialPhone: e.target.value })} style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="email" placeholder="Official Facility Email *" value={tenantForm.officialEmail} onChange={e => setTenantForm({ ...tenantForm, officialEmail: e.target.value })} style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="text" placeholder="Official Phone *" value={tenantForm.officialPhone} onChange={e => setTenantForm({ ...tenantForm, officialPhone: e.target.value })} style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                <input required type="text" placeholder="Administrator Full Name *" value={tenantForm.administratorFullName} onChange={e => setTenantForm({ ...tenantForm, administratorFullName: e.target.value })} style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
-                <input required type="email" placeholder="Administrator Email *" value={tenantForm.administratorEmail} onChange={e => setTenantForm({ ...tenantForm, administratorEmail: e.target.value })} style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="text" placeholder="Administrator Full Name *" value={tenantForm.administratorFullName} onChange={e => setTenantForm({ ...tenantForm, administratorFullName: e.target.value })} style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="email" placeholder="Administrator Email *" value={tenantForm.administratorEmail} onChange={e => setTenantForm({ ...tenantForm, administratorEmail: e.target.value })} style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                <input required type="text" placeholder="Administrator Phone *" value={tenantForm.administratorPhone} onChange={e => setTenantForm({ ...tenantForm, administratorPhone: e.target.value })} style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
-                <select value={tenantForm.subscriptionPlan} onChange={e => setTenantForm({ ...tenantForm, subscriptionPlan: e.target.value })} style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px' }}>
+                <input required type="text" placeholder="Administrator Phone *" value={tenantForm.administratorPhone} onChange={e => setTenantForm({ ...tenantForm, administratorPhone: e.target.value })} style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <select value={tenantForm.subscriptionPlan} onChange={e => setTenantForm({ ...tenantForm, subscriptionPlan: e.target.value })} style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px' }}>
                   <option value="1_MONTH_TRIAL">1-Month Free Trial (30 Days)</option>
                   <option value="3_MONTHS">3 Months Subscription (90 Days)</option>
                   <option value="6_MONTHS">6 Months Subscription (180 Days)</option>
@@ -3088,7 +3088,7 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
                   <option value="LIFETIME">Lifetime Enterprise License (Permanent)</option>
                 </select>
               </div>
-              <input required type="text" placeholder="Street Address / City *" value={tenantForm.address} onChange={e => setTenantForm({ ...tenantForm, address: e.target.value })} style={{ padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+              <input required type="text" placeholder="Street Address / City *" value={tenantForm.address} onChange={e => setTenantForm({ ...tenantForm, address: e.target.value })} style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '10px' }}>
                 <button type="button" onClick={() => setShowRegisterTenantModal(false)} className="btn-outline-gold">Cancel</button>
                 <button type="submit" className="btn-gold">Register Facility</button>
@@ -3164,7 +3164,7 @@ export function EmergencyAmbulanceView() {
           alt="Ambulance Fleet & Emergency"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
         />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,9,7,0.95) 20%, rgba(10,9,7,0.4) 100%)' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(6, 12, 24, 0.95) 20%, rgba(6, 12, 24, 0.4) 100%)' }} />
         <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'flex-end', flexWrap: 'wrap', gap: '12px' }}>
           <div>
             <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#ef4444', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -3370,7 +3370,7 @@ export function EmergencyAmbulanceView() {
                   required
                   value={dispatchForm.ambulanceId}
                   onChange={e => setDispatchForm({ ...dispatchForm, ambulanceId: e.target.value })}
-                  style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px' }}
+                  style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px' }}
                 >
                   <option value="">-- Choose Available Ambulance --</option>
                   {ambulances.map(a => (
@@ -3382,22 +3382,22 @@ export function EmergencyAmbulanceView() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Caller Name *</label>
-                  <input required type="text" value={dispatchForm.callerName} onChange={e => setDispatchForm({ ...dispatchForm, callerName: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="text" value={dispatchForm.callerName} onChange={e => setDispatchForm({ ...dispatchForm, callerName: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Caller Phone *</label>
-                  <input required type="text" value={dispatchForm.callerPhone} onChange={e => setDispatchForm({ ...dispatchForm, callerPhone: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="text" value={dispatchForm.callerPhone} onChange={e => setDispatchForm({ ...dispatchForm, callerPhone: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Incident Location *</label>
-                <input required type="text" value={dispatchForm.incidentLocation} onChange={e => setDispatchForm({ ...dispatchForm, incidentLocation: e.target.value })} placeholder="e.g. Ring Road Central near Kwame Nkrumah Circle" style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="text" value={dispatchForm.incidentLocation} onChange={e => setDispatchForm({ ...dispatchForm, incidentLocation: e.target.value })} placeholder="e.g. Ring Road Central near Kwame Nkrumah Circle" style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Triage Severity</label>
-                <select value={dispatchForm.triageSeverity} onChange={e => setDispatchForm({ ...dispatchForm, triageSeverity: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                <select value={dispatchForm.triageSeverity} onChange={e => setDispatchForm({ ...dispatchForm, triageSeverity: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                   <option value="RED_RESUSCITATION">RED (Immediate Resuscitation)</option>
                   <option value="ORANGE_EMERGENT">ORANGE (Emergent - under 15 mins)</option>
                   <option value="YELLOW_URGENT">YELLOW (Urgent - under 60 mins)</option>
@@ -3406,7 +3406,7 @@ export function EmergencyAmbulanceView() {
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Chief Complaint / Trauma Nature *</label>
-                <textarea required rows={2} value={dispatchForm.chiefComplaint} onChange={e => setDispatchForm({ ...dispatchForm, chiefComplaint: e.target.value })} placeholder="e.g. Acute respiratory arrest, vehicular trauma" style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <textarea required rows={2} value={dispatchForm.chiefComplaint} onChange={e => setDispatchForm({ ...dispatchForm, chiefComplaint: e.target.value })} placeholder="e.g. Acute respiratory arrest, vehicular trauma" style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '14px' }}>
@@ -3530,7 +3530,7 @@ export function BloodBankView() {
           alt="Blood Bank & Transfusion Medicine Laboratory"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
         />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,9,7,0.96) 25%, rgba(10,9,7,0.5) 100%)' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(6, 12, 24, 0.96) 25%, rgba(6, 12, 24, 0.5) 100%)' }} />
 
         <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'flex-end', flexWrap: 'wrap', gap: '12px' }}>
           <div>
@@ -3853,11 +3853,11 @@ export function BloodBankView() {
               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Donor Full Name *</label>
-                  <input required type="text" value={donorForm.fullName} onChange={e => setDonorForm({ ...donorForm, fullName: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="text" value={donorForm.fullName} onChange={e => setDonorForm({ ...donorForm, fullName: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Gender *</label>
-                  <select value={donorForm.gender} onChange={e => setDonorForm({ ...donorForm, gender: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                  <select value={donorForm.gender} onChange={e => setDonorForm({ ...donorForm, gender: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                     <option value="MALE">Male</option>
                     <option value="FEMALE">Female</option>
                   </select>
@@ -3867,11 +3867,11 @@ export function BloodBankView() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Phone Number *</label>
-                  <input required type="text" value={donorForm.phone} onChange={e => setDonorForm({ ...donorForm, phone: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="text" value={donorForm.phone} onChange={e => setDonorForm({ ...donorForm, phone: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Blood Group *</label>
-                  <select value={donorForm.bloodGroup} onChange={e => setDonorForm({ ...donorForm, bloodGroup: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px' }}>
+                  <select value={donorForm.bloodGroup} onChange={e => setDonorForm({ ...donorForm, bloodGroup: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px' }}>
                     <option value="A_POSITIVE">A+ (A Positive)</option>
                     <option value="A_NEGATIVE">A- (A Negative)</option>
                     <option value="B_POSITIVE">B+ (B Positive)</option>
@@ -3887,15 +3887,15 @@ export function BloodBankView() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Weight (kg) *</label>
-                  <input required type="number" step="0.5" value={donorForm.weightKg} onChange={e => setDonorForm({ ...donorForm, weightKg: parseFloat(e.target.value) })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="number" step="0.5" value={donorForm.weightKg} onChange={e => setDonorForm({ ...donorForm, weightKg: parseFloat(e.target.value) })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Hemoglobin (g/dL) *</label>
-                  <input required type="number" step="0.1" value={donorForm.hemoglobinLevel} onChange={e => setDonorForm({ ...donorForm, hemoglobinLevel: parseFloat(e.target.value) })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="number" step="0.1" value={donorForm.hemoglobinLevel} onChange={e => setDonorForm({ ...donorForm, hemoglobinLevel: parseFloat(e.target.value) })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Donor Type</label>
-                  <select value={donorForm.donorType} onChange={e => setDonorForm({ ...donorForm, donorType: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                  <select value={donorForm.donorType} onChange={e => setDonorForm({ ...donorForm, donorType: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                     <option value="VOLUNTARY">Voluntary</option>
                     <option value="REPLACEMENT">Family Replacement</option>
                     <option value="AUTOLOGOUS">Autologous</option>
@@ -3920,13 +3920,13 @@ export function BloodBankView() {
             <form onSubmit={handleCreateRequest} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Patient ID / MRN *</label>
-                <input required type="text" placeholder="e.g. paste Patient ID" value={requestForm.patientId} onChange={e => setRequestForm({ ...requestForm, patientId: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="text" placeholder="e.g. paste Patient ID" value={requestForm.patientId} onChange={e => setRequestForm({ ...requestForm, patientId: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Patient Blood Group *</label>
-                  <select value={requestForm.patientBloodGroup} onChange={e => setRequestForm({ ...requestForm, patientBloodGroup: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px' }}>
+                  <select value={requestForm.patientBloodGroup} onChange={e => setRequestForm({ ...requestForm, patientBloodGroup: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px' }}>
                     <option value="A_POSITIVE">A+</option>
                     <option value="A_NEGATIVE">A-</option>
                     <option value="B_POSITIVE">B+</option>
@@ -3940,7 +3940,7 @@ export function BloodBankView() {
 
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Component Type</label>
-                  <select value={requestForm.requiredComponent} onChange={e => setRequestForm({ ...requestForm, requiredComponent: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                  <select value={requestForm.requiredComponent} onChange={e => setRequestForm({ ...requestForm, requiredComponent: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                     <option value="PACKED_RED_CELLS">Packed Red Blood Cells (PRBC)</option>
                     <option value="WHOLE_BLOOD">Whole Blood</option>
                     <option value="FRESH_FROZEN_PLASMA">Fresh Frozen Plasma (FFP)</option>
@@ -3953,11 +3953,11 @@ export function BloodBankView() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Units Needed</label>
-                  <input required type="number" min="1" max="10" value={requestForm.unitsRequested} onChange={e => setRequestForm({ ...requestForm, unitsRequested: parseInt(e.target.value, 10) })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="number" min="1" max="10" value={requestForm.unitsRequested} onChange={e => setRequestForm({ ...requestForm, unitsRequested: parseInt(e.target.value, 10) })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Urgency Level</label>
-                  <select value={requestForm.urgencyLevel} onChange={e => setRequestForm({ ...requestForm, urgencyLevel: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px' }}>
+                  <select value={requestForm.urgencyLevel} onChange={e => setRequestForm({ ...requestForm, urgencyLevel: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px' }}>
                     <option value="ROUTINE">ROUTINE (Standard Cross-Match)</option>
                     <option value="URGENT">URGENT (Expedited)</option>
                     <option value="EMERGENCY_STAT_UNMATCHED">EMERGENCY STAT (Uncrossed O- Override)</option>
@@ -3967,17 +3967,17 @@ export function BloodBankView() {
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Clinical Indication *</label>
-                <input required type="text" placeholder="e.g. Severe intraoperative hemorrhage, Trauma Hb < 7" value={requestForm.clinicalIndication} onChange={e => setRequestForm({ ...requestForm, clinicalIndication: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="text" placeholder="e.g. Severe intraoperative hemorrhage, Trauma Hb < 7" value={requestForm.clinicalIndication} onChange={e => setRequestForm({ ...requestForm, clinicalIndication: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Requesting Physician *</label>
-                  <input required type="text" placeholder="Dr. Name" value={requestForm.requestingDoctor} onChange={e => setRequestForm({ ...requestForm, requestingDoctor: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="text" placeholder="Dr. Name" value={requestForm.requestingDoctor} onChange={e => setRequestForm({ ...requestForm, requestingDoctor: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Location / Ward</label>
-                  <input type="text" value={requestForm.departmentWard} onChange={e => setRequestForm({ ...requestForm, departmentWard: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="text" value={requestForm.departmentWard} onChange={e => setRequestForm({ ...requestForm, departmentWard: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
 
@@ -4159,7 +4159,7 @@ export function MortuaryView() {
           borderRadius: '12px',
           padding: '28px',
           border: '1px solid var(--border-gold)',
-          background: 'linear-gradient(135deg, rgba(20,16,10,0.95), rgba(10,8,6,0.98))'
+          background: 'linear-gradient(135deg, rgba(15,27,49,0.95), rgba(6,12,24,0.98))'
         }}
       >
         <div style={{ position: 'relative', zIndex: 2, maxWidth: '850px' }}>
@@ -4523,33 +4523,33 @@ export function MortuaryView() {
               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Deceased Full Name *</label>
-                  <input required type="text" value={intakeForm.deceasedFullName} onChange={e => setIntakeForm({ ...intakeForm, deceasedFullName: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="text" value={intakeForm.deceasedFullName} onChange={e => setIntakeForm({ ...intakeForm, deceasedFullName: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Gender</label>
-                  <select value={intakeForm.gender} onChange={e => setIntakeForm({ ...intakeForm, gender: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                  <select value={intakeForm.gender} onChange={e => setIntakeForm({ ...intakeForm, gender: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                     <option value="MALE">MALE</option>
                     <option value="FEMALE">FEMALE</option>
                   </select>
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Age (Years)</label>
-                  <input type="number" value={intakeForm.approximateAge} onChange={e => setIntakeForm({ ...intakeForm, approximateAge: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="number" value={intakeForm.approximateAge} onChange={e => setIntakeForm({ ...intakeForm, approximateAge: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Date of Death *</label>
-                  <input required type="date" value={intakeForm.dateOfDeath} onChange={e => setIntakeForm({ ...intakeForm, dateOfDeath: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="date" value={intakeForm.dateOfDeath} onChange={e => setIntakeForm({ ...intakeForm, dateOfDeath: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Time of Death</label>
-                  <input type="time" value={intakeForm.timeOfDeath} onChange={e => setIntakeForm({ ...intakeForm, timeOfDeath: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="time" value={intakeForm.timeOfDeath} onChange={e => setIntakeForm({ ...intakeForm, timeOfDeath: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Storage Tier</label>
-                  <select value={intakeForm.storageTier} onChange={e => setIntakeForm({ ...intakeForm, storageTier: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                  <select value={intakeForm.storageTier} onChange={e => setIntakeForm({ ...intakeForm, storageTier: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                     <option value="REFRIGERATED">REFRIGERATED (+2°C to +4°C)</option>
                     <option value="DEEP_FREEZE">DEEP FREEZE (-20°C)</option>
                     <option value="INFECTIOUS_ISOLATION">ISOLATION (+4°C)</option>
@@ -4559,13 +4559,13 @@ export function MortuaryView() {
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Primary Cause of Death *</label>
-                <input required type="text" value={intakeForm.causeOfDeathPrimary} onChange={e => setIntakeForm({ ...intakeForm, causeOfDeathPrimary: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="text" value={intakeForm.causeOfDeathPrimary} onChange={e => setIntakeForm({ ...intakeForm, causeOfDeathPrimary: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Certifying Physician *</label>
-                  <input required type="text" value={intakeForm.certifyingPhysician} onChange={e => setIntakeForm({ ...intakeForm, certifyingPhysician: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="text" value={intakeForm.certifyingPhysician} onChange={e => setIntakeForm({ ...intakeForm, certifyingPhysician: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '18px' }}>
                   <input type="checkbox" id="coronerCheck" checked={intakeForm.isCoronerCase} onChange={e => setIntakeForm({ ...intakeForm, isCoronerCase: e.target.checked })} />
@@ -4578,22 +4578,22 @@ export function MortuaryView() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
                   <div>
                     <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Name *</label>
-                    <input required type="text" value={intakeForm.nextOfKinName} onChange={e => setIntakeForm({ ...intakeForm, nextOfKinName: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                    <input required type="text" value={intakeForm.nextOfKinName} onChange={e => setIntakeForm({ ...intakeForm, nextOfKinName: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                   </div>
                   <div>
                     <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Phone *</label>
-                    <input required type="text" value={intakeForm.nextOfKinPhone} onChange={e => setIntakeForm({ ...intakeForm, nextOfKinPhone: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                    <input required type="text" value={intakeForm.nextOfKinPhone} onChange={e => setIntakeForm({ ...intakeForm, nextOfKinPhone: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                   </div>
                   <div>
                     <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>National ID (Ghana Card) *</label>
-                    <input required type="text" placeholder="GHA-000000000-0" value={intakeForm.nextOfKinNationalId} onChange={e => setIntakeForm({ ...intakeForm, nextOfKinNationalId: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                    <input required type="text" placeholder="GHA-000000000-0" value={intakeForm.nextOfKinNationalId} onChange={e => setIntakeForm({ ...intakeForm, nextOfKinNationalId: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                   </div>
                 </div>
               </div>
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Property & Personal Effects Bag Inventory</label>
-                <input type="text" value={intakeForm.propertyItemsInventory} onChange={e => setIntakeForm({ ...intakeForm, propertyItemsInventory: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input type="text" value={intakeForm.propertyItemsInventory} onChange={e => setIntakeForm({ ...intakeForm, propertyItemsInventory: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '14px' }}>
@@ -4613,12 +4613,12 @@ export function MortuaryView() {
             <form onSubmit={handleCreateChamber} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Vault Chamber Name *</label>
-                <input required type="text" placeholder="e.g. Vault Chamber Alpha-01" value={chamberForm.vaultName} onChange={e => setChamberForm({ ...chamberForm, vaultName: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="text" placeholder="e.g. Vault Chamber Alpha-01" value={chamberForm.vaultName} onChange={e => setChamberForm({ ...chamberForm, vaultName: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Storage Tier</label>
-                  <select value={chamberForm.storageTier} onChange={e => setChamberForm({ ...chamberForm, storageTier: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                  <select value={chamberForm.storageTier} onChange={e => setChamberForm({ ...chamberForm, storageTier: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                     <option value="REFRIGERATED">REFRIGERATED (+2°C - +4°C)</option>
                     <option value="DEEP_FREEZE">DEEP FREEZE (-20°C)</option>
                     <option value="INFECTIOUS_ISOLATION">ISOLATION (+4°C)</option>
@@ -4626,7 +4626,7 @@ export function MortuaryView() {
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Compartment Capacity</label>
-                  <input type="number" min="1" max="16" value={chamberForm.capacity} onChange={e => setChamberForm({ ...chamberForm, capacity: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="number" min="1" max="16" value={chamberForm.capacity} onChange={e => setChamberForm({ ...chamberForm, capacity: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '14px' }}>
@@ -4646,7 +4646,7 @@ export function MortuaryView() {
             <form onSubmit={handleScheduleAutopsy} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Select Deceased Patient *</label>
-                <select required value={autopsyForm.corpseId} onChange={e => setAutopsyForm({ ...autopsyForm, corpseId: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                <select required value={autopsyForm.corpseId} onChange={e => setAutopsyForm({ ...autopsyForm, corpseId: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                   <option value="">-- Choose Deceased --</option>
                   {corpses.map(cr => (
                     <option key={cr.id} value={cr.id}>
@@ -4659,7 +4659,7 @@ export function MortuaryView() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Case Category</label>
-                  <select value={autopsyForm.caseCategory} onChange={e => setAutopsyForm({ ...autopsyForm, caseCategory: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                  <select value={autopsyForm.caseCategory} onChange={e => setAutopsyForm({ ...autopsyForm, caseCategory: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                     <option value="CLINICAL_HOSPITAL">CLINICAL HOSPITAL</option>
                     <option value="CORONER_POLICE">CORONER / POLICE</option>
                     <option value="FORENSIC_LEGAL">FORENSIC / LEGAL</option>
@@ -4667,13 +4667,13 @@ export function MortuaryView() {
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Scheduled Date *</label>
-                  <input required type="date" value={autopsyForm.scheduledDate} onChange={e => setAutopsyForm({ ...autopsyForm, scheduledDate: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="date" value={autopsyForm.scheduledDate} onChange={e => setAutopsyForm({ ...autopsyForm, scheduledDate: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Lead Pathologist *</label>
-                <input required type="text" value={autopsyForm.leadPathologist} onChange={e => setAutopsyForm({ ...autopsyForm, leadPathologist: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="text" value={autopsyForm.leadPathologist} onChange={e => setAutopsyForm({ ...autopsyForm, leadPathologist: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '14px' }}>
@@ -4693,7 +4693,7 @@ export function MortuaryView() {
             <form onSubmit={handleReleaseCorpse} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Select Deceased Patient *</label>
-                <select required value={releaseForm.corpseId} onChange={e => setReleaseForm({ ...releaseForm, corpseId: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                <select required value={releaseForm.corpseId} onChange={e => setReleaseForm({ ...releaseForm, corpseId: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                   <option value="">-- Choose Deceased --</option>
                   {corpses.filter(c => c.status !== 'RELEASED_TO_FAMILY').map(cr => (
                     <option key={cr.id} value={cr.id}>
@@ -4706,22 +4706,22 @@ export function MortuaryView() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Claimant Next-of-Kin Name *</label>
-                  <input required type="text" value={releaseForm.nextOfKinName} onChange={e => setReleaseForm({ ...releaseForm, nextOfKinName: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="text" value={releaseForm.nextOfKinName} onChange={e => setReleaseForm({ ...releaseForm, nextOfKinName: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>National ID Number *</label>
-                  <input required type="text" placeholder="GHA-000000000-0" value={releaseForm.nextOfKinNationalId} onChange={e => setReleaseForm({ ...releaseForm, nextOfKinNationalId: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="text" placeholder="GHA-000000000-0" value={releaseForm.nextOfKinNationalId} onChange={e => setReleaseForm({ ...releaseForm, nextOfKinNationalId: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Claimant Phone *</label>
-                  <input required type="text" value={releaseForm.nextOfKinPhone} onChange={e => setReleaseForm({ ...releaseForm, nextOfKinPhone: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="text" value={releaseForm.nextOfKinPhone} onChange={e => setReleaseForm({ ...releaseForm, nextOfKinPhone: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Relationship to Deceased</label>
-                  <select value={releaseForm.relationshipToDeceased} onChange={e => setReleaseForm({ ...releaseForm, relationshipToDeceased: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                  <select value={releaseForm.relationshipToDeceased} onChange={e => setReleaseForm({ ...releaseForm, relationshipToDeceased: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                     <option value="SPOUSE">SPOUSE</option>
                     <option value="CHILD">CHILD</option>
                     <option value="PARENT">PARENT</option>
@@ -4734,17 +4734,17 @@ export function MortuaryView() {
               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Funeral Undertaker / Service</label>
-                  <input type="text" value={releaseForm.funeralHomeOrUndertaker} onChange={e => setReleaseForm({ ...releaseForm, funeralHomeOrUndertaker: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="text" value={releaseForm.funeralHomeOrUndertaker} onChange={e => setReleaseForm({ ...releaseForm, funeralHomeOrUndertaker: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Hearse Vehicle Plate</label>
-                  <input type="text" value={releaseForm.hearseVehiclePlate} onChange={e => setReleaseForm({ ...releaseForm, hearseVehiclePlate: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="text" value={releaseForm.hearseVehiclePlate} onChange={e => setReleaseForm({ ...releaseForm, hearseVehiclePlate: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Burial Permit / Registrar Certificate #</label>
-                <input type="text" value={releaseForm.burialPermitNumber} onChange={e => setReleaseForm({ ...releaseForm, burialPermitNumber: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input type="text" value={releaseForm.burialPermitNumber} onChange={e => setReleaseForm({ ...releaseForm, burialPermitNumber: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '14px' }}>
@@ -4967,7 +4967,7 @@ export function BiomedicalView() {
           borderRadius: '12px',
           padding: '28px',
           border: '1px solid var(--border-gold)',
-          background: 'linear-gradient(135deg, rgba(20,16,10,0.95), rgba(10,8,6,0.98))'
+          background: 'linear-gradient(135deg, rgba(15,27,49,0.95), rgba(6,12,24,0.98))'
         }}
       >
         <div style={{ position: 'relative', zIndex: 2, maxWidth: '850px' }}>
@@ -5289,29 +5289,29 @@ export function BiomedicalView() {
               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Device Name *</label>
-                  <input required type="text" placeholder="e.g. Hamilton-G5 Mechanical Ventilator" value={equipmentForm.name} onChange={e => setEquipmentForm({ ...equipmentForm, name: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="text" placeholder="e.g. Hamilton-G5 Mechanical Ventilator" value={equipmentForm.name} onChange={e => setEquipmentForm({ ...equipmentForm, name: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Manufacturer *</label>
-                  <input required type="text" placeholder="e.g. Hamilton Medical AG" value={equipmentForm.manufacturer} onChange={e => setEquipmentForm({ ...equipmentForm, manufacturer: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="text" placeholder="e.g. Hamilton Medical AG" value={equipmentForm.manufacturer} onChange={e => setEquipmentForm({ ...equipmentForm, manufacturer: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Model Number *</label>
-                  <input required type="text" placeholder="G5-ADULT" value={equipmentForm.modelNumber} onChange={e => setEquipmentForm({ ...equipmentForm, modelNumber: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="text" placeholder="G5-ADULT" value={equipmentForm.modelNumber} onChange={e => setEquipmentForm({ ...equipmentForm, modelNumber: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Serial Number (Unique) *</label>
-                  <input required type="text" placeholder="HAM-G5-99214" value={equipmentForm.serialNumber} onChange={e => setEquipmentForm({ ...equipmentForm, serialNumber: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="text" placeholder="HAM-G5-99214" value={equipmentForm.serialNumber} onChange={e => setEquipmentForm({ ...equipmentForm, serialNumber: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Equipment Category</label>
-                  <select value={equipmentForm.category} onChange={e => setEquipmentForm({ ...equipmentForm, category: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                  <select value={equipmentForm.category} onChange={e => setEquipmentForm({ ...equipmentForm, category: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                     <option value="LIFE_SUPPORT">LIFE_SUPPORT (Ventilator, Defib, Anesthesia)</option>
                     <option value="DIAGNOSTIC_IMAGING">DIAGNOSTIC_IMAGING (MRI, CT, Ultrasound)</option>
                     <option value="SURGICAL_THEATRE">SURGICAL_THEATRE (Diathermy, Laparoscopy)</option>
@@ -5324,7 +5324,7 @@ export function BiomedicalView() {
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Clinical Risk Level</label>
-                  <select value={equipmentForm.riskLevel} onChange={e => setEquipmentForm({ ...equipmentForm, riskLevel: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                  <select value={equipmentForm.riskLevel} onChange={e => setEquipmentForm({ ...equipmentForm, riskLevel: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                     <option value="CRITICAL_HIGH_RISK">CRITICAL HIGH RISK (Immediate life hazard)</option>
                     <option value="MEDIUM_RISK">MEDIUM RISK (Direct clinical support)</option>
                     <option value="LOW_RISK">LOW RISK (General diagnostic)</option>
@@ -5335,7 +5335,7 @@ export function BiomedicalView() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Assigned Department *</label>
-                  <select value={equipmentForm.department} onChange={e => setEquipmentForm({ ...equipmentForm, department: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                  <select value={equipmentForm.department} onChange={e => setEquipmentForm({ ...equipmentForm, department: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                     <option value="ICU">Intensive Care Unit (ICU)</option>
                     <option value="THEATRE">Operating Theatre & Surgery</option>
                     <option value="EMERGENCY">Emergency & Trauma Bay</option>
@@ -5348,22 +5348,22 @@ export function BiomedicalView() {
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Room Location</label>
-                  <input type="text" placeholder="e.g. Bed Bay 04 / Theatre Suite 1" value={equipmentForm.roomLocation} onChange={e => setEquipmentForm({ ...equipmentForm, roomLocation: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="text" placeholder="e.g. Bed Bay 04 / Theatre Suite 1" value={equipmentForm.roomLocation} onChange={e => setEquipmentForm({ ...equipmentForm, roomLocation: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>PPM Frequency (Days)</label>
-                  <input type="number" value={equipmentForm.ppmIntervalDays} onChange={e => setEquipmentForm({ ...equipmentForm, ppmIntervalDays: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="number" value={equipmentForm.ppmIntervalDays} onChange={e => setEquipmentForm({ ...equipmentForm, ppmIntervalDays: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Calib. Frequency (Days)</label>
-                  <input type="number" value={equipmentForm.calibrationIntervalDays} onChange={e => setEquipmentForm({ ...equipmentForm, calibrationIntervalDays: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="number" value={equipmentForm.calibrationIntervalDays} onChange={e => setEquipmentForm({ ...equipmentForm, calibrationIntervalDays: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Power Rating (Watts)</label>
-                  <input type="number" value={equipmentForm.powerRatingWatts} onChange={e => setEquipmentForm({ ...equipmentForm, powerRatingWatts: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="number" value={equipmentForm.powerRatingWatts} onChange={e => setEquipmentForm({ ...equipmentForm, powerRatingWatts: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
 
@@ -5384,7 +5384,7 @@ export function BiomedicalView() {
             <form onSubmit={handleCreateWorkOrder} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Select Medical Device *</label>
-                <select required value={workOrderForm.equipmentId} onChange={e => setWorkOrderForm({ ...workOrderForm, equipmentId: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                <select required value={workOrderForm.equipmentId} onChange={e => setWorkOrderForm({ ...workOrderForm, equipmentId: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                   <option value="">-- Choose Device --</option>
                   {equipmentList.map(eq => (
                     <option key={eq.id} value={eq.id}>
@@ -5397,7 +5397,7 @@ export function BiomedicalView() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Order Type</label>
-                  <select value={workOrderForm.orderType} onChange={e => setWorkOrderForm({ ...workOrderForm, orderType: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                  <select value={workOrderForm.orderType} onChange={e => setWorkOrderForm({ ...workOrderForm, orderType: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                     <option value="CORRECTIVE_BREAKDOWN">CORRECTIVE BREAKDOWN</option>
                     <option value="PREVENTIVE_MAINTENANCE">PREVENTIVE MAINTENANCE (PPM)</option>
                     <option value="CALIBRATION_CERTIFICATION">CALIBRATION & METROLOGY</option>
@@ -5406,7 +5406,7 @@ export function BiomedicalView() {
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Priority Level</label>
-                  <select value={workOrderForm.priority} onChange={e => setWorkOrderForm({ ...workOrderForm, priority: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                  <select value={workOrderForm.priority} onChange={e => setWorkOrderForm({ ...workOrderForm, priority: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                     <option value="STAT_EMERGENCY_BREAKDOWN">STAT EMERGENCY (Life-Support Failure)</option>
                     <option value="URGENT">URGENT (Essential Diagnostic Down)</option>
                     <option value="ROUTINE">ROUTINE (Scheduled Service)</option>
@@ -5416,17 +5416,17 @@ export function BiomedicalView() {
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Observed Failure Symptoms / Defect Description *</label>
-                <textarea required rows={3} placeholder="Describe alarm codes, failure behavior, or symptoms observed by clinical staff..." value={workOrderForm.failureDescription} onChange={e => setWorkOrderForm({ ...workOrderForm, failureDescription: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <textarea required rows={3} placeholder="Describe alarm codes, failure behavior, or symptoms observed by clinical staff..." value={workOrderForm.failureDescription} onChange={e => setWorkOrderForm({ ...workOrderForm, failureDescription: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Reported By Staff *</label>
-                  <input required type="text" value={workOrderForm.reportedBy} onChange={e => setWorkOrderForm({ ...workOrderForm, reportedBy: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="text" value={workOrderForm.reportedBy} onChange={e => setWorkOrderForm({ ...workOrderForm, reportedBy: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Assigned Biomedical Engineer</label>
-                  <input type="text" value={workOrderForm.assignedEngineer} onChange={e => setWorkOrderForm({ ...workOrderForm, assignedEngineer: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="text" value={workOrderForm.assignedEngineer} onChange={e => setWorkOrderForm({ ...workOrderForm, assignedEngineer: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
 
@@ -5453,37 +5453,37 @@ export function BiomedicalView() {
             <form onSubmit={handleCompleteWorkOrder} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>QA Inspector / Certifying Engineer *</label>
-                <input required type="text" value={completeForm.qaApprovedBy} onChange={e => setCompleteForm({ ...completeForm, qaApprovedBy: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="text" value={completeForm.qaApprovedBy} onChange={e => setCompleteForm({ ...completeForm, qaApprovedBy: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Chassis Leakage Current (Max 500 µA) *</label>
-                  <input required type="number" step="0.1" value={completeForm.leakageCurrentMicroAmps} onChange={e => setCompleteForm({ ...completeForm, leakageCurrentMicroAmps: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="number" step="0.1" value={completeForm.leakageCurrentMicroAmps} onChange={e => setCompleteForm({ ...completeForm, leakageCurrentMicroAmps: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Ground Resistance (Max 0.2 Ω) *</label>
-                  <input required type="number" step="0.01" value={completeForm.groundResistanceOhms} onChange={e => setCompleteForm({ ...completeForm, groundResistanceOhms: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="number" step="0.01" value={completeForm.groundResistanceOhms} onChange={e => setCompleteForm({ ...completeForm, groundResistanceOhms: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Corrective Action Taken</label>
-                <input type="text" value={completeForm.actionTaken} onChange={e => setCompleteForm({ ...completeForm, actionTaken: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input type="text" value={completeForm.actionTaken} onChange={e => setCompleteForm({ ...completeForm, actionTaken: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Parts Replaced</label>
-                  <input type="text" value={completeForm.partsReplaced} onChange={e => setCompleteForm({ ...completeForm, partsReplaced: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="text" value={completeForm.partsReplaced} onChange={e => setCompleteForm({ ...completeForm, partsReplaced: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Parts Cost (GH₵)</label>
-                  <input type="number" step="0.01" value={completeForm.partsCost} onChange={e => setCompleteForm({ ...completeForm, partsCost: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="number" step="0.01" value={completeForm.partsCost} onChange={e => setCompleteForm({ ...completeForm, partsCost: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Labor (Hours)</label>
-                  <input type="number" step="0.5" value={completeForm.laborHours} onChange={e => setCompleteForm({ ...completeForm, laborHours: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="number" step="0.5" value={completeForm.laborHours} onChange={e => setCompleteForm({ ...completeForm, laborHours: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
 
@@ -5504,7 +5504,7 @@ export function BiomedicalView() {
             <form onSubmit={handleRecordCalibration} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Select Medical Device *</label>
-                <select required value={calibrationForm.equipmentId} onChange={e => setCalibrationForm({ ...calibrationForm, equipmentId: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                <select required value={calibrationForm.equipmentId} onChange={e => setCalibrationForm({ ...calibrationForm, equipmentId: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                   <option value="">-- Choose Device --</option>
                   {equipmentList.map(eq => (
                     <option key={eq.id} value={eq.id}>
@@ -5517,7 +5517,7 @@ export function BiomedicalView() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Calibration Standard</label>
-                  <select value={calibrationForm.calibrationStandard} onChange={e => setCalibrationForm({ ...calibrationForm, calibrationStandard: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                  <select value={calibrationForm.calibrationStandard} onChange={e => setCalibrationForm({ ...calibrationForm, calibrationStandard: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                     <option value="ISO_17025">ISO 17025 (General Calibration)</option>
                     <option value="IEC_60601">IEC 60601 (Medical Electrical)</option>
                     <option value="NIST_TRACEABLE">NIST Traceable Standards</option>
@@ -5525,23 +5525,23 @@ export function BiomedicalView() {
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Tolerance Deviation (%)</label>
-                  <input type="number" step="0.1" value={calibrationForm.toleranceDeviationPercent} onChange={e => setCalibrationForm({ ...calibrationForm, toleranceDeviationPercent: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="number" step="0.1" value={calibrationForm.toleranceDeviationPercent} onChange={e => setCalibrationForm({ ...calibrationForm, toleranceDeviationPercent: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Test Equipment Used *</label>
-                <input required type="text" value={calibrationForm.testEquipmentUsed} onChange={e => setCalibrationForm({ ...calibrationForm, testEquipmentUsed: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="text" value={calibrationForm.testEquipmentUsed} onChange={e => setCalibrationForm({ ...calibrationForm, testEquipmentUsed: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Certified Metrology Engineer *</label>
-                  <input required type="text" value={calibrationForm.certifiedByEngineer} onChange={e => setCalibrationForm({ ...calibrationForm, certifiedByEngineer: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="text" value={calibrationForm.certifiedByEngineer} onChange={e => setCalibrationForm({ ...calibrationForm, certifiedByEngineer: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Validity (Days)</label>
-                  <input type="number" value={calibrationForm.validityDays} onChange={e => setCalibrationForm({ ...calibrationForm, validityDays: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="number" value={calibrationForm.validityDays} onChange={e => setCalibrationForm({ ...calibrationForm, validityDays: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
 
@@ -5850,7 +5850,7 @@ export function ProcurementView() {
           alt="Hospital Supply Chain & Central Medical Warehouse"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
         />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,9,7,0.96) 25%, rgba(10,9,7,0.5) 100%)' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(6, 12, 24, 0.96) 25%, rgba(6, 12, 24, 0.5) 100%)' }} />
 
         <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'flex-end', flexWrap: 'wrap', gap: '12px' }}>
           <div>
@@ -6254,11 +6254,11 @@ export function ProcurementView() {
               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Vendor Legal Company Name *</label>
-                  <input required type="text" placeholder="e.g. Pharmanova Ghana Ltd" value={vendorForm.name} onChange={e => setVendorForm({ ...vendorForm, name: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="text" placeholder="e.g. Pharmanova Ghana Ltd" value={vendorForm.name} onChange={e => setVendorForm({ ...vendorForm, name: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Category *</label>
-                  <select value={vendorForm.category} onChange={e => setVendorForm({ ...vendorForm, category: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                  <select value={vendorForm.category} onChange={e => setVendorForm({ ...vendorForm, category: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                     <option value="PHARMACEUTICALS">Pharmaceuticals</option>
                     <option value="SURGICAL_CONSUMABLES">Surgical Consumables</option>
                     <option value="LAB_REAGENTS">Lab Reagents</option>
@@ -6272,38 +6272,38 @@ export function ProcurementView() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Contact Person *</label>
-                  <input required type="text" value={vendorForm.contactPerson} onChange={e => setVendorForm({ ...vendorForm, contactPerson: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="text" value={vendorForm.contactPerson} onChange={e => setVendorForm({ ...vendorForm, contactPerson: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>TIN Number</label>
-                  <input type="text" placeholder="e.g. C0012345678" value={vendorForm.taxIdentificationNumber} onChange={e => setVendorForm({ ...vendorForm, taxIdentificationNumber: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="text" placeholder="e.g. C0012345678" value={vendorForm.taxIdentificationNumber} onChange={e => setVendorForm({ ...vendorForm, taxIdentificationNumber: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Email Address *</label>
-                  <input required type="email" value={vendorForm.email} onChange={e => setVendorForm({ ...vendorForm, email: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="email" value={vendorForm.email} onChange={e => setVendorForm({ ...vendorForm, email: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Phone Number *</label>
-                  <input required type="text" value={vendorForm.phone} onChange={e => setVendorForm({ ...vendorForm, phone: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="text" value={vendorForm.phone} onChange={e => setVendorForm({ ...vendorForm, phone: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Business Physical Address *</label>
-                <input required type="text" value={vendorForm.address} onChange={e => setVendorForm({ ...vendorForm, address: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="text" value={vendorForm.address} onChange={e => setVendorForm({ ...vendorForm, address: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Bank Name</label>
-                  <input type="text" value={vendorForm.bankName} onChange={e => setVendorForm({ ...vendorForm, bankName: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="text" value={vendorForm.bankName} onChange={e => setVendorForm({ ...vendorForm, bankName: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Payment Terms</label>
-                  <select value={vendorForm.paymentTerms} onChange={e => setVendorForm({ ...vendorForm, paymentTerms: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                  <select value={vendorForm.paymentTerms} onChange={e => setVendorForm({ ...vendorForm, paymentTerms: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                     <option value="NET_30">NET 30 Days</option>
                     <option value="NET_60">NET 60 Days</option>
                     <option value="NET_90">NET 90 Days</option>
@@ -6331,7 +6331,7 @@ export function ProcurementView() {
               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Vendor *</label>
-                  <select required value={poForm.vendorId} onChange={e => setPoForm({ ...poForm, vendorId: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                  <select required value={poForm.vendorId} onChange={e => setPoForm({ ...poForm, vendorId: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                     <option value="">-- Choose Vendor --</option>
                     {vendors.map(v => (
                       <option key={v.id} value={v.id}>{v.name} ({v.vendorCode}) - {v.category}</option>
@@ -6340,7 +6340,7 @@ export function ProcurementView() {
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Department *</label>
-                  <select value={poForm.department} onChange={e => setPoForm({ ...poForm, department: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                  <select value={poForm.department} onChange={e => setPoForm({ ...poForm, department: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                     <option value="CENTRAL_STORES">Central Stores</option>
                     <option value="PHARMACY">Pharmacy</option>
                     <option value="THEATRE">Operating Theatre</option>
@@ -6353,7 +6353,7 @@ export function ProcurementView() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Priority Level</label>
-                  <select value={poForm.priority} onChange={e => setPoForm({ ...poForm, priority: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                  <select value={poForm.priority} onChange={e => setPoForm({ ...poForm, priority: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                     <option value="ROUTINE">ROUTINE</option>
                     <option value="URGENT">URGENT</option>
                     <option value="EMERGENCY_STOCKOUT">EMERGENCY STOCKOUT</option>
@@ -6361,11 +6361,11 @@ export function ProcurementView() {
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Tax Amount (GH₵)</label>
-                  <input type="number" step="0.01" value={poForm.taxAmount} onChange={e => setPoForm({ ...poForm, taxAmount: parseFloat(e.target.value) || 0 })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="number" step="0.01" value={poForm.taxAmount} onChange={e => setPoForm({ ...poForm, taxAmount: parseFloat(e.target.value) || 0 })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Requisitioned By *</label>
-                  <input required type="text" value={poForm.requisitionedBy} onChange={e => setPoForm({ ...poForm, requisitionedBy: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="text" value={poForm.requisitionedBy} onChange={e => setPoForm({ ...poForm, requisitionedBy: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
 
@@ -6386,25 +6386,25 @@ export function ProcurementView() {
                       const updated = [...poForm.items];
                       updated[idx].itemCode = e.target.value;
                       setPoForm({ ...poForm, items: updated });
-                    }} style={{ padding: '6px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px', fontSize: '0.75rem' }} />
+                    }} style={{ padding: '6px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px', fontSize: '0.75rem' }} />
 
                     <input required placeholder="Description / Specs" value={item.description} onChange={e => {
                       const updated = [...poForm.items];
                       updated[idx].description = e.target.value;
                       setPoForm({ ...poForm, items: updated });
-                    }} style={{ padding: '6px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px', fontSize: '0.75rem' }} />
+                    }} style={{ padding: '6px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px', fontSize: '0.75rem' }} />
 
                     <input required type="number" min="1" placeholder="Qty" value={item.quantityOrdered} onChange={e => {
                       const updated = [...poForm.items];
                       updated[idx].quantityOrdered = parseInt(e.target.value, 10) || 1;
                       setPoForm({ ...poForm, items: updated });
-                    }} style={{ padding: '6px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px', fontSize: '0.75rem' }} />
+                    }} style={{ padding: '6px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px', fontSize: '0.75rem' }} />
 
                     <input required type="number" step="0.01" placeholder="Unit GH₵" value={item.unitCost} onChange={e => {
                       const updated = [...poForm.items];
                       updated[idx].unitCost = parseFloat(e.target.value) || 0;
                       setPoForm({ ...poForm, items: updated });
-                    }} style={{ padding: '6px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px', fontSize: '0.75rem' }} />
+                    }} style={{ padding: '6px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px', fontSize: '0.75rem' }} />
 
                     {poForm.items.length > 1 && (
                       <button type="button" onClick={() => {
@@ -6436,22 +6436,22 @@ export function ProcurementView() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Supplier Waybill / Delivery Slip # *</label>
-                  <input required type="text" placeholder="e.g. WB-2026-90412" value={grnForm.waybillOrInvoiceNumber} onChange={e => setGrnForm({ ...grnForm, waybillOrInvoiceNumber: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="text" placeholder="e.g. WB-2026-90412" value={grnForm.waybillOrInvoiceNumber} onChange={e => setGrnForm({ ...grnForm, waybillOrInvoiceNumber: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Receiving Officer *</label>
-                  <input required type="text" value={grnForm.receivedBy} onChange={e => setGrnForm({ ...grnForm, receivedBy: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="text" value={grnForm.receivedBy} onChange={e => setGrnForm({ ...grnForm, receivedBy: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>QA Inspector *</label>
-                  <input required type="text" value={grnForm.inspectedBy} onChange={e => setGrnForm({ ...grnForm, inspectedBy: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="text" value={grnForm.inspectedBy} onChange={e => setGrnForm({ ...grnForm, inspectedBy: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Inspection Status</label>
-                  <select value={grnForm.inspectionStatus} onChange={e => setGrnForm({ ...grnForm, inspectionStatus: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                  <select value={grnForm.inspectionStatus} onChange={e => setGrnForm({ ...grnForm, inspectionStatus: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                     <option value="INSPECTION_PASSED">INSPECTION PASSED (Accepted)</option>
                     <option value="PARTIALLY_REJECTED">PARTIALLY REJECTED</option>
                     <option value="REJECTED_DAMAGED">REJECTED (Damaged / Spoiled)</option>
@@ -6474,7 +6474,7 @@ export function ProcurementView() {
                         updated[idx].quantityReceived = parseInt(e.target.value, 10) || 0;
                         updated[idx].quantityAccepted = updated[idx].quantityReceived;
                         setGrnForm({ ...grnForm, items: updated });
-                      }} style={{ width: '100%', padding: '4px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px', fontSize: '0.75rem' }} />
+                      }} style={{ width: '100%', padding: '4px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px', fontSize: '0.75rem' }} />
                     </div>
                     <div>
                       <label style={{ fontSize: '0.68rem', color: 'var(--text-dim)' }}>Qty Accepted</label>
@@ -6482,7 +6482,7 @@ export function ProcurementView() {
                         const updated = [...grnForm.items];
                         updated[idx].quantityAccepted = parseInt(e.target.value, 10) || 0;
                         setGrnForm({ ...grnForm, items: updated });
-                      }} style={{ width: '100%', padding: '4px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px', fontSize: '0.75rem' }} />
+                      }} style={{ width: '100%', padding: '4px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px', fontSize: '0.75rem' }} />
                     </div>
                     <div>
                       <label style={{ fontSize: '0.68rem', color: 'var(--text-dim)' }}>Batch #</label>
@@ -6490,7 +6490,7 @@ export function ProcurementView() {
                         const updated = [...grnForm.items];
                         updated[idx].batchNumber = e.target.value;
                         setGrnForm({ ...grnForm, items: updated });
-                      }} style={{ width: '100%', padding: '4px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px', fontSize: '0.75rem' }} />
+                      }} style={{ width: '100%', padding: '4px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px', fontSize: '0.75rem' }} />
                     </div>
                   </div>
                 ))}
@@ -6519,7 +6519,7 @@ export function ProcurementView() {
             <form onSubmit={handleVerifyThreeWayMatch} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Supplier Billed Invoice Total (GH₵) *</label>
-                <input required type="number" step="0.01" value={threeWayMatchForm.invoiceAmount} onChange={e => setThreeWayMatchForm({ ...threeWayMatchForm, invoiceAmount: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px', fontSize: '1rem', fontWeight: 700 }} />
+                <input required type="number" step="0.01" value={threeWayMatchForm.invoiceAmount} onChange={e => setThreeWayMatchForm({ ...threeWayMatchForm, invoiceAmount: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px', fontSize: '1rem', fontWeight: 700 }} />
                 <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', marginTop: '4px' }}>
                   Expected PO / GRN Payable: GH₵{Number(selectedGrn.purchaseOrder?.totalAmount || 0).toLocaleString()}
                 </div>
@@ -6527,7 +6527,7 @@ export function ProcurementView() {
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Audit Notes</label>
-                <textarea rows={2} value={threeWayMatchForm.notes} onChange={e => setThreeWayMatchForm({ ...threeWayMatchForm, notes: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <textarea rows={2} value={threeWayMatchForm.notes} onChange={e => setThreeWayMatchForm({ ...threeWayMatchForm, notes: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '14px' }}>
@@ -6547,7 +6547,7 @@ export function ProcurementView() {
             <form onSubmit={handleRegisterContract} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Vendor *</label>
-                <select required value={contractForm.vendorId} onChange={e => setContractForm({ ...contractForm, vendorId: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                <select required value={contractForm.vendorId} onChange={e => setContractForm({ ...contractForm, vendorId: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                   <option value="">-- Choose Vendor --</option>
                   {vendors.map(v => (
                     <option key={v.id} value={v.id}>{v.name} ({v.vendorCode})</option>
@@ -6557,13 +6557,13 @@ export function ProcurementView() {
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Contract / Agreement Title *</label>
-                <input required type="text" placeholder="e.g. Annual Essential Medicines Supply Framework Agreement" value={contractForm.title} onChange={e => setContractForm({ ...contractForm, title: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="text" placeholder="e.g. Annual Essential Medicines Supply Framework Agreement" value={contractForm.title} onChange={e => setContractForm({ ...contractForm, title: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Contract Type</label>
-                  <select value={contractForm.contractType} onChange={e => setContractForm({ ...contractForm, contractType: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                  <select value={contractForm.contractType} onChange={e => setContractForm({ ...contractForm, contractType: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                     <option value="FRAMEWORK_AGREEMENT">Framework Agreement</option>
                     <option value="EXCLUSIVE_SUPPLY">Exclusive Supply</option>
                     <option value="SERVICE_LEVEL_AGREEMENT">Service Level Agreement (SLA)</option>
@@ -6572,18 +6572,18 @@ export function ProcurementView() {
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Contract Value (GH₵)</label>
-                  <input type="number" value={contractForm.contractValue} onChange={e => setContractForm({ ...contractForm, contractValue: parseFloat(e.target.value) || 0 })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="number" value={contractForm.contractValue} onChange={e => setContractForm({ ...contractForm, contractValue: parseFloat(e.target.value) || 0 })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Start Date</label>
-                  <input type="date" value={contractForm.startDate} onChange={e => setContractForm({ ...contractForm, startDate: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="date" value={contractForm.startDate} onChange={e => setContractForm({ ...contractForm, startDate: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>End Date</label>
-                  <input type="date" value={contractForm.endDate} onChange={e => setContractForm({ ...contractForm, endDate: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="date" value={contractForm.endDate} onChange={e => setContractForm({ ...contractForm, endDate: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
 
@@ -7487,10 +7487,10 @@ export function HRManagementView() {
             <form onSubmit={handleCreateHrStaff} className="glass-panel" style={{ padding: '18px' }}>
               <h4 style={{ fontSize: '0.95rem', color: 'var(--gold-400)', marginBottom: '10px' }}>+ Add Hospital Staff Record</h4>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
-                <input required type="text" placeholder="Full Name *" value={newStaffForm.fullName} onChange={e => setNewStaffForm({ ...newStaffForm, fullName: e.target.value })} style={{ padding: '7px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
-                <input required type="text" placeholder="Role (e.g. DOCTOR, NURSE) *" value={newStaffForm.role} onChange={e => setNewStaffForm({ ...newStaffForm, role: e.target.value })} style={{ padding: '7px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
-                <input required type="text" placeholder="Department *" value={newStaffForm.department} onChange={e => setNewStaffForm({ ...newStaffForm, department: e.target.value })} style={{ padding: '7px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
-                <input type="text" placeholder="Phone Number" value={newStaffForm.phone} onChange={e => setNewStaffForm({ ...newStaffForm, phone: e.target.value })} style={{ padding: '7px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="text" placeholder="Full Name *" value={newStaffForm.fullName} onChange={e => setNewStaffForm({ ...newStaffForm, fullName: e.target.value })} style={{ padding: '7px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="text" placeholder="Role (e.g. DOCTOR, NURSE) *" value={newStaffForm.role} onChange={e => setNewStaffForm({ ...newStaffForm, role: e.target.value })} style={{ padding: '7px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="text" placeholder="Department *" value={newStaffForm.department} onChange={e => setNewStaffForm({ ...newStaffForm, department: e.target.value })} style={{ padding: '7px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input type="text" placeholder="Phone Number" value={newStaffForm.phone} onChange={e => setNewStaffForm({ ...newStaffForm, phone: e.target.value })} style={{ padding: '7px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
               <button type="submit" className="btn-gold" style={{ fontSize: '0.78rem' }}>Save Staff Record</button>
             </form>
@@ -7498,12 +7498,12 @@ export function HRManagementView() {
             <form onSubmit={handleCreateHrTransfer} className="glass-panel" style={{ padding: '18px' }}>
               <h4 style={{ fontSize: '0.95rem', color: 'var(--gold-400)', marginBottom: '10px' }}>+ Record Staff Departmental / Facility Transfer</h4>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '8px' }}>
-                <input required type="text" placeholder="Staff Full Name *" value={transferForm.staffName} onChange={e => setTransferForm({ ...transferForm, staffName: e.target.value })} style={{ padding: '7px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
-                <input required type="text" placeholder="From Dept *" value={transferForm.fromDepartment} onChange={e => setTransferForm({ ...transferForm, fromDepartment: e.target.value })} style={{ padding: '7px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
-                <input required type="text" placeholder="To Dept *" value={transferForm.toDepartment} onChange={e => setTransferForm({ ...transferForm, toDepartment: e.target.value })} style={{ padding: '7px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="text" placeholder="Staff Full Name *" value={transferForm.staffName} onChange={e => setTransferForm({ ...transferForm, staffName: e.target.value })} style={{ padding: '7px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="text" placeholder="From Dept *" value={transferForm.fromDepartment} onChange={e => setTransferForm({ ...transferForm, fromDepartment: e.target.value })} style={{ padding: '7px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="text" placeholder="To Dept *" value={transferForm.toDepartment} onChange={e => setTransferForm({ ...transferForm, toDepartment: e.target.value })} style={{ padding: '7px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px' }}>
-                <input required type="text" placeholder="Transfer Reason / Authorization *" value={transferForm.reason} onChange={e => setTransferForm({ ...transferForm, reason: e.target.value })} style={{ padding: '7px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="text" placeholder="Transfer Reason / Authorization *" value={transferForm.reason} onChange={e => setTransferForm({ ...transferForm, reason: e.target.value })} style={{ padding: '7px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 <button type="submit" className="btn-gold" style={{ fontSize: '0.78rem' }}>Record Transfer</button>
               </div>
             </form>
@@ -7574,13 +7574,13 @@ export function HRManagementView() {
             <form onSubmit={handleScheduleRoster} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Clinician / Staff Name</label>
-                <input type="text" value={rosterForm.staffName} onChange={e => setRosterForm({ ...rosterForm, staffName: e.target.value })} required style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input type="text" value={rosterForm.staffName} onChange={e => setRosterForm({ ...rosterForm, staffName: e.target.value })} required style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Department</label>
-                  <select value={rosterForm.department} onChange={e => setRosterForm({ ...rosterForm, department: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                  <select value={rosterForm.department} onChange={e => setRosterForm({ ...rosterForm, department: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                     <option value="ACCIDENT_AND_EMERGENCY">Accident & Emergency (ED)</option>
                     <option value="OPERATING_THEATRE">Operating Theatre & Surgery</option>
                     <option value="INTENSIVE_CARE_UNIT">Intensive Care Unit (ICU)</option>
@@ -7591,7 +7591,7 @@ export function HRManagementView() {
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Shift Type</label>
-                  <select value={rosterForm.shiftType} onChange={e => setRosterForm({ ...rosterForm, shiftType: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                  <select value={rosterForm.shiftType} onChange={e => setRosterForm({ ...rosterForm, shiftType: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                     <option value="MORNING_SHIFT">Morning Shift (07:00 - 15:00)</option>
                     <option value="AFTERNOON_SHIFT">Afternoon Shift (14:30 - 21:30)</option>
                     <option value="NIGHT_SHIFT">Night Shift (21:00 - 08:00)</option>
@@ -7603,15 +7603,15 @@ export function HRManagementView() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Shift Date</label>
-                  <input type="date" value={rosterForm.shiftDate} onChange={e => setRosterForm({ ...rosterForm, shiftDate: e.target.value })} required style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="date" value={rosterForm.shiftDate} onChange={e => setRosterForm({ ...rosterForm, shiftDate: e.target.value })} required style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Start Time</label>
-                  <input type="text" value={rosterForm.startTime} onChange={e => setRosterForm({ ...rosterForm, startTime: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="text" value={rosterForm.startTime} onChange={e => setRosterForm({ ...rosterForm, startTime: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>End Time</label>
-                  <input type="text" value={rosterForm.endTime} onChange={e => setRosterForm({ ...rosterForm, endTime: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="text" value={rosterForm.endTime} onChange={e => setRosterForm({ ...rosterForm, endTime: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
 
@@ -7639,32 +7639,32 @@ export function HRManagementView() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Outgoing Clinician</label>
-                  <input type="text" value={handoverForm.outgoingStaffName} onChange={e => setHandoverForm({ ...handoverForm, outgoingStaffName: e.target.value })} required style={{ width: '100%', padding: '6px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="text" value={handoverForm.outgoingStaffName} onChange={e => setHandoverForm({ ...handoverForm, outgoingStaffName: e.target.value })} required style={{ width: '100%', padding: '6px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Incoming Clinician</label>
-                  <input type="text" value={handoverForm.incomingStaffName} onChange={e => setHandoverForm({ ...handoverForm, incomingStaffName: e.target.value })} required style={{ width: '100%', padding: '6px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="text" value={handoverForm.incomingStaffName} onChange={e => setHandoverForm({ ...handoverForm, incomingStaffName: e.target.value })} required style={{ width: '100%', padding: '6px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Situation [S]</label>
-                <textarea rows={2} value={handoverForm.situation} onChange={e => setHandoverForm({ ...handoverForm, situation: e.target.value })} required style={{ width: '100%', padding: '6px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <textarea rows={2} value={handoverForm.situation} onChange={e => setHandoverForm({ ...handoverForm, situation: e.target.value })} required style={{ width: '100%', padding: '6px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Background [B]</label>
-                <textarea rows={2} value={handoverForm.background} onChange={e => setHandoverForm({ ...handoverForm, background: e.target.value })} required style={{ width: '100%', padding: '6px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <textarea rows={2} value={handoverForm.background} onChange={e => setHandoverForm({ ...handoverForm, background: e.target.value })} required style={{ width: '100%', padding: '6px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Assessment [A]</label>
-                <textarea rows={2} value={handoverForm.assessment} onChange={e => setHandoverForm({ ...handoverForm, assessment: e.target.value })} required style={{ width: '100%', padding: '6px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <textarea rows={2} value={handoverForm.assessment} onChange={e => setHandoverForm({ ...handoverForm, assessment: e.target.value })} required style={{ width: '100%', padding: '6px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Recommendation [R]</label>
-                <textarea rows={2} value={handoverForm.recommendation} onChange={e => setHandoverForm({ ...handoverForm, recommendation: e.target.value })} required style={{ width: '100%', padding: '6px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <textarea rows={2} value={handoverForm.recommendation} onChange={e => setHandoverForm({ ...handoverForm, recommendation: e.target.value })} required style={{ width: '100%', padding: '6px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
@@ -7699,7 +7699,7 @@ export function HRManagementView() {
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Incoming Clinician Verification Notes</label>
-                <textarea rows={3} value={coSignNotes} onChange={e => setCoSignNotes(e.target.value)} placeholder="All acute patients sighted; high-risk alerts noted; drug keys transferred." style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <textarea rows={3} value={coSignNotes} onChange={e => setCoSignNotes(e.target.value)} placeholder="All acute patients sighted; high-risk alerts noted; drug keys transferred." style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '8px' }}>
@@ -7725,13 +7725,13 @@ export function HRManagementView() {
             <form onSubmit={handleRegisterCredential} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Staff Name</label>
-                <input type="text" value={credentialForm.staffName} onChange={e => setCredentialForm({ ...credentialForm, staffName: e.target.value })} required style={{ width: '100%', padding: '7px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input type="text" value={credentialForm.staffName} onChange={e => setCredentialForm({ ...credentialForm, staffName: e.target.value })} required style={{ width: '100%', padding: '7px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Regulatory Council</label>
-                  <select value={credentialForm.regulatoryBody} onChange={e => setCredentialForm({ ...credentialForm, regulatoryBody: e.target.value })} style={{ width: '100%', padding: '7px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                  <select value={credentialForm.regulatoryBody} onChange={e => setCredentialForm({ ...credentialForm, regulatoryBody: e.target.value })} style={{ width: '100%', padding: '7px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                     <option value="Medical and Dental Council (MDC) Ghana">Medical and Dental Council (MDC) Ghana</option>
                     <option value="Nursing and Midwifery Council (NMC) Ghana">Nursing and Midwifery Council (NMC) Ghana</option>
                     <option value="Pharmacy Council of Ghana">Pharmacy Council of Ghana</option>
@@ -7741,14 +7741,14 @@ export function HRManagementView() {
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>License Number</label>
-                  <input type="text" value={credentialForm.licenseNumber} onChange={e => setCredentialForm({ ...credentialForm, licenseNumber: e.target.value })} required style={{ width: '100%', padding: '7px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="text" value={credentialForm.licenseNumber} onChange={e => setCredentialForm({ ...credentialForm, licenseNumber: e.target.value })} required style={{ width: '100%', padding: '7px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Cadre</label>
-                  <select value={credentialForm.cadre} onChange={e => setCredentialForm({ ...credentialForm, cadre: e.target.value })} style={{ width: '100%', padding: '7px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                  <select value={credentialForm.cadre} onChange={e => setCredentialForm({ ...credentialForm, cadre: e.target.value })} style={{ width: '100%', padding: '7px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                     <option value="SPECIALIST_PHYSICIAN">Specialist Physician</option>
                     <option value="CONSULTANT_SURGEON">Consultant Surgeon</option>
                     <option value="MEDICAL_OFFICER">Medical Officer</option>
@@ -7759,18 +7759,18 @@ export function HRManagementView() {
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Specialty</label>
-                  <input type="text" value={credentialForm.specialty} onChange={e => setCredentialForm({ ...credentialForm, specialty: e.target.value })} style={{ width: '100%', padding: '7px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="text" value={credentialForm.specialty} onChange={e => setCredentialForm({ ...credentialForm, specialty: e.target.value })} style={{ width: '100%', padding: '7px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Issued Date</label>
-                  <input type="date" value={credentialForm.issuedDate} onChange={e => setCredentialForm({ ...credentialForm, issuedDate: e.target.value })} required style={{ width: '100%', padding: '7px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="date" value={credentialForm.issuedDate} onChange={e => setCredentialForm({ ...credentialForm, issuedDate: e.target.value })} required style={{ width: '100%', padding: '7px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Expiry Date</label>
-                  <input type="date" value={credentialForm.expiryDate} onChange={e => setCredentialForm({ ...credentialForm, expiryDate: e.target.value })} required style={{ width: '100%', padding: '7px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="date" value={credentialForm.expiryDate} onChange={e => setCredentialForm({ ...credentialForm, expiryDate: e.target.value })} required style={{ width: '100%', padding: '7px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
 
@@ -7797,17 +7797,17 @@ export function HRManagementView() {
             <form onSubmit={handleClockIn} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Staff Member</label>
-                <input type="text" value={clockInForm.staffName} onChange={e => setClockInForm({ ...clockInForm, staffName: e.target.value })} required style={{ width: '100%', padding: '7px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input type="text" value={clockInForm.staffName} onChange={e => setClockInForm({ ...clockInForm, staffName: e.target.value })} required style={{ width: '100%', padding: '7px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Department</label>
-                <input type="text" value={clockInForm.department} onChange={e => setClockInForm({ ...clockInForm, department: e.target.value })} required style={{ width: '100%', padding: '7px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input type="text" value={clockInForm.department} onChange={e => setClockInForm({ ...clockInForm, department: e.target.value })} required style={{ width: '100%', padding: '7px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Biometric Terminal</label>
-                <select value={clockInForm.workstationOrTerminal} onChange={e => setClockInForm({ ...clockInForm, workstationOrTerminal: e.target.value })} style={{ width: '100%', padding: '7px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                <select value={clockInForm.workstationOrTerminal} onChange={e => setClockInForm({ ...clockInForm, workstationOrTerminal: e.target.value })} style={{ width: '100%', padding: '7px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                   <option value="BIOMETRIC_TERMINAL_ED_MAIN">Accident & Emergency Main Gate Reader</option>
                   <option value="BIOMETRIC_TERMINAL_OT">Operating Theatre Surgical Airlock Reader</option>
                   <option value="BIOMETRIC_TERMINAL_ICU">ICU Critical Access Terminal</option>
@@ -7838,13 +7838,13 @@ export function HRManagementView() {
             <form onSubmit={handleRequestLeave} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Staff Member</label>
-                <input type="text" value={leaveForm.staffName} onChange={e => setLeaveForm({ ...leaveForm, staffName: e.target.value })} required style={{ width: '100%', padding: '7px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input type="text" value={leaveForm.staffName} onChange={e => setLeaveForm({ ...leaveForm, staffName: e.target.value })} required style={{ width: '100%', padding: '7px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Leave Type</label>
-                  <select value={leaveForm.leaveType} onChange={e => setLeaveForm({ ...leaveForm, leaveType: e.target.value })} style={{ width: '100%', padding: '7px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                  <select value={leaveForm.leaveType} onChange={e => setLeaveForm({ ...leaveForm, leaveType: e.target.value })} style={{ width: '100%', padding: '7px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                     <option value="ANNUAL_LEAVE">Annual Statutory Leave</option>
                     <option value="SICK_LEAVE">Medical / Sick Leave</option>
                     <option value="MATERNITY_LEAVE">Maternity Leave</option>
@@ -7855,28 +7855,28 @@ export function HRManagementView() {
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Relieving Clinician</label>
-                  <input type="text" value={leaveForm.relievingStaffName} onChange={e => setLeaveForm({ ...leaveForm, relievingStaffName: e.target.value })} required style={{ width: '100%', padding: '7px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="text" value={leaveForm.relievingStaffName} onChange={e => setLeaveForm({ ...leaveForm, relievingStaffName: e.target.value })} required style={{ width: '100%', padding: '7px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Start Date</label>
-                  <input type="date" value={leaveForm.startDate} onChange={e => setLeaveForm({ ...leaveForm, startDate: e.target.value })} required style={{ width: '100%', padding: '7px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="date" value={leaveForm.startDate} onChange={e => setLeaveForm({ ...leaveForm, startDate: e.target.value })} required style={{ width: '100%', padding: '7px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>End Date</label>
-                  <input type="date" value={leaveForm.endDate} onChange={e => setLeaveForm({ ...leaveForm, endDate: e.target.value })} required style={{ width: '100%', padding: '7px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="date" value={leaveForm.endDate} onChange={e => setLeaveForm({ ...leaveForm, endDate: e.target.value })} required style={{ width: '100%', padding: '7px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Days</label>
-                  <input type="number" value={leaveForm.daysRequested} onChange={e => setLeaveForm({ ...leaveForm, daysRequested: parseInt(e.target.value) || 1 })} required style={{ width: '100%', padding: '7px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="number" value={leaveForm.daysRequested} onChange={e => setLeaveForm({ ...leaveForm, daysRequested: parseInt(e.target.value) || 1 })} required style={{ width: '100%', padding: '7px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Reason / Clinical Justification</label>
-                <textarea rows={2} value={leaveForm.reason} onChange={e => setLeaveForm({ ...leaveForm, reason: e.target.value })} required style={{ width: '100%', padding: '7px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <textarea rows={2} value={leaveForm.reason} onChange={e => setLeaveForm({ ...leaveForm, reason: e.target.value })} required style={{ width: '100%', padding: '7px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
@@ -8230,7 +8230,7 @@ export function QualityAssuranceView() {
           borderRadius: '12px',
           padding: '28px',
           border: '1px solid var(--border-gold)',
-          background: 'linear-gradient(135deg, rgba(20,16,10,0.95), rgba(10,8,6,0.98))'
+          background: 'linear-gradient(135deg, rgba(15,27,49,0.95), rgba(6,12,24,0.98))'
         }}
       >
         <div style={{ position: 'relative', zIndex: 2, maxWidth: '850px' }}>
@@ -8840,13 +8840,13 @@ export function QualityAssuranceView() {
             <form onSubmit={handleReportIncident} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Incident Title *</label>
-                <input required type="text" placeholder="e.g. Near-miss lookalike insulin dispensing" value={incidentForm.title} onChange={e => setIncidentForm({ ...incidentForm, title: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="text" placeholder="e.g. Near-miss lookalike insulin dispensing" value={incidentForm.title} onChange={e => setIncidentForm({ ...incidentForm, title: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Severity Level</label>
-                  <select value={incidentForm.severity} onChange={e => setIncidentForm({ ...incidentForm, severity: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                  <select value={incidentForm.severity} onChange={e => setIncidentForm({ ...incidentForm, severity: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                     <option value="NEAR_MISS">NEAR MISS (Potential Harm Intercepted)</option>
                     <option value="HAZARDOUS_CONDITION">HAZARDOUS CONDITION (Safety Threat)</option>
                     <option value="ADVERSE_EVENT">ADVERSE EVENT (Patient Harm Occurred)</option>
@@ -8855,7 +8855,7 @@ export function QualityAssuranceView() {
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Incident Category</label>
-                  <select value={incidentForm.category} onChange={e => setIncidentForm({ ...incidentForm, category: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                  <select value={incidentForm.category} onChange={e => setIncidentForm({ ...incidentForm, category: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                     <option value="MEDICATION_ERROR">MEDICATION ERROR</option>
                     <option value="PATIENT_FALL">PATIENT FALL</option>
                     <option value="SURGICAL_COMPLICATION">SURGICAL COMPLICATION</option>
@@ -8872,22 +8872,22 @@ export function QualityAssuranceView() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Incident Date *</label>
-                  <input required type="date" value={incidentForm.incidentDate} onChange={e => setIncidentForm({ ...incidentForm, incidentDate: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="date" value={incidentForm.incidentDate} onChange={e => setIncidentForm({ ...incidentForm, incidentDate: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Department / Unit *</label>
-                  <input required type="text" value={incidentForm.locationDepartment} onChange={e => setIncidentForm({ ...incidentForm, locationDepartment: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="text" value={incidentForm.locationDepartment} onChange={e => setIncidentForm({ ...incidentForm, locationDepartment: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Detailed Description of Event *</label>
-                <textarea rows={3} required value={incidentForm.description} onChange={e => setIncidentForm({ ...incidentForm, description: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <textarea rows={3} required value={incidentForm.description} onChange={e => setIncidentForm({ ...incidentForm, description: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Immediate Action Taken *</label>
-                <input required type="text" placeholder="e.g. Infusion stopped immediately, attending physician notified" value={incidentForm.immediateActionTaken} onChange={e => setIncidentForm({ ...incidentForm, immediateActionTaken: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="text" placeholder="e.g. Infusion stopped immediately, attending physician notified" value={incidentForm.immediateActionTaken} onChange={e => setIncidentForm({ ...incidentForm, immediateActionTaken: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -8898,7 +8898,7 @@ export function QualityAssuranceView() {
                   </label>
                 </div>
                 {!incidentForm.isAnonymous && (
-                  <input type="text" placeholder="Reporting Staff Name" value={incidentForm.reportedByStaffName} onChange={e => setIncidentForm({ ...incidentForm, reportedByStaffName: e.target.value })} style={{ padding: '6px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px', fontSize: '0.78rem' }} />
+                  <input type="text" placeholder="Reporting Staff Name" value={incidentForm.reportedByStaffName} onChange={e => setIncidentForm({ ...incidentForm, reportedByStaffName: e.target.value })} style={{ padding: '6px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px', fontSize: '0.78rem' }} />
                 )}
               </div>
 
@@ -8925,22 +8925,22 @@ export function QualityAssuranceView() {
             <form onSubmit={handleInvestigateIncident} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Root Cause Analysis Findings *</label>
-                <textarea rows={3} required placeholder="Detailed root cause breakdown (5 Whys / Fishbone)..." value={rcaForm.rootCauseAnalysis} onChange={e => setRcaForm({ ...rcaForm, rootCauseAnalysis: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <textarea rows={3} required placeholder="Detailed root cause breakdown (5 Whys / Fishbone)..." value={rcaForm.rootCauseAnalysis} onChange={e => setRcaForm({ ...rcaForm, rootCauseAnalysis: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Contributing Factors</label>
-                <input type="text" value={rcaForm.contributingFactors} onChange={e => setRcaForm({ ...rcaForm, contributingFactors: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input type="text" value={rcaForm.contributingFactors} onChange={e => setRcaForm({ ...rcaForm, contributingFactors: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Action Plan Summary</label>
-                <input type="text" value={rcaForm.actionPlanSummary} onChange={e => setRcaForm({ ...rcaForm, actionPlanSummary: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input type="text" value={rcaForm.actionPlanSummary} onChange={e => setRcaForm({ ...rcaForm, actionPlanSummary: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Lead Investigator</label>
-                <input type="text" value={rcaForm.leadInvestigator} onChange={e => setRcaForm({ ...rcaForm, leadInvestigator: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input type="text" value={rcaForm.leadInvestigator} onChange={e => setRcaForm({ ...rcaForm, leadInvestigator: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '14px' }}>
@@ -8963,18 +8963,18 @@ export function QualityAssuranceView() {
               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Patient Full Name *</label>
-                  <input required type="text" value={ipcForm.patientName} onChange={e => setIpcForm({ ...ipcForm, patientName: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="text" value={ipcForm.patientName} onChange={e => setIpcForm({ ...ipcForm, patientName: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Patient MRN *</label>
-                  <input required type="text" placeholder="MRN-2026-0001" value={ipcForm.patientMrn} onChange={e => setIpcForm({ ...ipcForm, patientMrn: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="text" placeholder="MRN-2026-0001" value={ipcForm.patientMrn} onChange={e => setIpcForm({ ...ipcForm, patientMrn: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Infection Type</label>
-                  <select value={ipcForm.infectionType} onChange={e => setIpcForm({ ...ipcForm, infectionType: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                  <select value={ipcForm.infectionType} onChange={e => setIpcForm({ ...ipcForm, infectionType: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                     <option value="SSI">Surgical Site Infection (SSI)</option>
                     <option value="CAUTI">Catheter-Associated UTI (CAUTI)</option>
                     <option value="CLABSI">Central Line-Associated Bloodstream Infection (CLABSI)</option>
@@ -8987,7 +8987,7 @@ export function QualityAssuranceView() {
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Isolation Precautions</label>
-                  <select value={ipcForm.isolationPrecautions} onChange={e => setIpcForm({ ...ipcForm, isolationPrecautions: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                  <select value={ipcForm.isolationPrecautions} onChange={e => setIpcForm({ ...ipcForm, isolationPrecautions: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                     <option value="CONTACT">CONTACT ISOLATION</option>
                     <option value="DROPLET">DROPLET ISOLATION</option>
                     <option value="AIRBORNE">AIRBORNE NEGATIVE PRESSURE</option>
@@ -8999,27 +8999,27 @@ export function QualityAssuranceView() {
               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Ward Location *</label>
-                  <input required type="text" value={ipcForm.wardLocation} onChange={e => setIpcForm({ ...ipcForm, wardLocation: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="text" value={ipcForm.wardLocation} onChange={e => setIpcForm({ ...ipcForm, wardLocation: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Bed Number</label>
-                  <input type="text" value={ipcForm.bedNumber} onChange={e => setIpcForm({ ...ipcForm, bedNumber: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="text" value={ipcForm.bedNumber} onChange={e => setIpcForm({ ...ipcForm, bedNumber: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Confirmed Pathogen *</label>
-                <input required type="text" value={ipcForm.confirmedPathogen} onChange={e => setIpcForm({ ...ipcForm, confirmedPathogen: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="text" value={ipcForm.confirmedPathogen} onChange={e => setIpcForm({ ...ipcForm, confirmedPathogen: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Antimicrobial Resistance</label>
-                  <input type="text" value={ipcForm.antibioticResistanceProfile} onChange={e => setIpcForm({ ...ipcForm, antibioticResistanceProfile: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="text" value={ipcForm.antibioticResistanceProfile} onChange={e => setIpcForm({ ...ipcForm, antibioticResistanceProfile: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Attending Physician</label>
-                  <input type="text" value={ipcForm.attendingPhysician} onChange={e => setIpcForm({ ...ipcForm, attendingPhysician: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input type="text" value={ipcForm.attendingPhysician} onChange={e => setIpcForm({ ...ipcForm, attendingPhysician: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
 
@@ -9046,12 +9046,12 @@ export function QualityAssuranceView() {
             <form onSubmit={handleClearIpc} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Clearance Clinical Justification *</label>
-                <textarea rows={3} required value={clearIpcForm.clearanceReason} onChange={e => setClearIpcForm({ ...clearIpcForm, clearanceReason: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <textarea rows={3} required value={clearIpcForm.clearanceReason} onChange={e => setClearIpcForm({ ...clearIpcForm, clearanceReason: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Infection Control Officer *</label>
-                <input required type="text" value={clearIpcForm.infectionControlOfficer} onChange={e => setClearIpcForm({ ...clearIpcForm, infectionControlOfficer: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="text" value={clearIpcForm.infectionControlOfficer} onChange={e => setClearIpcForm({ ...clearIpcForm, infectionControlOfficer: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '14px' }}>
@@ -9071,13 +9071,13 @@ export function QualityAssuranceView() {
             <form onSubmit={handleCreateAudit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Audit Title *</label>
-                <input required type="text" value={auditForm.auditTitle} onChange={e => setAuditForm({ ...auditForm, auditTitle: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="text" value={auditForm.auditTitle} onChange={e => setAuditForm({ ...auditForm, auditTitle: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Audit Type</label>
-                  <select value={auditForm.auditType} onChange={e => setAuditForm({ ...auditForm, auditType: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                  <select value={auditForm.auditType} onChange={e => setAuditForm({ ...auditForm, auditType: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                     <option value="WHO_SURGICAL_SAFETY_CHECKLIST">WHO Surgical Safety Checklist</option>
                     <option value="WHO_HAND_HYGIENE_5_MOMENTS">WHO 5 Moments Hand Hygiene</option>
                     <option value="ANTIBIOTIC_STEWARDSHIP">Antimicrobial Stewardship</option>
@@ -9088,29 +9088,29 @@ export function QualityAssuranceView() {
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Department Audited *</label>
-                  <input required type="text" value={auditForm.department} onChange={e => setAuditForm({ ...auditForm, department: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="text" value={auditForm.department} onChange={e => setAuditForm({ ...auditForm, department: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Sample Size Evaluated *</label>
-                  <input required type="number" min="1" value={auditForm.sampleSizeEvaluated} onChange={e => setAuditForm({ ...auditForm, sampleSizeEvaluated: parseInt(e.target.value) || 1 })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="number" min="1" value={auditForm.sampleSizeEvaluated} onChange={e => setAuditForm({ ...auditForm, sampleSizeEvaluated: parseInt(e.target.value) || 1 })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Non-Compliances Found *</label>
-                  <input required type="number" min="0" value={auditForm.nonCompliancesFound} onChange={e => setAuditForm({ ...auditForm, nonCompliancesFound: parseInt(e.target.value) || 0 })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="number" min="0" value={auditForm.nonCompliancesFound} onChange={e => setAuditForm({ ...auditForm, nonCompliancesFound: parseInt(e.target.value) || 0 })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Auditor Name *</label>
-                <input required type="text" value={auditForm.auditorName} onChange={e => setAuditForm({ ...auditForm, auditorName: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="text" value={auditForm.auditorName} onChange={e => setAuditForm({ ...auditForm, auditorName: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Audit Recommendations</label>
-                <textarea rows={2} value={auditForm.recommendations} onChange={e => setAuditForm({ ...auditForm, recommendations: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <textarea rows={2} value={auditForm.recommendations} onChange={e => setAuditForm({ ...auditForm, recommendations: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '14px' }}>
@@ -9132,13 +9132,13 @@ export function QualityAssuranceView() {
             <form onSubmit={handleCreateCapa} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>CAPA Title *</label>
-                <input required type="text" value={capaForm.title} onChange={e => setCapaForm({ ...capaForm, title: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="text" value={capaForm.title} onChange={e => setCapaForm({ ...capaForm, title: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Root Cause Methodology</label>
-                  <select value={capaForm.rootCauseMethod} onChange={e => setCapaForm({ ...capaForm, rootCauseMethod: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                  <select value={capaForm.rootCauseMethod} onChange={e => setCapaForm({ ...capaForm, rootCauseMethod: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                     <option value="FIVE_WHYS">5 Whys Analysis</option>
                     <option value="FISHBONE_ISHIKAWA">Fishbone (Ishikawa) Diagram</option>
                     <option value="FMEA">Failure Mode & Effects Analysis (FMEA)</option>
@@ -9147,28 +9147,28 @@ export function QualityAssuranceView() {
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Target Completion Date *</label>
-                  <input required type="date" value={capaForm.targetCompletionDate} onChange={e => setCapaForm({ ...capaForm, targetCompletionDate: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                  <input required type="date" value={capaForm.targetCompletionDate} onChange={e => setCapaForm({ ...capaForm, targetCompletionDate: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
                 </div>
               </div>
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Root Cause Finding *</label>
-                <input required type="text" value={capaForm.rootCauseFinding} onChange={e => setCapaForm({ ...capaForm, rootCauseFinding: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="text" value={capaForm.rootCauseFinding} onChange={e => setCapaForm({ ...capaForm, rootCauseFinding: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Corrective Action (Immediate) *</label>
-                <input required type="text" value={capaForm.correctiveAction} onChange={e => setCapaForm({ ...capaForm, correctiveAction: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="text" value={capaForm.correctiveAction} onChange={e => setCapaForm({ ...capaForm, correctiveAction: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Preventive Action (Systemic) *</label>
-                <input required type="text" value={capaForm.preventiveAction} onChange={e => setCapaForm({ ...capaForm, preventiveAction: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="text" value={capaForm.preventiveAction} onChange={e => setCapaForm({ ...capaForm, preventiveAction: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Assigned Department Lead *</label>
-                <input required type="text" value={capaForm.assignedLead} onChange={e => setCapaForm({ ...capaForm, assignedLead: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="text" value={capaForm.assignedLead} onChange={e => setCapaForm({ ...capaForm, assignedLead: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '14px' }}>
@@ -9192,12 +9192,12 @@ export function QualityAssuranceView() {
             <form onSubmit={handleVerifyCapa} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Verification Notes *</label>
-                <textarea rows={3} required value={verifyCapaForm.verificationNotes} onChange={e => setVerifyCapaForm({ ...verifyCapaForm, verificationNotes: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <textarea rows={3} required value={verifyCapaForm.verificationNotes} onChange={e => setVerifyCapaForm({ ...verifyCapaForm, verificationNotes: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Effectiveness Adjudication</label>
-                <select value={verifyCapaForm.effectivenessResult} onChange={e => setVerifyCapaForm({ ...verifyCapaForm, effectivenessResult: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                <select value={verifyCapaForm.effectivenessResult} onChange={e => setVerifyCapaForm({ ...verifyCapaForm, effectivenessResult: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                   <option value="EFFECTIVE_CLOSED">EFFECTIVE - CLOSE PLAN</option>
                   <option value="PARTIALLY_EFFECTIVE">PARTIALLY EFFECTIVE - EXTEND ACTIONS</option>
                   <option value="INEFFECTIVE_REOPEN">INEFFECTIVE - REOPEN ROOT CAUSE ANALYSIS</option>
@@ -9206,7 +9206,7 @@ export function QualityAssuranceView() {
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Verified By *</label>
-                <input required type="text" value={verifyCapaForm.verifiedBy} onChange={e => setVerifyCapaForm({ ...verifyCapaForm, verifiedBy: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="text" value={verifyCapaForm.verifiedBy} onChange={e => setVerifyCapaForm({ ...verifyCapaForm, verifiedBy: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '14px' }}>
@@ -9228,13 +9228,13 @@ export function QualityAssuranceView() {
             <form onSubmit={handleBroadcastAlert} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Alert Title *</label>
-                <input required type="text" placeholder="e.g. Critical Lookalike Packaging: Dopamine vs Dobutamine" value={alertForm.alertTitle} onChange={e => setAlertForm({ ...alertForm, alertTitle: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="text" placeholder="e.g. Critical Lookalike Packaging: Dopamine vs Dobutamine" value={alertForm.alertTitle} onChange={e => setAlertForm({ ...alertForm, alertTitle: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Severity</label>
-                  <select value={alertForm.severity} onChange={e => setAlertForm({ ...alertForm, severity: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                  <select value={alertForm.severity} onChange={e => setAlertForm({ ...alertForm, severity: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                     <option value="CRITICAL_WARNING">CRITICAL FLASH WARNING</option>
                     <option value="URGENT_ACTION">URGENT CLINICAL ACTION</option>
                     <option value="INFORMATIONAL">INFORMATIONAL BULLETIN</option>
@@ -9242,7 +9242,7 @@ export function QualityAssuranceView() {
                 </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Target Audience</label>
-                  <select value={alertForm.targetAudience} onChange={e => setAlertForm({ ...alertForm, targetAudience: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
+                  <select value={alertForm.targetAudience} onChange={e => setAlertForm({ ...alertForm, targetAudience: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}>
                     <option value="ALL_CLINICAL_STAFF">ALL CLINICAL STAFF</option>
                     <option value="PHYSICIANS_ONLY">PHYSICIANS & SURGEONS ONLY</option>
                     <option value="NURSING_STAFF">NURSING STAFF ONLY</option>
@@ -9254,17 +9254,17 @@ export function QualityAssuranceView() {
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Alert Message Details *</label>
-                <textarea rows={3} required value={alertForm.alertMessage} onChange={e => setAlertForm({ ...alertForm, alertMessage: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <textarea rows={3} required value={alertForm.alertMessage} onChange={e => setAlertForm({ ...alertForm, alertMessage: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Mandatory Action Required *</label>
-                <input required type="text" placeholder="e.g. Inspect all ampoules, place auxiliary warning label on bins" value={alertForm.actionRequired} onChange={e => setAlertForm({ ...alertForm, actionRequired: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="text" placeholder="e.g. Inspect all ampoules, place auxiliary warning label on bins" value={alertForm.actionRequired} onChange={e => setAlertForm({ ...alertForm, actionRequired: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Expiry Date *</label>
-                <input required type="date" value={alertForm.expiryDate} onChange={e => setAlertForm({ ...alertForm, expiryDate: e.target.value })} style={{ width: '100%', padding: '8px', background: '#12100d', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="date" value={alertForm.expiryDate} onChange={e => setAlertForm({ ...alertForm, expiryDate: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '14px' }}>

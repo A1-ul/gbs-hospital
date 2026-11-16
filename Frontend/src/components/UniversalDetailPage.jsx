@@ -452,8 +452,8 @@ export default function UniversalDetailPage({
           alignItems: 'center',
           flexWrap: 'wrap',
           gap: '12px',
-          border: '1px solid var(--border-gold)',
-          background: 'rgba(12, 10, 8, 0.92)'
+          border: '1px solid var(--border-color)',
+          background: 'rgba(8, 16, 32, 0.92)'
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -656,11 +656,11 @@ export default function UniversalDetailPage({
             <div>
               <h3 style={{ margin: 0, fontSize: '1.05rem', color: 'var(--gold-400)' }}>
                 {detailType === 'VIEW_APPLICATIONS' ? 'Submitted Applications & Approvals Queue' :
-                 detailType === 'VIEW_TRANSACTIONS' ? 'Financial Invoices & Payment Ledger' :
-                 detailType === 'VIEW_HISTORY' ? 'Immutable PostgreSQL Audit Log Trail' :
-                 detailType === 'VIEW_NOTIFICATIONS' ? 'System & Clinical Broadcast Notifications' :
-                 detailType === 'VIEW_SYSTEM_INFORMATION' ? 'Database Table Record & Environment Source Matrix' :
-                 'Associated PostgreSQL Records'}
+                  detailType === 'VIEW_TRANSACTIONS' ? 'Financial Invoices & Payment Ledger' :
+                    detailType === 'VIEW_HISTORY' ? 'Immutable PostgreSQL Audit Log Trail' :
+                      detailType === 'VIEW_NOTIFICATIONS' ? 'System & Clinical Broadcast Notifications' :
+                        detailType === 'VIEW_SYSTEM_INFORMATION' ? 'Database Table Record & Environment Source Matrix' :
+                          'Associated PostgreSQL Records'}
               </h3>
               <p style={{ margin: '2px 0 0', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
                 Showing {filteredExtraRecords.length} live database entries (0 fake or sample rows)
@@ -675,7 +675,7 @@ export default function UniversalDetailPage({
               style={{
                 padding: '8px 14px',
                 borderRadius: '6px',
-                background: '#12100d',
+                background: 'rgba(6, 12, 24, 0.88)',
                 border: '1px solid var(--border-gold)',
                 color: '#fff',
                 fontSize: '0.82rem',

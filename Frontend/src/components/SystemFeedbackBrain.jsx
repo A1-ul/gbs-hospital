@@ -279,7 +279,7 @@ export default function SystemFeedbackBrain({ currentRole, activeModule }) {
                         gap: '10px',
                         padding: '6px 10px',
                         borderRadius: '6px',
-                        background: 'rgba(10,8,6,0.72)',
+                        background: 'rgba(6,12,24,0.78)',
                         border: '1px solid rgba(255,255,255,0.08)',
                         fontSize: '0.76rem',
                         flexWrap: 'wrap',
