@@ -53,7 +53,7 @@ describe("Phase 7: Enterprise Pharmacy, Batch Tracking, FEFO Dispensing & Teleme
                     phone: "+233200000001",
                     address: "Main Campus, Accra",
                     city: "Accra",
-                    region: "Greater Accra",
+                    state: "Greater Accra",
                     country: "Ghana"
                 }
             });

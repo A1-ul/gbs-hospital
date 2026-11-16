@@ -58,7 +58,7 @@ describe("Phase 10: Billing, Invoicing, NHIS Integration, Insurance Claims & Fin
                     phone: "+233200000004",
                     address: "Finance Building, Cantonments, Accra",
                     city: "Accra",
-                    region: "Greater Accra",
+                    state: "Greater Accra",
                     country: "Ghana"
                 }
             });

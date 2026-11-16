@@ -43,7 +43,7 @@ describe("Phase 5 / Procedure 5: Doctor Consultation, ICD-10 Diagnosis, Prescrip
                     phone: "+233302665401",
                     address: "Guggisberg Avenue, Korle-Bu, Accra",
                     city: "Accra",
-                    region: "Greater Accra",
+                    state: "Greater Accra",
                     country: "Ghana"
                 }
             });

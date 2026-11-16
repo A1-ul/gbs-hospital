@@ -46,7 +46,7 @@ describe("Phase 4 / Procedure 4: OPD Queuing, Nurse Triage, NEWS2 Vitals & Clini
                     phone: "+233302665401",
                     address: "Guggisberg Avenue, Korle-Bu, Accra",
                     city: "Accra",
-                    region: "Greater Accra",
+                    state: "Greater Accra",
                     country: "Ghana"
                 }
             });

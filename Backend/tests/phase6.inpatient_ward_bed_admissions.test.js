@@ -46,7 +46,7 @@ describe("Phase 6 / Procedure 6: Inpatient Department (IPD), Ward & Bed Manageme
                     phone: "+233302665401",
                     address: "Guggisberg Avenue, Korle-Bu, Accra",
                     city: "Accra",
-                    region: "Greater Accra",
+                    state: "Greater Accra",
                     country: "Ghana"
                 }
             });

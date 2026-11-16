@@ -13,6 +13,7 @@ LOCATION: tests/phase13.blood_bank_transfusion_services.test.js
 const request = require("supertest");
 const app = require("../src/app");
 const prisma = require("../src/core/database/prisma.client");
+const { ensureDefaultHospital } = require("../src/core/database/hospital-resolver");
 
 describe("Phase 13: Blood Bank & Transfusion Services Subsystem", () => {
     let adminToken;
@@ -43,7 +44,7 @@ describe("Phase 13: Blood Bank & Transfusion Services Subsystem", () => {
         });
 
         if (!patient) {
-            const hospital = await prisma.hospital.findFirst();
+            const hospital = await ensureDefaultHospital();
             patient = await prisma.patient.create({
                 data: {
                     hospitalId: hospital.id,

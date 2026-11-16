@@ -10,10 +10,13 @@ LOCATION: src/modules/admissions/services/inpatient.service.js
 */
 
 const prisma = require("../../../core/database/prisma.client");
+const { transaction: executeTransaction } = require("../../../core/database/prisma.transaction");
 const { ensureDefaultHospitalId } = require("../../../core/database/hospital-resolver");
 const { generateAdmissionNumber, generateWardCode, generateBedCode } = require("../helpers/admission-id.generator");
 const AppError = require("../../../core/errors/app.error");
 const logger = require("../../../core/utils/logger");
+
+const IPD_TX_OPTIONS = Object.freeze({ maxWait: 10000, timeout: 30000 });
 
 async function resolveDefaultHospitalId(explicitHospitalId) {
     return ensureDefaultHospitalId(explicitHospitalId);
@@ -355,7 +358,7 @@ async function admitPatient(data, staffUser) {
     const admissionNumber = await generateAdmissionNumber();
     const admittedAt = new Date();
 
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await executeTransaction(async (tx) => {
         // Ensure active clinical encounter exists
         let activeEncounterId = encounterId;
         if (!activeEncounterId) {
@@ -426,7 +429,7 @@ async function admitPatient(data, staffUser) {
         });
 
         return admission;
-    });
+    }, IPD_TX_OPTIONS);
 
     logger.info("Patient admitted to inpatient ward successfully", {
         admissionNumber,
@@ -492,7 +495,7 @@ async function transferBed(admissionId, transferData, staffUser) {
 
     const oldBedId = admission.bedId;
 
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await executeTransaction(async (tx) => {
         // 1. Release old bed
         if (oldBedId) {
             await tx.hospitalBed.update({
@@ -532,7 +535,7 @@ async function transferBed(admissionId, transferData, staffUser) {
         });
 
         return updatedAdmission;
-    });
+    }, IPD_TX_OPTIONS);
 
     logger.info("Patient bed transfer completed", { admissionId, oldBedId, newBedId: newBed.id });
 
@@ -681,7 +684,7 @@ async function dischargePatient(admissionId, dischargeData, staffUser) {
 
     const dischargedAt = new Date();
 
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await executeTransaction(async (tx) => {
         // 1. Update Admission record
         const updatedAdmission = await tx.hospitalAdmission.update({
             where: { id: admissionId },
@@ -734,7 +737,7 @@ async function dischargePatient(admissionId, dischargeData, staffUser) {
         }
 
         return updatedAdmission;
-    });
+    }, IPD_TX_OPTIONS);
 
     logger.info("Patient discharged from inpatient ward successfully", {
         admissionId,
@@ -1022,16 +1025,16 @@ async function getFullHospitalBedMatrix(hospitalId) {
                     availableBedsInRoom,
                     currentOccupant: activeAdm
                         ? {
-                              admissionId: activeAdm.id,
-                              admissionNumber: activeAdm.admissionNumber,
-                              admittedAt: activeAdm.admittedAt,
-                              notes: activeAdm.notes,
-                              patientId: activeAdm.patient?.id,
-                              patientMrn: activeAdm.patient?.patientNumber,
-                              patientName: activeAdm.patient
-                                  ? `${activeAdm.patient.firstName} ${activeAdm.patient.lastName}`
-                                  : "Admitted Patient"
-                          }
+                            admissionId: activeAdm.id,
+                            admissionNumber: activeAdm.admissionNumber,
+                            admittedAt: activeAdm.admittedAt,
+                            notes: activeAdm.notes,
+                            patientId: activeAdm.patient?.id,
+                            patientMrn: activeAdm.patient?.patientNumber,
+                            patientName: activeAdm.patient
+                                ? `${activeAdm.patient.firstName} ${activeAdm.patient.lastName}`
+                                : "Admitted Patient"
+                        }
                         : null
                 };
                 flatBeds.push(bedItem);

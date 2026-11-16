@@ -57,7 +57,7 @@ describe("Phase 9: Radiology, PACS Imaging, DICOM Metadata, Modality Worklists &
                     phone: "+233200000003",
                     address: "Radiology Center, Ridge, Accra",
                     city: "Accra",
-                    region: "Greater Accra",
+                    state: "Greater Accra",
                     country: "Ghana"
                 }
             });

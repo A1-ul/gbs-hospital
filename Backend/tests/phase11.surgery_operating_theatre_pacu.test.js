@@ -59,7 +59,7 @@ describe("Phase 11: Operating Theatre, Surgical Scheduling, Anesthesia & Periope
                     phone: "+233200000005",
                     address: "Surgical Pavilion, Ring Road, Accra",
                     city: "Accra",
-                    region: "Greater Accra",
+                    state: "Greater Accra",
                     country: "Ghana"
                 }
             });

@@ -51,7 +51,7 @@ describe("Phase 8: Laboratory Diagnostics, Specimen Barcode Accessioning, Panic 
                     phone: "+233200000002",
                     address: "Medical Center, Accra",
                     city: "Accra",
-                    region: "Greater Accra",
+                    state: "Greater Accra",
                     country: "Ghana"
                 }
             });
