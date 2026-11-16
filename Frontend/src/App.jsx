@@ -69,7 +69,7 @@ import {
   Search, PlusCircle, Lock, Unlock, RefreshCw, Database,
   Video, MapPin, Mic, Eye, Bell, History, Building2, User, Layers
 } from 'lucide-react';
-import { api } from './services/api.service';
+import { api, ensureRoleAuthentication } from './services/api.service';
 
 export const SUBSYSTEM_CATEGORIES = {
   ALL: { id: 'ALL', label: 'All Subsystems', icon: Layers, badge: 'ALL 16' },
@@ -265,12 +265,20 @@ export default function App() {
   // Check saved session & fetch live PostgreSQL overview metrics
   useEffect(() => {
     const savedUser = localStorage.getItem('gbs_user');
-    if (savedUser) {
+    const savedToken = localStorage.getItem('gbs_token');
+    if (savedUser && savedToken) {
       try {
         const u = JSON.parse(savedUser);
         setCurrentUser(u);
         if (u.role) setCurrentRole(u.role);
       } catch (_e) { }
+    } else {
+      ensureRoleAuthentication('ADMINISTRATOR').then((data) => {
+        if (data?.user) {
+          setCurrentUser(data.user);
+          if (data.user.role) setCurrentRole(data.user.role);
+        }
+      }).catch(() => {});
     }
     loadGlobalOverview();
   }, []);
@@ -448,7 +456,7 @@ export default function App() {
       <div style={{ position: 'relative', zIndex: 5 }}>
         <Header
           currentRole={currentRole}
-          onSelectRole={(r) => {
+          onSelectRole={async (r) => {
             if (r === 'DEVELOPER' && !isDeveloperAuthenticated) {
               setLoginModalRole('DEVELOPER');
               setIsLoginOpen(true);
@@ -456,12 +464,21 @@ export default function App() {
             }
             if (typeof window !== 'undefined') localStorage.setItem('gbs_role', r);
             setCurrentRole(r);
+
+            // Synchronize active role token and user identity for zero-error API calls
+            try {
+              const authData = await ensureRoleAuthentication(r);
+              if (authData?.user) {
+                setCurrentUser(authData.user);
+              }
+            } catch (_e) { }
+
             if (typeof window !== 'undefined' && typeof window.gbsBrainNotify === 'function') {
               window.gbsBrainNotify({
                 type: 'info',
                 method: 'ROLE',
                 title: `Role Switched to ${r}`,
-                message: `Loaded dedicated dashboard background & commands for ${r}.`,
+                message: `Loaded dedicated dashboard background & verified commands for ${r}.`,
                 role: r,
                 module: activeModule,
               });

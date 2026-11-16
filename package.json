@@ -6,7 +6,9 @@
   "scripts": {
     "build": "cd Frontend && npm install --include=dev && npm run build && cd ../Backend && npm install --include=dev && npx prisma generate",
     "start": "cd Backend && (npx prisma db push --skip-generate || true) && (node prisma/seed.js || true) && npm start",
-    "dev": "cd Backend && npm run dev"
+    "dev": "cd Backend && npm run dev",
+    "push": "git push origin main",
+    "sync": "git add -A && git commit -m \"feat: system upgrade and sync\" && git push origin main"
   },
   "engines": {
     "node": ">=18.0.0"

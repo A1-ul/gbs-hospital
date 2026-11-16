@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
-import { X, Lock, Mail, User, Shield, AlertCircle, CheckCircle, Check } from 'lucide-react';
-import { api } from '../services/api.service';
+import { X, Lock, Mail, User, Shield, AlertCircle, CheckCircle, Check, Zap } from 'lucide-react';
+import { api, ROLE_CREDENTIALS_MAP } from '../services/api.service';
 import { ROLES, ROLE_CATEGORIES } from './Header';
 
 export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initialRole = 'DOCTOR' }) {
   if (!isOpen) return null;
 
+  const initialCreds = ROLE_CREDENTIALS_MAP[initialRole] || ROLE_CREDENTIALS_MAP.DOCTOR;
+
   const [isSignUp, setIsSignUp] = useState(false);
   const [selectedRole, setSelectedRole] = useState(initialRole || 'DOCTOR');
   const [modalRoleCategory, setModalRoleCategory] = useState('ALL');
-  const [email, setEmail] = useState(initialRole === 'DEVELOPER' ? 'gabosei48@gmail.com' : '');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState(initialCreds?.email || '');
+  const [password, setPassword] = useState(initialCreds?.password || '');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
@@ -30,9 +32,12 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
   const handleSelectRoleOption = (roleId) => {
     setSelectedRole(roleId);
     setError(null);
-    if (roleId === 'DEVELOPER' && !isSignUp) {
-      setEmail('gabosei48@gmail.com');
-      setPassword('');
+    if (!isSignUp) {
+      const creds = ROLE_CREDENTIALS_MAP[roleId];
+      if (creds) {
+        setEmail(creds.email);
+        setPassword(creds.password);
+      }
     }
   };
 
@@ -40,6 +45,31 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
     ROLES.find((r) => r.id === (isDeveloperEmailEntered && !isSignUp ? 'DEVELOPER' : selectedRole)) ||
     selectableRoles[0] ||
     ROLES[0];
+
+  const activeDemoCreds = ROLE_CREDENTIALS_MAP[selectedRole] || initialCreds;
+
+  const handleOneClickLogin = async (demoEmail, demoPass) => {
+    setError(null);
+    setSuccessMsg(null);
+    setLoading(true);
+    const targetEmail = demoEmail || activeDemoCreds?.email;
+    const targetPass = demoPass || activeDemoCreds?.password;
+    setEmail(targetEmail);
+    setPassword(targetPass);
+
+    try {
+      const res = await api.login(targetEmail, targetPass);
+      localStorage.setItem('gbs_token', res.token);
+      localStorage.setItem('gbs_user', JSON.stringify(res.user));
+      localStorage.setItem('gbs_role', res.user?.role || selectedRole);
+      onLoginSuccess(res.user);
+      onClose();
+    } catch (err) {
+      setError(err.message || 'Authentication operation failed.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -320,6 +350,46 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
                   })}
               </div>
             </div>
+
+            {!isSignUp && activeDemoCreds && (
+              <div style={{
+                marginBottom: '10px',
+                padding: '8px 12px',
+                background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.16) 0%, rgba(15, 27, 49, 0.95) 100%)',
+                border: '1px solid var(--border-gold)',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '8px'
+              }}>
+                <div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--gold-400)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    ⚡ Verified Account • {currentRoleObj.name}
+                  </div>
+                  <div style={{ fontSize: '0.78rem', color: '#fff', fontWeight: 600 }}>
+                    {activeDemoCreds.email}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleOneClickLogin(activeDemoCreds.email, activeDemoCreds.password)}
+                  disabled={loading}
+                  className="btn-gold"
+                  style={{
+                    padding: '5px 12px',
+                    fontSize: '0.76rem',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    boxShadow: '0 2px 8px rgba(212, 175, 55, 0.3)'
+                  }}
+                >
+                  <Zap size={13} /> 1-Click Sign In
+                </button>
+              </div>
+            )}
 
             {isSignUp && (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>

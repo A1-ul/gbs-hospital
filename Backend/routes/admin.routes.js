@@ -6,7 +6,7 @@ GBS HOSPITAL MANAGEMENT SYSTEM
 
 ADMIN ROUTES
 
-SUPER ADMIN AREA
+ADMINISTRATOR AREA
 
 Production Hardened
 CommonJS Only
@@ -52,7 +52,7 @@ authMiddleware
 ====================================================
 ADMIN SECURITY
 
-SUPER_ADMIN ONLY
+ADMINISTRATOR ONLY
 
 ====================================================
 */
@@ -61,7 +61,7 @@ SUPER_ADMIN ONLY
 router.use(
 
 roleMiddleware(
-"SUPER_ADMIN"
+"ADMINISTRATOR"
 )
 
 );

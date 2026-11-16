@@ -25,9 +25,10 @@ const MORTUARY_ROLES = [
 router.use(authMiddleware);
 router.use(authorizeRoles(...MORTUARY_ROLES));
 
-// Real-Time Command Center Telemetry
+// Real-Time Command Center Telemetry & Catalogs
 router.get("/stats", controller.getTelemetry);
 router.get("/telemetry", controller.getTelemetry);
+router.get("/catalogs", controller.getCatalogs);
 
 // Cold Storage Vault Chambers
 router.get("/chambers", controller.getChambers);
@@ -38,12 +39,14 @@ router.patch("/chambers/:id/temperature", controller.updateChamberTemperature);
 router.get("/corpses", controller.getCorpseInventory);
 router.post("/corpses", controller.registerCorpseIntake);
 router.get("/corpses/:id", controller.getCorpseById);
+router.post("/corpses/:id/assign-chamber", controller.assignChamber);
 
 // Autopsy / Post-Mortem Case Management
 router.post("/autopsies", controller.scheduleAutopsy);
 router.post("/autopsies/:id/complete", controller.completeAutopsy);
 
 // Deceased Release & Family Handover Protocol
+router.get("/releases", controller.getReleases);
 router.post("/releases", controller.releaseCorpse);
 
 module.exports = router;

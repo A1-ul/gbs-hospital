@@ -44,9 +44,21 @@ registerRoute(
 );
 
 registerRoute(
+    "/admin",
+    require("../modules/users/routes/users.routes"),
+    "Admin Operations & User Control"
+);
+
+registerRoute(
     "/tenants",
     require("../modules/tenant-management/tenant-management.routes"),
     "Tenant Management"
+);
+
+registerRoute(
+    "/developer",
+    require("../modules/tenant-management/tenant-management.routes"),
+    "Developer Control Center"
 );
 
 registerRoute(

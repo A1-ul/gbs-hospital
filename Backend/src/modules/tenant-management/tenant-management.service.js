@@ -106,10 +106,10 @@ async function registerTenant(data) {
             }
         });
 
-        // Lookup Super Admin role
-        let superAdminRole = await tx.role.findUnique({ where: { name: "SUPER_ADMIN" } });
-        if (!superAdminRole) {
-            superAdminRole = await tx.role.findFirst({ where: { name: "ADMINISTRATOR" } });
+        // Lookup Administrator role
+        const adminRole = await tx.role.findFirst({ where: { name: "ADMINISTRATOR" } });
+        if (!adminRole) {
+            throw new Error("ADMINISTRATOR role not found");
         }
 
         // Stage administrator account in pending status
@@ -120,7 +120,7 @@ async function registerTenant(data) {
                 lastName: lastNameParts.join(" ") || "Admin",
                 email: normalizedAdminEmail,
                 password: hashedPassword,
-                roleId: superAdminRole.id,
+                roleId: adminRole.id,
                 active: false // Inactive until Developer approves the tenant
             }
         });

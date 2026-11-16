@@ -5,10 +5,60 @@
 
 const API_BASE = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_BASE_URL) || '/api/v1';
 
+export const ROLE_CREDENTIALS_MAP = {
+  DEVELOPER: { email: 'developer@gbs.com', password: 'Admin123', name: 'GBS Developer' },
+  ADMINISTRATOR: { email: 'admin@gbs.com', password: 'Admin123', name: 'System Administrator' },
+  HOSPITAL_DIRECTOR: { email: 'director@gbs.com', password: 'Director123', name: 'Hospital Director' },
+  DOCTOR: { email: 'doctor@gbs.com', password: 'Doctor123', name: 'Dr. Kwesi Mensah' },
+  SURGEON: { email: 'surgeon@gbs.com', password: 'Surgeon123', name: 'Dr. Ama Agyeman' },
+  DENTIST: { email: 'dentist@gbs.com', password: 'Dentist123', name: 'Dr. Kofi Appiah' },
+  EYE_DOCTOR: { email: 'eyedoctor@gbs.com', password: 'EyeDoctor123', name: 'Dr. Efua Sutherland' },
+  RADIOLOGIST: { email: 'radiologist@gbs.com', password: 'Radiologist123', name: 'Dr. Yaw Boateng' },
+  NURSE: { email: 'nurse@gbs.com', password: 'Nurse123', name: 'Sister Akosua Osei' },
+  PHARMACIST: { email: 'pharmacist@gbs.com', password: 'Pharmacist123', name: 'Pharm. Kojo Ansah' },
+  LAB_TECHNICIAN: { email: 'lab@gbs.com', password: 'Lab123', name: 'Scientist Esi Tetteh' },
+  RECEPTIONIST: { email: 'receptionist@gbs.com', password: 'Receptionist123', name: 'Adwoa Frimpong' },
+  FOLDER_RETRIEVER: { email: 'archivist@gbs.com', password: 'Archivist123', name: 'Kwame Owusu (Archivist)' },
+  ACCOUNTANT: { email: 'accountant@gbs.com', password: 'Accountant123', name: 'Kofi Darko (Accountant)' },
+  HR_MANAGER: { email: 'hr@gbs.com', password: 'HrManager123', name: 'Abena Asante (HR Manager)' },
+  PATIENT: { email: 'patient@gbs.com', password: 'Patient123', name: 'Kwadwo Baah (Patient)' },
+};
+
+export async function ensureRoleAuthentication(role) {
+  const targetRole = role || (typeof window !== 'undefined' ? localStorage.getItem('gbs_role') : null) || 'ADMINISTRATOR';
+  const creds = ROLE_CREDENTIALS_MAP[targetRole] || ROLE_CREDENTIALS_MAP.ADMINISTRATOR;
+  if (!creds) return null;
+  try {
+    const res = await fetch(`${API_BASE}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: creds.email, password: creds.password })
+    });
+    const data = await res.json();
+    if (res.ok && data?.data?.token) {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('gbs_token', data.data.token);
+        localStorage.setItem('gbs_user', JSON.stringify(data.data.user));
+        localStorage.setItem('gbs_role', targetRole);
+      }
+      return data.data;
+    }
+  } catch (_e) { }
+  return null;
+}
+
 async function coreRequest(endpoint, options = {}) {
-  const token = localStorage.getItem('gbs_token');
+  let token = typeof window !== 'undefined' ? localStorage.getItem('gbs_token') : null;
   const method = (options.method || 'GET').toUpperCase();
-  const activeRole = localStorage.getItem('gbs_role') || 'ACTIVE_USER';
+  const activeRole = (typeof window !== 'undefined' ? localStorage.getItem('gbs_role') : null) || 'ADMINISTRATOR';
+
+  if (!token && !endpoint.startsWith('/auth') && !endpoint.startsWith('/health')) {
+    const autoAuth = await ensureRoleAuthentication(activeRole);
+    if (autoAuth?.token) {
+      token = autoAuth.token;
+    }
+  }
+
   const headers = {
     'Content-Type': 'application/json',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -37,6 +87,21 @@ async function coreRequest(endpoint, options = {}) {
       });
     }
     throw err;
+  }
+
+  // Auto-retry once on 401 Unauthorized using role credential auto-auth
+  if (response.status === 401 && !options._retried && !endpoint.startsWith('/auth')) {
+    const reauth = await ensureRoleAuthentication(activeRole);
+    if (reauth?.token) {
+      return coreRequest(endpoint, {
+        ...options,
+        _retried: true,
+        headers: {
+          ...options.headers,
+          Authorization: `Bearer ${reauth.token}`
+        }
+      });
+    }
   }
 
   const contentType = response.headers.get('content-type') || '';

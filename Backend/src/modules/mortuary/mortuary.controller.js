@@ -129,6 +129,44 @@ class MortuaryController {
         }
     }
 
+    async getCatalogs(req, res, next) {
+        try {
+            const catalogs = mortuaryService.getCatalogs();
+            return res.status(200).json({
+                success: true,
+                data: catalogs
+            });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async getReleases(req, res, next) {
+        try {
+            const releases = await mortuaryService.getReleases(req.query);
+            return res.status(200).json({
+                success: true,
+                count: releases.length,
+                data: releases
+            });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async assignChamber(req, res, next) {
+        try {
+            const corpse = await mortuaryService.assignChamber(req.params.id, req.body);
+            return res.status(200).json({
+                success: true,
+                message: "Corpse assigned to chamber compartment.",
+                data: corpse
+            });
+        } catch (err) {
+            next(err);
+        }
+    }
+
     async getTelemetry(req, res, next) {
         try {
             const telemetry = await mortuaryService.getMortuaryTelemetry();

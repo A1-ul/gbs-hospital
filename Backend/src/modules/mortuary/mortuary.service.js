@@ -21,6 +21,7 @@ const {
 const { 
     CASE_CATEGORIES, 
     STORAGE_TIERS, 
+    AUTOPSY_TYPES,
     validateReleaseEligibility 
 } = require("./helpers/mortuary-catalogs");
 
@@ -427,6 +428,59 @@ class MortuaryService {
         }
 
         return releaseRecord;
+    }
+
+    getCatalogs() {
+        return {
+            caseCategories: CASE_CATEGORIES,
+            storageTiers: STORAGE_TIERS,
+            autopsyTypes: AUTOPSY_TYPES
+        };
+    }
+
+    async getReleases(query = {}) {
+        return prisma.corpseRelease.findMany({
+            orderBy: { releasedAt: "desc" },
+            include: {
+                corpse: {
+                    include: {
+                        patient: true,
+                        chamber: true
+                    }
+                }
+            }
+        });
+    }
+
+    async assignChamber(corpseId, data = {}) {
+        const { chamberId, compartmentNumber } = data;
+        const corpse = await prisma.corpseRecord.findUnique({ where: { id: corpseId } });
+        if (!corpse) {
+            const err = new Error(`Corpse record with ID ${corpseId} not found.`);
+            err.statusCode = 404;
+            throw err;
+        }
+        let compartment = compartmentNumber;
+        if (chamberId) {
+            const chamber = await prisma.mortuaryChamber.findUnique({ where: { id: chamberId } });
+            if (chamber) {
+                compartment = compartment || `${chamber.chamberCode}-BAY-01`;
+                if (!corpse.chamberId || corpse.chamberId !== chamberId) {
+                    await prisma.mortuaryChamber.update({
+                        where: { id: chamberId },
+                        data: { occupiedCount: { increment: 1 } }
+                    });
+                }
+            }
+        }
+        return prisma.corpseRecord.update({
+            where: { id: corpseId },
+            data: {
+                chamberId: chamberId || corpse.chamberId,
+                compartmentNumber: compartment || corpse.compartmentNumber
+            },
+            include: { chamber: true }
+        });
     }
 
     // ==========================================
