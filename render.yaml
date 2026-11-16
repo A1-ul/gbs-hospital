@@ -26,9 +26,7 @@ services:
       - key: GBS_OFFICIAL_ACCOUNT_EMAIL
         value: gabosei48@gmail.com
       - key: DATABASE_URL
-        fromDatabase:
-          name: gbs-hospital-postgres
-          property: connectionString
+        sync: false
       - key: JWT_SECRET
         generateValue: true
       - key: JWT_ACCESS_SECRET
@@ -37,12 +35,4 @@ services:
         generateValue: true
       - key: CORS_ORIGIN
         value: https://gbs-hospital-system.onrender.com
-
-databases:
-  - name: gbs-hospital-postgres
-    databaseName: gbs_hospital
-    user: gbs_hospital_admin
-    plan: free
-    region: frankfurt
-    postgresMajorVersion: "16"
 
