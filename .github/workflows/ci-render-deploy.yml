@@ -10,7 +10,7 @@ on:
 
 env:
   GBS_OFFICIAL_ACCOUNT_EMAIL: gabosei48@gmail.com
-  RENDER_SERVICE_NAME: gbs-hospital
+  RENDER_SERVICE_NAME: gbs-hospital-system
 
 jobs:
   verify-and-build:
@@ -82,7 +82,7 @@ jobs:
         run: |
           if [ -n "$RENDER_DEPLOY_HOOK_URL" ]; then
             curl -fsSL -X POST "$RENDER_DEPLOY_HOOK_URL"
-            echo "Triggered Render.com deployment for gbs-hospital (gabosei48@gmail.com)"
+            echo "Triggered Render.com deployment for gbs-hospital-system (gabosei48@gmail.com)"
           else
             echo "Render autoDeploy is enabled via render.yaml GitHub integration."
           fi

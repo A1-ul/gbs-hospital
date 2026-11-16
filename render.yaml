@@ -1,13 +1,13 @@
 # ============================================================================
 # GBS HOSPITAL MANAGEMENT SYSTEM — RENDER.COM INFRASTRUCTURE BLUEPRINT
 # Official GBS Account Email: gabosei48@gmail.com
-# Production Service Name: gbs-hospital
-# Public Domain: https://gbs-hospital.onrender.com
+# Production Service Name: gbs-hospital-system
+# Public Domain: https://gbs-hospital-system.onrender.com
 # ============================================================================
 
 services:
   - type: web
-    name: gbs-hospital
+    name: gbs-hospital-system
     runtime: node
     plan: free
     region: frankfurt
@@ -36,7 +36,7 @@ services:
       - key: JWT_REFRESH_SECRET
         generateValue: true
       - key: CORS_ORIGIN
-        value: https://gbs-hospital.onrender.com
+        value: https://gbs-hospital-system.onrender.com
 
 databases:
   - name: gbs-hospital-postgres

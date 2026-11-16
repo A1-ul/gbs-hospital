@@ -102,6 +102,7 @@ function getAllowedOrigins() {
             "http://localhost:3001",
             "http://localhost:5000",
             "http://localhost:5173",
+            "https://gbs-hospital-system.onrender.com",
             "https://gbs-hospital.onrender.com"
 
         ];

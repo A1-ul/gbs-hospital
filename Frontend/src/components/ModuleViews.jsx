@@ -2332,7 +2332,7 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
                   GBS Developer — Development vs. Production Data Identification & Database Protection
                 </h3>
                 <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                  Database: {dbHostDisplay} ({dbMeta.engine || 'PostgreSQL'}) • Official Account: {envStatus?.officialCompanyEmail || 'gabosei48@gmail.com'} • Hosting: {envStatus?.cloudHostingProvider || 'Render.com'} (gbs-hospital.onrender.com)
+                  Database: {dbHostDisplay} ({dbMeta.engine || 'PostgreSQL'}) • Official Account: {envStatus?.officialCompanyEmail || 'gabosei48@gmail.com'} • Hosting: {envStatus?.cloudHostingProvider || 'Render.com'} (gbs-hospital-system.onrender.com)
                 </p>
               </div>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -2981,8 +2981,8 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
                 <tr>
                   <td style={{ fontWeight: 700, color: '#fff' }}>GBS Hospital Management System</td>
                   <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--gold-300)' }}>gabosei48@gmail.com</td>
-                  <td style={{ fontFamily: 'var(--font-mono)' }}>gbs-hospital</td>
-                  <td style={{ fontFamily: 'var(--font-mono)', color: '#38bdf8' }}>https://gbs-hospital.onrender.com</td>
+                  <td style={{ fontFamily: 'var(--font-mono)' }}>gbs-hospital-system</td>
+                  <td style={{ fontFamily: 'var(--font-mono)', color: '#38bdf8' }}>https://gbs-hospital-system.onrender.com</td>
                   <td>Render.com (Exclusive)</td>
                   <td style={{ color: 'var(--status-online)', fontWeight: 700 }}>PostgreSQL Connected</td>
                   <td style={{ color: 'var(--status-online)', fontWeight: 700 }}>CI/CD Auto-Deploy Ready</td>
