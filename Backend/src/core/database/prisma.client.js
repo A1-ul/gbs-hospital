@@ -85,8 +85,12 @@ function createClient(){
 
 
             errorFormat:
-                "minimal"
+                "minimal",
 
+            transactionOptions: {
+                maxWait: 10000,
+                timeout: 25000
+            }
 
         });
 
