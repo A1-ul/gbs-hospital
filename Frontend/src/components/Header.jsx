@@ -6,24 +6,31 @@ import {
 } from 'lucide-react';
 import { api } from '../services/api.service';
 
+export const ROLE_CATEGORIES = [
+  { id: 'ALL', label: 'All Staff Portals', icon: '⭐' },
+  { id: 'EXECUTIVE', label: 'Executive & Governance', icon: '🏛️' },
+  { id: 'PHYSICIANS', label: 'Physicians & Specialists', icon: '🩺' },
+  { id: 'NURSING_DIAGNOSTICS', label: 'Nursing & Allied Care', icon: '🏥' },
+  { id: 'OPERATIONS', label: 'Operations & Patients', icon: '📋' }
+];
+
 export const ROLES = [
-  { id: 'ADMINISTRATOR', name: 'Administrator', desc: 'User Management, Settings, Audit', img: '/assets/images/portrait_admin.jpg', loginBg: '/assets/images/hospital_admin_office_real.jpg', dept: 'Hospital Administration & Governance' },
-  { id: 'SUPER_ADMIN', name: 'Super Admin', desc: 'Enterprise Platform Governance', img: '/assets/images/portrait_super_admin.jpg', loginBg: '/assets/images/hospital_hero_exterior.jpg', dept: 'Enterprise Multi-Facility Executive' },
-  { id: 'HOSPITAL_DIRECTOR', name: 'Hospital Director', desc: 'Clinical Executive Oversight', img: '/assets/images/portrait_director.jpg', loginBg: '/assets/images/hospital_director_boardroom_real.jpg', dept: 'Medical Directorate & Strategy' },
-  { id: 'DEVELOPER', name: 'Developer (NOC)', desc: 'Telemetry, System Lock, Tenants', img: '/assets/images/portrait_developer.jpg', loginBg: '/assets/images/developer_control_center_real.jpg', dept: 'Landlord Network Operations Center' },
-  { id: 'DOCTOR', name: 'Doctor', desc: 'Consultations, Rx, Records, Lab', img: '/assets/images/portrait_doctor.jpg', loginBg: '/assets/images/doctor_consultation_real.jpg', dept: 'Outpatient & Inpatient Medicine' },
-  { id: 'SURGEON', name: 'Surgeon', desc: 'Surgery Plan, OT Mgmt, Post-Op', img: '/assets/images/portrait_surgeon.jpg', loginBg: '/assets/images/operating_theatre_real.jpg', dept: 'Surgical Suite & Operating Theatre' },
-  { id: 'DENTIST', name: 'Dentist', desc: 'Dental & Maxillofacial Care', img: '/assets/images/portrait_dentist.jpg', loginBg: '/assets/images/dental_clinic_real.jpg', dept: 'Dental & Maxillofacial Surgery' },
-  { id: 'EYE_DOCTOR', name: 'Ophthalmologist', desc: 'Ophthalmic Surgery & Vision', img: '/assets/images/portrait_eye_doctor.jpg', loginBg: '/assets/images/ophthalmology_eye_clinic_real.jpg', dept: 'Ophthalmology & Vision Center' },
-  { id: 'RADIOLOGIST', name: 'Radiologist', desc: 'PACS Imaging, Scan Analysis', img: '/assets/images/portrait_radiologist.jpg', loginBg: '/assets/images/radiology_pacs_mri_real.jpg', dept: 'Diagnostic Radiology & PACS MRI/CT' },
-  { id: 'NURSE', name: 'Nurse', desc: 'Vitals, Medications, Care Notes', img: '/assets/images/portrait_nurse.jpg', loginBg: '/assets/images/nurse_triage_station.jpg', dept: 'Nursing Care, OPD Triage & Wards' },
-  { id: 'PHARMACIST', name: 'Pharmacist', desc: 'Dispensing, Stock, Drug Alerts', img: '/assets/images/portrait_pharmacist.jpg', loginBg: '/assets/images/pharmacy_dispensary_real.jpg', dept: 'Hospital Pharmacy & FEFO Dispensary' },
-  { id: 'LAB_TECHNICIAN', name: 'Lab Scientist', desc: 'Tests, Sample Tracking, Reports', img: '/assets/images/portrait_lab_scientist.jpg', loginBg: '/assets/images/laboratory_pathology_real.jpg', dept: 'Clinical Pathology & Hematology Lab' },
-  { id: 'RECEPTIONIST', name: 'Receptionist', desc: 'Registration, Appointments, Queue', img: '/assets/images/portrait_receptionist.jpg', loginBg: '/assets/images/patient_registration_archive_real.jpg', dept: 'Front Desk, MPI Registration & Queue' },
-  { id: 'FOLDER_RETRIEVER', name: 'Archivist', desc: 'Physical Archive, Shelf Retrieval', img: '/assets/images/portrait_archivist.jpg', loginBg: '/assets/images/medical_records_archive_real.jpg', dept: 'Medical Records & Physical Folder Vault' },
-  { id: 'ACCOUNTANT', name: 'Accountant', desc: 'Billing, Payments, NHIS Claims', img: '/assets/images/portrait_accountant.jpg', loginBg: '/assets/images/nhia_claims_center_real.jpg', dept: 'Hospital Finance, Billing & NHIA Claims' },
-  { id: 'HR_MANAGER', name: 'HR Manager', desc: 'Staff Credentials, Duty Rostering', img: '/assets/images/portrait_hr_manager.jpg', loginBg: '/assets/images/hr_medical_staff_real.jpg', dept: 'Human Resources & Clinical Credentialing' },
-  { id: 'PATIENT', name: 'Patient Portal', desc: 'Self-Service, Appointments & Records', img: '/assets/images/portrait_patient.jpg', loginBg: '/assets/images/patient_registration_archive_real.jpg', dept: 'Patient Self-Service & Clinical Records Portal' }
+  { id: 'ADMINISTRATOR', name: 'Administrator', desc: 'Hospital Administration & Governance', img: '/assets/images/portrait_admin.jpg', loginBg: '/assets/images/hospital_admin_office_real.jpg', dept: 'Administration & Governance', category: 'EXECUTIVE' },
+  { id: 'HOSPITAL_DIRECTOR', name: 'Hospital Director', desc: 'Clinical Executive Oversight & Strategy', img: '/assets/images/portrait_director.jpg', loginBg: '/assets/images/hospital_director_boardroom_real.jpg', dept: 'Medical Directorate & Strategy', category: 'EXECUTIVE' },
+  { id: 'DEVELOPER', name: 'Developer (NOC)', desc: 'Telemetry, System Lock & Multi-Tenant', img: '/assets/images/portrait_developer.jpg', loginBg: '/assets/images/developer_control_center_real.jpg', dept: 'Landlord Network Operations Center', category: 'EXECUTIVE' },
+  { id: 'DOCTOR', name: 'Medical Doctor', desc: 'Consultations, Rx, Records, Lab Orders', img: '/assets/images/portrait_doctor.jpg', loginBg: '/assets/images/doctor_consultation_real.jpg', dept: 'Outpatient & Inpatient Medicine', category: 'PHYSICIANS' },
+  { id: 'SURGEON', name: 'Surgeon', desc: 'Surgery Plan, OT Mgmt & Post-Op Care', img: '/assets/images/portrait_surgeon.jpg', loginBg: '/assets/images/operating_theatre_real.jpg', dept: 'Surgical Suite & Operating Theatre', category: 'PHYSICIANS' },
+  { id: 'DENTIST', name: 'Dentist', desc: 'Dental & Maxillofacial Care', img: '/assets/images/portrait_dentist.jpg', loginBg: '/assets/images/dental_clinic_real.jpg', dept: 'Dental & Maxillofacial Clinic', category: 'PHYSICIANS' },
+  { id: 'EYE_DOCTOR', name: 'Ophthalmologist', desc: 'Ophthalmic Surgery & Vision Health', img: '/assets/images/portrait_eye_doctor.jpg', loginBg: '/assets/images/ophthalmology_eye_clinic_real.jpg', dept: 'Ophthalmology & Vision Center', category: 'PHYSICIANS' },
+  { id: 'RADIOLOGIST', name: 'Radiologist', desc: 'PACS Imaging & Diagnostic Scan Analysis', img: '/assets/images/portrait_radiologist.jpg', loginBg: '/assets/images/radiology_pacs_mri_real.jpg', dept: 'Diagnostic Radiology & PACS MRI/CT', category: 'PHYSICIANS' },
+  { id: 'NURSE', name: 'Staff Nurse', desc: 'Vitals, Medications & Ward Care Notes', img: '/assets/images/portrait_nurse.jpg', loginBg: '/assets/images/nurse_triage_station.jpg', dept: 'Nursing Care, OPD Triage & Wards', category: 'NURSING_DIAGNOSTICS' },
+  { id: 'PHARMACIST', name: 'Pharmacist', desc: 'Dispensing, Stock & Drug Safety Alerts', img: '/assets/images/portrait_pharmacist.jpg', loginBg: '/assets/images/pharmacy_dispensary_real.jpg', dept: 'Hospital Pharmacy & FEFO Dispensary', category: 'NURSING_DIAGNOSTICS' },
+  { id: 'LAB_TECHNICIAN', name: 'Lab Scientist', desc: 'Clinical Tests, Samples & Pathology', img: '/assets/images/portrait_lab_scientist.jpg', loginBg: '/assets/images/laboratory_pathology_real.jpg', dept: 'Clinical Pathology & Hematology Lab', category: 'NURSING_DIAGNOSTICS' },
+  { id: 'RECEPTIONIST', name: 'Receptionist', desc: 'Registration, Appointments & Queue', img: '/assets/images/portrait_receptionist.jpg', loginBg: '/assets/images/patient_registration_archive_real.jpg', dept: 'Front Desk, MPI Registration & Queue', category: 'OPERATIONS' },
+  { id: 'FOLDER_RETRIEVER', name: 'Archivist', desc: 'Physical Archive & Shelf Folder Vault', img: '/assets/images/portrait_archivist.jpg', loginBg: '/assets/images/medical_records_archive_real.jpg', dept: 'Medical Records & Archive Vault', category: 'OPERATIONS' },
+  { id: 'ACCOUNTANT', name: 'Accountant', desc: 'Billing, Payments & NHIA Claims', img: '/assets/images/portrait_accountant.jpg', loginBg: '/assets/images/nhia_claims_center_real.jpg', dept: 'Hospital Finance & NHIA Claims', category: 'OPERATIONS' },
+  { id: 'HR_MANAGER', name: 'HR Manager', desc: 'Staff Credentials & Duty Rostering', img: '/assets/images/portrait_hr_manager.jpg', loginBg: '/assets/images/hr_medical_staff_real.jpg', dept: 'Human Resources & Credentialing', category: 'OPERATIONS' },
+  { id: 'PATIENT', name: 'Patient Portal', desc: 'Self-Service, Appointments & Records', img: '/assets/images/portrait_patient.jpg', loginBg: '/assets/images/patient_registration_archive_real.jpg', dept: 'Patient Self-Service Portal', category: 'OPERATIONS' }
 ];
 
 export default function Header({
@@ -50,16 +57,19 @@ export default function Header({
   const [savingBranding, setSavingBranding] = useState(false);
   const [brandingFeedback, setBrandingFeedback] = useState('');
 
+  const [roleCategory, setRoleCategory] = useState('ALL');
+
   const isDeveloperAuthenticated = Boolean(
     currentUser &&
     (currentUser.role === 'DEVELOPER' || String(currentUser.email || '').toLowerCase() === 'gabosei48@gmail.com')
   );
 
   const canCustomizeHospitalName =
-    ['ADMINISTRATOR', 'SUPER_ADMIN', 'HOSPITAL_DIRECTOR', 'DEVELOPER'].includes(currentRole) ||
-    ['ADMINISTRATOR', 'SUPER_ADMIN', 'HOSPITAL_DIRECTOR', 'DEVELOPER'].includes(currentUser?.role);
+    ['ADMINISTRATOR', 'HOSPITAL_DIRECTOR', 'DEVELOPER'].includes(currentRole) ||
+    ['ADMINISTRATOR', 'HOSPITAL_DIRECTOR', 'DEVELOPER'].includes(currentUser?.role);
 
   const visibleRoles = ROLES.filter(role => role.id !== 'DEVELOPER' || isDeveloperAuthenticated);
+  const filteredRoles = visibleRoles.filter(role => roleCategory === 'ALL' || role.category === roleCategory);
 
   const activeHospitalName = facilityBranding?.hospitalName || 'GBS Premier Specialist Teaching Hospital';
   const activeHospitalMotto = facilityBranding?.motto || facilityBranding?.facilityTagline || 'Smart Healthcare, Better Care.';
@@ -342,90 +352,162 @@ export default function Header({
         </div>
       </div>
 
-      {/* Blueprint Roles Navigation Ribbon with Real Portraits (Developer hidden unless authenticated as Developer) */}
-      <div style={{ display: 'flex', gap: '8px', padding: '10px 16px', overflowX: 'auto', background: 'rgba(10,9,7,0.85)' }}>
-        {visibleRoles.map(role => {
-          const isActive = currentRole === role.id;
-          return (
-            <button
-              key={role.id}
-              onClick={() => onSelectRole(role.id)}
-              title={`Open ${role.name} Portal (${role.dept || role.desc})`}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                padding: '6px 12px',
-                borderRadius: '6px',
-                border: isActive ? '1px solid var(--gold-400)' : '1px solid var(--border-subtle)',
-                background: isActive ? 'var(--gold-glow)' : 'rgba(26, 23, 19, 0.6)',
-                color: isActive ? '#fff' : 'var(--text-muted)',
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                transition: 'all 0.2s ease',
-                flexShrink: 0
-              }}
-            >
-              {/* Real Life Headshot Thumbnail */}
-              <div style={{ width: '32px', height: '32px', borderRadius: '50%', overflow: 'hidden', border: isActive ? '2px solid var(--gold-400)' : '1px solid var(--border-subtle)', background: '#222', flexShrink: 0 }}>
-                <img
-                  src={role.img}
-                  alt={role.name}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  onError={(e) => { e.target.src = '/assets/images/portrait_doctor.jpg'; }}
-                />
-              </div>
+      {/* Blueprint Roles Navigation Ribbon with Departmental Categorization Tabs */}
+      <div style={{ background: 'rgba(12, 10, 8, 0.94)', borderBottom: '1px solid var(--border-gold)' }}>
+        {/* Departmental Filter Tabs for Quick Role Identification */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)', flexWrap: 'wrap', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '0.74rem', color: 'var(--gold-400)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginRight: '4px' }}>
+              Staff Portals:
+            </span>
+            {ROLE_CATEGORIES.map(cat => {
+              const count = cat.id === 'ALL'
+                ? visibleRoles.length
+                : visibleRoles.filter(r => r.category === cat.id).length;
+              const isSelected = roleCategory === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => setRoleCategory(cat.id)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    padding: '3px 10px',
+                    borderRadius: '16px',
+                    border: isSelected ? '1px solid var(--gold-400)' : '1px solid var(--border-subtle)',
+                    background: isSelected ? 'var(--gold-glow)' : 'rgba(255,255,255,0.03)',
+                    color: isSelected ? 'var(--gold-300)' : 'var(--text-muted)',
+                    fontSize: '0.74rem',
+                    fontWeight: isSelected ? 700 : 500,
+                    cursor: 'pointer',
+                    transition: 'all 0.18s ease'
+                  }}
+                  title={`Filter to ${cat.label}`}
+                >
+                  <span>{cat.icon}</span>
+                  <span>{cat.label}</span>
+                  <span style={{
+                    fontSize: '0.68rem',
+                    padding: '1px 5px',
+                    borderRadius: '10px',
+                    background: isSelected ? 'var(--gold-500)' : 'rgba(255,255,255,0.08)',
+                    color: isSelected ? '#0a0907' : '#aaa',
+                    fontWeight: 700
+                  }}>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
 
-              <div style={{ textAlign: 'left' }}>
-                <div style={{ fontSize: '0.82rem', fontWeight: isActive ? 700 : 500, color: isActive ? 'var(--gold-400)' : '#fff' }}>
-                  {role.name}
+          <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>
+            Active: <strong style={{ color: 'var(--gold-400)' }}>{currentRole}</strong> • Showing {filteredRoles.length} of {visibleRoles.length} Portals
+          </div>
+        </div>
+
+        {/* Roles Horizontal Ribbon */}
+        <div style={{ display: 'flex', gap: '10px', padding: '10px 16px', overflowX: 'auto' }}>
+          {filteredRoles.map(role => {
+            const isActive = currentRole === role.id;
+            return (
+              <button
+                key={role.id}
+                onClick={() => onSelectRole(role.id)}
+                title={`Open ${role.name} Portal (${role.dept || role.desc})`}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  padding: '7px 14px',
+                  borderRadius: '8px',
+                  border: isActive ? '1.5px solid var(--gold-400)' : '1px solid var(--border-subtle)',
+                  background: isActive ? 'linear-gradient(135deg, rgba(212,175,55,0.22) 0%, rgba(26,23,19,0.85) 100%)' : 'rgba(22, 19, 15, 0.72)',
+                  color: isActive ? '#fff' : 'var(--text-muted)',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  transition: 'all 0.2s ease',
+                  flexShrink: 0,
+                  boxShadow: isActive ? '0 0 14px rgba(212,175,55,0.32)' : 'none'
+                }}
+              >
+                {/* Real Life Headshot Thumbnail */}
+                <div style={{ width: '34px', height: '34px', borderRadius: '50%', overflow: 'hidden', border: isActive ? '2px solid var(--gold-400)' : '1px solid var(--border-subtle)', background: '#222', flexShrink: 0 }}>
+                  <img
+                    src={role.img}
+                    alt={role.name}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    onError={(e) => { e.target.src = '/assets/images/portrait_doctor.jpg'; }}
+                  />
                 </div>
-                <div style={{ fontSize: '0.68rem', color: 'var(--text-dim)', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {role.desc}
+
+                <div style={{ textAlign: 'left' }}>
+                  <div style={{ fontSize: '0.84rem', fontWeight: isActive ? 800 : 600, color: isActive ? 'var(--gold-300)' : '#fff', letterSpacing: '0.01em' }}>
+                    {role.name}
+                  </div>
+                  <div style={{ fontSize: '0.67rem', color: isActive ? 'var(--gold-400)' : 'var(--text-dim)', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {role.dept || role.desc}
+                  </div>
                 </div>
-              </div>
-            </button>
-          );
-        })}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Quick Actions Bar */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 20px', background: 'rgba(0,0,0,0.4)', fontSize: '0.82rem', flexWrap: 'wrap', gap: '8px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ color: 'var(--gold-400)', fontWeight: 600, textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em' }}>
-            Quick Actions:
-          </span>
-          <button onClick={() => onOpenQuickAction('NEW_APPOINTMENT')} className="btn-outline-gold" style={{ padding: '4px 10px', fontSize: '0.75rem' }} title="Schedule a new patient appointment or register an outpatient">
-            <PlusCircle size={13} /> New Appointment
-          </button>
-          <button onClick={() => onOpenQuickAction('PATIENT_SEARCH')} className="btn-outline-gold" style={{ padding: '4px 10px', fontSize: '0.75rem' }} title="Search the Master Patient Index (MPI) and medical folders">
-            <Search size={13} /> Patient Search (MPI)
-          </button>
-          <button onClick={() => onOpenQuickAction('BED_AVAILABILITY')} className="btn-outline-gold" style={{ padding: '4px 10px', fontSize: '0.75rem' }} title="Inspect hospital wards, rooms, and real-time bed occupancy matrix">
-            <Bed size={13} /> Bed Availability Matrix
-          </button>
-          <button onClick={() => onOpenQuickAction('LAB_REQUESTS')} className="btn-outline-gold" style={{ padding: '4px 10px', fontSize: '0.75rem' }} title="Open Laboratory Pathology & Diagnostic Test Requests">
-            <FlaskConical size={13} /> Lab Requests
-          </button>
-          <button onClick={() => onOpenQuickAction('PHARMACY_STOCK')} className="btn-outline-gold" style={{ padding: '4px 10px', fontSize: '0.75rem' }} title="Open Pharmacy FEFO Dispensary & Drug Inventory">
-            <Pill size={13} /> Pharmacy Stock
-          </button>
-          <button onClick={() => onOpenQuickAction('VIEW_REPORTS')} className="btn-outline-gold" style={{ padding: '4px 10px', fontSize: '0.75rem' }} title="Open full-page Clinical, Operational, Duty & Annual Financial Reports">
-            <FileText size={13} /> View Reports
-          </button>
-          <button onClick={() => onOpenQuickAction('VIEW_NOTIFICATIONS')} className="btn-outline-gold" style={{ padding: '4px 10px', fontSize: '0.75rem' }} title="Open full-page Hospital Alerts & Dispatched Clinical Notifications">
-            <AlertTriangle size={13} /> View Notifications
-          </button>
-          <button onClick={() => onOpenQuickAction('VIEW_APPLICATIONS')} className="btn-outline-gold" style={{ padding: '4px 10px', fontSize: '0.75rem' }} title="Open Staff Account Registrations & Leave Applications">
-            <UserCheck size={13} /> View Applications
-          </button>
-          <button onClick={() => onOpenQuickAction('VIEW_HOSPITAL_INFORMATION')} className="btn-outline-gold" style={{ padding: '4px 10px', fontSize: '0.75rem' }} title="Open full-page Hospital Facility Profile, Wards & Operational Summary">
-            <Database size={13} /> View Hospital Information
-          </button>
-          <button onClick={() => onOpenQuickAction('VIEW_SYSTEM_INFORMATION')} className="btn-outline-gold" style={{ padding: '4px 10px', fontSize: '0.75rem' }} title="Open full-page System Telemetry, PostgreSQL Status & Architecture Info">
-            <Activity size={13} /> View System Information
-          </button>
+      {/* Quick Actions Bar Organised by Categories */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 20px', background: 'rgba(0,0,0,0.55)', fontSize: '0.82rem', flexWrap: 'wrap', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+          {/* Clinical Direct Actions */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+            <span style={{ color: 'var(--gold-400)', fontWeight: 700, textTransform: 'uppercase', fontSize: '0.72rem', letterSpacing: '0.05em', marginRight: '2px' }}>
+              🩺 Clinical:
+            </span>
+            <button onClick={() => onOpenQuickAction('NEW_APPOINTMENT')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.74rem' }} title="Schedule a new patient appointment or register an outpatient">
+              <PlusCircle size={13} /> New Appointment
+            </button>
+            <button onClick={() => onOpenQuickAction('PATIENT_SEARCH')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.74rem' }} title="Search the Master Patient Index (MPI) and medical folders">
+              <Search size={13} /> Patient Search (MPI)
+            </button>
+            <button onClick={() => onOpenQuickAction('BED_AVAILABILITY')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.74rem' }} title="Inspect hospital wards, rooms, and real-time bed occupancy matrix">
+              <Bed size={13} /> Bed Matrix
+            </button>
+            <button onClick={() => onOpenQuickAction('LAB_REQUESTS')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.74rem' }} title="Open Laboratory Pathology & Diagnostic Test Requests">
+              <FlaskConical size={13} /> Lab Tests
+            </button>
+            <button onClick={() => onOpenQuickAction('PHARMACY_STOCK')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.74rem' }} title="Open Pharmacy FEFO Dispensary & Drug Inventory">
+              <Pill size={13} /> Pharmacy Stock
+            </button>
+          </div>
+
+          <div style={{ width: '1px', height: '20px', background: 'var(--border-subtle)' }} />
+
+          {/* Dossiers & Intelligence Pages */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+            <span style={{ color: '#38bdf8', fontWeight: 700, textTransform: 'uppercase', fontSize: '0.72rem', letterSpacing: '0.05em', marginRight: '2px' }}>
+              📊 Dossiers:
+            </span>
+            <button onClick={() => onOpenQuickAction('VIEW_REPORTS')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.74rem' }} title="Open full-page Clinical, Operational, Duty & Annual Financial Reports">
+              <FileText size={13} /> Reports
+            </button>
+            <button onClick={() => onOpenQuickAction('VIEW_NOTIFICATIONS')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.74rem' }} title="Open full-page Hospital Alerts & Dispatched Clinical Notifications">
+              <AlertTriangle size={13} /> Alerts
+            </button>
+            <button onClick={() => onOpenQuickAction('VIEW_APPLICATIONS')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.74rem' }} title="Open Staff Account Registrations & Leave Applications">
+              <UserCheck size={13} /> Applications
+            </button>
+            <button onClick={() => onOpenQuickAction('VIEW_HOSPITAL_INFORMATION')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.74rem' }} title="Open full-page Hospital Facility Profile, Wards & Operational Summary">
+              <Database size={13} /> Facility Profile
+            </button>
+            <button onClick={() => onOpenQuickAction('VIEW_SYSTEM_INFORMATION')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.74rem' }} title="Open full-page System Telemetry, PostgreSQL Status & Architecture Info">
+              <Activity size={13} /> Telemetry
+            </button>
+          </div>
         </div>
+
+        {/* Patient Safety Guardrail Tag */}
 
         {/* Patient Safety Guardrail Tag */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--status-online)', fontSize: '0.75rem', fontWeight: 600 }}>

@@ -31,8 +31,6 @@ const API = Object.freeze({
 
 const ROLES = Object.freeze({
 
-    SUPER_ADMIN: 'SUPER_ADMIN',
-
     ADMINISTRATOR: 'ADMINISTRATOR',
 
     HOSPITAL_DIRECTOR: 'HOSPITAL_DIRECTOR',

@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { X, Lock, Mail, User, Shield, AlertCircle, CheckCircle } from 'lucide-react';
+import { X, Lock, Mail, User, Shield, AlertCircle, CheckCircle, Check } from 'lucide-react';
 import { api } from '../services/api.service';
-import { ROLES } from './Header';
+import { ROLES, ROLE_CATEGORIES } from './Header';
 
 export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initialRole = 'DOCTOR' }) {
   if (!isOpen) return null;
 
   const [isSignUp, setIsSignUp] = useState(false);
   const [selectedRole, setSelectedRole] = useState(initialRole || 'DOCTOR');
+  const [modalRoleCategory, setModalRoleCategory] = useState('ALL');
   const [email, setEmail] = useState(initialRole === 'DEVELOPER' ? 'gabosei48@gmail.com' : '');
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
@@ -185,58 +186,138 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
           )}
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            {/* Role Selector (Compulsory) */}
+            {/* Organized Role Selector with Departmental Tabs */}
             <div>
-              <label style={{ display: 'block', fontSize: '0.78rem', color: 'var(--gold-400)', fontWeight: 600, marginBottom: '6px' }}>
-                DESIGNATED ROLE *
-              </label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <label style={{ fontSize: '0.78rem', color: 'var(--gold-400)', fontWeight: 700, letterSpacing: '0.04em' }}>
+                  SELECT DESIGNATED ROLE PORTAL *
+                </label>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>
+                  Selected: <strong style={{ color: 'var(--gold-300)' }}>{currentRoleObj.name}</strong>
+                </span>
+              </div>
+
+              {/* Category Filter Tabs */}
+              <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                {ROLE_CATEGORIES.map(cat => {
+                  const isSelected = modalRoleCategory === cat.id;
+                  const catCount = cat.id === 'ALL'
+                    ? selectableRoles.length
+                    : selectableRoles.filter(r => r.category === cat.id).length;
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setModalRoleCategory(cat.id)}
+                      style={{
+                        padding: '3px 8px',
+                        borderRadius: '12px',
+                        border: isSelected ? '1px solid var(--gold-400)' : '1px solid var(--border-subtle)',
+                        background: isSelected ? 'var(--gold-glow)' : 'rgba(255,255,255,0.03)',
+                        color: isSelected ? 'var(--gold-300)' : 'var(--text-muted)',
+                        fontSize: '0.7rem',
+                        fontWeight: isSelected ? 700 : 500,
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px'
+                      }}
+                    >
+                      <span>{cat.icon}</span>
+                      <span>{cat.label}</span>
+                      <span style={{ fontSize: '0.64rem', opacity: 0.8 }}>({catCount})</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Accessible Dropdown for quick keyboard switching */}
               <select
                 value={isDeveloperEmailEntered && !isSignUp ? 'DEVELOPER' : selectedRole}
                 onChange={(e) => handleSelectRoleOption(e.target.value)}
                 title="Select your hospital role or Developer (NOC) portal"
                 style={{
                   width: '100%',
-                  padding: '9px 12px',
+                  padding: '7px 10px',
                   borderRadius: '6px',
                   background: '#12100d',
                   border: '1px solid var(--border-gold)',
                   color: '#fff',
-                  fontSize: '0.85rem'
+                  fontSize: '0.82rem',
+                  marginBottom: '8px'
                 }}
               >
                 {selectableRoles.map(r => (
-                  <option key={r.id} value={r.id}>{r.name} — {r.desc}</option>
+                  <option key={r.id} value={r.id}>{r.name} — {r.dept || r.desc}</option>
                 ))}
               </select>
-              {/* Visual Real-Life Role Portrait Strip for Quick Role Login Selection */}
-              <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginTop: '8px', paddingBottom: '4px' }}>
-                {selectableRoles.map((r) => {
-                  const active = (isDeveloperEmailEntered && !isSignUp ? 'DEVELOPER' : selectedRole) === r.id;
-                  return (
-                    <button
-                      type="button"
-                      key={r.id}
-                      onClick={() => handleSelectRoleOption(r.id)}
-                      title={`Select ${r.name} (${r.dept || r.desc})`}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        padding: '4px 8px',
-                        borderRadius: '6px',
-                        border: active ? '1px solid var(--gold-400)' : '1px solid var(--border-subtle)',
-                        background: active ? 'var(--gold-glow)' : 'rgba(18, 16, 13, 0.85)',
-                        color: active ? 'var(--gold-300)' : '#d1d5db',
-                        cursor: 'pointer',
-                        flexShrink: 0,
-                        fontSize: '0.72rem'
-                      }}
-                    >
-                      <img src={r.img} alt={r.name} style={{ width: '22px', height: '22px', borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--gold-400)' }} />
-                      <span>{r.name}</span>
-                    </button>
-                  );
-                })}
+
+              {/* Organized Visual Role Cards Grid */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
+                  gap: '6px',
+                  maxHeight: '140px',
+                  overflowY: 'auto',
+                  padding: '6px',
+                  background: 'rgba(10, 8, 6, 0.7)',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(255,255,255,0.08)'
+                }}
+              >
+                {selectableRoles
+                  .filter(r => modalRoleCategory === 'ALL' || r.category === modalRoleCategory)
+                  .map((r) => {
+                    const active = (isDeveloperEmailEntered && !isSignUp ? 'DEVELOPER' : selectedRole) === r.id;
+                    return (
+                      <button
+                        type="button"
+                        key={r.id}
+                        onClick={() => handleSelectRoleOption(r.id)}
+                        title={`Select ${r.name} (${r.dept || r.desc})`}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          padding: '6px 8px',
+                          borderRadius: '6px',
+                          border: active ? '1.5px solid var(--gold-400)' : '1px solid rgba(255,255,255,0.08)',
+                          background: active ? 'linear-gradient(135deg, rgba(212,175,55,0.25) 0%, rgba(20,17,13,0.9) 100%)' : 'rgba(20, 17, 13, 0.7)',
+                          color: active ? '#fff' : '#d1d5db',
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                          transition: 'all 0.15s ease',
+                          position: 'relative'
+                        }}
+                      >
+                        <img
+                          src={r.img}
+                          alt={r.name}
+                          style={{
+                            width: '26px',
+                            height: '26px',
+                            borderRadius: '50%',
+                            objectFit: 'cover',
+                            border: active ? '1.5px solid var(--gold-400)' : '1px solid var(--border-subtle)',
+                            flexShrink: 0
+                          }}
+                          onError={(e) => { e.target.src = '/assets/images/portrait_doctor.jpg'; }}
+                        />
+                        <div style={{ overflow: 'hidden', flex: 1 }}>
+                          <div style={{ fontSize: '0.74rem', fontWeight: active ? 700 : 500, color: active ? 'var(--gold-300)' : '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {r.name}
+                          </div>
+                          <div style={{ fontSize: '0.62rem', color: active ? 'var(--gold-400)' : 'var(--text-dim)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {r.dept}
+                          </div>
+                        </div>
+                        {active && (
+                          <Check size={12} style={{ color: 'var(--gold-400)', flexShrink: 0 }} />
+                        )}
+                      </button>
+                    );
+                  })}
               </div>
             </div>
 

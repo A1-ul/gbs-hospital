@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import Header, { ROLES } from './components/Header';
+import Header, { ROLES, ROLE_CATEGORIES } from './components/Header';
 import RoleLoginModal from './components/RoleLoginModal';
 import UniversalDetailPage from './components/UniversalDetailPage';
 import SystemFeedbackBrain from './components/SystemFeedbackBrain';
@@ -27,7 +27,6 @@ const MODULE_BACKGROUND_MAP = {
 
 const ROLE_BACKGROUND_MAP = {
   ADMINISTRATOR: '/assets/images/hospital_admin_office_real.jpg',
-  SUPER_ADMIN: '/assets/images/hospital_admin_office_real.jpg',
   HOSPITAL_DIRECTOR: '/assets/images/hospital_director_boardroom_real.jpg',
   DEVELOPER: '/assets/images/developer_control_center_real.jpg',
   DOCTOR: '/assets/images/doctor_consultation_real.jpg',
@@ -68,9 +67,81 @@ import {
   Bed, FileText, CreditCard, Shield, AlertTriangle,
   Radio, HardDrive, Wrench, Package, Clock, CheckCircle,
   Search, PlusCircle, Lock, Unlock, RefreshCw, Database,
-  Video, MapPin, Mic, Eye, Bell, History, Building2, User
+  Video, MapPin, Mic, Eye, Bell, History, Building2, User, Layers
 } from 'lucide-react';
 import { api } from './services/api.service';
+
+export const SUBSYSTEM_CATEGORIES = {
+  ALL: { id: 'ALL', label: 'All Subsystems', icon: Layers, badge: 'ALL 16' },
+  CLINICAL_INPATIENT: { id: 'CLINICAL_INPATIENT', label: 'Clinical & Inpatient', icon: Stethoscope, badge: '5 MODULES' },
+  ACUTE_DIAGNOSTICS: { id: 'ACUTE_DIAGNOSTICS', label: 'Emergency & Diagnostics', icon: AlertTriangle, badge: '4 MODULES' },
+  OPERATIONS_GOVERNANCE: { id: 'OPERATIONS_GOVERNANCE', label: 'Operations & Governance', icon: Building2, badge: '5 MODULES' },
+  TELEHEALTH_TECH: { id: 'TELEHEALTH_TECH', label: 'Telehealth & Digital Tech', icon: Video, badge: '2 MODULES' }
+};
+
+export const SUBSYSTEM_MODULES = [
+  { key: 'PATIENTS', number: '1', label: 'Patient MPI & Archive', icon: Users, category: 'CLINICAL_INPATIENT', color: '#38bdf8' },
+  { key: 'CLINICAL', number: '2', label: 'Clinical Care & OPD', icon: Activity, category: 'CLINICAL_INPATIENT', color: '#38bdf8' },
+  { key: 'WARDS', number: '3', label: 'Inpatient Wards & Beds', icon: Bed, category: 'CLINICAL_INPATIENT', color: '#38bdf8' },
+  { key: 'PHARMACY', number: '4', label: 'Pharmacy & Dispensing', icon: Pill, category: 'CLINICAL_INPATIENT', color: '#38bdf8' },
+  { key: 'SURGERY', number: '5', label: 'Surgery & Theatre', icon: Stethoscope, category: 'CLINICAL_INPATIENT', color: '#38bdf8' },
+
+  { key: 'EMERGENCY', number: '6', label: 'Emergency & Ambulance', icon: AlertTriangle, category: 'ACUTE_DIAGNOSTICS', color: '#ef4444' },
+  { key: 'BLOOD_BANK', number: '7', label: 'Blood Bank & Transfusion', icon: FlaskConical, category: 'ACUTE_DIAGNOSTICS', color: '#ef4444' },
+  { key: 'MORTUARY', number: '8', label: 'Mortuary & Cold Storage', icon: HardDrive, category: 'ACUTE_DIAGNOSTICS', color: '#a1a1aa' },
+  { key: 'BIOMEDICAL', number: '9', label: 'Biomedical & Maintenance', icon: Wrench, category: 'ACUTE_DIAGNOSTICS', color: '#d97706' },
+
+  { key: 'PROCUREMENT', number: '10', label: 'Procurement & Supply Chain', icon: Package, category: 'OPERATIONS_GOVERNANCE', color: 'var(--gold-400)' },
+  { key: 'HR', number: '11', label: 'Human Resources & Rostering', icon: Users, category: 'OPERATIONS_GOVERNANCE', color: '#38bdf8' },
+  { key: 'QUALITY', number: '12', label: 'Quality Assurance & IPC', icon: Shield, category: 'OPERATIONS_GOVERNANCE', color: '#d97706' },
+  { key: 'NHIA_CLAIMS', number: '13', label: 'NHIA & Health Insurance', icon: CreditCard, category: 'OPERATIONS_GOVERNANCE', color: '#22c55e' },
+  { key: 'VOICE_AUTH', number: '14', label: 'Voice Biometrics & Vault', icon: Mic, category: 'OPERATIONS_GOVERNANCE', color: 'var(--gold-400)' },
+
+  { key: 'TELEMEDICINE', number: '15', label: 'Telemedicine, Meetings & GIS', icon: Video, category: 'TELEHEALTH_TECH', color: '#06b6d4' },
+  { key: 'DEVELOPER_NOC', number: '16', label: 'Developer NOC & Hub', icon: Shield, category: 'TELEHEALTH_TECH', color: '#ef4444', devOnly: true }
+];
+
+export const DETAIL_PAGE_GROUPS = [
+  {
+    cluster: 'Clinical & Patient Dossiers',
+    badge: '🩺 DOSSIERS',
+    color: '#38bdf8',
+    commands: [
+      { type: 'VIEW_DETAILS', label: 'View Details', icon: Eye },
+      { type: 'VIEW_PROFILE', label: 'View Profile', icon: User },
+      { type: 'VIEW_RECORDS', label: 'View Records', icon: Database },
+      { type: 'VIEW_REPORTS', label: 'View Reports', icon: FileText }
+    ]
+  },
+  {
+    cluster: 'Activity & Audit Logs',
+    badge: '⏱️ AUDITS',
+    color: 'var(--gold-400)',
+    commands: [
+      { type: 'VIEW_TRANSACTIONS', label: 'View Transactions', icon: CreditCard },
+      { type: 'VIEW_HISTORY', label: 'View History', icon: History },
+      { type: 'VIEW_NOTIFICATIONS', label: 'View Notifications', icon: Bell }
+    ]
+  },
+  {
+    cluster: 'Governance & Facility',
+    badge: '🏛️ GOVERNANCE',
+    color: '#34d399',
+    commands: [
+      { type: 'VIEW_APPLICATIONS', label: 'View Applications', icon: Users },
+      { type: 'VIEW_HOSPITAL_INFORMATION', label: 'View Hospital Info', icon: Building2 },
+      { type: 'VIEW_SYSTEM_INFORMATION', label: 'View System Info', icon: Activity }
+    ]
+  }
+];
+
+export const ECOSYSTEM_CATEGORIES = {
+  ALL: { id: 'ALL', label: 'All Modules' },
+  CLINICAL: { id: 'CLINICAL', label: 'Clinical & Inpatient' },
+  ACUTE_DIAGNOSTICS: { id: 'ACUTE_DIAGNOSTICS', label: 'Emergency & Diagnostics' },
+  OPERATIONS: { id: 'OPERATIONS', label: 'Operations & Administration' },
+  TECHNOLOGY: { id: 'TECHNOLOGY', label: 'Advanced Technology' }
+};
 
 function parseUrlRoute(pathname) {
   const clean = (pathname || '/').replace(/\/+$/, '') || '/';
@@ -106,6 +177,9 @@ export default function App() {
   const [showOperatingGuide, setShowOperatingGuide] = useState(false);
   const [activeModule, setActiveModuleState] = useState(initialRoute.moduleKey);
   const [activeDetail, setActiveDetail] = useState(initialRoute.detail);
+  const [subsystemCategory, setSubsystemCategory] = useState('ALL');
+  const [overviewStaffCategory, setOverviewStaffCategory] = useState('ALL');
+  const [overviewModuleCategory, setOverviewModuleCategory] = useState('ALL');
   const savedScrollRef = useRef({});
 
   // Zero hardcoded numbers: Initialized to 0, populated exclusively from PostgreSQL
@@ -434,172 +508,139 @@ export default function App() {
 
       {/* Main Content Area */}
       <main style={{ position: 'relative', zIndex: 4, flex: 1, padding: '0 16px 68px', maxWidth: '1600px', margin: '0 auto', width: '100%' }}>
-        {/* Navigation Breadcrumb / Module Switcher Tabs */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
-          <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
+        {/* Navigation Breadcrumb & Subsystem Category Switcher */}
+        <div className="glass-panel" style={{ padding: '10px 14px', marginBottom: '12px', border: '1px solid var(--border-subtle)', background: 'rgba(12, 10, 8, 0.92)' }}>
+          {/* Top Row: Subsystem Category Pills & Global Controls */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '10px', borderBottom: '1px solid rgba(212,175,55,0.12)', paddingBottom: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--gold-400)', textTransform: 'uppercase', letterSpacing: '0.06em', marginRight: '4px' }}>
+                Subsystems:
+              </span>
+              {Object.values(SUBSYSTEM_CATEGORIES).map((cat) => {
+                const CatIcon = cat.icon;
+                const isCatActive = subsystemCategory === cat.id;
+                const count = cat.id === 'ALL'
+                  ? SUBSYSTEM_MODULES.filter(m => !m.devOnly || isDeveloperAuthenticated).length
+                  : SUBSYSTEM_MODULES.filter(m => (!m.devOnly || isDeveloperAuthenticated) && m.category === cat.id).length;
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setSubsystemCategory(cat.id)}
+                    className={isCatActive ? 'btn-gold' : 'btn-outline-gold'}
+                    style={{
+                      fontSize: '0.74rem',
+                      padding: '4px 10px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      borderRadius: '6px',
+                      fontWeight: isCatActive ? 700 : 500
+                    }}
+                  >
+                    <CatIcon size={12} />
+                    <span>{cat.label}</span>
+                    <span style={{
+                      fontSize: '0.64rem',
+                      padding: '1px 5px',
+                      borderRadius: '8px',
+                      background: isCatActive ? 'rgba(0,0,0,0.35)' : 'rgba(212,175,55,0.15)',
+                      fontWeight: 700
+                    }}>
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Active Role, Operating Guide, Scroll & Environment Controls */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: 'var(--text-muted)', flexWrap: 'wrap' }}>
+              {activeModule !== 'OVERVIEW' && (
+                <button
+                  type="button"
+                  onClick={() => (activeDetail ? handleBackFromDetail() : setActiveModule('OVERVIEW'))}
+                  className="btn-outline-gold"
+                  style={{ padding: '3px 10px', fontSize: '0.74rem' }}
+                  title="Return to previous view or Enterprise Overview Dashboard"
+                >
+                  ← Back
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setShowOperatingGuide((prev) => !prev)}
+                className="btn-outline-gold"
+                style={{ padding: '3px 10px', fontSize: '0.74rem' }}
+                title="Toggle Dashboard Operating Guide & Role Workflow Instructions"
+              >
+                📖 Operating Guide
+              </button>
+              <button
+                type="button"
+                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                className="btn-outline-gold"
+                style={{ padding: '3px 10px', fontSize: '0.74rem' }}
+                title="Scroll smoothly to top of dashboard"
+              >
+                ↑ Top
+              </button>
+              <span>Env:</span>
+              <span style={{ color: activeEnvironment === 'PRODUCTION' ? '#22c55e' : '#38bdf8', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', border: '1px solid currentColor' }} title="Current Active Backend & Database Environment">
+                {activeEnvironment}
+              </span>
+              <span>Role:</span>
+              <span style={{ color: 'var(--gold-400)', fontWeight: 700, background: 'var(--gold-glow)', padding: '2px 8px', borderRadius: '4px', border: '1px solid var(--border-gold)' }} title="Current Active Role Workspace">
+                {currentRole}
+              </span>
+            </div>
+          </div>
+
+          {/* Bottom Row: Subsystem Module Tabs in Active Category */}
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
             <button
               onClick={() => setActiveModule('OVERVIEW')}
               className={activeModule === 'OVERVIEW' && !activeDetail ? 'btn-gold' : 'btn-outline-gold'}
-              style={{ fontSize: '0.8rem', padding: '6px 14px' }}
+              style={{
+                fontSize: '0.78rem',
+                padding: '5px 12px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontWeight: activeModule === 'OVERVIEW' && !activeDetail ? 800 : 600,
+                boxShadow: activeModule === 'OVERVIEW' && !activeDetail ? '0 0 10px rgba(212,175,55,0.4)' : 'none'
+              }}
             >
-              Enterprise Overview
+              <Building2 size={13} /> Enterprise Overview
             </button>
-            <button
-              onClick={() => setActiveModule('PATIENTS')}
-              className={activeModule === 'PATIENTS' && !activeDetail ? 'btn-gold' : 'btn-outline-gold'}
-              style={{ fontSize: '0.8rem', padding: '6px 14px' }}
-            >
-              <Users size={14} /> 1. Patient MPI & Archive
-            </button>
-            <button
-              onClick={() => setActiveModule('CLINICAL')}
-              className={activeModule === 'CLINICAL' && !activeDetail ? 'btn-gold' : 'btn-outline-gold'}
-              style={{ fontSize: '0.8rem', padding: '6px 14px' }}
-            >
-              <Activity size={14} /> 2. Clinical Care & OPD
-            </button>
-            <button
-              onClick={() => setActiveModule('WARDS')}
-              className={activeModule === 'WARDS' && !activeDetail ? 'btn-gold' : 'btn-outline-gold'}
-              style={{ fontSize: '0.8rem', padding: '6px 14px' }}
-            >
-              <Bed size={14} /> 3. Inpatient Wards & Beds
-            </button>
-            <button
-              onClick={() => setActiveModule('PHARMACY')}
-              className={activeModule === 'PHARMACY' && !activeDetail ? 'btn-gold' : 'btn-outline-gold'}
-              style={{ fontSize: '0.8rem', padding: '6px 14px' }}
-            >
-              <Pill size={14} /> 4. Pharmacy & Dispensing
-            </button>
-            <button
-              onClick={() => setActiveModule('SURGERY')}
-              className={activeModule === 'SURGERY' && !activeDetail ? 'btn-gold' : 'btn-outline-gold'}
-              style={{ fontSize: '0.8rem', padding: '6px 14px' }}
-            >
-              <Stethoscope size={14} /> 5. Surgery & Theatre
-            </button>
-            <button
-              onClick={() => setActiveModule('EMERGENCY')}
-              className={activeModule === 'EMERGENCY' && !activeDetail ? 'btn-gold' : 'btn-outline-gold'}
-              style={{ fontSize: '0.8rem', padding: '6px 14px', borderColor: '#ef4444' }}
-            >
-              <AlertTriangle size={14} style={{ color: '#ef4444' }} /> 6. Emergency & Ambulance
-            </button>
-            <button
-              onClick={() => setActiveModule('BLOOD_BANK')}
-              className={activeModule === 'BLOOD_BANK' && !activeDetail ? 'btn-gold' : 'btn-outline-gold'}
-              style={{ fontSize: '0.8rem', padding: '6px 14px', borderColor: '#ef4444' }}
-            >
-              <FlaskConical size={14} style={{ color: '#ef4444' }} /> 7. Blood Bank & Transfusion
-            </button>
-            <button
-              onClick={() => setActiveModule('MORTUARY')}
-              className={activeModule === 'MORTUARY' && !activeDetail ? 'btn-gold' : 'btn-outline-gold'}
-              style={{ fontSize: '0.8rem', padding: '6px 14px', borderColor: '#a1a1aa' }}
-            >
-              <HardDrive size={14} style={{ color: '#a1a1aa' }} /> 8. Mortuary & Cold Storage
-            </button>
-            <button
-              onClick={() => setActiveModule('BIOMEDICAL')}
-              className={activeModule === 'BIOMEDICAL' && !activeDetail ? 'btn-gold' : 'btn-outline-gold'}
-              style={{ fontSize: '0.8rem', padding: '6px 14px', borderColor: '#d97706' }}
-            >
-              <Wrench size={14} style={{ color: '#d97706' }} /> 9. Biomedical & Maintenance
-            </button>
-            <button
-              onClick={() => setActiveModule('PROCUREMENT')}
-              className={activeModule === 'PROCUREMENT' && !activeDetail ? 'btn-gold' : 'btn-outline-gold'}
-              style={{ fontSize: '0.8rem', padding: '6px 14px', borderColor: 'var(--gold-400)' }}
-            >
-              <Package size={14} style={{ color: 'var(--gold-400)' }} /> 10. Procurement & Supply Chain
-            </button>
-            <button
-              onClick={() => setActiveModule('HR')}
-              className={activeModule === 'HR' && !activeDetail ? 'btn-gold' : 'btn-outline-gold'}
-              style={{ fontSize: '0.8rem', padding: '6px 14px', borderColor: '#38bdf8' }}
-            >
-              <Users size={14} style={{ color: '#38bdf8' }} /> 11. Human Resources & Rostering
-            </button>
-            <button
-              onClick={() => setActiveModule('QUALITY')}
-              className={activeModule === 'QUALITY' && !activeDetail ? 'btn-gold' : 'btn-outline-gold'}
-              style={{ fontSize: '0.8rem', padding: '6px 14px', borderColor: '#d97706' }}
-            >
-              <Shield size={14} style={{ color: '#d97706' }} /> 12. Quality Assurance & IPC
-            </button>
-            <button
-              onClick={() => setActiveModule('NHIA_CLAIMS')}
-              className={activeModule === 'NHIA_CLAIMS' && !activeDetail ? 'btn-gold' : 'btn-outline-gold'}
-              style={{ fontSize: '0.8rem', padding: '6px 14px', borderColor: '#22c55e' }}
-            >
-              <CreditCard size={14} style={{ color: '#22c55e' }} /> 13. NHIA & Health Insurance
-            </button>
-            <button
-              onClick={() => setActiveModule('VOICE_AUTH')}
-              className={activeModule === 'VOICE_AUTH' && !activeDetail ? 'btn-gold' : 'btn-outline-gold'}
-              style={{ fontSize: '0.8rem', padding: '6px 14px', borderColor: 'var(--gold-400)' }}
-            >
-              <Mic size={14} style={{ color: 'var(--gold-400)' }} /> 14. Voice Biometrics & Security Vault
-            </button>
-            <button
-              onClick={() => setActiveModule('TELEMEDICINE')}
-              className={activeModule === 'TELEMEDICINE' && !activeDetail ? 'btn-gold' : 'btn-outline-gold'}
-              style={{ fontSize: '0.8rem', padding: '6px 14px', borderColor: '#06b6d4' }}
-            >
-              <Video size={14} style={{ color: '#06b6d4' }} /> 15. Telemedicine, Online Meetings & GIS
-            </button>
-            {isDeveloperAuthenticated && (
-              <button
-                onClick={() => setActiveModule('DEVELOPER_NOC')}
-                className={activeModule === 'DEVELOPER_NOC' && !activeDetail ? 'btn-gold' : 'btn-outline-gold'}
-                style={{ fontSize: '0.8rem', padding: '6px 14px', borderColor: '#ef4444' }}
-                title="Open Hidden Developer Landlord Control Center (Restricted to gabosei48@gmail.com)"
-              >
-                <Shield size={14} /> Developer Dashboard (NOC • Migration • GIS & Telemedicine)
-              </button>
-            )}
-          </div>
 
-          {/* Active Role, Operating Guide, Scroll & Environment Controls */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: 'var(--text-muted)', flexWrap: 'wrap' }}>
-            {activeModule !== 'OVERVIEW' && (
-              <button
-                type="button"
-                onClick={() => (activeDetail ? handleBackFromDetail() : setActiveModule('OVERVIEW'))}
-                className="btn-outline-gold"
-                style={{ padding: '3px 10px', fontSize: '0.74rem' }}
-                title="Return to previous view or Enterprise Overview Dashboard"
-              >
-                ← Back
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={() => setShowOperatingGuide((prev) => !prev)}
-              className="btn-outline-gold"
-              style={{ padding: '3px 10px', fontSize: '0.74rem' }}
-              title="Toggle Dashboard Operating Guide & Role Workflow Instructions"
-            >
-              📖 Operating Guide
-            </button>
-            <button
-              type="button"
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="btn-outline-gold"
-              style={{ padding: '3px 10px', fontSize: '0.74rem' }}
-              title="Scroll smoothly to top of dashboard"
-            >
-              ↑ Top
-            </button>
-            <span>Env:</span>
-            <span style={{ color: activeEnvironment === 'PRODUCTION' ? '#22c55e' : '#38bdf8', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', border: '1px solid currentColor' }} title="Current Active Backend & Database Environment">
-              {activeEnvironment}
-            </span>
-            <span>Role:</span>
-            <span style={{ color: 'var(--gold-400)', fontWeight: 700, background: 'var(--gold-glow)', padding: '2px 8px', borderRadius: '4px', border: '1px solid var(--border-gold)' }} title="Current Active Role Workspace">
-              {currentRole}
-            </span>
+            {SUBSYSTEM_MODULES
+              .filter(m => (!m.devOnly || isDeveloperAuthenticated) && (subsystemCategory === 'ALL' || m.category === subsystemCategory))
+              .map((mod) => {
+                const ModIcon = mod.icon;
+                const isActive = activeModule === mod.key && !activeDetail;
+                return (
+                  <button
+                    key={mod.key}
+                    onClick={() => setActiveModule(mod.key)}
+                    className={isActive ? 'btn-gold' : 'btn-outline-gold'}
+                    style={{
+                      fontSize: '0.76rem',
+                      padding: '5px 11px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      borderColor: isActive ? 'var(--gold-400)' : mod.color,
+                      fontWeight: isActive ? 800 : 500,
+                      boxShadow: isActive ? '0 0 10px rgba(212,175,55,0.4)' : 'none'
+                    }}
+                  >
+                    <ModIcon size={13} style={{ color: isActive ? '#000' : mod.color }} />
+                    <span style={{ fontWeight: 700 }}>{mod.number}.</span>
+                    <span>{mod.label}</span>
+                  </button>
+                );
+              })}
           </div>
         </div>
 
@@ -628,51 +669,71 @@ export default function App() {
           style={{
             padding: '10px 16px',
             marginBottom: '16px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: '8px',
             border: '1px solid var(--border-subtle)',
-            background: 'rgba(15, 13, 10, 0.85)'
+            background: 'rgba(15, 13, 10, 0.88)'
           }}
         >
-          <span style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--gold-400)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Dedicated Detail Pages ({activeModule}):
-          </span>
-          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-            {[
-              { type: 'VIEW_DETAILS', label: 'View Details', icon: Eye },
-              { type: 'VIEW_PROFILE', label: 'View Profile', icon: User },
-              { type: 'VIEW_RECORDS', label: 'View Records', icon: Database },
-              { type: 'VIEW_REPORTS', label: 'View Reports', icon: FileText },
-              { type: 'VIEW_TRANSACTIONS', label: 'View Transactions', icon: CreditCard },
-              { type: 'VIEW_HISTORY', label: 'View History', icon: History },
-              { type: 'VIEW_NOTIFICATIONS', label: 'View Notifications', icon: Bell },
-              { type: 'VIEW_APPLICATIONS', label: 'View Applications', icon: Users },
-              { type: 'VIEW_HOSPITAL_INFORMATION', label: 'View Hospital Information', icon: Building2 },
-              { type: 'VIEW_SYSTEM_INFORMATION', label: 'View System Information', icon: Activity }
-            ].map((cmd) => {
-              const Icon = cmd.icon;
-              const isSelected = activeDetail && activeDetail.detailType === cmd.type;
-              return (
-                <button
-                  key={cmd.type}
-                  onClick={() =>
-                    openDetailPage({
-                      detailType: cmd.type,
-                      moduleKey: activeModule,
-                      recordId: 'all',
-                      title: `${activeModule} — ${cmd.label}`
-                    })
-                  }
-                  className={isSelected ? 'btn-gold' : 'btn-outline-gold'}
-                  style={{ padding: '4px 10px', fontSize: '0.74rem', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
-                >
-                  <Icon size={12} /> {cmd.label}
-                </button>
-              );
-            })}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
+            <span style={{ fontSize: '0.74rem', fontWeight: 800, color: 'var(--gold-400)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              Dedicated Universal Detail Pages ({activeModule}):
+            </span>
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+              Select any dossier, audit log, or governance page for complete PostgreSQL records
+            </span>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(310px, 1fr))', gap: '10px' }}>
+            {DETAIL_PAGE_GROUPS.map((group, gIdx) => (
+              <div
+                key={gIdx}
+                style={{
+                  padding: '8px 10px',
+                  borderRadius: '6px',
+                  background: 'rgba(0,0,0,0.3)',
+                  border: '1px solid rgba(255,255,255,0.06)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '6px'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: '0.68rem', fontWeight: 700, color: group.color, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    {group.badge} • {group.cluster}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+                  {group.commands.map((cmd) => {
+                    const Icon = cmd.icon;
+                    const isSelected = activeDetail && activeDetail.detailType === cmd.type;
+                    return (
+                      <button
+                        key={cmd.type}
+                        onClick={() =>
+                          openDetailPage({
+                            detailType: cmd.type,
+                            moduleKey: activeModule,
+                            recordId: 'all',
+                            title: `${activeModule} — ${cmd.label}`
+                          })
+                        }
+                        className={isSelected ? 'btn-gold' : 'btn-outline-gold'}
+                        style={{
+                          padding: '4px 8px',
+                          fontSize: '0.72rem',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          flex: '1 1 auto',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        <Icon size={12} /> {cmd.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -907,8 +968,52 @@ export default function App() {
                       Click any role to open its dedicated real-life login page or launch its live workspace
                     </span>
                   </div>
+
+                  {/* Role Category Filter Tabs */}
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '14px' }}>
+                    {Object.values(ROLE_CATEGORIES).map((cat) => {
+                      const isCatActive = overviewStaffCategory === cat.id;
+                      const count = cat.id === 'ALL'
+                        ? ROLES.filter(r => r.id !== 'DEVELOPER' || isDeveloperAuthenticated).length
+                        : ROLES.filter(r => (r.id !== 'DEVELOPER' || isDeveloperAuthenticated) && (r.category === cat.id || (cat.id === 'OPERATIONS' && (r.category === 'OPERATIONS' || r.category === 'PATIENT')))).length;
+                      return (
+                        <button
+                          key={cat.id}
+                          type="button"
+                          onClick={() => setOverviewStaffCategory(cat.id)}
+                          className={isCatActive ? 'btn-gold' : 'btn-outline-gold'}
+                          style={{
+                            fontSize: '0.76rem',
+                            padding: '5px 12px',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            borderRadius: '6px',
+                            fontWeight: isCatActive ? 700 : 500
+                          }}
+                        >
+                          <span>{cat.label}</span>
+                          <span style={{
+                            fontSize: '0.66rem',
+                            padding: '1px 6px',
+                            borderRadius: '10px',
+                            background: isCatActive ? 'rgba(0,0,0,0.35)' : 'rgba(212,175,55,0.18)',
+                            fontWeight: 700
+                          }}>
+                            {count}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(185px, 1fr))', gap: '12px' }}>
-                    {ROLES.filter((r) => r.id !== 'DEVELOPER' || isDeveloperAuthenticated).map((r) => {
+                    {ROLES.filter((r) => {
+                      if (r.id === 'DEVELOPER' && !isDeveloperAuthenticated) return false;
+                      if (overviewStaffCategory === 'ALL') return true;
+                      if (overviewStaffCategory === 'OPERATIONS') return r.category === 'OPERATIONS' || r.category === 'PATIENT';
+                      return r.category === overviewStaffCategory;
+                    }).map((r) => {
                       const isCurrent = currentRole === r.id;
                       return (
                         <div
@@ -979,8 +1084,8 @@ export default function App() {
 
                 {/* Master Blueprint Enterprise Modules Grid (Every Card with Real-Life Hospital Department Photography; Developer NOC Hidden from Non-Developers) */}
                 <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                    <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+                    <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff', margin: 0 }}>
                       Enterprise Hospital Modules Ecosystem
                     </h3>
                     <span style={{ fontSize: '0.75rem', color: 'var(--gold-400)' }}>
@@ -988,28 +1093,58 @@ export default function App() {
                     </span>
                   </div>
 
+                  {/* Module Ecosystem Category Filter Tabs */}
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '14px' }}>
+                    {Object.values(ECOSYSTEM_CATEGORIES).map((cat) => {
+                      const isCatActive = overviewModuleCategory === cat.id;
+                      return (
+                        <button
+                          key={cat.id}
+                          type="button"
+                          onClick={() => setOverviewModuleCategory(cat.id)}
+                          className={isCatActive ? 'btn-gold' : 'btn-outline-gold'}
+                          style={{
+                            fontSize: '0.76rem',
+                            padding: '5px 12px',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            borderRadius: '6px',
+                            fontWeight: isCatActive ? 700 : 500
+                          }}
+                        >
+                          <span>{cat.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
                     {[
-                      { mod: 'PATIENTS', title: '1. Patient Management & MPI', desc: 'Registration, Master Patient Index, Physical Folder shelf cataloging, and chain-of-custody archive movement.', img: '/assets/images/patient_registration_archive_real.jpg', icon: Users, color: 'var(--gold-400)', border: 'var(--border-gold)' },
-                      { mod: 'CLINICAL', title: '2. Clinical Care & OPD Triage', desc: 'Nurse OPD queuing, Adult NEWS2 evaluation, BMI calculation, and Doctor consultation with WHO ICD-10 coding.', img: '/assets/images/doctor_consultation_real.jpg', icon: Activity, color: 'var(--status-info)', border: 'var(--border-gold)' },
-                      { mod: 'PHARMACY', title: '3. Pharmacy & FEFO Inventory', desc: 'FEFO prescription dispensing, batch expiry risk engine, low stock threshold alerts, and duplicate fulfillment prevention.', img: '/assets/images/pharmacy_dispensary_real.jpg', icon: Pill, color: 'var(--status-warning)', border: 'var(--border-gold)' },
-                      { mod: 'CLINICAL', title: '4. Laboratory & Pathology', desc: 'Diagnostic panel requests, phlebotomy barcode tubes (SMP-YYYY-XXXXXX), and automated panic value cutoff evaluation.', img: '/assets/images/laboratory_pathology_real.jpg', icon: FlaskConical, color: 'var(--gold-400)', border: 'var(--border-gold)' },
-                      { mod: 'WARDS', title: '5. Inpatient Wards & ICU Beds', desc: 'Ward and room provisioning, bed availability matrix, intra-ward bed transfers, and shift nursing charts.', img: '/assets/images/inpatient_ward_bed_real.jpg', icon: Bed, color: 'var(--status-online)', border: 'var(--border-gold)' },
-                      { mod: 'SURGERY', title: '6. Operating Theatre & Surgery', desc: 'WHO 3-phase surgical safety checklist, Anesthesia ASA protocol, and PACU Modified Aldrete recovery clearance.', img: '/assets/images/operating_theatre_real.jpg', icon: Stethoscope, color: 'var(--gold-400)', border: 'var(--border-gold)' },
-                      { mod: 'NHIA_CLAIMS', title: '7. Billing & NHIS Insurance', desc: 'Automated encounter charge compilation, multi-channel receipts (Cash, MoMo, Card), and NHIS claim lifecycle.', img: '/assets/images/nhia_claims_center_real.jpg', icon: CreditCard, color: 'var(--status-info)', border: 'var(--border-gold)' },
-                      { mod: 'CLINICAL', title: '8. Radiology & PACS Imaging', desc: 'Modality worklists, DICOM windowing presets, red-flag panic finding detector, and electronic report sign-off.', img: '/assets/images/radiology_pacs_mri_real.jpg', icon: Radio, color: 'var(--gold-300)', border: 'var(--border-gold)' },
-                      { mod: 'DEVELOPER_NOC', title: '9. Developer Landlord NOC', desc: 'Landlord control center, live countdown engine, emergency system lock/unlock, database backups, and tenant governance.', img: '/assets/images/developer_control_center_real.jpg', icon: Shield, color: '#fca5a5', border: '#ef4444' },
-                      { mod: 'EMERGENCY', title: '10. Emergency & Ambulance Fleet', desc: 'Ambulance GPS fleet dispatch, Red/Yellow triage trauma bay allocation, ALS paramedic response, and emergency override logs.', img: '/assets/images/emergency_ambulance_fleet_real.jpg', icon: AlertTriangle, color: '#fca5a5', border: '#ef4444' },
-                      { mod: 'BLOOD_BANK', title: '11. Blood Bank & Transfusion', desc: 'Donor registry, cold-chain 4°C storage, cross-matching compatibility matrix, and bedside dual-check hemovigilance.', img: '/assets/images/blood_bank_transfusion_real.jpg', icon: FlaskConical, color: '#fca5a5', border: '#ef4444' },
-                      { mod: 'MORTUARY', title: '12. Mortuary & Cold Storage', desc: 'Cold storage vaults, clinical/coroner post-mortem autopsies, and biometric Next-of-Kin deceased release handover.', img: '/assets/images/mortuary_cold_storage_real.jpg', icon: HardDrive, color: '#e4e4e7', border: '#a1a1aa' },
-                      { mod: 'BIOMEDICAL', title: '13. Biomedical & Maintenance', desc: 'Computerized maintenance CMMS, life-support asset telemetry, electrical safety analyzer sign-offs, and metrology calibrations.', img: '/assets/images/biomedical_engineering_equipment_real.jpg', icon: Wrench, color: '#fcd34d', border: '#d97706' },
-                      { mod: 'PROCUREMENT', title: '14. Procurement & Supply Chain', desc: 'Purchase order lifecycle, supplier SLAs, goods receipt notes (GRN), and automated three-way matching against invoices.', img: '/assets/images/procurement_supply_chain_real.jpg', icon: Package, color: 'var(--gold-300)', border: 'var(--border-gold)' },
-                      { mod: 'HR', title: '15. HR, Rostering & Credentialing', desc: 'Staff regulatory credentialing (MDC, NMC, PCG), duty roster scheduling, clinical SBAR shift handovers, and biometric attendance.', img: '/assets/images/hr_medical_staff_real.jpg', icon: Users, color: '#7dd3fc', border: 'var(--border-gold)' },
-                      { mod: 'QUALITY', title: '15. Quality, Audits & Infection Control', desc: 'Hospital safety index, anonymous incident reporting, sentinel event 24h RCA, WHO Surgical Safety checklists, and IPC isolation.', img: '/assets/images/quality_infection_control_real.jpg', icon: Shield, color: '#fbbf24', border: 'var(--border-gold)' },
-                      { mod: 'NHIA_CLAIMS', title: '16. NHIA Claims & E-Claims Adjudication', desc: 'G-DRG tariff pricing, NHIS eligibility verification, 20-rule pre-submission vetting, and reconciliation vouchers.', img: '/assets/images/nhia_claims_center_real.jpg', icon: CreditCard, color: '#86efac', border: '#22c55e' },
-                      { mod: 'VOICE_AUTH', title: '17. Central Voice Biometrics & Vault', desc: 'Acoustic voiceprint enrollment, zero-trust MFCC matching, anti-spoofing liveness guards, and multi-factor clinical challenges.', img: '/assets/images/voice_biometric_security_real.jpg', icon: Mic, color: 'var(--gold-300)', border: 'var(--border-gold)' }
+                      { mod: 'PATIENTS', cat: 'CLINICAL', title: '1. Patient Management & MPI', desc: 'Registration, Master Patient Index, Physical Folder shelf cataloging, and chain-of-custody archive movement.', img: '/assets/images/patient_registration_archive_real.jpg', icon: Users, color: 'var(--gold-400)', border: 'var(--border-gold)' },
+                      { mod: 'CLINICAL', cat: 'CLINICAL', title: '2. Clinical Care & OPD Triage', desc: 'Nurse OPD queuing, Adult NEWS2 evaluation, BMI calculation, and Doctor consultation with WHO ICD-10 coding.', img: '/assets/images/doctor_consultation_real.jpg', icon: Activity, color: 'var(--status-info)', border: 'var(--border-gold)' },
+                      { mod: 'PHARMACY', cat: 'CLINICAL', title: '3. Pharmacy & FEFO Inventory', desc: 'FEFO prescription dispensing, batch expiry risk engine, low stock threshold alerts, and duplicate fulfillment prevention.', img: '/assets/images/pharmacy_dispensary_real.jpg', icon: Pill, color: 'var(--status-warning)', border: 'var(--border-gold)' },
+                      { mod: 'CLINICAL', cat: 'ACUTE_DIAGNOSTICS', title: '4. Laboratory & Pathology', desc: 'Diagnostic panel requests, phlebotomy barcode tubes (SMP-YYYY-XXXXXX), and automated panic value cutoff evaluation.', img: '/assets/images/laboratory_pathology_real.jpg', icon: FlaskConical, color: 'var(--gold-400)', border: 'var(--border-gold)' },
+                      { mod: 'WARDS', cat: 'CLINICAL', title: '5. Inpatient Wards & ICU Beds', desc: 'Ward and room provisioning, bed availability matrix, intra-ward bed transfers, and shift nursing charts.', img: '/assets/images/inpatient_ward_bed_real.jpg', icon: Bed, color: 'var(--status-online)', border: 'var(--border-gold)' },
+                      { mod: 'SURGERY', cat: 'CLINICAL', title: '6. Operating Theatre & Surgery', desc: 'WHO 3-phase surgical safety checklist, Anesthesia ASA protocol, and PACU Modified Aldrete recovery clearance.', img: '/assets/images/operating_theatre_real.jpg', icon: Stethoscope, color: 'var(--gold-400)', border: 'var(--border-gold)' },
+                      { mod: 'NHIA_CLAIMS', cat: 'OPERATIONS', title: '7. Billing & NHIS Insurance', desc: 'Automated encounter charge compilation, multi-channel receipts (Cash, MoMo, Card), and NHIS claim lifecycle.', img: '/assets/images/nhia_claims_center_real.jpg', icon: CreditCard, color: 'var(--status-info)', border: 'var(--border-gold)' },
+                      { mod: 'CLINICAL', cat: 'ACUTE_DIAGNOSTICS', title: '8. Radiology & PACS Imaging', desc: 'Modality worklists, DICOM windowing presets, red-flag panic finding detector, and electronic report sign-off.', img: '/assets/images/radiology_pacs_mri_real.jpg', icon: Radio, color: 'var(--gold-300)', border: 'var(--border-gold)' },
+                      { mod: 'DEVELOPER_NOC', cat: 'TECHNOLOGY', title: '9. Developer Landlord NOC', desc: 'Landlord control center, live countdown engine, emergency system lock/unlock, database backups, and tenant governance.', img: '/assets/images/developer_control_center_real.jpg', icon: Shield, color: '#fca5a5', border: '#ef4444' },
+                      { mod: 'EMERGENCY', cat: 'ACUTE_DIAGNOSTICS', title: '10. Emergency & Ambulance Fleet', desc: 'Ambulance GPS fleet dispatch, Red/Yellow triage trauma bay allocation, ALS paramedic response, and emergency override logs.', img: '/assets/images/emergency_ambulance_fleet_real.jpg', icon: AlertTriangle, color: '#fca5a5', border: '#ef4444' },
+                      { mod: 'BLOOD_BANK', cat: 'ACUTE_DIAGNOSTICS', title: '11. Blood Bank & Transfusion', desc: 'Donor registry, cold-chain 4°C storage, cross-matching compatibility matrix, and bedside dual-check hemovigilance.', img: '/assets/images/blood_bank_transfusion_real.jpg', icon: FlaskConical, color: '#fca5a5', border: '#ef4444' },
+                      { mod: 'MORTUARY', cat: 'ACUTE_DIAGNOSTICS', title: '12. Mortuary & Cold Storage', desc: 'Cold storage vaults, clinical/coroner post-mortem autopsies, and biometric Next-of-Kin deceased release handover.', img: '/assets/images/mortuary_cold_storage_real.jpg', icon: HardDrive, color: '#e4e4e7', border: '#a1a1aa' },
+                      { mod: 'BIOMEDICAL', cat: 'ACUTE_DIAGNOSTICS', title: '13. Biomedical & Maintenance', desc: 'Computerized maintenance CMMS, life-support asset telemetry, electrical safety analyzer sign-offs, and metrology calibrations.', img: '/assets/images/biomedical_engineering_equipment_real.jpg', icon: Wrench, color: '#fcd34d', border: '#d97706' },
+                      { mod: 'PROCUREMENT', cat: 'OPERATIONS', title: '14. Procurement & Supply Chain', desc: 'Purchase order lifecycle, supplier SLAs, goods receipt notes (GRN), and automated three-way matching against invoices.', img: '/assets/images/procurement_supply_chain_real.jpg', icon: Package, color: 'var(--gold-300)', border: 'var(--border-gold)' },
+                      { mod: 'HR', cat: 'OPERATIONS', title: '15. HR, Rostering & Credentialing', desc: 'Staff regulatory credentialing (MDC, NMC, PCG), duty roster scheduling, clinical SBAR shift handovers, and biometric attendance.', img: '/assets/images/hr_medical_staff_real.jpg', icon: Users, color: '#7dd3fc', border: 'var(--border-gold)' },
+                      { mod: 'QUALITY', cat: 'OPERATIONS', title: '15. Quality, Audits & Infection Control', desc: 'Hospital safety index, anonymous incident reporting, sentinel event 24h RCA, WHO Surgical Safety checklists, and IPC isolation.', img: '/assets/images/quality_infection_control_real.jpg', icon: Shield, color: '#fbbf24', border: 'var(--border-gold)' },
+                      { mod: 'NHIA_CLAIMS', cat: 'OPERATIONS', title: '16. NHIA Claims & E-Claims Adjudication', desc: 'G-DRG tariff pricing, NHIS eligibility verification, 20-rule pre-submission vetting, and reconciliation vouchers.', img: '/assets/images/nhia_claims_center_real.jpg', icon: CreditCard, color: '#86efac', border: '#22c55e' },
+                      { mod: 'VOICE_AUTH', cat: 'TECHNOLOGY', title: '17. Central Voice Biometrics & Vault', desc: 'Acoustic voiceprint enrollment, zero-trust MFCC matching, anti-spoofing liveness guards, and multi-factor clinical challenges.', img: '/assets/images/voice_biometric_security_real.jpg', icon: Mic, color: 'var(--gold-300)', border: 'var(--border-gold)' }
                     ]
-                      .filter((card) => card.mod !== 'DEVELOPER_NOC' || isDeveloperAuthenticated)
+                      .filter((card) => {
+                        if (card.mod === 'DEVELOPER_NOC' && !isDeveloperAuthenticated) return false;
+                        if (overviewModuleCategory === 'ALL') return true;
+                        return card.cat === overviewModuleCategory;
+                      })
                       .map((card, idx) => {
                         const CardIcon = card.icon;
                         return (

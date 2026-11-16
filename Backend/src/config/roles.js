@@ -20,7 +20,6 @@ backend/src/config/roles.js
 const ROLES =
     Object.freeze({
         DEVELOPER: 'DEVELOPER',
-        SUPER_ADMIN: 'SUPER_ADMIN',
         ADMINISTRATOR: 'ADMINISTRATOR',
         HOSPITAL_DIRECTOR: 'HOSPITAL_DIRECTOR',
         DOCTOR: 'DOCTOR',
@@ -46,7 +45,6 @@ const DEVELOPER_ROLES =
 const ADMIN_ROLES =
     Object.freeze([
         ROLES.DEVELOPER,
-        ROLES.SUPER_ADMIN,
         ROLES.ADMINISTRATOR,
         ROLES.HOSPITAL_DIRECTOR
     ]);

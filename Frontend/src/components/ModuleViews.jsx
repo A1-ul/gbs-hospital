@@ -662,23 +662,46 @@ export function ClinicalCareView() {
         </div>
       )}
 
-      {/* Tabs */}
-      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-        <button onClick={() => setActiveTab('NURSE_TRIAGE')} className={activeTab === 'NURSE_TRIAGE' ? 'btn-gold' : 'btn-outline-gold'}>
-          <Activity size={15} /> Nurse Triage Station
-        </button>
-        <button onClick={() => setActiveTab('DOCTOR_CONSULT')} className={activeTab === 'DOCTOR_CONSULT' ? 'btn-gold' : 'btn-outline-gold'}>
-          <Stethoscope size={15} /> Doctor Consultation
-        </button>
-        <button onClick={() => setActiveTab('LAB_LIS')} className={activeTab === 'LAB_LIS' ? 'btn-gold' : 'btn-outline-gold'}>
-          <FlaskConical size={15} /> Laboratory (LIS)
-        </button>
-        <button onClick={() => setActiveTab('RADIOLOGY_RIS')} className={activeTab === 'RADIOLOGY_RIS' ? 'btn-gold' : 'btn-outline-gold'}>
-          <Radio size={15} /> Radiology (RIS/PACS)
-        </button>
-        <button onClick={() => setActiveTab('BILLING_FINANCE')} className={activeTab === 'BILLING_FINANCE' ? 'btn-gold' : 'btn-outline-gold'}>
-          <CreditCard size={15} /> Billing & Cashier
-        </button>
+      {/* Organized Clinical & Diagnostic Workstation Tabs */}
+      <div className="glass-panel" style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', border: '1px solid var(--border-gold)', background: 'rgba(15, 12, 9, 0.92)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--gold-400)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            Workstations:
+          </span>
+          {[
+            { id: 'NURSE_TRIAGE', label: '1. Nurse Triage Station', icon: Activity, dept: 'OPD Triage' },
+            { id: 'DOCTOR_CONSULT', label: '2. Doctor Consultation', icon: Stethoscope, dept: 'Clinical OPD' },
+            { id: 'LAB_LIS', label: '3. Laboratory (LIS)', icon: FlaskConical, dept: 'Pathology' },
+            { id: 'RADIOLOGY_RIS', label: '4. Radiology (RIS/PACS)', icon: Radio, dept: 'Imaging' },
+            { id: 'BILLING_FINANCE', label: '5. Billing & Cashier', icon: CreditCard, dept: 'Finance' }
+          ].map((tab) => {
+            const TabIcon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
+                className={isActive ? 'btn-gold' : 'btn-outline-gold'}
+                style={{
+                  fontSize: '0.78rem',
+                  padding: '6px 12px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontWeight: isActive ? 800 : 500,
+                  boxShadow: isActive ? '0 0 10px rgba(212,175,55,0.4)' : 'none'
+                }}
+              >
+                <TabIcon size={14} />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
+        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+          Active Station: <strong style={{ color: 'var(--gold-400)' }}>{activeTab.replace(/_/g, ' ')}</strong>
+        </span>
       </div>
 
       {/* Content */}
@@ -3628,27 +3651,30 @@ export function BloodBankView() {
       </div>
 
       {/* Subsystem Tabs */}
-      <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '8px' }}>
+      <div className="glass-panel" style={{ padding: '8px 12px', display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', border: '1px solid var(--border-subtle)', background: 'rgba(15, 12, 9, 0.88)' }}>
+        <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--gold-400)', textTransform: 'uppercase', letterSpacing: '0.06em', marginRight: '4px' }}>
+          Blood Bank Sections:
+        </span>
         <button
           onClick={() => setActiveTab('INVENTORY')}
           className={activeTab === 'INVENTORY' ? 'btn-gold' : 'btn-outline-gold'}
-          style={{ fontSize: '0.78rem', padding: '6px 14px' }}
+          style={{ fontSize: '0.78rem', padding: '6px 14px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: activeTab === 'INVENTORY' ? 800 : 500 }}
         >
-          Cold-Chain Bag Inventory ({inventory.length})
+          <FlaskConical size={14} /> 1. Cold-Chain Bag Inventory ({inventory.length})
         </button>
         <button
           onClick={() => setActiveTab('REQUESTS')}
           className={activeTab === 'REQUESTS' ? 'btn-gold' : 'btn-outline-gold'}
-          style={{ fontSize: '0.78rem', padding: '6px 14px' }}
+          style={{ fontSize: '0.78rem', padding: '6px 14px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: activeTab === 'REQUESTS' ? 800 : 500 }}
         >
-          Transfusion Requests & Cross-Matches ({requests.length})
+          <Activity size={14} /> 2. Transfusion Requests & Cross-Matches ({requests.length})
         </button>
         <button
           onClick={() => setActiveTab('DONORS')}
           className={activeTab === 'DONORS' ? 'btn-gold' : 'btn-outline-gold'}
-          style={{ fontSize: '0.78rem', padding: '6px 14px' }}
+          style={{ fontSize: '0.78rem', padding: '6px 14px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: activeTab === 'DONORS' ? 800 : 500 }}
         >
-          Donor Registry ({donors.length})
+          <Users size={14} /> 3. Donor Registry ({donors.length})
         </button>
       </div>
 
@@ -4265,27 +4291,30 @@ export function MortuaryView() {
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '8px' }}>
+      <div className="glass-panel" style={{ padding: '8px 12px', display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', border: '1px solid var(--border-subtle)', background: 'rgba(15, 12, 9, 0.88)' }}>
+        <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--gold-400)', textTransform: 'uppercase', letterSpacing: '0.06em', marginRight: '4px' }}>
+          Mortuary Sections:
+        </span>
         <button
           onClick={() => setActiveTab('VAULTS')}
           className={activeTab === 'VAULTS' ? 'btn-gold' : 'btn-outline-gold'}
-          style={{ fontSize: '0.8rem', padding: '6px 14px' }}
+          style={{ fontSize: '0.8rem', padding: '6px 14px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: activeTab === 'VAULTS' ? 800 : 500 }}
         >
-          Cold Storage Vaults ({chambers.length})
+          <HardDrive size={14} /> 1. Cold Storage Vaults ({chambers.length})
         </button>
         <button
           onClick={() => setActiveTab('CORPSES')}
           className={activeTab === 'CORPSES' ? 'btn-gold' : 'btn-outline-gold'}
-          style={{ fontSize: '0.8rem', padding: '6px 14px' }}
+          style={{ fontSize: '0.8rem', padding: '6px 14px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: activeTab === 'CORPSES' ? 800 : 500 }}
         >
-          Deceased Registry ({corpses.length})
+          <FileText size={14} /> 2. Deceased Registry & Autopsy ({corpses.length})
         </button>
         <button
           onClick={() => setActiveTab('RELEASES')}
           className={activeTab === 'RELEASES' ? 'btn-gold' : 'btn-outline-gold'}
-          style={{ fontSize: '0.8rem', padding: '6px 14px' }}
+          style={{ fontSize: '0.8rem', padding: '6px 14px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: activeTab === 'RELEASES' ? 800 : 500 }}
         >
-          Deceased Family Release Protocol ({releases.length})
+          <Users size={14} /> 3. Family Handover Releases ({releases.length})
         </button>
       </div>
 
@@ -5065,20 +5094,23 @@ export function BiomedicalView() {
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '8px' }}>
+      <div className="glass-panel" style={{ padding: '8px 12px', display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', border: '1px solid var(--border-subtle)', background: 'rgba(15, 12, 9, 0.88)' }}>
+        <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--gold-400)', textTransform: 'uppercase', letterSpacing: '0.06em', marginRight: '4px' }}>
+          Biomedical Sections:
+        </span>
         <button
           onClick={() => setActiveTab('EQUIPMENT')}
           className={activeTab === 'EQUIPMENT' ? 'btn-gold' : 'btn-outline-gold'}
-          style={{ fontSize: '0.8rem', padding: '6px 14px' }}
+          style={{ fontSize: '0.8rem', padding: '6px 14px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: activeTab === 'EQUIPMENT' ? 800 : 500 }}
         >
-          Medical Equipment Assets ({equipmentList.length})
+          <Wrench size={14} /> 1. Medical Equipment Assets ({equipmentList.length})
         </button>
         <button
           onClick={() => setActiveTab('WORK_ORDERS')}
           className={activeTab === 'WORK_ORDERS' ? 'btn-gold' : 'btn-outline-gold'}
-          style={{ fontSize: '0.8rem', padding: '6px 14px' }}
+          style={{ fontSize: '0.8rem', padding: '6px 14px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: activeTab === 'WORK_ORDERS' ? 800 : 500 }}
         >
-          Maintenance Work Orders & Tickets ({workOrders.length})
+          <FileText size={14} /> 2. Work Orders & Maintenance ({workOrders.length})
         </button>
       </div>
 
@@ -5897,34 +5929,37 @@ export function ProcurementView() {
       </div>
 
       {/* Subsystem Navigation Tabs */}
-      <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '8px' }}>
+      <div className="glass-panel" style={{ padding: '8px 12px', display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', border: '1px solid var(--border-subtle)', background: 'rgba(15, 12, 9, 0.88)' }}>
+        <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--gold-400)', textTransform: 'uppercase', letterSpacing: '0.06em', marginRight: '4px' }}>
+          Procurement Sections:
+        </span>
         <button
           onClick={() => setActiveTab('PURCHASE_ORDERS')}
           className={activeTab === 'PURCHASE_ORDERS' ? 'btn-gold' : 'btn-outline-gold'}
-          style={{ fontSize: '0.78rem', padding: '6px 14px' }}
+          style={{ fontSize: '0.78rem', padding: '6px 14px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: activeTab === 'PURCHASE_ORDERS' ? 800 : 500 }}
         >
-          Purchase Orders ({purchaseOrders.length})
+          <Package size={14} /> 1. Purchase Orders ({purchaseOrders.length})
         </button>
         <button
           onClick={() => setActiveTab('GOODS_RECEIPTS')}
           className={activeTab === 'GOODS_RECEIPTS' ? 'btn-gold' : 'btn-outline-gold'}
-          style={{ fontSize: '0.78rem', padding: '6px 14px' }}
+          style={{ fontSize: '0.78rem', padding: '6px 14px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: activeTab === 'GOODS_RECEIPTS' ? 800 : 500 }}
         >
-          Goods Receipt Notes (GRN) & 3-Way Match ({goodsReceipts.length})
+          <CheckCircle size={14} /> 2. Goods Receipts (GRN) & 3-Way Match ({goodsReceipts.length})
         </button>
         <button
           onClick={() => setActiveTab('VENDORS')}
           className={activeTab === 'VENDORS' ? 'btn-gold' : 'btn-outline-gold'}
-          style={{ fontSize: '0.78rem', padding: '6px 14px' }}
+          style={{ fontSize: '0.78rem', padding: '6px 14px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: activeTab === 'VENDORS' ? 800 : 500 }}
         >
-          Vendor Directory ({vendors.length})
+          <Building2 size={14} /> 3. Vendor Directory ({vendors.length})
         </button>
         <button
           onClick={() => setActiveTab('CONTRACTS')}
           className={activeTab === 'CONTRACTS' ? 'btn-gold' : 'btn-outline-gold'}
-          style={{ fontSize: '0.78rem', padding: '6px 14px' }}
+          style={{ fontSize: '0.78rem', padding: '6px 14px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: activeTab === 'CONTRACTS' ? 800 : 500 }}
         >
-          Vendor Contracts & SLAs ({contracts.length})
+          <FileText size={14} /> 4. Vendor Contracts & SLAs ({contracts.length})
         </button>
       </div>
 
@@ -6995,41 +7030,44 @@ export function HRManagementView() {
       </div>
 
       {/* Tab Navigation */}
-      <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '8px' }}>
+      <div className="glass-panel" style={{ padding: '8px 12px', display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', border: '1px solid var(--border-subtle)', background: 'rgba(15, 12, 9, 0.88)' }}>
+        <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--gold-400)', textTransform: 'uppercase', letterSpacing: '0.06em', marginRight: '4px' }}>
+          HR Operations:
+        </span>
         <button
           onClick={() => setActiveTab('ROSTER')}
           className={activeTab === 'ROSTER' ? 'btn-gold' : 'btn-outline-gold'}
-          style={{ fontSize: '0.78rem', padding: '6px 14px' }}
+          style={{ fontSize: '0.78rem', padding: '6px 14px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: activeTab === 'ROSTER' ? 800 : 500 }}
         >
-          Duty Rostering & Shifts ({rosters.length})
+          <Clock size={14} /> 1. Duty Rostering & Shifts ({rosters.length})
         </button>
         <button
           onClick={() => setActiveTab('HANDOVERS')}
           className={activeTab === 'HANDOVERS' ? 'btn-gold' : 'btn-outline-gold'}
-          style={{ fontSize: '0.78rem', padding: '6px 14px' }}
+          style={{ fontSize: '0.78rem', padding: '6px 14px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: activeTab === 'HANDOVERS' ? 800 : 500 }}
         >
-          SBAR Shift Handovers ({handovers.length})
+          <Activity size={14} /> 2. SBAR Shift Handovers ({handovers.length})
         </button>
         <button
           onClick={() => setActiveTab('CREDENTIALS')}
           className={activeTab === 'CREDENTIALS' ? 'btn-gold' : 'btn-outline-gold'}
-          style={{ fontSize: '0.78rem', padding: '6px 14px' }}
+          style={{ fontSize: '0.78rem', padding: '6px 14px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: activeTab === 'CREDENTIALS' ? 800 : 500 }}
         >
-          Staff Credentialing & Councils ({credentials.length})
+          <Shield size={14} /> 3. Staff Credentialing & Councils ({credentials.length})
         </button>
         <button
           onClick={() => setActiveTab('ATTENDANCE_LEAVE')}
           className={activeTab === 'ATTENDANCE_LEAVE' ? 'btn-gold' : 'btn-outline-gold'}
-          style={{ fontSize: '0.78rem', padding: '6px 14px' }}
+          style={{ fontSize: '0.78rem', padding: '6px 14px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: activeTab === 'ATTENDANCE_LEAVE' ? 800 : 500 }}
         >
-          Biometric Attendance & Leave ({attendance.length} / {leaveRequests.length})
+          <CheckCircle size={14} /> 4. Biometric Attendance & Leave ({attendance.length} / {leaveRequests.length})
         </button>
         <button
           onClick={() => setActiveTab('STAFF_TRANSFERS')}
           className={activeTab === 'STAFF_TRANSFERS' ? 'btn-gold' : 'btn-outline-gold'}
-          style={{ fontSize: '0.78rem', padding: '6px 14px' }}
+          style={{ fontSize: '0.78rem', padding: '6px 14px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: activeTab === 'STAFF_TRANSFERS' ? 800 : 500 }}
         >
-          Staff Registry, On-Duty, On-Leave & Transfers ({hrStaffList.length} Staff • {hrTransfers.length} Transfers)
+          <Users size={14} /> 5. Staff Registry, Status & Transfers ({hrStaffList.length} Staff • {hrTransfers.length} Transfers)
         </button>
       </div>
 
@@ -8361,34 +8399,37 @@ export function QualityAssuranceView() {
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '8px' }}>
+      <div className="glass-panel" style={{ padding: '8px 12px', display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', border: '1px solid var(--border-subtle)', background: 'rgba(15, 12, 9, 0.88)' }}>
+        <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--gold-400)', textTransform: 'uppercase', letterSpacing: '0.06em', marginRight: '4px' }}>
+          Quality & Safety Sections:
+        </span>
         <button
           onClick={() => setActiveTab('INCIDENTS')}
           className={activeTab === 'INCIDENTS' ? 'btn-gold' : 'btn-outline-gold'}
-          style={{ fontSize: '0.8rem', padding: '6px 14px' }}
+          style={{ fontSize: '0.8rem', padding: '6px 14px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: activeTab === 'INCIDENTS' ? 800 : 500 }}
         >
-          Clinical Incidents & Adverse Events ({incidents.length})
+          <AlertTriangle size={14} /> 1. Clinical Incidents & Adverse Events ({incidents.length})
         </button>
         <button
           onClick={() => setActiveTab('INFECTION_CONTROL')}
           className={activeTab === 'INFECTION_CONTROL' ? 'btn-gold' : 'btn-outline-gold'}
-          style={{ fontSize: '0.8rem', padding: '6px 14px' }}
+          style={{ fontSize: '0.8rem', padding: '6px 14px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: activeTab === 'INFECTION_CONTROL' ? 800 : 500 }}
         >
-          Infection Prevention & Control ({ipcCases.length})
+          <ShieldAlert size={14} /> 2. Infection Prevention & Control ({ipcCases.length})
         </button>
         <button
           onClick={() => setActiveTab('AUDITS')}
           className={activeTab === 'AUDITS' ? 'btn-gold' : 'btn-outline-gold'}
-          style={{ fontSize: '0.8rem', padding: '6px 14px' }}
+          style={{ fontSize: '0.8rem', padding: '6px 14px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: activeTab === 'AUDITS' ? 800 : 500 }}
         >
-          Clinical Audits & Checklists ({audits.length})
+          <FileText size={14} /> 3. Clinical Audits & WHO Checklists ({audits.length})
         </button>
         <button
           onClick={() => setActiveTab('CAPA_AND_ALERTS')}
           className={activeTab === 'CAPA_AND_ALERTS' ? 'btn-gold' : 'btn-outline-gold'}
-          style={{ fontSize: '0.8rem', padding: '6px 14px' }}
+          style={{ fontSize: '0.8rem', padding: '6px 14px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: activeTab === 'CAPA_AND_ALERTS' ? 800 : 500 }}
         >
-          CAPA Workplans & Safety Alerts ({capas.length + alerts.length})
+          <Shield size={14} /> 4. CAPA Workplans & Safety Alerts ({capas.length + alerts.length})
         </button>
       </div>
 
