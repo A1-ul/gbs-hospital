@@ -12,6 +12,7 @@ LOCATION: src/modules/tenant-management/tenant-management.controller.js
 const tenantService = require("./tenant-management.service");
 const backupAndEnvService = require("./backup-and-environment.service");
 const logger = require("../../core/utils/logger");
+const { rcce } = require("../../core/gbs-rcce.bootstrap");
 
 /**
  * Public Institution Registration
@@ -20,10 +21,27 @@ const logger = require("../../core/utils/logger");
 async function registerTenant(req, res, next) {
     try {
         const result = await tenantService.registerTenant(req.body);
-        return res.status(201).json({
-            success: true,
-            message: "Institution successfully registered. Pending Developer review and provisioning.",
-            data: result
+        try {
+            await rcce.events.publish({
+                eventCode: "REQUEST_SUBMITTED",
+                domain: "TENANTS",
+                affectedRecord: result?.tenant?.tenantCode || result?.tenantCode || result?.id,
+                severity: "INFO",
+                requestId: req.requestId,
+                notifications: [
+                    {
+                        recipientRole: "DEVELOPER",
+                        title: "New Hospital Tenant Awaiting Provisioning",
+                        message: `${result?.tenant?.name || req.body?.name || req.body?.institutionName || "Hospital"} registered and awaits approval.`,
+                        severity: "INFO"
+                    }
+                ]
+            });
+        } catch (_pubErr) {}
+
+        return res.rcceSuccess("PENDING_APPROVAL", result, {
+            httpStatus: 201,
+            message: "Institution successfully registered. Pending Developer review and provisioning."
         });
     } catch (error) {
         next(error);
@@ -98,10 +116,30 @@ async function approveAndProvisionTenant(req, res, next) {
         const options = req.body || {};
 
         const result = await tenantService.approveAndProvisionTenant(id, options, developerUserId);
-        return res.status(200).json({
-            success: true,
-            message: "Institution approved and fully provisioned with automated infrastructure.",
-            data: result
+        try {
+            await rcce.events.publish({
+                eventCode: "REQUEST_APPROVED",
+                domain: "TENANTS",
+                actorUserId: developerUserId,
+                actorRole: req.user.role,
+                tenantId: result?.tenant?.id || id,
+                affectedRecord: result?.tenant?.tenantCode || id,
+                severity: "INFO",
+                requestId: req.requestId,
+                notifications: [
+                    {
+                        recipientRole: "ADMIN",
+                        title: "Hospital Tenant Provisioned",
+                        message: `Facility ${result?.tenant?.name || id} approved and provisioned cleanly.`,
+                        severity: "SUCCESS"
+                    }
+                ]
+            });
+        } catch (_pubErr) {}
+
+        return res.rcceSuccess("REQUEST_APPROVED", result, {
+            httpStatus: 200,
+            message: "Institution approved and fully provisioned with automated infrastructure."
         });
     } catch (error) {
         next(error);
@@ -119,10 +157,30 @@ async function lockTenant(req, res, next) {
         const developerUserId = req.user.id;
 
         const result = await tenantService.lockTenant(id, reason, developerUserId);
-        return res.status(200).json({
-            success: true,
-            message: "Tenant access has been locked.",
-            data: result
+        try {
+            await rcce.events.publish({
+                eventCode: "SYSTEM_LOCKED",
+                domain: "TENANTS",
+                actorUserId: developerUserId,
+                actorRole: req.user.role,
+                tenantId: id,
+                affectedRecord: id,
+                severity: "CRITICAL",
+                requestId: req.requestId,
+                notifications: [
+                    {
+                        recipientRole: "ADMIN",
+                        title: "Facility System Locked",
+                        message: `System access locked: ${reason || "Administrative security control"}.`,
+                        severity: "WARNING"
+                    }
+                ]
+            });
+        } catch (_pubErr) {}
+
+        return res.rcceSuccess("RECORD_UPDATED", result, {
+            httpStatus: 200,
+            message: "Tenant access has been locked."
         });
     } catch (error) {
         next(error);
@@ -139,10 +197,30 @@ async function unlockTenant(req, res, next) {
         const developerUserId = req.user.id;
 
         const result = await tenantService.unlockTenant(id, developerUserId);
-        return res.status(200).json({
-            success: true,
-            message: "Tenant access has been unlocked and restored.",
-            data: result
+        try {
+            await rcce.events.publish({
+                eventCode: "SYSTEM_UNLOCKED",
+                domain: "TENANTS",
+                actorUserId: developerUserId,
+                actorRole: req.user.role,
+                tenantId: id,
+                affectedRecord: id,
+                severity: "INFO",
+                requestId: req.requestId,
+                notifications: [
+                    {
+                        recipientRole: "ADMIN",
+                        title: "Facility System Unlocked",
+                        message: "System access has been restored and unlocked.",
+                        severity: "SUCCESS"
+                    }
+                ]
+            });
+        } catch (_pubErr) {}
+
+        return res.rcceSuccess("RECORD_UPDATED", result, {
+            httpStatus: 200,
+            message: "Tenant access has been unlocked and restored."
         });
     } catch (error) {
         next(error);

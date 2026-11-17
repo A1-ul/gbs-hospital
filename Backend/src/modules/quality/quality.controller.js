@@ -129,11 +129,30 @@ class QualityController {
 
     async createClinicalAudit(req, res, next) {
         try {
+            const { rcce } = require("../../core/gbs-rcce.bootstrap");
             const audit = await qualityService.createClinicalAudit(req.body);
-            return res.status(201).json({
-                success: true,
-                message: `Clinical audit ${audit.auditNumber} completed with score ${audit.complianceScore}%.`,
-                data: audit
+            try {
+                await rcce.events.publish({
+                    eventCode: "REPORT_GENERATED",
+                    domain: "QUALITY",
+                    actorUserId: req.user?.id,
+                    actorRole: req.user?.role,
+                    affectedRecord: audit.auditNumber || audit.id,
+                    severity: "INFO",
+                    requestId: req.requestId,
+                    notifications: [
+                        {
+                            recipientRole: "HOSPITAL_DIRECTOR",
+                            title: "Clinical Quality Audit Report Filed",
+                            message: `Audit ${audit.auditNumber} completed (Score: ${audit.complianceScore}%).`,
+                            severity: "INFO"
+                        }
+                    ]
+                });
+            } catch (_pubErr) { }
+            return res.rcceSuccess("REPORT_GENERATED", audit, {
+                httpStatus: 201,
+                message: `Clinical audit ${audit.auditNumber} completed with score ${audit.complianceScore}%.`
             });
         } catch (error) {
             next(error);
@@ -194,11 +213,30 @@ class QualityController {
 
     async broadcastSafetyAlert(req, res, next) {
         try {
+            const { rcce } = require("../../core/gbs-rcce.bootstrap");
             const alert = await qualityService.broadcastSafetyAlert(req.body);
-            return res.status(201).json({
-                success: true,
-                message: `Patient safety alert ${alert.alertCode} broadcasted.`,
-                data: alert
+            try {
+                await rcce.events.publish({
+                    eventCode: "SYSTEM_ERROR_DETECTED",
+                    domain: "QUALITY_SAFETY",
+                    actorUserId: req.user?.id,
+                    actorRole: req.user?.role,
+                    affectedRecord: alert.alertCode || alert.id,
+                    severity: "CRITICAL",
+                    requestId: req.requestId,
+                    notifications: [
+                        {
+                            recipientRole: "ALL",
+                            title: `Patient Safety Alert (${alert.alertCode})`,
+                            message: alert.title || alert.message || "Urgent hospital patient safety bulletin issued.",
+                            severity: "WARNING"
+                        }
+                    ]
+                });
+            } catch (_pubErr) { }
+            return res.rcceSuccess("CREATED", alert, {
+                httpStatus: 201,
+                message: `Patient safety alert ${alert.alertCode} broadcasted.`
             });
         } catch (error) {
             next(error);
@@ -206,30 +244,30 @@ class QualityController {
     }
 
     async getSafetyAlerts(req, res, next) {
-        try {
-            const alerts = await qualityService.getSafetyAlerts(req.query);
-            return res.status(200).json({
-                success: true,
-                count: alerts.length,
-                data: alerts
-            });
-        } catch (error) {
-            next(error);
-        }
+    try {
+        const alerts = await qualityService.getSafetyAlerts(req.query);
+        return res.status(200).json({
+            success: true,
+            count: alerts.length,
+            data: alerts
+        });
+    } catch (error) {
+        next(error);
     }
+}
 
     async acknowledgeSafetyAlert(req, res, next) {
-        try {
-            const alert = await qualityService.acknowledgeSafetyAlert(req.params.id);
-            return res.status(200).json({
-                success: true,
-                message: `Alert ${alert.alertCode} acknowledged.`,
-                data: alert
-            });
-        } catch (error) {
-            next(error);
-        }
+    try {
+        const alert = await qualityService.acknowledgeSafetyAlert(req.params.id);
+        return res.status(200).json({
+            success: true,
+            message: `Alert ${alert.alertCode} acknowledged.`,
+            data: alert
+        });
+    } catch (error) {
+        next(error);
     }
+}
 }
 
 module.exports = new QualityController();

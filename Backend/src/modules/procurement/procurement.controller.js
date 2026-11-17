@@ -115,11 +115,30 @@ class ProcurementController {
 
     async createPurchaseOrder(req, res, next) {
         try {
+            const { rcce } = require("../../core/gbs-rcce.bootstrap");
             const po = await procurementService.createPurchaseOrder(req.body);
-            return res.status(201).json({
-                success: true,
-                message: `Purchase Order ${po.poNumber} created successfully. Total: ${po.totalAmount} ${po.currency}.`,
-                data: po
+            try {
+                await rcce.events.publish({
+                    eventCode: "REQUEST_SUBMITTED",
+                    domain: "PROCUREMENT",
+                    actorUserId: req.user?.id,
+                    actorRole: req.user?.role,
+                    affectedRecord: po.poNumber || po.id,
+                    severity: "INFO",
+                    requestId: req.requestId,
+                    notifications: [
+                        {
+                            recipientRole: "ADMINISTRATOR",
+                            title: "Purchase Order Submitted",
+                            message: `Purchase Order ${po.poNumber} (${po.totalAmount} ${po.currency}) awaits authorization.`,
+                            severity: "INFO"
+                        }
+                    ]
+                });
+            } catch (_pubErr) { }
+            return res.rcceSuccess("REQUEST_SUBMITTED", po, {
+                httpStatus: 201,
+                message: `Purchase Order ${po.poNumber} created successfully. Total: ${po.totalAmount} ${po.currency}.`
             });
         } catch (error) {
             next(error);

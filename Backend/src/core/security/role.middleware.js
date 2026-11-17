@@ -229,11 +229,11 @@ function authorizeRoles(...roles){
 
                     new AppError(
 
-                        "Access denied",
+                        "You do not have permission to perform this operation.",
 
                         403,
 
-                        "INSUFFICIENT_PERMISSION",
+                        "FORBIDDEN_PERMISSION",
 
                         {
 

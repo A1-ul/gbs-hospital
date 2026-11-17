@@ -22,6 +22,16 @@ const logger = require("../../core/utils/logger");
  * Sets status to PENDING awaiting Developer review and approval.
  */
 async function registerTenant(data) {
+    const normalizedInput = {
+        ...data,
+        name: data.name || data.institutionName,
+        officialEmail: data.officialEmail || data.administratorEmail,
+        officialPhone: data.officialPhone || data.phone || data.administratorPhone,
+        adminName: data.adminName || data.administratorName || data.representativeName,
+        adminEmail: data.adminEmail || data.administratorEmail,
+        adminPhone: data.adminPhone || data.administratorPhone || data.officialPhone
+    };
+
     const {
         name,
         type = "GENERAL_HOSPITAL",
@@ -46,7 +56,7 @@ async function registerTenant(data) {
         adminEmail,
         adminPhone,
         adminPassword
-    } = data;
+    } = normalizedInput;
 
     if (!name || !country || !officialEmail || !officialPhone || !adminEmail || !adminPassword) {
         throw new AppError("Institution name, country, official email/phone, and administrator credentials are required", 400, "MISSING_REQUIRED_FIELDS");
@@ -651,10 +661,10 @@ async function extendSubscription(tenantIdentifier, { days, plan = "ACTIVE_PAID"
     const resolvedPlanName = isLifetime
         ? "ENTERPRISE_LIFETIME"
         : isTrial
-          ? "ENTERPRISE_TRIAL"
-          : planUpper === "ACTIVE_PAID"
-            ? "ENTERPRISE_PAID"
-            : planUpper;
+            ? "ENTERPRISE_TRIAL"
+            : planUpper === "ACTIVE_PAID"
+                ? "ENTERPRISE_PAID"
+                : planUpper;
 
     const activeSub = tenant.subscriptions[0];
     const now = new Date();

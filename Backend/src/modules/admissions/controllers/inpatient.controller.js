@@ -9,6 +9,7 @@ LOCATION: src/modules/admissions/controllers/inpatient.controller.js
 */
 
 const inpatientService = require("../services/inpatient.service");
+const { rcce } = require("../../../core/gbs-rcce.bootstrap");
 
 /**
  * Create a Hospital Ward
@@ -124,10 +125,36 @@ async function admitPatient(req, res, next) {
 
         const admission = await inpatientService.admitPatient(data, staffUser);
 
-        return res.status(201).json({
-            success: true,
-            message: `Patient admitted successfully with Admission Number ${admission.admissionNumber}`,
-            data: admission
+        try {
+            await rcce.events.publish({
+                eventCode: "PATIENT_ADMITTED",
+                domain: "ADMISSIONS",
+                actorUserId: staffUser?.id,
+                actorRole: staffUser?.role,
+                tenantId: hospitalId,
+                affectedRecord: admission.admissionNumber || admission.id,
+                severity: "INFO",
+                requestId: req.requestId,
+                notifications: [
+                    {
+                        recipientRole: "NURSE",
+                        title: "New Inpatient Admission",
+                        message: `Patient admitted under Admission #${admission.admissionNumber}. Bed allocation confirmed.`,
+                        severity: "INFO"
+                    },
+                    {
+                        recipientRole: "DOCTOR",
+                        title: "Ward Admission Confirmed",
+                        message: `Admission ${admission.admissionNumber} active in ${admission.ward?.name || "Inpatient Ward"}.`,
+                        severity: "INFO"
+                    }
+                ]
+            });
+        } catch (_pubErr) { }
+
+        return res.rcceSuccess("PATIENT_ADMITTED", admission, {
+            httpStatus: 201,
+            message: `Patient admitted successfully with Admission Number ${admission.admissionNumber}`
         });
     } catch (error) {
         next(error);

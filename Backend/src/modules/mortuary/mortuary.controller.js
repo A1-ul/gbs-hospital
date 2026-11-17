@@ -118,11 +118,30 @@ class MortuaryController {
 
     async releaseCorpse(req, res, next) {
         try {
+            const { rcce } = require("../../core/gbs-rcce.bootstrap");
             const release = await mortuaryService.releaseCorpse(req.body);
-            return res.status(201).json({
-                success: true,
-                message: "Deceased release clearance authorized and handed over to family.",
-                data: release
+            try {
+                await rcce.events.publish({
+                    eventCode: "RECORD_UPDATED",
+                    domain: "MORTUARY",
+                    actorUserId: req.user?.id,
+                    actorRole: req.user?.role,
+                    affectedRecord: release.releaseCode || release.id,
+                    severity: "INFO",
+                    requestId: req.requestId,
+                    notifications: [
+                        {
+                            recipientRole: "ADMINISTRATOR",
+                            title: "Deceased Release Cleared",
+                            message: `Mortuary release ${release.releaseCode || release.id} co-signed and finalized.`,
+                            severity: "INFO"
+                        }
+                    ]
+                });
+            } catch (_pubErr) {}
+            return res.rcceSuccess("RECORD_UPDATED", release, {
+                httpStatus: 201,
+                message: "Deceased release clearance authorized and handed over to family."
             });
         } catch (err) {
             next(err);

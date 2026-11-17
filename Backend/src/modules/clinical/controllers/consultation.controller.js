@@ -9,6 +9,7 @@ LOCATION: src/modules/clinical/controllers/consultation.controller.js
 */
 
 const consultationService = require("../services/consultation.service");
+const { rcce } = require("../../../core/gbs-rcce.bootstrap");
 
 /**
  * Record Doctor Clinical Consultation, ICD-10 Diagnoses, Prescriptions & Lab Requests
@@ -21,11 +22,46 @@ async function recordDoctorConsultation(req, res, next) {
         const consultationData = req.body;
 
         const result = await consultationService.recordDoctorConsultation(encounterId, consultationData, doctorUser);
+        try {
+            const notes = [
+                {
+                    recipientRole: "NURSE",
+                    title: "Consultation Recorded",
+                    message: `Clinical consultation completed for encounter ${encounterId}.`,
+                    severity: "INFO"
+                }
+            ];
+            if (Array.isArray(consultationData?.prescriptions) && consultationData.prescriptions.length > 0) {
+                notes.push({
+                    recipientRole: "PHARMACIST",
+                    title: "New Electronic Prescriptions",
+                    message: `${consultationData.prescriptions.length} new prescription(s) queued for dispensing.`,
+                    severity: "INFO"
+                });
+            }
+            if (Array.isArray(consultationData?.laboratoryRequests) && consultationData.laboratoryRequests.length > 0) {
+                notes.push({
+                    recipientRole: "LAB_TECHNICIAN",
+                    title: "New Lab Test Requests",
+                    message: `${consultationData.laboratoryRequests.length} laboratory test(s) requested by physician.`,
+                    severity: "INFO"
+                });
+            }
+            await rcce.events.publish({
+                eventCode: "RECORD_UPDATED",
+                domain: "CLINICAL",
+                actorUserId: doctorUser?.id,
+                actorRole: doctorUser?.role,
+                affectedRecord: encounterId,
+                severity: "INFO",
+                requestId: req.requestId,
+                notifications: notes
+            });
+        } catch (_pubErr) { }
 
-        return res.status(201).json({
-            success: true,
-            message: "Doctor clinical consultation, diagnoses, and orders recorded successfully",
-            data: result.data
+        return res.rcceSuccess("CREATED", result.data, {
+            httpStatus: 201,
+            message: "Doctor clinical consultation, diagnoses, and orders recorded successfully"
         });
     } catch (error) {
         next(error);
@@ -94,12 +130,13 @@ async function getDoctorDashboardTelemetry(req, res, next) {
  */
 async function searchICD10Catalog(req, res, next) {
     try {
-        const { query } = req.query;
-        const results = consultationService.searchICD10(query);
+        const q = req.query.query || req.query.q || "";
+        const results = consultationService.searchICD10(q);
 
         return res.status(200).json({
             success: true,
             count: results.length,
+            items: results,
             data: results
         });
     } catch (error) {

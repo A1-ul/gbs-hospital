@@ -315,7 +315,13 @@ CUSTOM REQUEST MIDDLEWARE
 */
 
 
+const { rcce } = require("./core/gbs-rcce.bootstrap");
+const { createRcceTrafficMiddleware } = require("./core/middleware/rcce-audit.middleware");
+
 requestMiddleware(app);
+app.use(rcce.response.expressMiddleware());
+app.use("/api/v1", rcce.idempotency.middleware());
+app.use("/api/v1", createRcceTrafficMiddleware());
 
 
 

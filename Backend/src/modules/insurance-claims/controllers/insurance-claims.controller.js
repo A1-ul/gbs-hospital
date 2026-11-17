@@ -151,12 +151,31 @@ async function generateEClaims(req, res, next) {
  */
 async function submitBatch(req, res, next) {
     try {
+        const { rcce } = require("../../../core/gbs-rcce.bootstrap");
         const submittedBy = req.user ? `${req.user.firstName} ${req.user.lastName}` : "NHIS_OFFICER";
         const result = await service.submitBatchToNhia(req.params.id, submittedBy);
-        res.status(200).json({
-            success: true,
-            message: "NHIA E-Claims Batch submitted successfully",
-            data: result
+        try {
+            await rcce.events.publish({
+                eventCode: "REQUEST_SUBMITTED",
+                domain: "INSURANCE_CLAIMS",
+                actorUserId: req.user?.id,
+                actorRole: req.user?.role,
+                affectedRecord: result?.batchNumber || req.params.id,
+                severity: "INFO",
+                requestId: req.requestId,
+                notifications: [
+                    {
+                        recipientRole: "ACCOUNTANT",
+                        title: "NHIA E-Claims Batch Submitted",
+                        message: `Claims batch ${result?.batchNumber || req.params.id} dispatched to NHIA clearinghouse.`,
+                        severity: "INFO"
+                    }
+                ]
+            });
+        } catch (_pubErr) {}
+        return res.rcceSuccess("CLAIM_SUBMITTED", result, {
+            httpStatus: 200,
+            message: "NHIA E-Claims Batch submitted successfully"
         });
     } catch (err) {
         next(err);
@@ -168,15 +187,34 @@ async function submitBatch(req, res, next) {
  */
 async function processAdjudication(req, res, next) {
     try {
+        const { rcce } = require("../../../core/gbs-rcce.bootstrap");
         const adjudicatedBy = req.user ? `${req.user.firstName} ${req.user.lastName}` : "NHIA_ELECTRONIC_ADJUDICATOR";
         const result = await service.processElectronicAdjudication(req.params.id, {
             ...req.body,
             adjudicatedBy
         });
-        res.status(200).json({
-            success: true,
-            message: "NHIA Electronic Adjudication processed successfully",
-            data: result
+        try {
+            await rcce.events.publish({
+                eventCode: "REQUEST_APPROVED",
+                domain: "INSURANCE_CLAIMS",
+                actorUserId: req.user?.id,
+                actorRole: req.user?.role,
+                affectedRecord: req.params.id,
+                severity: "INFO",
+                requestId: req.requestId,
+                notifications: [
+                    {
+                        recipientRole: "ACCOUNTANT",
+                        title: "NHIA Adjudication Completed",
+                        message: `Claims batch ${req.params.id} electronic adjudication finalized.`,
+                        severity: "SUCCESS"
+                    }
+                ]
+            });
+        } catch (_pubErr) {}
+        return res.rcceSuccess("RECORD_UPDATED", result, {
+            httpStatus: 200,
+            message: "NHIA Electronic Adjudication processed successfully"
         });
     } catch (err) {
         next(err);

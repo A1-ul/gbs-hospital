@@ -94,10 +94,30 @@ async function approveJob(req, res, next) {
             approvedBy
         });
 
-        res.status(200).json({
-            success: true,
-            message: `Migration job ${job.jobCode} approved for execution`,
-            data: job
+        try {
+            const { rcce } = require("../../../core/gbs-rcce.bootstrap");
+            await rcce.events.publish({
+                eventCode: "REQUEST_APPROVED",
+                domain: "MIGRATION",
+                actorUserId: req.user?.id,
+                actorRole: req.user?.role,
+                affectedRecord: job.jobCode || jobId,
+                severity: "INFO",
+                requestId: req.requestId,
+                notifications: [
+                    {
+                        recipientRole: "DEVELOPER",
+                        title: "Migration Job Approved",
+                        message: `Data migration job ${job.jobCode} approved by ${approvedBy}.`,
+                        severity: "INFO"
+                    }
+                ]
+            });
+        } catch (_pubErr) { }
+
+        return res.rcceSuccess("REQUEST_APPROVED", job, {
+            httpStatus: 200,
+            message: `Migration job ${job.jobCode} approved for execution`
         });
     } catch (err) {
         next(err);
@@ -116,10 +136,30 @@ async function executeImport(req, res, next) {
             importedBy
         });
 
-        res.status(200).json({
-            success: true,
-            message: `Import executed: ${result.summary.imported} imported, ${result.summary.failed} failed`,
-            data: result
+        try {
+            const { rcce } = require("../../../core/gbs-rcce.bootstrap");
+            await rcce.events.publish({
+                eventCode: "RECORD_UPDATED",
+                domain: "MIGRATION",
+                actorUserId: req.user?.id,
+                actorRole: req.user?.role,
+                affectedRecord: jobId,
+                severity: "INFO",
+                requestId: req.requestId,
+                notifications: [
+                    {
+                        recipientRole: "DEVELOPER",
+                        title: "Data Migration Executed",
+                        message: `Migration job ${jobId} finished: ${result.summary.imported} imported, ${result.summary.failed} failed.`,
+                        severity: result.summary.failed > 0 ? "WARNING" : "SUCCESS"
+                    }
+                ]
+            });
+        } catch (_pubErr) { }
+
+        return res.rcceSuccess("RECORD_UPDATED", result, {
+            httpStatus: 200,
+            message: `Import executed: ${result.summary.imported} imported, ${result.summary.failed} failed`
         });
     } catch (err) {
         next(err);

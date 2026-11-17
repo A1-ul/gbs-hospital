@@ -47,10 +47,23 @@ export async function ensureRoleAuthentication(role) {
   return null;
 }
 
+const pendingSubmissionLocks = new Set();
+const actionIdempotencyKeys = new Map();
+
+function buildPayloadFingerprint(method, endpoint, body) {
+  const raw = typeof body === 'string' ? body : JSON.stringify(body || {});
+  let hash = 0;
+  for (let i = 0; i < raw.length; i++) {
+    hash = ((hash << 5) - hash + raw.charCodeAt(i)) | 0;
+  }
+  return `${method}:${endpoint}:${hash >>> 0}`;
+}
+
 async function coreRequest(endpoint, options = {}) {
   let token = typeof window !== 'undefined' ? localStorage.getItem('gbs_token') : null;
   const method = (options.method || 'GET').toUpperCase();
   const activeRole = (typeof window !== 'undefined' ? localStorage.getItem('gbs_role') : null) || 'ADMINISTRATOR';
+  const isMutation = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method);
 
   if (!token && !endpoint.startsWith('/auth') && !endpoint.startsWith('/health')) {
     const autoAuth = await ensureRoleAuthentication(activeRole);
@@ -59,9 +72,30 @@ async function coreRequest(endpoint, options = {}) {
     }
   }
 
+  let fingerprint = null;
+  let idempotencyKey = options.idempotencyKey || null;
+  if (isMutation && !options._retried) {
+    fingerprint = buildPayloadFingerprint(method, endpoint, options.body);
+    if (pendingSubmissionLocks.has(fingerprint)) {
+      const dupErr = new Error('This operation is already being processed. Duplicate submission prevented.');
+      dupErr.status = 409;
+      dupErr.code = 'TRANSACTION_IN_PROGRESS';
+      throw dupErr;
+    }
+    pendingSubmissionLocks.add(fingerprint);
+    if (!idempotencyKey) {
+      idempotencyKey = actionIdempotencyKeys.get(fingerprint);
+      if (!idempotencyKey) {
+        idempotencyKey = `gbs-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+        actionIdempotencyKeys.set(fingerprint, idempotencyKey);
+      }
+    }
+  }
+
   const headers = {
     'Content-Type': 'application/json',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(idempotencyKey ? { 'X-Idempotency-Key': idempotencyKey } : {}),
     ...options.headers,
   };
 
@@ -72,21 +106,28 @@ async function coreRequest(endpoint, options = {}) {
       headers,
     });
   } catch (networkErr) {
+    if (fingerprint) pendingSubmissionLocks.delete(fingerprint);
     const err = new Error(
       `Unable to reach the GBS Hospital Backend API at ${API_BASE}${endpoint}. Ensure the PostgreSQL & Express backend server is running.`
     );
     err.cause = networkErr;
+    err.code = 'NETWORK_ERROR';
     if (typeof window !== 'undefined' && typeof window.gbsBrainNotify === 'function') {
       window.gbsBrainNotify({
         type: 'error',
         method,
         endpoint,
+        code: 'NETWORK_ERROR',
         title: `Network Error (${method})`,
         message: err.message,
         role: activeRole,
       });
     }
     throw err;
+  } finally {
+    if (fingerprint) {
+      pendingSubmissionLocks.delete(fingerprint);
+    }
   }
 
   // Auto-retry once on 401 Unauthorized using role credential auto-auth
@@ -96,12 +137,17 @@ async function coreRequest(endpoint, options = {}) {
       return coreRequest(endpoint, {
         ...options,
         _retried: true,
+        idempotencyKey,
         headers: {
           ...options.headers,
           Authorization: `Bearer ${reauth.token}`
         }
       });
     }
+  }
+
+  if (fingerprint && response.status < 500) {
+    actionIdempotencyKeys.delete(fingerprint);
   }
 
   const contentType = response.headers.get('content-type') || '';
@@ -112,14 +158,17 @@ async function coreRequest(endpoint, options = {}) {
     data = await response.text();
   }
 
-  if (!response.ok) {
+  if (!response.ok || (data && typeof data === 'object' && data.success === false)) {
     const errorMsg =
+      (data && data.message) ||
       (data && data.error && typeof data.error === 'object' && data.error.message) ||
       (data && typeof data.error === 'string' && data.error) ||
-      (data && data.message) ||
       `HTTP ${response.status}`;
     const err = new Error(errorMsg);
     err.status = response.status;
+    err.code = (data && data.code) || (data && data.error && data.error.code) || 'INTERNAL_ERROR';
+    err.errors = (data && data.errors) || [];
+    err.requestId = (data && data.requestId) || null;
     err.data = data;
     if (typeof window !== 'undefined' && typeof window.gbsBrainNotify === 'function') {
       window.gbsBrainNotify({
@@ -127,8 +176,10 @@ async function coreRequest(endpoint, options = {}) {
         method,
         endpoint,
         status: response.status,
-        title: `API Error (${response.status})`,
-        message: `${endpoint}: ${errorMsg}`,
+        code: err.code,
+        requestId: err.requestId,
+        title: `Operation Failed (${err.code})`,
+        message: `${errorMsg}${err.requestId ? ` [Ref: ${err.requestId.slice(0, 8)}]` : ''}`,
         role: activeRole,
       });
     }
@@ -146,7 +197,9 @@ async function coreRequest(endpoint, options = {}) {
       method,
       endpoint,
       status: response.status,
-      title: `Action Executed (${method})`,
+      code: data?.code || 'SUCCESS',
+      requestId: data?.requestId || null,
+      title: `Action Executed (${data?.code || method})`,
       message: serverMsg,
       role: activeRole,
     });
@@ -357,7 +410,7 @@ export const api = {
     }),
   getDoctorStats: () => request('/clinical/doctor/dashboard'),
   getDoctorQueue: () => request('/clinical/doctor/queue'),
-  searchICD10: (q = '') => request(`/clinical/catalog/diagnoses?q=${encodeURIComponent(q)}`),
+  searchICD10: (q = '') => requestEnvelope(`/clinical/catalog/diagnoses?query=${encodeURIComponent(q)}&q=${encodeURIComponent(q)}`),
   recordConsultation: (encounterId, payload) =>
     request(`/clinical/encounters/${encodeURIComponent(encounterId)}/consultation`, {
       method: 'POST',
@@ -404,7 +457,10 @@ export const api = {
   createPharmacyItem: (payload) =>
     request('/pharmacy/items', {
       method: 'POST',
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        ...payload,
+        name: payload.name || payload.brandName || payload.genericName || 'Hospital Medication',
+      }),
     }),
   receivePharmacyBatch: (payload) =>
     request('/pharmacy/batches', {
@@ -412,11 +468,15 @@ export const api = {
       body: JSON.stringify(payload),
     }),
   getPendingPrescriptions: () => request('/pharmacy/prescriptions/pending'),
-  dispensePrescription: (prescriptionId, payload = {}) =>
-    request(`/pharmacy/prescriptions/${encodeURIComponent(prescriptionId)}/dispense`, {
+  dispensePrescription: (prescriptionIdOrPayload, payload = {}) => {
+    const isObj = prescriptionIdOrPayload && typeof prescriptionIdOrPayload === 'object';
+    const rxId = isObj ? prescriptionIdOrPayload.prescriptionId || prescriptionIdOrPayload.id : prescriptionIdOrPayload;
+    const bodyPayload = isObj ? prescriptionIdOrPayload : payload;
+    return request(`/pharmacy/prescriptions/${encodeURIComponent(rxId)}/dispense`, {
       method: 'POST',
-      body: JSON.stringify(payload),
-    }),
+      body: JSON.stringify(bodyPayload),
+    });
+  },
   getDispenseHistory: () => request('/pharmacy/dispenses'),
 
   // Laboratory & Pathology
@@ -491,6 +551,7 @@ export const api = {
   // Emergency & Ambulance Fleet (Phase 12)
   getEmergencyStats: () => request('/emergency/stats'),
   getAmbulances: () => request('/emergency/ambulances'),
+  getEmergencyDispatches: () => request('/emergency/dispatches'),
   registerAmbulance: (payload) =>
     request('/emergency/ambulances', {
       method: 'POST',
@@ -988,7 +1049,7 @@ export const api = {
     }),
   getClinicalReports: (category = 'ALL') =>
     request('/clinical/reports' + (category ? `?category=${encodeURIComponent(category)}` : '')),
-  getBedMatrix: () => request('/admissions/bed-matrix'),
+  getBedMatrix: () => requestEnvelope('/admissions/bed-matrix'),
   extendAdmissionStay: (id, payload) =>
     request(`/admissions/${id}/extend-stay`, {
       method: 'PATCH',
@@ -1017,6 +1078,61 @@ export const api = {
     request('/billing/ledger-entries', {
       method: 'POST',
       body: JSON.stringify(payload),
+    }),
+
+  // GBS Central System Response, Control & Communication Engine (GBS-RCCE)
+  getRcceCatalogue: () => request('/rcce/catalogue'),
+  getRcceNotifications: (unreadOnly = false) =>
+    request(`/rcce/notifications${unreadOnly ? '?unreadOnly=true' : ''}`),
+  markRcceNotificationRead: (id) =>
+    request(`/rcce/notifications/${encodeURIComponent(id)}/read`, { method: 'PATCH' }),
+  markAllRcceNotificationsRead: () =>
+    request('/rcce/notifications/mark-all-read', { method: 'POST' }),
+  getRcceDeveloperOverview: () => request('/rcce/developer/overview'),
+  getRcceUsersActivity: (includePrivate = false) =>
+    request(`/rcce/developer/users-activity${includePrivate ? '?includePrivate=true' : ''}`),
+  getRcceAuditLogs: (query = '') =>
+    request(`/rcce/audit-logs${query ? `?${query}` : ''}`),
+  getRcceEvents: (query = '') =>
+    request(`/rcce/events${query ? `?${query}` : ''}`),
+  getRcceErrorLogs: (query = '') =>
+    request(`/rcce/errors${query ? `?${query}` : ''}`),
+  resolveRcceError: (id, resolutionNote = '') =>
+    request(`/rcce/errors/${encodeURIComponent(id)}/resolve`, {
+      method: 'PATCH',
+      body: JSON.stringify({ resolutionNote }),
+    }),
+  getRccePermissions: () => request('/rcce/developer/permissions'),
+  updateRcceRolePermission: (payload) =>
+    request('/rcce/developer/permissions', {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }),
+  getRcceAccessGrants: () => request('/rcce/developer/access-grants'),
+  requestRcceAccessGrant: (payload) =>
+    request('/rcce/developer/access-grants/request', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  approveRcceAccessGrant: (id, durationMinutes = 60) =>
+    request(`/rcce/developer/access-grants/${encodeURIComponent(id)}/approve`, {
+      method: 'PATCH',
+      body: JSON.stringify({ durationMinutes }),
+    }),
+  revokeRcceAccessGrant: (id) =>
+    request(`/rcce/developer/access-grants/${encodeURIComponent(id)}/revoke`, {
+      method: 'PATCH',
+    }),
+  getRcceConfigs: () => request('/rcce/developer/configs'),
+  updateRcceConfig: (key, payload) =>
+    request(`/rcce/developer/configs/${encodeURIComponent(key)}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    }),
+  toggleRcceMaintenanceMode: (enabled, message) =>
+    request('/rcce/developer/maintenance', {
+      method: 'POST',
+      body: JSON.stringify({ enabled, message }),
     }),
 };
 

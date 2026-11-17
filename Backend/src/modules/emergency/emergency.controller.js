@@ -11,6 +11,7 @@ LOCATION: src/modules/emergency/emergency.controller.js
 
 const service = require("./emergency.service");
 const logger = require("../../core/utils/logger");
+const { rcce } = require("../../core/gbs-rcce.bootstrap");
 
 async function registerAmbulance(req, res, next) {
     try {
@@ -67,10 +68,34 @@ async function updateAmbulanceTelemetry(req, res, next) {
 async function createDispatch(req, res, next) {
     try {
         const result = await service.createDispatchCallout(req.body);
-        return res.status(201).json({
-            success: true,
-            data: result,
-            requestId: req.requestId
+        try {
+            await rcce.events.publish({
+                eventCode: "REQUEST_SUBMITTED",
+                domain: "EMERGENCY",
+                actorUserId: req.user?.id,
+                actorRole: req.user?.role,
+                affectedRecord: result.dispatchCode || result.id,
+                severity: "CRITICAL",
+                requestId: req.requestId,
+                notifications: [
+                    {
+                        recipientRole: "DOCTOR",
+                        title: "Emergency Ambulance Dispatched",
+                        message: `Critical dispatch initiated (${result.dispatchCode || result.id}). Prepare Emergency Bay.`,
+                        severity: "WARNING"
+                    },
+                    {
+                        recipientRole: "NURSE",
+                        title: "Inbound Emergency Arrival",
+                        message: `Ambulance dispatch active (${result.dispatchCode || result.id}).`,
+                        severity: "WARNING"
+                    }
+                ]
+            });
+        } catch (_pubErr) { }
+
+        return res.rcceSuccess("EMERGENCY_DISPATCHED", result, {
+            httpStatus: 201
         });
     } catch (error) {
         next(error);

@@ -10,6 +10,8 @@ LOCATION: src/modules/users/controllers/user.controller.js
 */
 
 const service = require("../services/user.service");
+const AppError = require("../../../core/errors/app.error");
+const { rcce } = require("../../../core/gbs-rcce.bootstrap");
 
 /**
  * Returns actual registered user counts per role directly from the DB.
@@ -34,7 +36,25 @@ async function getRoleUserCounts(req, res, next) {
  */
 async function getUsers(req, res, next) {
     try {
-        const { role, active, search, limit, offset } = req.query;
+        const { role, active, search, limit, offset, includePrivate } = req.query;
+
+        let applyDeveloperRedaction = false;
+        if (req.user && req.user.role === "DEVELOPER") {
+            if (includePrivate === "true") {
+                const access = await rcce.control.authorizeSensitiveAccess({
+                    actor: req.user,
+                    scope: rcce.CONSTANTS.SENSITIVE_SCOPES.USER_PII_READ,
+                    affectedRecord: "USERS_DIRECTORY_UNMASKED",
+                    requestId: req.requestId,
+                    ipAddress: req.ip
+                });
+                if (!access.allowed) {
+                    throw new AppError(access.message, access.httpStatus, access.code);
+                }
+            } else {
+                applyDeveloperRedaction = true;
+            }
+        }
 
         const result = await service.getUsers({
             role,
@@ -44,10 +64,13 @@ async function getUsers(req, res, next) {
             offset
         });
 
-        return res.status(200).json({
-            success: true,
-            data: result,
-            requestId: req.requestId
+        if (applyDeveloperRedaction && result && Array.isArray(result.users)) {
+            result.users = result.users.map((u) => rcce.helpers.redactPrivateUserFields(u));
+            res.setHeader("X-GBS-Privacy-Redacted", "true");
+        }
+
+        return res.rcceSuccess("SUCCESS", result, {
+            httpStatus: 200
         });
     } catch (error) {
         next(error);
@@ -64,10 +87,29 @@ async function approveUser(req, res, next) {
 
         const result = await service.approveUser(id, adminUserId);
 
-        return res.status(200).json({
-            success: true,
-            data: result,
-            requestId: req.requestId
+        try {
+            await rcce.events.publish({
+                eventCode: "USER_APPROVED",
+                domain: "USERS",
+                actorUserId: adminUserId,
+                actorRole: req.user.role,
+                affectedRecord: result.id || id,
+                severity: "INFO",
+                requestId: req.requestId,
+                notifications: [
+                    {
+                        recipientUserId: result.id || id,
+                        title: "Account Approved",
+                        message: "Your hospital system account has been approved and activated.",
+                        severity: "SUCCESS",
+                        affectedRecord: result.id || id
+                    }
+                ]
+            });
+        } catch (_pubErr) {}
+
+        return res.rcceSuccess("REQUEST_APPROVED", result, {
+            httpStatus: 200
         });
     } catch (error) {
         next(error);
@@ -85,10 +127,31 @@ async function setUserStatus(req, res, next) {
 
         const result = await service.setUserStatus(id, active, adminUserId);
 
-        return res.status(200).json({
-            success: true,
-            data: result,
-            requestId: req.requestId
+        if (active === false) {
+            rcce.events.publish({
+                eventCode: "ACCOUNT_SUSPENDED",
+                domain: "USERS",
+                actorUserId: adminUserId,
+                actorRole: req.user.role,
+                affectedRecord: id,
+                severity: "WARNING",
+                requestId: req.requestId,
+                asyncDelivery: true,
+                notifications: [
+                    {
+                        recipientUserId: id,
+                        recipientRole: "ADMIN",
+                        title: "User Account Suspended",
+                        message: `Account ${id} has been deactivated by administrator.`,
+                        severity: "WARNING",
+                        affectedRecord: id
+                    }
+                ]
+            }).catch(() => {});
+        }
+
+        return res.rcceSuccess("RECORD_UPDATED", result, {
+            httpStatus: 200
         });
     } catch (error) {
         next(error);

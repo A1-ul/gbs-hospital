@@ -40,6 +40,28 @@ async function getGeofences(req, res, next) {
 async function evaluatePing(req, res, next) {
     try {
         const result = await service.evaluateLocationPing(req.body);
+        if (result && (result.breachDetected || (Array.isArray(result.breaches) && result.breaches.length > 0))) {
+            try {
+                const { rcce } = require("../../core/gbs-rcce.bootstrap");
+                await rcce.events.publish({
+                    eventCode: "SYSTEM_ERROR_DETECTED",
+                    domain: "FACILITY_GIS",
+                    actorUserId: req.user?.id,
+                    actorRole: req.user?.role,
+                    affectedRecord: req.body?.entityId || "GEOFENCE_BREACH",
+                    severity: "WARNING",
+                    requestId: req.requestId,
+                    notifications: [
+                        {
+                            recipientRole: "ADMINISTRATOR",
+                            title: "Geofence Perimeter Breach Detected",
+                            message: `GPS location ping triggered geofence breach alert (${req.body?.entityType || "ASSET"}).`,
+                            severity: "WARNING"
+                        }
+                    ]
+                });
+            } catch (_pubErr) {}
+        }
         res.status(200).json({
             success: true,
             message: "GPS location ping evaluated against active geofences",

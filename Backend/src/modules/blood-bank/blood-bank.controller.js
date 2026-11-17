@@ -105,11 +105,30 @@ class BloodBankController {
 
     async createTransfusionRequest(req, res, next) {
         try {
+            const { rcce } = require("../../core/gbs-rcce.bootstrap");
             const request = await bloodBankService.createTransfusionRequest(req.body);
-            return res.status(201).json({
-                success: true,
-                message: "Blood transfusion request submitted.",
-                data: request
+            try {
+                await rcce.events.publish({
+                    eventCode: "REQUEST_SUBMITTED",
+                    domain: "BLOOD_BANK",
+                    actorUserId: req.user?.id,
+                    actorRole: req.user?.role,
+                    affectedRecord: request.requestNumber || request.id,
+                    severity: request.urgencyLevel === "EMERGENCY_STAT_UNMATCHED" ? "CRITICAL" : "WARNING",
+                    requestId: req.requestId,
+                    notifications: [
+                        {
+                            recipientRole: "LAB_TECHNICIAN",
+                            title: "Blood Transfusion Cross-Match Ordered",
+                            message: `Transfusion request ${request.requestNumber || request.id} submitted (${request.patientBloodGroup || "Group Check"}).`,
+                            severity: "WARNING"
+                        }
+                    ]
+                });
+            } catch (_pubErr) { }
+            return res.rcceSuccess("REQUEST_SUBMITTED", request, {
+                httpStatus: 201,
+                message: "Blood transfusion request submitted."
             });
         } catch (err) {
             next(err);
@@ -134,8 +153,8 @@ class BloodBankController {
             const crossMatch = await bloodBankService.performCrossMatch(req.body);
             return res.status(201).json({
                 success: true,
-                message: crossMatch.isCompatible 
-                    ? "Cross-match test compatible. Unit reserved." 
+                message: crossMatch.isCompatible
+                    ? "Cross-match test compatible. Unit reserved."
                     : "Cross-match test INCOMPATIBLE. Agglutination detected.",
                 data: crossMatch
             });
@@ -172,11 +191,36 @@ class BloodBankController {
 
     async recordAdverseReaction(req, res, next) {
         try {
+            const { rcce } = require("../../core/gbs-rcce.bootstrap");
             const reaction = await bloodBankService.recordAdverseReaction(req.params.id, req.body);
-            return res.status(200).json({
-                success: true,
-                message: "Adverse reaction logged. Hemovigilance investigation active.",
-                data: reaction
+            try {
+                await rcce.events.publish({
+                    eventCode: "SYSTEM_ERROR_DETECTED",
+                    domain: "BLOOD_BANK",
+                    actorUserId: req.user?.id,
+                    actorRole: req.user?.role,
+                    affectedRecord: req.params.id,
+                    severity: "CRITICAL",
+                    requestId: req.requestId,
+                    notifications: [
+                        {
+                            recipientRole: "DOCTOR",
+                            title: "Hemovigilance Adverse Transfusion Reaction",
+                            message: `Adverse reaction recorded for transfusion ${req.params.id}.`,
+                            severity: "ERROR"
+                        },
+                        {
+                            recipientRole: "ADMINISTRATOR",
+                            title: "Critical Transfusion Reaction Alert",
+                            message: `Hemovigilance alert active for transfusion ${req.params.id}.`,
+                            severity: "ERROR"
+                        }
+                    ]
+                });
+            } catch (_pubErr) { }
+            return res.rcceSuccess("RECORD_UPDATED", reaction, {
+                httpStatus: 200,
+                message: "Adverse reaction logged. Hemovigilance investigation active."
             });
         } catch (err) {
             next(err);

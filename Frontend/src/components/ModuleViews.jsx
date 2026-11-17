@@ -8,6 +8,7 @@ import {
 import { api } from '../services/api.service';
 import MigrationViewComponent from '../modules/migration/MigrationView';
 import TelemedicineGisViewComponent from '../modules/telemedicine/TelemedicineGisView';
+import RcceDeveloperConsole from './RcceDeveloperConsole';
 
 // ==========================================
 // 1. PATIENT MANAGEMENT & MPI
@@ -500,7 +501,8 @@ export function ClinicalCareView() {
     if (q.length > 1) {
       try {
         const res = await api.searchICD10(q);
-        setIcdResults(res.items || []);
+        const list = res?.items || (Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : []);
+        setIcdResults(list);
       } catch (err) {
         console.error(err);
       }
@@ -1294,10 +1296,22 @@ export function InpatientWardsView() {
       api.getBedMatrix().catch(() => null),
       api.getActiveAdmissions().catch(() => null)
     ]).then(([s, b, a]) => {
-      setStats(s || b?.summary || null);
-      setWards(b?.wards || (Array.isArray(b) ? b : []));
-      setRooms(b?.rooms || []);
-      setBeds(b?.beds || []);
+      const normalizedStats = s || b?.totals || b?.summary || null;
+      setStats(
+        normalizedStats
+          ? {
+            ...normalizedStats,
+            totalBeds: normalizedStats.totalBeds ?? normalizedStats.totalBedsCount ?? b?.totals?.totalBeds ?? 0,
+            occupiedBeds: normalizedStats.occupiedBeds ?? normalizedStats.occupiedCount ?? b?.totals?.occupiedBeds ?? 0,
+            availableBeds: normalizedStats.availableBeds ?? normalizedStats.availableCount ?? b?.totals?.availableBeds ?? 0,
+            occupancyRate: normalizedStats.occupancyRate ?? `${normalizedStats.occupancyPercentage ?? b?.totals?.occupancyPercentage ?? 0}%`
+          }
+          : null
+      );
+      const wardList = b?.wards || (Array.isArray(b?.data) && b.data[0]?.rooms ? b.data : []);
+      setWards(wardList);
+      setRooms(b?.rooms || wardList.flatMap((w) => w.rooms || []));
+      setBeds(b?.beds || (Array.isArray(b?.data) ? b.data : wardList.flatMap((w) => (w.rooms || []).flatMap((r) => r.beds || []))));
       setAdmissions(a?.admissions || (Array.isArray(a) ? a : []));
     });
   };
@@ -1341,8 +1355,8 @@ export function InpatientWardsView() {
       const baseDate = admission.expectedDischargeDate ? new Date(admission.expectedDischargeDate) : new Date();
       const extendedDate = new Date(baseDate.getTime() + 3 * 86400000).toISOString().slice(0, 10);
       await api.extendAdmissionStay(admission.id, {
-        newExpectedDischargeDate: extendedDate,
-        extensionReason: 'Continued inpatient clinical monitoring & treatment'
+        extendedDischargeDate: extendedDate,
+        reason: 'Continued inpatient clinical monitoring & treatment'
       });
       setFeedback({
         type: 'success',
@@ -1610,7 +1624,7 @@ export function PharmacyView() {
   const [items, setItems] = useState([]);
   const [feedback, setFeedback] = useState(null);
   const [showItemModal, setShowItemModal] = useState(false);
-  const [itemForm, setItemForm] = useState({ genericName: '', brandName: '', dosageForm: 'TABLET', strength: '500mg', reorderLevel: 20, unitPrice: 15 });
+  const [itemForm, setItemForm] = useState({ name: '', genericName: '', brandName: '', dosageForm: 'TABLET', strength: '500mg', reorderLevel: 20, unitPrice: 15 });
 
   const loadPharmacy = () => {
     Promise.all([
@@ -1633,7 +1647,7 @@ export function PharmacyView() {
   const handleDispenseRx = async (rx) => {
     setFeedback(null);
     try {
-      await api.dispensePrescription({
+      await api.dispensePrescription(rx.id, {
         prescriptionId: rx.id,
         quantityDispensed: rx.quantity || 1,
         counselingNotes: 'Verified dose, frequency, and patient room/bed identity.'
@@ -2080,9 +2094,14 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
   }, []);
 
   const handleLock = async (tenantId = 'ALL') => {
+    const resolvedId = tenantId === 'ALL' ? (tenants[0]?.id || tenants[0]?.tenantId) : tenantId;
+    if (!resolvedId) {
+      setActionMsg({ type: 'error', msg: 'No registered hospital tenant selected to lock.' });
+      return;
+    }
     try {
-      await api.lockTenant(tenantId, 'Administrative subscription audit');
-      setActionMsg({ type: 'danger', msg: `System Lock Engaged for target (${tenantId}). Clinical safety paths remain preserved.` });
+      await api.lockTenant(resolvedId, 'Administrative subscription audit');
+      setActionMsg({ type: 'danger', msg: `System Lock Engaged for target (${resolvedId}). Clinical safety paths remain preserved.` });
       loadData();
     } catch (e) {
       setActionMsg({ type: 'error', msg: e.message });
@@ -2090,9 +2109,14 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
   };
 
   const handleUnlock = async (tenantId = 'ALL') => {
+    const resolvedId = tenantId === 'ALL' ? (tenants[0]?.id || tenants[0]?.tenantId) : tenantId;
+    if (!resolvedId) {
+      setActionMsg({ type: 'error', msg: 'No registered hospital tenant selected to unlock.' });
+      return;
+    }
     try {
-      await api.unlockTenant(tenantId);
-      setActionMsg({ type: 'success', msg: `System Unlocked successfully (${tenantId}). Normal operation restored.` });
+      await api.unlockTenant(resolvedId);
+      setActionMsg({ type: 'success', msg: `System Unlocked successfully (${resolvedId}). Normal operation restored.` });
       loadData();
     } catch (e) {
       setActionMsg({ type: 'error', msg: e.message });
@@ -2250,7 +2274,7 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
   };
 
   const firstTenantCountdown = countdown?.countdowns?.[0]?.countdown || null;
-  const counts = summary?.counts || {};
+  const counts = summary?.counts || summary || {};
   const activeEnvLabel = envStatus?.activeEnvironment || envStatus?.environment?.environmentLabel || 'DEVELOPMENT';
   const isProdEnv = Boolean(envStatus?.isProduction || activeEnvLabel === 'PRODUCTION');
   const dbMeta = envStatus?.databaseMetadata || {};
@@ -2341,6 +2365,14 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
             style={{ fontSize: '0.78rem', padding: '6px 14px' }}
           >
             <Video size={14} /> 3. GIS Radar, Live Tenant Tracking & Telemedicine
+          </button>
+          <button
+            type="button"
+            onClick={() => setDevSubTab('RCCE')}
+            className={devSubTab === 'RCCE' ? 'btn-gold' : 'btn-outline-gold'}
+            style={{ fontSize: '0.78rem', padding: '6px 14px' }}
+          >
+            <Shield size={14} /> 4. GBS-RCCE Control, Permissions & Audits
           </button>
         </div>
       </div>
@@ -2704,14 +2736,14 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
                             <div style={{ color: '#6ee7b7', fontFamily: 'var(--font-mono)' }}>{t.representativePhone || t.officialPhone || '—'}</div>
                           </td>
                           <td>
-                            <div style={{ fontWeight: 700, color: 'var(--gold-300)' }}>{t.subscriptionPlan}</div>
-                            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{t.subscriptionStatus || t.onboardingStatus || t.status}</div>
+                            <div style={{ fontWeight: 700, color: 'var(--gold-300)' }}>{t.subscription?.plan || t.subscriptionPlan || 'TRIAL'}</div>
+                            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{t.subscription?.status || t.subscriptionStatus || t.onboardingStatus || t.status}</div>
                           </td>
-                          <td style={{ color: t.isLocked ? 'var(--status-danger)' : 'var(--status-online)', fontWeight: 700 }}>
-                            {t.isLocked ? 'LOCKED' : 'UNLOCKED'}
+                          <td style={{ color: (t.systemLocked ?? t.isLocked) ? 'var(--status-danger)' : 'var(--status-online)', fontWeight: 700 }}>
+                            {(t.systemLocked ?? t.isLocked) ? 'LOCKED' : 'UNLOCKED'}
                           </td>
                           <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem' }}>
-                            {t.subscriptionPlan === 'LIFETIME'
+                            {(t.subscription?.plan || t.subscriptionPlan) === 'LIFETIME'
                               ? 'LIFETIME (∞)'
                               : t.countdown
                                 ? `${t.countdown.days ?? t.countdown.remainingDays ?? 0}d ${t.countdown.hours ?? t.countdown.remainingHours ?? 0}h`
@@ -2741,7 +2773,18 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
                               >
                                 View Details
                               </button>
-                              <button onClick={() => api.approveTenant(tid, { subscriptionPlan: t.subscriptionPlan || '1_MONTH_TRIAL' }).then(loadData)} className="btn-gold" style={{ padding: '3px 7px', fontSize: '0.68rem' }}>
+                              <button
+                                onClick={() =>
+                                  api.approveTenant(tid, { subscriptionPlan: t.subscription?.plan || t.subscriptionPlan || '1_MONTH_TRIAL' })
+                                    .then(() => {
+                                      setActionMsg({ type: 'success', msg: `Hospital tenant ${t.institutionName || t.name || tid} approved and provisioned.` });
+                                      loadData();
+                                    })
+                                    .catch((err) => setActionMsg({ type: 'error', msg: err.message }))
+                                }
+                                className="btn-gold"
+                                style={{ padding: '3px 7px', fontSize: '0.68rem' }}
+                              >
                                 Approve
                               </button>
                               <button onClick={() => handleExtendSubscription(tid, 30, '1_MONTH_TRIAL')} className="btn-outline-gold" style={{ padding: '3px 7px', fontSize: '0.68rem' }} title="Grant 1-Month Trial (30 Days)">
@@ -2759,7 +2802,7 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
                               <button onClick={() => handleExtendSubscription(tid, 36500, 'LIFETIME')} className="btn-gold" style={{ padding: '3px 7px', fontSize: '0.68rem' }} title="Grant Permanent Lifetime License">
                                 Lifetime
                               </button>
-                              {t.isLocked ? (
+                              {(t.systemLocked ?? t.isLocked) ? (
                                 <button onClick={() => handleUnlock(tid)} className="btn-gold" style={{ padding: '3px 7px', fontSize: '0.68rem' }}>
                                   Unlock
                                 </button>
@@ -3031,6 +3074,11 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
           </div>
           <MigrationViewComponent onNavigateDetail={onNavigateDetail} />
         </div>
+      )}
+
+      {/* Developer Exclusive Module: GBS-RCCE Control, Privacy & Governance Engine */}
+      {(devSubTab === 'ALL' || devSubTab === 'RCCE') && (
+        <RcceDeveloperConsole onStatusMsg={setActionMsg} />
       )}
 
       {/* Developer Exclusive Module: GIS Radar, Live Tenant Facility Tracking & Video Telemedicine */}

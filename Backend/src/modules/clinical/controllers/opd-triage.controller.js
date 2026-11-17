@@ -9,6 +9,7 @@ LOCATION: src/modules/clinical/controllers/opd-triage.controller.js
 */
 
 const opdTriageService = require("../services/opd-triage.service");
+const { rcce } = require("../../../core/gbs-rcce.bootstrap");
 
 /**
  * Check-in patient into OPD queue
@@ -21,11 +22,30 @@ async function checkInPatient(req, res, next) {
         const data = { ...req.body, hospitalId };
 
         const result = await opdTriageService.checkInPatient(data, createdById);
+        try {
+            await rcce.events.publish({
+                eventCode: "REQUEST_SUBMITTED",
+                domain: "CLINICAL_OPD",
+                actorUserId: createdById,
+                actorRole: req.user?.role,
+                tenantId: hospitalId,
+                affectedRecord: result?.ticket?.ticketNumber || result?.encounter?.id,
+                severity: "INFO",
+                requestId: req.requestId,
+                notifications: [
+                    {
+                        recipientRole: "NURSE",
+                        title: "OPD Patient Checked In",
+                        message: `Token ${result?.ticket?.ticketNumber || "OPD"} ready for Nurse Vitals & Triage.`,
+                        severity: "INFO"
+                    }
+                ]
+            });
+        } catch (_pubErr) { }
 
-        return res.status(201).json({
-            success: true,
-            message: `Patient checked in with queue token ${result.ticket.ticketNumber}`,
-            data: result
+        return res.rcceSuccess("CREATED", result, {
+            httpStatus: 201,
+            message: `Patient checked in with queue token ${result.ticket.ticketNumber}`
         });
     } catch (error) {
         next(error);

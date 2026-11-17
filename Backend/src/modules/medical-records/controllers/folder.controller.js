@@ -10,6 +10,7 @@ LOCATION: src/modules/medical-records/controllers/folder.controller.js
 */
 
 const folderService = require("../services/folder.service");
+const { rcce } = require("../../../core/gbs-rcce.bootstrap");
 
 /**
  * Request Physical Medical Folder Retrieval
@@ -25,10 +26,29 @@ async function requestFolderRetrieval(req, res, next) {
         };
 
         const result = await folderService.requestFolderRetrieval(payload, requestingUserId);
-        return res.status(201).json({
-            success: true,
-            message: result.message,
-            data: result
+        try {
+            await rcce.events.publish({
+                eventCode: "REQUEST_SUBMITTED",
+                domain: "MEDICAL_RECORDS",
+                actorUserId: requestingUserId,
+                actorRole: requestingRole,
+                affectedRecord: result?.request?.id || req.body?.patientId,
+                severity: "INFO",
+                requestId: req.requestId,
+                notifications: [
+                    {
+                        recipientRole: "FOLDER_RETRIEVER",
+                        title: "Medical Folder Retrieval Requested",
+                        message: result.message || "A physical medical folder retrieval request is queued.",
+                        severity: "INFO"
+                    }
+                ]
+            });
+        } catch (_pubErr) {}
+
+        return res.rcceSuccess("REQUEST_SUBMITTED", result, {
+            httpStatus: 201,
+            message: result.message
         });
     } catch (error) {
         next(error);

@@ -10,14 +10,33 @@ LOCATION: src/modules/telemedicine/controllers/telemedicine.controller.js
 */
 
 const service = require("../services/telemedicine.service");
+const { rcce } = require("../../../core/gbs-rcce.bootstrap");
 
 async function schedule(req, res, next) {
     try {
         const result = await service.scheduleConsultation(req.body);
-        res.status(201).json({
-            success: true,
-            message: `Telemedicine session ${result.sessionCode} scheduled`,
-            data: result
+        try {
+            await rcce.events.publish({
+                eventCode: "REQUEST_SUBMITTED",
+                domain: "TELEMEDICINE",
+                actorUserId: req.user?.id,
+                actorRole: req.user?.role,
+                affectedRecord: result.sessionCode || result.id,
+                severity: "INFO",
+                requestId: req.requestId,
+                notifications: [
+                    {
+                        recipientRole: "DOCTOR",
+                        title: "Telemedicine Consultation Scheduled",
+                        message: `Virtual clinic session ${result.sessionCode} scheduled.`,
+                        severity: "INFO"
+                    }
+                ]
+            });
+        } catch (_pubErr) {}
+        return res.rcceSuccess("REQUEST_SUBMITTED", result, {
+            httpStatus: 201,
+            message: `Telemedicine session ${result.sessionCode} scheduled`
         });
     } catch (err) {
         next(err);

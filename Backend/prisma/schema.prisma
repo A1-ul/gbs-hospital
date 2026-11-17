@@ -107,18 +107,51 @@ model AuditLog {
 
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
+  role String?
+
+  tenantId String?
+
+  hospitalId String?
+
   action String
 
   module String
 
   description String?
 
+  affectedRecord String?
+
+  outcome String @default("SUCCESS")
+
+  requestId String?
+
+  responseCode String?
+
+  httpStatus Int?
+
+  method String?
+
+  path String?
+
   ipAddress String?
+
+  userAgent String?
+
+  previousHash String?
+
+  integrityHash String?
+
+  metadata Json?
 
   createdAt DateTime @default(now())
 
+  @@index([userId])
+  @@index([role])
+  @@index([tenantId])
   @@index([module])
   @@index([action])
+  @@index([outcome])
+  @@index([requestId])
   @@index([createdAt])
 }
 
@@ -3720,4 +3753,150 @@ model BiometricSecurityPolicy {
   @@index([policyCode])
   @@index([active])
 }
+
+// ============================================================================
+// GBS CENTRAL SYSTEM RESPONSE, CONTROL & COMMUNICATION ENGINE (GBS-RCCE)
+// ============================================================================
+
+model SystemEvent {
+  id             String    @id @default(uuid())
+  eventCode      String
+  domain         String
+  actorUserId    String?
+  actorRole      String?
+  tenantId       String?
+  affectedRecord String?
+  severity       String    @default("INFO")
+  status         String    @default("PROCESSED")
+  payload        Json?
+  requestId      String?
+  processedAt    DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([eventCode])
+  @@index([domain])
+  @@index([actorUserId])
+  @@index([tenantId])
+  @@index([status])
+  @@index([requestId])
+  @@index([createdAt])
+}
+
+model SystemNotification {
+  id              String    @id @default(uuid())
+  eventId         String?
+  eventType       String
+  recipientUserId String?
+  recipientRole   String?
+  tenantId        String?
+  title           String
+  message         String
+  severity        String    @default("INFO")
+  channel         String    @default("IN_APP")
+  deliveryStatus  String    @default("DELIVERED")
+  isRead          Boolean   @default(false)
+  readAt          DateTime?
+  actionUrl       String?
+  affectedRecord  String?
+  requestId       String?
+  metadata        Json?
+  createdAt       DateTime  @default(now())
+
+  @@index([recipientUserId])
+  @@index([recipientRole])
+  @@index([tenantId])
+  @@index([eventType])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+model IdempotencyRecord {
+  id             String   @id @default(uuid())
+  idempotencyKey String
+  userId         String   @default("ANONYMOUS")
+  method         String
+  path           String
+  payloadHash    String
+  status         String   @default("COMPLETED")
+  httpStatus     Int
+  responseBody   Json
+  requestId      String?
+  expiresAt      DateTime
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([idempotencyKey, userId, method, path])
+  @@index([payloadHash])
+  @@index([expiresAt])
+  @@index([createdAt])
+}
+
+model DeveloperAccessGrant {
+  id             String    @id @default(uuid())
+  grantCode      String    @unique
+  developerId    String
+  developerEmail String
+  scope          String
+  reason         String
+  ticketRef      String?
+  approvedById   String?
+  approvedByRole String?
+  tenantId       String?
+  status         String    @default("PENDING")
+  expiresAt      DateTime?
+  accessCount    Int       @default(0)
+  lastAccessedAt DateTime?
+  revokedAt      DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([developerId])
+  @@index([scope])
+  @@index([status])
+  @@index([expiresAt])
+}
+
+model SystemErrorLog {
+  id               String    @id @default(uuid())
+  requestId        String?
+  code             String
+  httpStatus       Int
+  userMessage      String
+  technicalMessage String    @db.Text
+  stackTrace       String?   @db.Text
+  errorCategory    String    @default("INTERNAL")
+  module           String?
+  method           String?
+  path             String?
+  userId           String?
+  userRole         String?
+  tenantId         String?
+  resolved         Boolean   @default(false)
+  resolvedBy       String?
+  resolvedAt       DateTime?
+  resolutionNote   String?
+  createdAt        DateTime  @default(now())
+
+  @@index([code])
+  @@index([errorCategory])
+  @@index([httpStatus])
+  @@index([resolved])
+  @@index([requestId])
+  @@index([createdAt])
+}
+
+model SystemConfiguration {
+  id            String   @id @default(uuid())
+  configKey     String   @unique
+  configValue   Json
+  category      String   @default("GENERAL")
+  description   String?
+  updatedById   String?
+  updatedByRole String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([category])
+}
+
 

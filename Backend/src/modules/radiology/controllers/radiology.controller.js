@@ -10,6 +10,7 @@ LOCATION: src/modules/radiology/controllers/radiology.controller.js
 */
 
 const radiologyService = require("../services/radiology.service");
+const { rcce } = require("../../../core/gbs-rcce.bootstrap");
 
 async function createRadiologyOrder(req, res, next) {
     try {
@@ -118,11 +119,29 @@ async function authorRadiologyReport(req, res, next) {
 async function verifyRadiologyReport(req, res, next) {
     try {
         const result = await radiologyService.verifyRadiologyReport(req.params.id, req.body, req.user);
-        res.status(200).json({
-            success: true,
-            message: "Radiology report verified and finalized with electronic signature",
-            data: result,
-            timestamp: new Date().toISOString()
+        try {
+            await rcce.events.publish({
+                eventCode: "REPORT_GENERATED",
+                domain: "RADIOLOGY",
+                actorUserId: req.user?.id,
+                actorRole: req.user?.role,
+                affectedRecord: req.params.id,
+                severity: "INFO",
+                requestId: req.requestId,
+                notifications: [
+                    {
+                        recipientRole: "DOCTOR",
+                        title: "Radiology Report Finalized",
+                        message: `Radiology report verified and signed off (${req.params.id}).`,
+                        severity: "SUCCESS"
+                    }
+                ]
+            });
+        } catch (_pubErr) { }
+
+        return res.rcceSuccess("RADIOLOGY_REPORT_FINALIZED", result, {
+            httpStatus: 200,
+            message: "Radiology report verified and finalized with electronic signature"
         });
     } catch (error) {
         next(error);

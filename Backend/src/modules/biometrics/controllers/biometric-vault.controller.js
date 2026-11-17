@@ -29,8 +29,31 @@ class BiometricVaultController {
 
       const result = await biometricVaultService.verifyVoiceprint(userId, payload);
       const statusCode = result.verified ? 200 : 403;
+      if (!result.verified) {
+        try {
+          const { rcce } = require('../../../core/gbs-rcce.bootstrap');
+          await rcce.events.publish({
+            eventCode: 'OPERATION_DENIED',
+            domain: 'BIOMETRICS',
+            actorUserId: userId,
+            actorRole: req.user?.role,
+            affectedRecord: payload.actionAttempted || 'VOICE_VERIFICATION',
+            severity: 'WARNING',
+            requestId: req.requestId,
+            notifications: [
+              {
+                recipientRole: 'ADMINISTRATOR',
+                title: 'Biometric Voice Challenge Rejected',
+                message: result.rejectionReason || 'Confidence score below security threshold.',
+                severity: 'WARNING'
+              }
+            ]
+          });
+        } catch (_pubErr) {}
+      }
       return res.status(statusCode).json({
         success: result.verified,
+        code: result.verified ? 'SUCCESS' : 'FORBIDDEN_PERMISSION',
         message: result.verified 
           ? 'Voice biometric match confirmed. Action authorized.' 
           : `Voice verification denied: ${result.rejectionReason || 'Confidence score below threshold'}`,

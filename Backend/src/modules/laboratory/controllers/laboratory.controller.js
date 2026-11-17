@@ -10,6 +10,7 @@ LOCATION: src/modules/laboratory/controllers/laboratory.controller.js
 */
 
 const labService = require("../services/laboratory.service");
+const { rcce } = require("../../../core/gbs-rcce.bootstrap");
 
 async function createLabRequest(req, res, next) {
     try {
@@ -101,11 +102,29 @@ async function enterTestResults(req, res, next) {
 async function verifyAndReleaseResults(req, res, next) {
     try {
         const result = await labService.verifyAndReleaseResults(req.params.id, req.body, req.user);
-        res.status(200).json({
-            success: true,
-            message: "Official laboratory report verified and released to medical chart",
-            data: result,
-            timestamp: new Date().toISOString()
+        try {
+            await rcce.events.publish({
+                eventCode: "REPORT_GENERATED",
+                domain: "LABORATORY",
+                actorUserId: req.user?.id,
+                actorRole: req.user?.role,
+                affectedRecord: req.params.id,
+                severity: "INFO",
+                requestId: req.requestId,
+                notifications: [
+                    {
+                        recipientRole: "DOCTOR",
+                        title: "Lab Report Released",
+                        message: `Official laboratory results verified and released for request ${req.params.id}.`,
+                        severity: "SUCCESS"
+                    }
+                ]
+            });
+        } catch (_pubErr) { }
+
+        return res.rcceSuccess("LAB_RESULTS_RELEASED", result, {
+            httpStatus: 200,
+            message: "Official laboratory report verified and released to medical chart"
         });
     } catch (error) {
         next(error);

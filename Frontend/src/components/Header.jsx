@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Activity, Database, Shield, Users, Clock, AlertTriangle,
   ChevronDown, Search, PlusCircle, Bed, FlaskConical, Pill, FileText,
-  UserCheck, Lock, LogIn, LogOut, Key
+  UserCheck, Lock, LogIn, LogOut, Key, Bell
 } from 'lucide-react';
 import { api } from '../services/api.service';
 
@@ -58,6 +58,68 @@ export default function Header({
   const [brandingFeedback, setBrandingFeedback] = useState('');
 
   const [roleCategory, setRoleCategory] = useState('ALL');
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notificationsList, setNotificationsList] = useState([]);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
+
+  const loadNotifications = async () => {
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('gbs_token') : null;
+      if (!token) return;
+      const res = await api.getRcceNotifications();
+      if (res && Array.isArray(res.notifications)) {
+        setNotificationsList(res.notifications);
+        setUnreadNotifications(res.unreadCount ?? res.notifications.filter(n => !n.isRead).length);
+      }
+    } catch (_err) {
+      // ignore unauthenticated polls cleanly
+    }
+  };
+
+  useEffect(() => {
+    loadNotifications();
+    const poll = setInterval(loadNotifications, 20000);
+
+    // Live SSE push channel from GBS-RCCE Event & Notification Engine
+    let evtSource = null;
+    if (typeof window !== 'undefined' && typeof window.EventSource !== 'undefined') {
+      const token = localStorage.getItem('gbs_token');
+      if (token) {
+        const apiBase = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_BASE_URL) || '/api/v1';
+        try {
+          evtSource = new EventSource(`${apiBase}/rcce/notifications/stream?token=${encodeURIComponent(token)}`);
+          evtSource.addEventListener('notification', (event) => {
+            try {
+              const payload = JSON.parse(event.data);
+              const note = payload?.notification;
+              if (note) {
+                setNotificationsList((prev) => [note, ...prev.filter((item) => item.id !== note.id)].slice(0, 40));
+                setUnreadNotifications((prev) => prev + 1);
+                if (typeof window.gbsBrainNotify === 'function') {
+                  window.gbsBrainNotify({
+                    type: note.severity === 'ERROR' || note.severity === 'WARNING' ? 'error' : 'info',
+                    method: 'SSE',
+                    code: note.eventType,
+                    requestId: note.requestId || null,
+                    title: note.title || 'Live System Notification',
+                    message: note.message,
+                    role: currentRole,
+                  });
+                }
+              }
+            } catch (_parseErr) { }
+          });
+        } catch (_sseErr) { }
+      }
+    }
+
+    return () => {
+      clearInterval(poll);
+      if (evtSource) {
+        evtSource.close();
+      }
+    };
+  }, [currentRole, currentUser]);
 
   const isDeveloperAuthenticated = Boolean(
     currentUser &&
@@ -261,6 +323,119 @@ export default function Header({
               </button>
             </div>
           )}
+
+          {/* GBS-RCCE Live Notifications Bell */}
+          <div style={{ position: 'relative' }}>
+            <button
+              onClick={() => {
+                const next = !showNotifications;
+                setShowNotifications(next);
+                if (next) loadNotifications();
+              }}
+              className="btn-outline-gold"
+              style={{ padding: '8px 12px', fontSize: '0.8rem', position: 'relative' }}
+              title="GBS-RCCE Event & Notification Engine Alerts"
+            >
+              <Bell size={16} /> Alerts
+              {unreadNotifications > 0 && (
+                <span style={{
+                  marginLeft: '4px',
+                  background: '#ef4444',
+                  color: '#fff',
+                  fontSize: '0.68rem',
+                  fontWeight: 800,
+                  padding: '1px 6px',
+                  borderRadius: '10px'
+                }}>
+                  {unreadNotifications}
+                </span>
+              )}
+            </button>
+
+            {showNotifications && (
+              <div
+                className="glass-panel"
+                style={{
+                  position: 'absolute',
+                  top: '110%',
+                  right: 0,
+                  width: '360px',
+                  maxHeight: '420px',
+                  overflowY: 'auto',
+                  padding: '14px',
+                  zIndex: 9998,
+                  border: '1px solid var(--gold-400)',
+                  boxShadow: '0 12px 32px rgba(0,0,0,0.85)'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '8px' }}>
+                  <span style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--gold-400)' }}>
+                    System Notifications ({unreadNotifications} unread)
+                  </span>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        await api.markAllRcceNotificationsRead().catch(() => { });
+                        loadNotifications();
+                      }}
+                      className="btn-outline-gold"
+                      style={{ padding: '2px 8px', fontSize: '0.7rem' }}
+                    >
+                      Mark All Read
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowNotifications(false)}
+                      style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '0.75rem' }}
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+
+                {notificationsList.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '16px', color: 'var(--text-dim)', fontSize: '0.78rem' }}>
+                    No notifications recorded yet.
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {notificationsList.slice(0, 15).map((n) => (
+                      <div
+                        key={n.id}
+                        style={{
+                          padding: '8px 10px',
+                          borderRadius: '6px',
+                          background: n.isRead ? 'rgba(0,0,0,0.28)' : 'rgba(212,175,55,0.12)',
+                          border: `1px solid ${n.isRead ? 'var(--border-subtle)' : 'var(--border-gold)'}`
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
+                          <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#fff' }}>{n.title}</span>
+                          {!n.isRead && (
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                await api.markRcceNotificationRead(n.id).catch(() => { });
+                                loadNotifications();
+                              }}
+                              style={{ background: 'none', border: 'none', color: 'var(--gold-400)', cursor: 'pointer', fontSize: '0.68rem' }}
+                            >
+                              Mark Read
+                            </button>
+                          )}
+                        </div>
+                        <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>{n.message}</div>
+                        <div style={{ fontSize: '0.66rem', color: 'var(--text-dim)', marginTop: '3px' }}>
+                          {n.eventType} • {new Date(n.createdAt).toLocaleString()}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
 
           {/* Mandatory Step 7 Dropdown Button */}
           <div style={{ position: 'relative' }}>

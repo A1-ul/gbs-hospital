@@ -466,6 +466,8 @@ registerRoute(
     "Acoustic Voiceprint Registry"
 );
 
+router.use("/rcce", require("../modules/developer-control-center/rcce.routes"));
+
 module.exports = router;
 
 

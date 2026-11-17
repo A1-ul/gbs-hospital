@@ -1076,7 +1076,8 @@ async function getFullHospitalBedMatrix(hospitalId) {
  * Extend Inpatient Admission Stay / Update Expected Discharge Date
  */
 async function extendAdmissionStay(admissionId, extensionData = {}, staffUser = null) {
-    const { extendedDischargeDate, reason } = extensionData;
+    const extendedDischargeDate = extensionData.extendedDischargeDate || extensionData.newExpectedDischargeDate;
+    const reason = extensionData.reason || extensionData.extensionReason;
     if (!admissionId || !extendedDischargeDate) {
         throw new AppError("Admission ID and Extended Discharge Date are required", 400, "MISSING_EXTENSION_FIELDS");
     }

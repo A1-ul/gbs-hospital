@@ -9,6 +9,7 @@ LOCATION: src/modules/patients/controllers/patient.controller.js
 */
 
 const patientService = require("../services/patient.service");
+const { rcce } = require("../../../core/gbs-rcce.bootstrap");
 
 /**
  * Register Patient into MPI & Auto-Provision Physical Folder
@@ -21,10 +22,37 @@ async function registerPatient(req, res, next) {
         const data = { ...req.body, hospitalId };
 
         const result = await patientService.registerPatient(data, creatorUserId);
-        return res.status(201).json({
-            success: true,
-            message: result.message,
-            data: result
+
+        try {
+            await rcce.events.publish({
+                eventCode: "PATIENT_REGISTERED",
+                domain: "PATIENTS",
+                actorUserId: creatorUserId,
+                actorRole: req.user?.role,
+                tenantId: hospitalId,
+                affectedRecord: result?.patient?.mrn || result?.mrn || result?.patient?.id,
+                severity: "INFO",
+                requestId: req.requestId,
+                notifications: [
+                    {
+                        recipientRole: "RECEPTIONIST",
+                        title: "New Patient Registered",
+                        message: `Patient ${result?.patient?.firstName || ""} ${result?.patient?.lastName || ""} registered cleanly (MRN: ${result?.patient?.mrn || result?.mrn || "Issued"}).`,
+                        severity: "SUCCESS"
+                    },
+                    {
+                        recipientRole: "FOLDER_RETRIEVER",
+                        title: "Medical Folder Provisioned",
+                        message: `Physical medical archive folder created for MRN ${result?.patient?.mrn || result?.mrn || "New"}.`,
+                        severity: "INFO"
+                    }
+                ]
+            });
+        } catch (_pubErr) { }
+
+        return res.rcceSuccess("PATIENT_REGISTERED", result, {
+            httpStatus: 201,
+            message: result.message || "Registration completed successfully."
         });
     } catch (error) {
         next(error);
@@ -96,10 +124,29 @@ async function updatePatient(req, res, next) {
         const modifierUserId = req.user ? req.user.id : null;
 
         const updated = await patientService.updatePatient(id, req.body, modifierUserId);
-        return res.status(200).json({
-            success: true,
-            message: "Patient record updated successfully",
-            data: updated
+        try {
+            await rcce.events.publish({
+                eventCode: "RECORD_UPDATED",
+                domain: "PATIENTS",
+                actorUserId: modifierUserId,
+                actorRole: req.user?.role,
+                affectedRecord: updated.mrn || updated.id || id,
+                severity: "INFO",
+                requestId: req.requestId,
+                notifications: [
+                    {
+                        recipientRole: "RECEPTIONIST",
+                        title: "Patient Profile Updated",
+                        message: `Patient record ${updated.mrn || id} updated successfully.`,
+                        severity: "INFO"
+                    }
+                ]
+            });
+        } catch (_pubErr) { }
+
+        return res.rcceSuccess("RECORD_UPDATED", updated, {
+            httpStatus: 200,
+            message: "Your information has been updated successfully."
         });
     } catch (error) {
         next(error);

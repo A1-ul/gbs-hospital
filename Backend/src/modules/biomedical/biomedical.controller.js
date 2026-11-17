@@ -104,11 +104,30 @@ class BiomedicalController {
 
     async createWorkOrder(req, res, next) {
         try {
+            const { rcce } = require("../../core/gbs-rcce.bootstrap");
             const workOrder = await biomedicalService.createWorkOrder(req.body);
-            return res.status(201).json({
-                success: true,
-                message: `Work Order ${workOrder.workOrderNumber} created successfully.`,
-                data: workOrder
+            try {
+                await rcce.events.publish({
+                    eventCode: "REQUEST_SUBMITTED",
+                    domain: "BIOMEDICAL",
+                    actorUserId: req.user?.id,
+                    actorRole: req.user?.role,
+                    affectedRecord: workOrder.workOrderNumber || workOrder.id,
+                    severity: "WARNING",
+                    requestId: req.requestId,
+                    notifications: [
+                        {
+                            recipientRole: "ADMINISTRATOR",
+                            title: "Biomedical Work Order Raised",
+                            message: `Work Order ${workOrder.workOrderNumber} scheduled for medical equipment repair.`,
+                            severity: "WARNING"
+                        }
+                    ]
+                });
+            } catch (_pubErr) {}
+            return res.rcceSuccess("REQUEST_SUBMITTED", workOrder, {
+                httpStatus: 201,
+                message: `Work Order ${workOrder.workOrderNumber} created successfully.`
             });
         } catch (error) {
             next(error);

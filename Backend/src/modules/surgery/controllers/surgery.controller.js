@@ -10,15 +10,40 @@ LOCATION: src/modules/surgery/controllers/surgery.controller.js
 */
 
 const surgeryService = require("../services/surgery.service");
+const { rcce } = require("../../../core/gbs-rcce.bootstrap");
 
 async function createSurgicalCase(req, res, next) {
     try {
         const result = await surgeryService.createSurgicalCase(req.body, req.user);
-        res.status(201).json({
-            success: true,
-            message: "Surgical procedure booked and scheduled successfully",
-            data: result,
-            timestamp: new Date().toISOString()
+        try {
+            await rcce.events.publish({
+                eventCode: "REQUEST_SUBMITTED",
+                domain: "SURGERY",
+                actorUserId: req.user?.id,
+                actorRole: req.user?.role,
+                affectedRecord: result.caseNumber || result.id,
+                severity: "INFO",
+                requestId: req.requestId,
+                notifications: [
+                    {
+                        recipientRole: "SURGEON",
+                        title: "Surgical Case Scheduled",
+                        message: `Surgical case ${result.caseNumber || result.id} scheduled in Operating Theatre.`,
+                        severity: "INFO"
+                    },
+                    {
+                        recipientRole: "NURSE",
+                        title: "Theatre Prep Required",
+                        message: `New surgical procedure scheduled (${result.procedureName || result.caseNumber || result.id}).`,
+                        severity: "INFO"
+                    }
+                ]
+            });
+        } catch (_pubErr) {}
+
+        return res.rcceSuccess("SURGERY_BOOKED", result, {
+            httpStatus: 201,
+            message: "Surgical procedure booked and scheduled successfully"
         });
     } catch (error) {
         next(error);

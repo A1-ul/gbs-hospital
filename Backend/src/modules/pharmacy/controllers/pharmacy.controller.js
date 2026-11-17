@@ -11,6 +11,7 @@ LOCATION: src/modules/pharmacy/controllers/pharmacy.controller.js
 
 const pharmacyService = require("../services/pharmacy.service");
 const logger = require("../../../core/utils/logger");
+const { rcce } = require("../../../core/gbs-rcce.bootstrap");
 
 async function createPharmacyItem(req, res, next) {
     try {
@@ -107,11 +108,29 @@ async function getPendingPrescriptions(req, res, next) {
 async function dispensePrescription(req, res, next) {
     try {
         const result = await pharmacyService.dispensePrescription(req.params.id, req.body, req.user);
-        res.status(200).json({
-            success: true,
-            message: "Prescription verified and dispensed successfully",
-            data: result,
-            timestamp: new Date().toISOString()
+        try {
+            await rcce.events.publish({
+                eventCode: "RECORD_UPDATED",
+                domain: "PHARMACY",
+                actorUserId: req.user?.id,
+                actorRole: req.user?.role,
+                affectedRecord: req.params.id,
+                severity: "INFO",
+                requestId: req.requestId,
+                notifications: [
+                    {
+                        recipientRole: "DOCTOR",
+                        title: "Prescription Dispensed",
+                        message: `Prescription ${req.params.id} verified and dispensed cleanly.`,
+                        severity: "SUCCESS"
+                    }
+                ]
+            });
+        } catch (_pubErr) { }
+
+        return res.rcceSuccess("PRESCRIPTION_DISPENSED", result, {
+            httpStatus: 200,
+            message: "Prescription verified and dispensed successfully"
         });
     } catch (error) {
         next(error);

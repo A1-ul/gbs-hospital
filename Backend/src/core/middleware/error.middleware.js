@@ -135,7 +135,7 @@ function safeLog(payload){
 
 
 
-function errorMiddleware(
+async function errorMiddleware(
 
     error,
 
@@ -286,38 +286,44 @@ function errorMiddleware(
 
 
 
-    return res
-
-        .status(
-            err.statusCode || 500
-        )
-
-        .json({
-
-
-            success:false,
-            message:responseMessage,
-
-            error:{
-
-
-                code:
-                    err.code ||
-                    "INTERNAL_ERROR",
-
-
-                message:
-                    responseMessage,
-
-
-                requestId:
-                    req.requestId || null
-
-
-            }
-
-
+    try {
+        const { rcce } = require("../gbs-rcce.bootstrap");
+        const norm = await rcce.errors.normalizeAndLog(err.originalError || error || err, req);
+        const statusCode = err.statusCode || norm.httpStatus || 500;
+        const finalMessage =
+            statusCode >= 500
+                ? norm.envelope.message
+                : responseMessage || norm.envelope.message;
+        const envelope = rcce.response.buildEnvelope({
+            success: false,
+            code: err.code || norm.envelope.code || "INTERNAL_ERROR",
+            message: finalMessage,
+            data: null,
+            errors: Array.isArray(err.errors) ? err.errors : norm.envelope.errors,
+            httpStatus: statusCode,
+            requestId: req.requestId || null
         });
+        res.locals.rcceEnvelope = envelope;
+        res._rcceWrapped = true;
+        return res.status(statusCode).json(envelope);
+    } catch (_rcceFallbackErr) {
+        return res
+            .status(err.statusCode || 500)
+            .json({
+                success: false,
+                code: err.code || "INTERNAL_ERROR",
+                message: responseMessage,
+                data: null,
+                errors: [],
+                timestamp: new Date().toISOString(),
+                requestId: req.requestId || null,
+                error: {
+                    code: err.code || "INTERNAL_ERROR",
+                    message: responseMessage,
+                    requestId: req.requestId || null
+                }
+            });
+    }
 
 
 

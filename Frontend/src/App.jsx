@@ -434,6 +434,61 @@ export default function App() {
     }
   };
 
+  const handleSelectRole = async (r) => {
+    if (r === 'DEVELOPER' && !isDeveloperAuthenticated) {
+      setLoginModalRole('DEVELOPER');
+      setIsLoginOpen(true);
+      return;
+    }
+    if (typeof window !== 'undefined') localStorage.setItem('gbs_role', r);
+    setCurrentRole(r);
+
+    try {
+      const authData = await ensureRoleAuthentication(r);
+      if (authData?.user) {
+        setCurrentUser(authData.user);
+      }
+    } catch (_e) { }
+
+    if (typeof window !== 'undefined' && typeof window.gbsBrainNotify === 'function') {
+      window.gbsBrainNotify({
+        type: 'info',
+        method: 'ROLE',
+        title: `Role Switched to ${r}`,
+        message: `Loaded dedicated dashboard & verified GBS-RCCE commands for ${r}.`,
+        role: r,
+        module: activeModule,
+      });
+    }
+    if (r === 'DEVELOPER') {
+      setActiveModule('DEVELOPER_NOC');
+    } else if (r === 'DOCTOR' || r === 'NURSE' || r === 'DENTIST' || r === 'EYE_DOCTOR' || r === 'RADIOLOGIST') {
+      setActiveModule('CLINICAL');
+    } else if (r === 'SURGEON') {
+      setActiveModule('SURGERY');
+    } else if (r === 'PHARMACIST') {
+      setActiveModule('PHARMACY');
+    } else if (r === 'LAB_TECHNICIAN') {
+      setActiveModule('BLOOD_BANK');
+    } else if (r === 'EMERGENCY_PHYSICIAN' || r === 'PARAMEDIC' || r === 'AMBULANCE_DRIVER') {
+      setActiveModule('EMERGENCY');
+    } else if (r === 'MORTUARY_OFFICER' || r === 'PATHOLOGIST') {
+      setActiveModule('MORTUARY');
+    } else if (r === 'BIOMEDICAL_ENGINEER') {
+      setActiveModule('BIOMEDICAL');
+    } else if (r === 'FOLDER_RETRIEVER' || r === 'RECEPTIONIST') {
+      setActiveModule('PATIENTS');
+    } else if (r === 'ACCOUNTANT') {
+      setActiveModule('NHIA_CLAIMS');
+    } else if (r === 'HR_MANAGER') {
+      setActiveModule('HR');
+    } else if (r === 'PATIENT') {
+      setActiveModule('PATIENTS');
+    } else {
+      setActiveModule('OVERVIEW');
+    }
+  };
+
   const activeBgSrc =
     activeModule === 'OVERVIEW'
       ? (ROLE_BACKGROUND_MAP[currentRole] || MODULE_BACKGROUND_MAP.OVERVIEW)
@@ -456,61 +511,7 @@ export default function App() {
       <div style={{ position: 'relative', zIndex: 5 }}>
         <Header
           currentRole={currentRole}
-          onSelectRole={async (r) => {
-            if (r === 'DEVELOPER' && !isDeveloperAuthenticated) {
-              setLoginModalRole('DEVELOPER');
-              setIsLoginOpen(true);
-              return;
-            }
-            if (typeof window !== 'undefined') localStorage.setItem('gbs_role', r);
-            setCurrentRole(r);
-
-            // Synchronize active role token and user identity for zero-error API calls
-            try {
-              const authData = await ensureRoleAuthentication(r);
-              if (authData?.user) {
-                setCurrentUser(authData.user);
-              }
-            } catch (_e) { }
-
-            if (typeof window !== 'undefined' && typeof window.gbsBrainNotify === 'function') {
-              window.gbsBrainNotify({
-                type: 'info',
-                method: 'ROLE',
-                title: `Role Switched to ${r}`,
-                message: `Loaded dedicated dashboard background & verified commands for ${r}.`,
-                role: r,
-                module: activeModule,
-              });
-            }
-            if (r === 'DEVELOPER') {
-              setActiveModule('DEVELOPER_NOC');
-            } else if (r === 'DOCTOR' || r === 'NURSE' || r === 'DENTIST' || r === 'EYE_DOCTOR' || r === 'RADIOLOGIST') {
-              setActiveModule('CLINICAL');
-            } else if (r === 'SURGEON') {
-              setActiveModule('SURGERY');
-            } else if (r === 'PHARMACIST') {
-              setActiveModule('PHARMACY');
-            } else if (r === 'LAB_TECHNICIAN') {
-              setActiveModule('BLOOD_BANK');
-            } else if (r === 'EMERGENCY_PHYSICIAN' || r === 'PARAMEDIC' || r === 'AMBULANCE_DRIVER') {
-              setActiveModule('EMERGENCY');
-            } else if (r === 'MORTUARY_OFFICER' || r === 'PATHOLOGIST') {
-              setActiveModule('MORTUARY');
-            } else if (r === 'BIOMEDICAL_ENGINEER') {
-              setActiveModule('BIOMEDICAL');
-            } else if (r === 'FOLDER_RETRIEVER' || r === 'RECEPTIONIST') {
-              setActiveModule('PATIENTS');
-            } else if (r === 'ACCOUNTANT') {
-              setActiveModule('NHIA_CLAIMS');
-            } else if (r === 'HR_MANAGER') {
-              setActiveModule('HR');
-            } else if (r === 'PATIENT') {
-              setActiveModule('PATIENTS');
-            } else {
-              setActiveModule('OVERVIEW');
-            }
-          }}
+          onSelectRole={handleSelectRole}
           onOpenLogin={(roleHint) => {
             setLoginModalRole(typeof roleHint === 'string' && roleHint ? roleHint : currentRole);
             setIsLoginOpen(true);
@@ -1073,19 +1074,7 @@ export default function App() {
                                 Login
                               </button>
                               <button
-                                onClick={() => {
-                                  setCurrentRole(r.id);
-                                  if (r.id === 'DEVELOPER') setActiveModule('DEVELOPER_NOC');
-                                  else if (r.id === 'DOCTOR' || r.id === 'NURSE' || r.id === 'DENTIST' || r.id === 'EYE_DOCTOR' || r.id === 'RADIOLOGIST') setActiveModule('CLINICAL');
-                                  else if (r.id === 'SURGEON') setActiveModule('SURGERY');
-                                  else if (r.id === 'PHARMACIST') setActiveModule('PHARMACY');
-                                  else if (r.id === 'LAB_TECHNICIAN') setActiveModule('BLOOD_BANK');
-                                  else if (r.id === 'FOLDER_RETRIEVER' || r.id === 'RECEPTIONIST') setActiveModule('PATIENTS');
-                                  else if (r.id === 'ACCOUNTANT') setActiveModule('NHIA_CLAIMS');
-                                  else if (r.id === 'HR_MANAGER') setActiveModule('HR');
-                                  else if (r.id === 'PATIENT') setActiveModule('PATIENTS');
-                                  else setActiveModule('PATIENTS');
-                                }}
+                                onClick={() => handleSelectRole(r.id)}
                                 className="btn-outline-gold"
                                 style={{ flex: 1, padding: '5px 8px', fontSize: '0.7rem', justifyContent: 'center' }}
                               >

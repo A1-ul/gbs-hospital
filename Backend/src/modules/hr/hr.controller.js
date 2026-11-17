@@ -194,11 +194,30 @@ class HrController {
 
     async requestStaffLeave(req, res, next) {
         try {
+            const { rcce } = require("../../core/gbs-rcce.bootstrap");
             const leave = await hrService.requestStaffLeave(req.body);
-            return res.status(201).json({
-                success: true,
-                message: `Leave request ${leave.leaveNumber} submitted for ${leave.staffName} (${leave.daysRequested} days).`,
-                data: leave
+            try {
+                await rcce.events.publish({
+                    eventCode: "REQUEST_SUBMITTED",
+                    domain: "HR",
+                    actorUserId: req.user?.id,
+                    actorRole: req.user?.role,
+                    affectedRecord: leave.leaveNumber || leave.id,
+                    severity: "INFO",
+                    requestId: req.requestId,
+                    notifications: [
+                        {
+                            recipientRole: "HR_MANAGER",
+                            title: "Staff Leave Application Submitted",
+                            message: `Leave request ${leave.leaveNumber} from ${leave.staffName} (${leave.daysRequested} days) awaiting approval.`,
+                            severity: "INFO"
+                        }
+                    ]
+                });
+            } catch (_pubErr) {}
+            return res.rcceSuccess("REQUEST_SUBMITTED", leave, {
+                httpStatus: 201,
+                message: `Leave request ${leave.leaveNumber} submitted for ${leave.staffName} (${leave.daysRequested} days).`
             });
         } catch (error) {
             next(error);
@@ -207,11 +226,31 @@ class HrController {
 
     async adjudicateLeaveRequest(req, res, next) {
         try {
+            const { rcce } = require("../../core/gbs-rcce.bootstrap");
             const leave = await hrService.adjudicateLeaveRequest(req.params.id, req.body);
-            return res.status(200).json({
-                success: true,
-                message: `Leave request ${leave.leaveNumber} has been ${leave.status} by ${leave.approvedBy}.`,
-                data: leave
+            const approved = String(leave.status || "").toUpperCase().includes("APPROV");
+            try {
+                await rcce.events.publish({
+                    eventCode: approved ? "REQUEST_APPROVED" : "REQUEST_REJECTED",
+                    domain: "HR",
+                    actorUserId: req.user?.id,
+                    actorRole: req.user?.role,
+                    affectedRecord: leave.leaveNumber || leave.id,
+                    severity: approved ? "INFO" : "WARNING",
+                    requestId: req.requestId,
+                    notifications: [
+                        {
+                            recipientRole: "HR_MANAGER",
+                            title: `Leave Request ${leave.status}`,
+                            message: `Leave ${leave.leaveNumber} updated to ${leave.status} by ${leave.approvedBy}.`,
+                            severity: approved ? "SUCCESS" : "WARNING"
+                        }
+                    ]
+                });
+            } catch (_pubErr) {}
+            return res.rcceSuccess(approved ? "REQUEST_APPROVED" : "REQUEST_REJECTED", leave, {
+                httpStatus: 200,
+                message: `Leave request ${leave.leaveNumber} has been ${leave.status} by ${leave.approvedBy}.`
             });
         } catch (error) {
             next(error);

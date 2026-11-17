@@ -10,16 +10,33 @@ LOCATION: src/modules/billing/controllers/billing.controller.js
 */
 
 const billingService = require("../services/billing.service");
+const AppError = require("../../../core/errors/app.error");
+const { rcce } = require("../../../core/gbs-rcce.bootstrap");
 
 async function createBill(req, res, next) {
     try {
         const result = await billingService.createBill(req.body, req.user);
-        res.status(201).json({
-            success: true,
-            message: "Patient medical invoice generated successfully",
-            data: result,
-            timestamp: new Date().toISOString()
-        });
+        rcce.events.publish({
+            eventCode: "RECORD_UPDATED",
+            domain: "BILLING",
+            actorUserId: req.user?.id,
+            actorRole: req.user?.role,
+            tenantId: req.user?.hospitalId,
+            affectedRecord: result.billNumber || result.id,
+            severity: "INFO",
+            requestId: req.requestId,
+            asyncDelivery: true,
+            notifications: [
+                {
+                    recipientRole: "ACCOUNTANT",
+                    title: "New Patient Invoice Issued",
+                    message: `Invoice ${result.billNumber || result.id} created (GH₵${Number(result.patientPayableAmount || result.grossAmount || 0).toFixed(2)}).`,
+                    severity: "INFO"
+                }
+            ]
+        }).catch(() => { });
+
+        return res.rcceSuccess("INVOICE_CREATED", result, { httpStatus: 201 });
     } catch (error) {
         next(error);
     }
@@ -76,12 +93,60 @@ async function processPayment(req, res, next) {
             ...req.body,
             billId: req.params.id || req.body.billId
         };
+        const check = rcce.rules.requirePositiveNumber(paymentPayload, "amount", "Payment amount");
+        if (!check.valid) {
+            rcce.events.publish({
+                eventCode: "PAYMENT_REJECTED",
+                domain: "BILLING",
+                actorUserId: req.user?.id,
+                actorRole: req.user?.role,
+                affectedRecord: paymentPayload.billId || "UNKNOWN_BILL",
+                severity: "WARNING",
+                requestId: req.requestId,
+                notifications: [
+                    {
+                        recipientRole: "ACCOUNTANT",
+                        title: "Payment Rejected",
+                        message: check.message,
+                        severity: "WARNING"
+                    }
+                ]
+            }).catch(() => { });
+            throw new AppError(check.message, 400, "PAYMENT_REJECTED", check.errors);
+        }
+
         const result = await billingService.processPayment(paymentPayload, req.user);
-        res.status(201).json({
-            success: true,
-            message: "Payment processed and official receipt issued successfully",
-            data: result,
-            timestamp: new Date().toISOString()
+
+        try {
+            await rcce.events.publish({
+                eventCode: "PAYMENT_RECEIVED",
+                domain: "BILLING",
+                actorUserId: req.user?.id,
+                actorRole: req.user?.role,
+                tenantId: req.user?.hospitalId,
+                affectedRecord: result.receiptNumber || result.id || paymentPayload.billId,
+                severity: "INFO",
+                requestId: req.requestId,
+                notifications: [
+                    {
+                        recipientRole: "ACCOUNTANT",
+                        title: "Payment Received",
+                        message: `Payment of GH₵${Number(paymentPayload.amount).toFixed(2)} received successfully.`,
+                        severity: "SUCCESS"
+                    },
+                    {
+                        recipientRole: "ADMIN",
+                        title: "Hospital Revenue Recorded",
+                        message: `Payment GH₵${Number(paymentPayload.amount).toFixed(2)} confirmed on bill ${paymentPayload.billId}.`,
+                        severity: "INFO"
+                    }
+                ]
+            });
+        } catch (_pubErr) { }
+
+        return res.rcceSuccess("PAYMENT_RECEIVED", result, {
+            httpStatus: 201,
+            message: "Payment received successfully."
         });
     } catch (error) {
         next(error);
