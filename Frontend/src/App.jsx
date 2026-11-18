@@ -72,75 +72,75 @@ import {
 import { api, ensureRoleAuthentication } from './services/api.service';
 
 export const SUBSYSTEM_CATEGORIES = {
-  ALL: { id: 'ALL', label: 'All Subsystems', icon: Layers, badge: 'ALL 16' },
-  CLINICAL_INPATIENT: { id: 'CLINICAL_INPATIENT', label: 'Clinical & Inpatient', icon: Stethoscope, badge: '5 MODULES' },
-  ACUTE_DIAGNOSTICS: { id: 'ACUTE_DIAGNOSTICS', label: 'Emergency & Diagnostics', icon: AlertTriangle, badge: '4 MODULES' },
-  OPERATIONS_GOVERNANCE: { id: 'OPERATIONS_GOVERNANCE', label: 'Operations & Governance', icon: Building2, badge: '5 MODULES' },
-  TELEHEALTH_TECH: { id: 'TELEHEALTH_TECH', label: 'Telehealth & Digital Tech', icon: Video, badge: '2 MODULES' }
+  ALL: { id: 'ALL', label: 'All Departments', icon: Layers, badge: 'ALL 16' },
+  CLINICAL_INPATIENT: { id: 'CLINICAL_INPATIENT', label: 'Patient Care & Wards', icon: Stethoscope, badge: '5 AREAS' },
+  ACUTE_DIAGNOSTICS: { id: 'ACUTE_DIAGNOSTICS', label: 'Emergency & Lab', icon: AlertTriangle, badge: '4 AREAS' },
+  OPERATIONS_GOVERNANCE: { id: 'OPERATIONS_GOVERNANCE', label: 'Billing, Staff & Quality', icon: Building2, badge: '5 AREAS' },
+  TELEHEALTH_TECH: { id: 'TELEHEALTH_TECH', label: 'Video Visits & Tools', icon: Video, badge: '2 AREAS' }
 };
 
 export const SUBSYSTEM_MODULES = [
-  { key: 'PATIENTS', number: '1', label: 'Patient MPI & Archive', icon: Users, category: 'CLINICAL_INPATIENT', color: '#38bdf8' },
-  { key: 'CLINICAL', number: '2', label: 'Clinical Care & OPD', icon: Activity, category: 'CLINICAL_INPATIENT', color: '#38bdf8' },
-  { key: 'WARDS', number: '3', label: 'Inpatient Wards & Beds', icon: Bed, category: 'CLINICAL_INPATIENT', color: '#38bdf8' },
-  { key: 'PHARMACY', number: '4', label: 'Pharmacy & Dispensing', icon: Pill, category: 'CLINICAL_INPATIENT', color: '#38bdf8' },
-  { key: 'SURGERY', number: '5', label: 'Surgery & Theatre', icon: Stethoscope, category: 'CLINICAL_INPATIENT', color: '#38bdf8' },
+  { key: 'PATIENTS', number: '1', label: 'Patients & Folders', icon: Users, category: 'CLINICAL_INPATIENT', color: '#38bdf8' },
+  { key: 'CLINICAL', number: '2', label: 'Doctor & Nurse Care', icon: Activity, category: 'CLINICAL_INPATIENT', color: '#38bdf8' },
+  { key: 'WARDS', number: '3', label: 'Wards & Free Beds', icon: Bed, category: 'CLINICAL_INPATIENT', color: '#38bdf8' },
+  { key: 'PHARMACY', number: '4', label: 'Pharmacy & Medicine', icon: Pill, category: 'CLINICAL_INPATIENT', color: '#38bdf8' },
+  { key: 'SURGERY', number: '5', label: 'Surgery & Operating Rooms', icon: Stethoscope, category: 'CLINICAL_INPATIENT', color: '#38bdf8' },
 
-  { key: 'EMERGENCY', number: '6', label: 'Emergency & Ambulance', icon: AlertTriangle, category: 'ACUTE_DIAGNOSTICS', color: '#ef4444' },
-  { key: 'BLOOD_BANK', number: '7', label: 'Blood Bank & Transfusion', icon: FlaskConical, category: 'ACUTE_DIAGNOSTICS', color: '#ef4444' },
-  { key: 'MORTUARY', number: '8', label: 'Mortuary & Cold Storage', icon: HardDrive, category: 'ACUTE_DIAGNOSTICS', color: '#a1a1aa' },
-  { key: 'BIOMEDICAL', number: '9', label: 'Biomedical & Maintenance', icon: Wrench, category: 'ACUTE_DIAGNOSTICS', color: '#d97706' },
+  { key: 'EMERGENCY', number: '6', label: 'Emergency & Ambulances', icon: AlertTriangle, category: 'ACUTE_DIAGNOSTICS', color: '#ef4444' },
+  { key: 'BLOOD_BANK', number: '7', label: 'Blood Bank', icon: FlaskConical, category: 'ACUTE_DIAGNOSTICS', color: '#ef4444' },
+  { key: 'MORTUARY', number: '8', label: 'Mortuary Services', icon: HardDrive, category: 'ACUTE_DIAGNOSTICS', color: '#a1a1aa' },
+  { key: 'BIOMEDICAL', number: '9', label: 'Equipment & Repairs', icon: Wrench, category: 'ACUTE_DIAGNOSTICS', color: '#d97706' },
 
-  { key: 'PROCUREMENT', number: '10', label: 'Procurement & Supply Chain', icon: Package, category: 'OPERATIONS_GOVERNANCE', color: 'var(--gold-400)' },
-  { key: 'HR', number: '11', label: 'Human Resources & Rostering', icon: Users, category: 'OPERATIONS_GOVERNANCE', color: '#38bdf8' },
-  { key: 'QUALITY', number: '12', label: 'Quality Assurance & IPC', icon: Shield, category: 'OPERATIONS_GOVERNANCE', color: '#d97706' },
-  { key: 'NHIA_CLAIMS', number: '13', label: 'NHIA & Health Insurance', icon: CreditCard, category: 'OPERATIONS_GOVERNANCE', color: '#22c55e' },
-  { key: 'VOICE_AUTH', number: '14', label: 'Voice Biometrics & Vault', icon: Mic, category: 'OPERATIONS_GOVERNANCE', color: 'var(--gold-400)' },
+  { key: 'PROCUREMENT', number: '10', label: 'Supplies & Purchasing', icon: Package, category: 'OPERATIONS_GOVERNANCE', color: 'var(--gold-400)' },
+  { key: 'HR', number: '11', label: 'Staff, Shifts & Leave', icon: Users, category: 'OPERATIONS_GOVERNANCE', color: '#38bdf8' },
+  { key: 'QUALITY', number: '12', label: 'Safety & Quality', icon: Shield, category: 'OPERATIONS_GOVERNANCE', color: '#d97706' },
+  { key: 'NHIA_CLAIMS', number: '13', label: 'Billing & Insurance', icon: CreditCard, category: 'OPERATIONS_GOVERNANCE', color: '#22c55e' },
+  { key: 'VOICE_AUTH', number: '14', label: 'Voice & Finger Lock', icon: Mic, category: 'OPERATIONS_GOVERNANCE', color: 'var(--gold-400)' },
 
-  { key: 'TELEMEDICINE', number: '15', label: 'Telemedicine, Meetings & GIS', icon: Video, category: 'TELEHEALTH_TECH', color: '#06b6d4' },
-  { key: 'DEVELOPER_NOC', number: '16', label: 'Developer NOC & Hub', icon: Shield, category: 'TELEHEALTH_TECH', color: '#ef4444', devOnly: true }
+  { key: 'TELEMEDICINE', number: '15', label: 'Video Visits & Maps', icon: Video, category: 'TELEHEALTH_TECH', color: '#06b6d4' },
+  { key: 'DEVELOPER_NOC', number: '16', label: 'System Control Center', icon: Shield, category: 'TELEHEALTH_TECH', color: '#ef4444', devOnly: true }
 ];
 
 export const DETAIL_PAGE_GROUPS = [
   {
-    cluster: 'Clinical & Patient Dossiers',
-    badge: '🩺 DOSSIERS',
+    cluster: 'Patient & Care Records',
+    badge: '🩺 RECORDS',
     color: '#38bdf8',
     commands: [
-      { type: 'VIEW_DETAILS', label: 'View Details', icon: Eye },
-      { type: 'VIEW_PROFILE', label: 'View Profile', icon: User },
-      { type: 'VIEW_RECORDS', label: 'View Records', icon: Database },
-      { type: 'VIEW_REPORTS', label: 'View Reports', icon: FileText }
+      { type: 'VIEW_DETAILS', label: 'Details', icon: Eye },
+      { type: 'VIEW_PROFILE', label: 'Profile', icon: User },
+      { type: 'VIEW_RECORDS', label: 'All Records', icon: Database },
+      { type: 'VIEW_REPORTS', label: 'Reports', icon: FileText }
     ]
   },
   {
-    cluster: 'Activity & Audit Logs',
-    badge: '⏱️ AUDITS',
+    cluster: 'Payments, History & Alerts',
+    badge: '⏱️ UPDATES',
     color: 'var(--gold-400)',
     commands: [
-      { type: 'VIEW_TRANSACTIONS', label: 'View Transactions', icon: CreditCard },
-      { type: 'VIEW_HISTORY', label: 'View History', icon: History },
-      { type: 'VIEW_NOTIFICATIONS', label: 'View Notifications', icon: Bell }
+      { type: 'VIEW_TRANSACTIONS', label: 'Payments', icon: CreditCard },
+      { type: 'VIEW_HISTORY', label: 'Activity Log', icon: History },
+      { type: 'VIEW_NOTIFICATIONS', label: 'Alerts', icon: Bell }
     ]
   },
   {
-    cluster: 'Governance & Facility',
-    badge: '🏛️ GOVERNANCE',
+    cluster: 'Hospital Info & Requests',
+    badge: '🏛️ HOSPITAL',
     color: '#34d399',
     commands: [
-      { type: 'VIEW_APPLICATIONS', label: 'View Applications', icon: Users },
-      { type: 'VIEW_HOSPITAL_INFORMATION', label: 'View Hospital Info', icon: Building2 },
-      { type: 'VIEW_SYSTEM_INFORMATION', label: 'View System Info', icon: Activity }
+      { type: 'VIEW_APPLICATIONS', label: 'Requests', icon: Users },
+      { type: 'VIEW_HOSPITAL_INFORMATION', label: 'Hospital Info', icon: Building2 },
+      { type: 'VIEW_SYSTEM_INFORMATION', label: 'System Health', icon: Activity }
     ]
   }
 ];
 
 export const ECOSYSTEM_CATEGORIES = {
-  ALL: { id: 'ALL', label: 'All Modules' },
-  CLINICAL: { id: 'CLINICAL', label: 'Clinical & Inpatient' },
-  ACUTE_DIAGNOSTICS: { id: 'ACUTE_DIAGNOSTICS', label: 'Emergency & Diagnostics' },
-  OPERATIONS: { id: 'OPERATIONS', label: 'Operations & Administration' },
-  TECHNOLOGY: { id: 'TECHNOLOGY', label: 'Advanced Technology' }
+  ALL: { id: 'ALL', label: 'All Services' },
+  CLINICAL: { id: 'CLINICAL', label: 'Patient Care & Wards' },
+  ACUTE_DIAGNOSTICS: { id: 'ACUTE_DIAGNOSTICS', label: 'Emergency & Lab' },
+  OPERATIONS: { id: 'OPERATIONS', label: 'Billing, Staff & Quality' },
+  TECHNOLOGY: { id: 'TECHNOLOGY', label: 'Digital Tools' }
 };
 
 function parseUrlRoute(pathname) {
@@ -278,7 +278,7 @@ export default function App() {
           setCurrentUser(data.user);
           if (data.user.role) setCurrentRole(data.user.role);
         }
-      }).catch(() => {});
+      }).catch(() => { });
     }
     loadGlobalOverview();
   }, []);
@@ -454,8 +454,8 @@ export default function App() {
       window.gbsBrainNotify({
         type: 'info',
         method: 'ROLE',
-        title: `Role Switched to ${r}`,
-        message: `Loaded dedicated dashboard & verified GBS-RCCE commands for ${r}.`,
+        title: `Switched to ${r.replace(/_/g, ' ')}`,
+        message: `Your workspace is ready for ${r.replace(/_/g, ' ').toLowerCase()}.`,
         role: r,
         module: activeModule,
       });
@@ -532,7 +532,7 @@ export default function App() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '10px', borderBottom: '1px solid rgba(212,175,55,0.12)', paddingBottom: '8px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
               <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--gold-400)', textTransform: 'uppercase', letterSpacing: '0.06em', marginRight: '4px' }}>
-                Subsystems:
+                Departments:
               </span>
               {Object.values(SUBSYSTEM_CATEGORIES).map((cat) => {
                 const CatIcon = cat.icon;
@@ -580,7 +580,7 @@ export default function App() {
                   onClick={() => (activeDetail ? handleBackFromDetail() : setActiveModule('OVERVIEW'))}
                   className="btn-outline-gold"
                   style={{ padding: '3px 10px', fontSize: '0.74rem' }}
-                  title="Return to previous view or Enterprise Overview Dashboard"
+                  title="Return to previous screen or Home Overview"
                 >
                   ← Back
                 </button>
@@ -590,9 +590,9 @@ export default function App() {
                 onClick={() => setShowOperatingGuide((prev) => !prev)}
                 className="btn-outline-gold"
                 style={{ padding: '3px 10px', fontSize: '0.74rem' }}
-                title="Toggle Dashboard Operating Guide & Role Workflow Instructions"
+                title="Show simple steps for how to use your dashboard"
               >
-                📖 Operating Guide
+                📖 Quick Guide
               </button>
               <button
                 type="button"
@@ -629,7 +629,7 @@ export default function App() {
                 boxShadow: activeModule === 'OVERVIEW' && !activeDetail ? '0 0 10px rgba(212,175,55,0.4)' : 'none'
               }}
             >
-              <Building2 size={13} /> Enterprise Overview
+              <Building2 size={13} /> Home Overview
             </button>
 
             {SUBSYSTEM_MODULES
@@ -663,40 +663,40 @@ export default function App() {
         </div>
 
         {showOperatingGuide && (
-          <div className="glass-panel" style={{ padding: '14px 18px', marginBottom: '14px', border: '1px solid var(--gold-400)', background: 'rgba(11, 23, 44, 0.95)', fontSize: '0.8rem', color: '#e5e7eb' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-              <strong style={{ color: 'var(--gold-400)', fontSize: '0.88rem' }}>
-                GBS Hospital System — Interactive Role & Dashboard Operating Guide ({currentRole})
+          <div className="glass-panel" style={{ padding: '16px 20px', marginBottom: '14px', border: '1px solid var(--gold-400)', background: 'rgba(11, 23, 44, 0.96)', fontSize: '0.84rem', color: '#e5e7eb' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <strong style={{ color: 'var(--gold-400)', fontSize: '0.94rem' }}>
+                How to Use GBS Hospital System ({currentRole.replace(/_/g, ' ')})
               </strong>
-              <button type="button" onClick={() => setShowOperatingGuide(false)} className="btn-outline-gold" style={{ padding: '2px 8px', fontSize: '0.72rem' }}>
+              <button type="button" onClick={() => setShowOperatingGuide(false)} className="btn-outline-gold" style={{ padding: '3px 10px', fontSize: '0.74rem' }}>
                 Close Guide
               </button>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '10px', color: 'var(--text-muted)' }}>
-              <div>• <strong>Dedicated Full-Page Views:</strong> Click any <em>View Details, View Profile, View Records, View Reports, View Transactions, View History, or KPI Card</em> to open a full page with a top-left <strong>Back</strong> button.</div>
-              <div>• <strong>Clinical & Specialist Routing:</strong> Doctors can record ICD-10 consultations and dispatch patient reports directly to Specialists, Lab, Pharmacy, or Radiology with real-time <code>SENT</code> status.</div>
-              <div>• <strong>Wards, Pharmacy & Finance:</strong> Admit patients to specific rooms & beds, extend stays, dispense medicines by Ward/Room/Bed, and compile Accountant Year-End Financial Reports.</div>
-              <div>• <strong>Role Isolation & Security:</strong> Sign in with your role credentials. Developer Landlord NOC is strictly isolated to the permanent Developer login on the main Sign In modal.</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px', color: 'var(--text-muted)' }}>
+              <div>• <strong>Open Full Pages Anytime:</strong> Click any <em>Details, Profile, Records, Reports, or Summary Card</em> to open a full view, and click <strong>Back</strong> when finished.</div>
+              <div>• <strong>Patient Care & Orders:</strong> Doctors and nurses can check in patients, record vital signs, save diagnosis notes, and send orders directly to Lab, Pharmacy, or Scans.</div>
+              <div>• <strong>Wards, Medicine & Billing:</strong> Assign patients to open beds, hand out prescribed medicine safely, and record patient cash, card, Mobile Money, or insurance payments.</div>
+              <div>• <strong>Right Access for Each Team:</strong> Sign in with your staff role so you see the exact tools built for your daily work safely.</div>
             </div>
           </div>
         )}
 
-        {/* Universal Dedicated Detail Page Navigation Ribbon (Available Across All Dashboards) */}
+        {/* Quick Full-Page Links Bar */}
         <div
           className="glass-panel"
           style={{
             padding: '10px 16px',
             marginBottom: '16px',
             border: '1px solid var(--border-subtle)',
-            background: 'rgba(15, 13, 10, 0.88)'
+            background: 'rgba(12, 20, 36, 0.88)'
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
-            <span style={{ fontSize: '0.74rem', fontWeight: 800, color: 'var(--gold-400)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-              Dedicated Universal Detail Pages ({activeModule}):
+            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--gold-400)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Quick Full-Page Records ({activeModule.replace(/_/g, ' ')}):
             </span>
-            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-              Select any dossier, audit log, or governance page for complete PostgreSQL records
+            <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+              Click any button below to view full details, payments, history, or alerts
             </span>
           </div>
 
@@ -794,142 +794,142 @@ export default function App() {
 
                   <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'flex-end', flexWrap: 'wrap', gap: '16px' }}>
                     <div>
-                      <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--gold-300)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                        Welcome to GBS Hospital Management System • {facilityBranding?.hospitalName || 'GBS Premier Specialist Teaching Hospital'}
+                      <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--gold-300)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                        Welcome to {facilityBranding?.hospitalName || 'GBS Hospital'}
                       </span>
-                      <h2 className="header-3d" style={{ fontSize: '2.1rem', marginTop: '4px' }}>
-                        {facilityBranding?.hospitalName || 'Enterprise Clinical & Operational Command Center'}
+                      <h2 className="header-3d" style={{ fontSize: '2rem', marginTop: '4px' }}>
+                        Hospital Daily Workspace & Care Hub
                       </h2>
-                      <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', maxWidth: '700px' }}>
-                        Fully connected, resilient, and audit-logged hospital automation platform built with zero mock data and real PostgreSQL multi-tenant architecture.
+                      <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', maxWidth: '680px' }}>
+                        Everything your hospital team needs in one simple place — live patient numbers, bed status, medicine stock, lab results, and billing.
                       </p>
                     </div>
 
-                    {/* Patient Safety Guardrail Badge & Refresh */}
+                    {/* Safety Status & Refresh */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                      <button onClick={loadGlobalOverview} className="btn-outline-gold" style={{ padding: '8px 14px', fontSize: '0.78rem' }}>
-                        <RefreshCw size={14} /> Sync PostgreSQL Metrics
+                      <button onClick={loadGlobalOverview} className="btn-outline-gold" style={{ padding: '8px 14px', fontSize: '0.82rem' }}>
+                        <RefreshCw size={14} /> Refresh Numbers
                       </button>
-                      <div style={{ background: 'rgba(0,0,0,0.65)', padding: '10px 16px', borderRadius: '8px', border: '1px solid var(--border-gold)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div style={{ background: 'rgba(0,0,0,0.65)', padding: '10px 16px', borderRadius: '10px', border: '1px solid var(--border-gold)', display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <Shield style={{ color: 'var(--status-online)', width: '22px', height: '22px' }} />
                         <div>
-                          <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--status-online)' }}>Patient Safety Guardrails Active</div>
-                          <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>Clinical systems never lock • 24/7 Override enabled</div>
+                          <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--status-online)' }}>Patient Safety Always On</div>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>Emergency care stays open 24/7</div>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Hospital Metrics Summary Cards (100% Real PostgreSQL Counts — Clickable to Dedicated Detail Page) */}
+                {/* Live Summary Cards */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
                   <div
-                    onClick={() => openDetailPage({ detailType: 'VIEW_RECORDS', moduleKey: 'CLINICAL', recordId: 'opd-today', title: 'OPD Encounters & Triage Queue Today', recordData: { opdToday: globalStats.opdToday, totalConsultations: globalStats.totalConsultations, encountersToday: globalStats.opdEncountersToday } })}
+                    onClick={() => openDetailPage({ detailType: 'VIEW_RECORDS', moduleKey: 'CLINICAL', recordId: 'opd-today', title: 'Patient Visits Today', recordData: { opdToday: globalStats.opdToday, totalConsultations: globalStats.totalConsultations, encountersToday: globalStats.opdEncountersToday } })}
                     className="glass-panel"
                     style={{ padding: '18px 20px', borderLeft: '4px solid var(--gold-400)', cursor: 'pointer' }}
-                    title="Click to open full-page OPD Encounters & Triage Queue registered today"
+                    title="Click to see all patients who visited today"
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>OPD Today</span>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)' }}>Patient Visits Today</span>
                       <Activity size={18} style={{ color: 'var(--gold-400)' }} />
                     </div>
-                    <div style={{ fontSize: '2rem', fontWeight: 800, color: '#fff', marginTop: '6px', fontFamily: 'var(--font-mono)' }}>
+                    <div style={{ fontSize: '2rem', fontWeight: 800, color: '#fff', marginTop: '6px' }}>
                       {(globalStats.opdToday ?? 0).toLocaleString()}
                     </div>
-                    <div style={{ fontSize: '0.72rem', color: 'var(--status-online)', marginTop: '4px', display: 'flex', justifyContent: 'space-between' }}>
-                      <span>{globalStats.totalConsultations ?? 0} Consultations • Real-time DB</span>
-                      <span style={{ color: 'var(--gold-400)' }}>View Details →</span>
+                    <div style={{ fontSize: '0.76rem', color: 'var(--status-online)', marginTop: '4px', display: 'flex', justifyContent: 'space-between' }}>
+                      <span>{globalStats.totalConsultations ?? 0} total doctor visits</span>
+                      <span style={{ color: 'var(--gold-400)' }}>See List →</span>
                     </div>
                   </div>
 
                   <div
-                    onClick={() => openDetailPage({ detailType: 'VIEW_RECORDS', moduleKey: 'WARDS', recordId: 'admissions-census', title: 'Active Inpatient Ward Admissions & Bed Census', recordData: { admissions: globalStats.admissions, occupiedBeds: globalStats.occupiedBeds, totalBeds: globalStats.totalBeds, bedOccupancyRate: globalStats.bedOccupancyRate } })}
+                    onClick={() => openDetailPage({ detailType: 'VIEW_RECORDS', moduleKey: 'WARDS', recordId: 'admissions-census', title: 'Patients Currently Admitted', recordData: { admissions: globalStats.admissions, occupiedBeds: globalStats.occupiedBeds, totalBeds: globalStats.totalBeds, bedOccupancyRate: globalStats.bedOccupancyRate } })}
                     className="glass-panel"
                     style={{ padding: '18px 20px', borderLeft: '4px solid var(--status-info)', cursor: 'pointer' }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Inpatient Admissions</span>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)' }}>Admitted Patients</span>
                       <Bed size={18} style={{ color: 'var(--status-info)' }} />
                     </div>
-                    <div style={{ fontSize: '2rem', fontWeight: 800, color: '#fff', marginTop: '6px', fontFamily: 'var(--font-mono)' }}>
+                    <div style={{ fontSize: '2rem', fontWeight: 800, color: '#fff', marginTop: '6px' }}>
                       {(globalStats.admissions ?? 0).toLocaleString()}
                     </div>
-                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px', display: 'flex', justifyContent: 'space-between' }}>
-                      <span>Occupancy: {globalStats.bedOccupancyRate} ({globalStats.occupiedBeds}/{globalStats.totalBeds} Beds)</span>
-                      <span style={{ color: 'var(--gold-400)' }}>View Details →</span>
+                    <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', marginTop: '4px', display: 'flex', justifyContent: 'space-between' }}>
+                      <span>{globalStats.occupiedBeds}/{globalStats.totalBeds} beds in use ({globalStats.bedOccupancyRate})</span>
+                      <span style={{ color: 'var(--gold-400)' }}>See Beds →</span>
                     </div>
                   </div>
 
                   <div
-                    onClick={() => openDetailPage({ detailType: 'VIEW_RECORDS', moduleKey: 'SURGERY', recordId: 'surgeries-scheduled', title: 'Operating Theatre Schedule & Surgical Cases', recordData: { scheduledSurgeries: globalStats.surgeries, totalOperatingTheatres: globalStats.totalOperatingTheatres, inProgressSurgeries: globalStats.inProgressSurgeries } })}
+                    onClick={() => openDetailPage({ detailType: 'VIEW_RECORDS', moduleKey: 'SURGERY', recordId: 'surgeries-scheduled', title: 'Scheduled Surgeries', recordData: { scheduledSurgeries: globalStats.surgeries, totalOperatingTheatres: globalStats.totalOperatingTheatres, inProgressSurgeries: globalStats.inProgressSurgeries } })}
                     className="glass-panel"
                     style={{ padding: '18px 20px', borderLeft: '4px solid var(--status-warning)', cursor: 'pointer' }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Surgeries Scheduled</span>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)' }}>Scheduled Surgeries</span>
                       <Stethoscope size={18} style={{ color: 'var(--status-warning)' }} />
                     </div>
-                    <div style={{ fontSize: '2rem', fontWeight: 800, color: '#fff', marginTop: '6px', fontFamily: 'var(--font-mono)' }}>
+                    <div style={{ fontSize: '2rem', fontWeight: 800, color: '#fff', marginTop: '6px' }}>
                       {(globalStats.surgeries ?? 0).toLocaleString()}
                     </div>
-                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px', display: 'flex', justifyContent: 'space-between' }}>
-                      <span>{globalStats.totalOperatingTheatres ?? 0} Theatres • {globalStats.inProgressSurgeries ?? 0} In-Progress</span>
-                      <span style={{ color: 'var(--gold-400)' }}>View Details →</span>
+                    <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', marginTop: '4px', display: 'flex', justifyContent: 'space-between' }}>
+                      <span>{globalStats.totalOperatingTheatres ?? 0} rooms • {globalStats.inProgressSurgeries ?? 0} in progress</span>
+                      <span style={{ color: 'var(--gold-400)' }}>See Schedule →</span>
                     </div>
                   </div>
 
                   <div
-                    onClick={() => openDetailPage({ detailType: 'VIEW_RECORDS', moduleKey: 'WARDS', recordId: 'discharges-cleared', title: 'Cleared Inpatient Discharges', recordData: { dischargesCleared: globalStats.discharges, totalInvoices: globalStats.totalInvoices } })}
+                    onClick={() => openDetailPage({ detailType: 'VIEW_RECORDS', moduleKey: 'WARDS', recordId: 'discharges-cleared', title: 'Discharged Patients', recordData: { dischargesCleared: globalStats.discharges, totalInvoices: globalStats.totalInvoices } })}
                     className="glass-panel"
                     style={{ padding: '18px 20px', borderLeft: '4px solid var(--status-online)', cursor: 'pointer' }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Discharges Cleared</span>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)' }}>Patients Sent Home</span>
                       <CheckCircle size={18} style={{ color: 'var(--status-online)' }} />
                     </div>
-                    <div style={{ fontSize: '2rem', fontWeight: 800, color: '#fff', marginTop: '6px', fontFamily: 'var(--font-mono)' }}>
+                    <div style={{ fontSize: '2rem', fontWeight: 800, color: '#fff', marginTop: '6px' }}>
                       {(globalStats.discharges ?? 0).toLocaleString()}
                     </div>
-                    <div style={{ fontSize: '0.72rem', color: 'var(--status-online)', marginTop: '4px', display: 'flex', justifyContent: 'space-between' }}>
-                      <span>Pharmacy & Billing Settled</span>
-                      <span style={{ color: 'var(--gold-400)' }}>View Details →</span>
+                    <div style={{ fontSize: '0.76rem', color: 'var(--status-online)', marginTop: '4px', display: 'flex', justifyContent: 'space-between' }}>
+                      <span>Cleared by pharmacy & billing</span>
+                      <span style={{ color: 'var(--gold-400)' }}>See List →</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Live Notifications & Audit Log Feed (Zero Hardcoded Items) */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: '16px' }}>
+                {/* Recent Alerts & Activity Feed */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '16px' }}>
                   <div className="glass-panel" style={{ padding: '18px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                      <h3 style={{ margin: 0, fontSize: '0.95rem', color: 'var(--gold-400)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Bell size={16} /> Live Hospital Notifications ({recentNotifications.length})
+                      <h3 style={{ margin: 0, fontSize: '0.98rem', color: 'var(--gold-400)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Bell size={16} /> Recent Alerts ({recentNotifications.length})
                       </h3>
                       <button
                         onClick={() => openDetailPage({ detailType: 'VIEW_NOTIFICATIONS', moduleKey: 'OVERVIEW', recordId: 'all' })}
                         className="btn-outline-gold"
-                        style={{ padding: '4px 10px', fontSize: '0.74rem' }}
+                        style={{ padding: '4px 10px', fontSize: '0.76rem' }}
                       >
-                        View Notifications Page →
+                        All Alerts →
                       </button>
                     </div>
                     {recentNotifications.length === 0 ? (
-                      <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.82rem', background: 'rgba(0,0,0,0.3)', borderRadius: '6px' }}>
-                        No records available
+                      <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.84rem', background: 'rgba(0,0,0,0.3)', borderRadius: '8px' }}>
+                        No new alerts right now.
                       </div>
                     ) : (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         {recentNotifications.slice(0, 4).map((n) => (
-                          <div key={n.id} style={{ padding: '8px 12px', background: 'rgba(0,0,0,0.4)', borderRadius: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem' }}>
+                          <div key={n.id} style={{ padding: '8px 12px', background: 'rgba(0,0,0,0.4)', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.82rem' }}>
                             <div>
                               <div style={{ fontWeight: 700, color: '#fff' }}>{n.title}</div>
-                              <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>{n.message}</div>
+                              <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>{n.message}</div>
                             </div>
                             <button
                               onClick={() => openDetailPage({ detailType: 'VIEW_DETAILS', moduleKey: 'NOTIFICATIONS', recordId: n.id, title: n.title, recordData: n })}
                               className="btn-outline-gold"
-                              style={{ padding: '3px 8px', fontSize: '0.72rem' }}
+                              style={{ padding: '3px 8px', fontSize: '0.74rem' }}
                             >
-                              View Details
+                              Open
                             </button>
                           </div>
                         ))}
@@ -939,20 +939,20 @@ export default function App() {
 
                   <div className="glass-panel" style={{ padding: '18px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                      <h3 style={{ margin: 0, fontSize: '0.95rem', color: 'var(--gold-400)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <History size={16} /> Recent PostgreSQL Audit Trail ({recentAuditLogs.length})
+                      <h3 style={{ margin: 0, fontSize: '0.98rem', color: 'var(--gold-400)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <History size={16} /> Recent Activity Log ({recentAuditLogs.length})
                       </h3>
                       <button
                         onClick={() => openDetailPage({ detailType: 'VIEW_HISTORY', moduleKey: 'OVERVIEW', recordId: 'audit-trail' })}
                         className="btn-outline-gold"
-                        style={{ padding: '4px 10px', fontSize: '0.74rem' }}
+                        style={{ padding: '4px 10px', fontSize: '0.76rem' }}
                       >
-                        View History Page →
+                        Full Activity →
                       </button>
                     </div>
                     {recentAuditLogs.length === 0 ? (
-                      <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.82rem', background: 'rgba(0,0,0,0.3)', borderRadius: '6px' }}>
-                        No records available
+                      <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.84rem', background: 'rgba(0,0,0,0.3)', borderRadius: '8px' }}>
+                        No recent activity recorded yet.
                       </div>
                     ) : (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -1092,10 +1092,10 @@ export default function App() {
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
                     <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff', margin: 0 }}>
-                      Enterprise Hospital Modules Ecosystem
+                      Hospital Departments & Services
                     </h3>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--gold-400)' }}>
-                      Click any module card to open its live interactive hospital dashboard
+                    <span style={{ fontSize: '0.78rem', color: 'var(--gold-400)' }}>
+                      Click any card to open that department
                     </span>
                   </div>
 
@@ -1127,24 +1127,24 @@ export default function App() {
 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
                     {[
-                      { mod: 'PATIENTS', cat: 'CLINICAL', title: '1. Patient Management & MPI', desc: 'Registration, Master Patient Index, Physical Folder shelf cataloging, and chain-of-custody archive movement.', img: '/assets/images/patient_registration_archive_real.jpg', icon: Users, color: 'var(--gold-400)', border: 'var(--border-gold)' },
-                      { mod: 'CLINICAL', cat: 'CLINICAL', title: '2. Clinical Care & OPD Triage', desc: 'Nurse OPD queuing, Adult NEWS2 evaluation, BMI calculation, and Doctor consultation with WHO ICD-10 coding.', img: '/assets/images/doctor_consultation_real.jpg', icon: Activity, color: 'var(--status-info)', border: 'var(--border-gold)' },
-                      { mod: 'PHARMACY', cat: 'CLINICAL', title: '3. Pharmacy & FEFO Inventory', desc: 'FEFO prescription dispensing, batch expiry risk engine, low stock threshold alerts, and duplicate fulfillment prevention.', img: '/assets/images/pharmacy_dispensary_real.jpg', icon: Pill, color: 'var(--status-warning)', border: 'var(--border-gold)' },
-                      { mod: 'CLINICAL', cat: 'ACUTE_DIAGNOSTICS', title: '4. Laboratory & Pathology', desc: 'Diagnostic panel requests, phlebotomy barcode tubes (SMP-YYYY-XXXXXX), and automated panic value cutoff evaluation.', img: '/assets/images/laboratory_pathology_real.jpg', icon: FlaskConical, color: 'var(--gold-400)', border: 'var(--border-gold)' },
-                      { mod: 'WARDS', cat: 'CLINICAL', title: '5. Inpatient Wards & ICU Beds', desc: 'Ward and room provisioning, bed availability matrix, intra-ward bed transfers, and shift nursing charts.', img: '/assets/images/inpatient_ward_bed_real.jpg', icon: Bed, color: 'var(--status-online)', border: 'var(--border-gold)' },
-                      { mod: 'SURGERY', cat: 'CLINICAL', title: '6. Operating Theatre & Surgery', desc: 'WHO 3-phase surgical safety checklist, Anesthesia ASA protocol, and PACU Modified Aldrete recovery clearance.', img: '/assets/images/operating_theatre_real.jpg', icon: Stethoscope, color: 'var(--gold-400)', border: 'var(--border-gold)' },
-                      { mod: 'NHIA_CLAIMS', cat: 'OPERATIONS', title: '7. Billing & NHIS Insurance', desc: 'Automated encounter charge compilation, multi-channel receipts (Cash, MoMo, Card), and NHIS claim lifecycle.', img: '/assets/images/nhia_claims_center_real.jpg', icon: CreditCard, color: 'var(--status-info)', border: 'var(--border-gold)' },
-                      { mod: 'CLINICAL', cat: 'ACUTE_DIAGNOSTICS', title: '8. Radiology & PACS Imaging', desc: 'Modality worklists, DICOM windowing presets, red-flag panic finding detector, and electronic report sign-off.', img: '/assets/images/radiology_pacs_mri_real.jpg', icon: Radio, color: 'var(--gold-300)', border: 'var(--border-gold)' },
-                      { mod: 'DEVELOPER_NOC', cat: 'TECHNOLOGY', title: '9. Developer Landlord NOC', desc: 'Landlord control center, live countdown engine, emergency system lock/unlock, database backups, and tenant governance.', img: '/assets/images/developer_control_center_real.jpg', icon: Shield, color: '#fca5a5', border: '#ef4444' },
-                      { mod: 'EMERGENCY', cat: 'ACUTE_DIAGNOSTICS', title: '10. Emergency & Ambulance Fleet', desc: 'Ambulance GPS fleet dispatch, Red/Yellow triage trauma bay allocation, ALS paramedic response, and emergency override logs.', img: '/assets/images/emergency_ambulance_fleet_real.jpg', icon: AlertTriangle, color: '#fca5a5', border: '#ef4444' },
-                      { mod: 'BLOOD_BANK', cat: 'ACUTE_DIAGNOSTICS', title: '11. Blood Bank & Transfusion', desc: 'Donor registry, cold-chain 4°C storage, cross-matching compatibility matrix, and bedside dual-check hemovigilance.', img: '/assets/images/blood_bank_transfusion_real.jpg', icon: FlaskConical, color: '#fca5a5', border: '#ef4444' },
-                      { mod: 'MORTUARY', cat: 'ACUTE_DIAGNOSTICS', title: '12. Mortuary & Cold Storage', desc: 'Cold storage vaults, clinical/coroner post-mortem autopsies, and biometric Next-of-Kin deceased release handover.', img: '/assets/images/mortuary_cold_storage_real.jpg', icon: HardDrive, color: '#e4e4e7', border: '#a1a1aa' },
-                      { mod: 'BIOMEDICAL', cat: 'ACUTE_DIAGNOSTICS', title: '13. Biomedical & Maintenance', desc: 'Computerized maintenance CMMS, life-support asset telemetry, electrical safety analyzer sign-offs, and metrology calibrations.', img: '/assets/images/biomedical_engineering_equipment_real.jpg', icon: Wrench, color: '#fcd34d', border: '#d97706' },
-                      { mod: 'PROCUREMENT', cat: 'OPERATIONS', title: '14. Procurement & Supply Chain', desc: 'Purchase order lifecycle, supplier SLAs, goods receipt notes (GRN), and automated three-way matching against invoices.', img: '/assets/images/procurement_supply_chain_real.jpg', icon: Package, color: 'var(--gold-300)', border: 'var(--border-gold)' },
-                      { mod: 'HR', cat: 'OPERATIONS', title: '15. HR, Rostering & Credentialing', desc: 'Staff regulatory credentialing (MDC, NMC, PCG), duty roster scheduling, clinical SBAR shift handovers, and biometric attendance.', img: '/assets/images/hr_medical_staff_real.jpg', icon: Users, color: '#7dd3fc', border: 'var(--border-gold)' },
-                      { mod: 'QUALITY', cat: 'OPERATIONS', title: '15. Quality, Audits & Infection Control', desc: 'Hospital safety index, anonymous incident reporting, sentinel event 24h RCA, WHO Surgical Safety checklists, and IPC isolation.', img: '/assets/images/quality_infection_control_real.jpg', icon: Shield, color: '#fbbf24', border: 'var(--border-gold)' },
-                      { mod: 'NHIA_CLAIMS', cat: 'OPERATIONS', title: '16. NHIA Claims & E-Claims Adjudication', desc: 'G-DRG tariff pricing, NHIS eligibility verification, 20-rule pre-submission vetting, and reconciliation vouchers.', img: '/assets/images/nhia_claims_center_real.jpg', icon: CreditCard, color: '#86efac', border: '#22c55e' },
-                      { mod: 'VOICE_AUTH', cat: 'TECHNOLOGY', title: '17. Central Voice Biometrics & Vault', desc: 'Acoustic voiceprint enrollment, zero-trust MFCC matching, anti-spoofing liveness guards, and multi-factor clinical challenges.', img: '/assets/images/voice_biometric_security_real.jpg', icon: Mic, color: 'var(--gold-300)', border: 'var(--border-gold)' }
+                      { mod: 'PATIENTS', cat: 'CLINICAL', title: '1. Patients & Medical Folders', desc: 'Register new patients, search existing patient records, and track paper folders.', img: '/assets/images/patient_registration_archive_real.jpg', icon: Users, color: 'var(--gold-400)', border: 'var(--border-gold)' },
+                      { mod: 'CLINICAL', cat: 'CLINICAL', title: '2. Doctor & Nurse Care', desc: 'Check in walk-in patients, record vital signs, and write doctor visit notes.', img: '/assets/images/doctor_consultation_real.jpg', icon: Activity, color: 'var(--status-info)', border: 'var(--border-gold)' },
+                      { mod: 'PHARMACY', cat: 'CLINICAL', title: '3. Pharmacy & Medicine Stock', desc: 'Give out prescribed medicines safely, watch stock levels, and track expiry dates.', img: '/assets/images/pharmacy_dispensary_real.jpg', icon: Pill, color: 'var(--status-warning)', border: 'var(--border-gold)' },
+                      { mod: 'CLINICAL', cat: 'ACUTE_DIAGNOSTICS', title: '4. Lab Tests & Results', desc: 'Order blood and lab tests, scan sample barcodes, and share test results.', img: '/assets/images/laboratory_pathology_real.jpg', icon: FlaskConical, color: 'var(--gold-400)', border: 'var(--border-gold)' },
+                      { mod: 'WARDS', cat: 'CLINICAL', title: '5. Wards & Free Hospital Beds', desc: 'Check open beds, admit patients into rooms, move beds, and track nursing notes.', img: '/assets/images/inpatient_ward_bed_real.jpg', icon: Bed, color: 'var(--status-online)', border: 'var(--border-gold)' },
+                      { mod: 'SURGERY', cat: 'CLINICAL', title: '6. Surgery & Operating Rooms', desc: 'Schedule operations, fill out surgical safety checks, and track recovery.', img: '/assets/images/operating_theatre_real.jpg', icon: Stethoscope, color: 'var(--gold-400)', border: 'var(--border-gold)' },
+                      { mod: 'NHIA_CLAIMS', cat: 'OPERATIONS', title: '7. Billing & Health Insurance', desc: 'Create patient bills, collect cash/MoMo/card payments, and submit NHIS claims.', img: '/assets/images/nhia_claims_center_real.jpg', icon: CreditCard, color: 'var(--status-info)', border: 'var(--border-gold)' },
+                      { mod: 'CLINICAL', cat: 'ACUTE_DIAGNOSTICS', title: '8. X-Rays, Scans & Radiology', desc: 'Order MRI, CT, and X-ray scans, highlight urgent findings, and write reports.', img: '/assets/images/radiology_pacs_mri_real.jpg', icon: Radio, color: 'var(--gold-300)', border: 'var(--border-gold)' },
+                      { mod: 'DEVELOPER_NOC', cat: 'TECHNOLOGY', title: '9. System Control Center', desc: 'Monitor system health, manage facility accounts, permissions, error logs, and backups.', img: '/assets/images/developer_control_center_real.jpg', icon: Shield, color: '#fca5a5', border: '#ef4444' },
+                      { mod: 'EMERGENCY', cat: 'ACUTE_DIAGNOSTICS', title: '10. Emergency & Ambulances', desc: 'Send ambulances quickly, assign emergency bays by urgency, and log urgent care.', img: '/assets/images/emergency_ambulance_fleet_real.jpg', icon: AlertTriangle, color: '#fca5a5', border: '#ef4444' },
+                      { mod: 'BLOOD_BANK', cat: 'ACUTE_DIAGNOSTICS', title: '11. Blood Bank & Donors', desc: 'Track blood donors, manage cold blood bags, and match safe transfusions.', img: '/assets/images/blood_bank_transfusion_real.jpg', icon: FlaskConical, color: '#fca5a5', border: '#ef4444' },
+                      { mod: 'MORTUARY', cat: 'ACUTE_DIAGNOSTICS', title: '12. Mortuary Services', desc: 'Manage cold storage spaces, post-mortem records, and approved family handovers.', img: '/assets/images/mortuary_cold_storage_real.jpg', icon: HardDrive, color: '#e4e4e7', border: '#a1a1aa' },
+                      { mod: 'BIOMEDICAL', cat: 'ACUTE_DIAGNOSTICS', title: '13. Medical Equipment & Repairs', desc: 'Track hospital machines, schedule repair work orders, and record safety checks.', img: '/assets/images/biomedical_engineering_equipment_real.jpg', icon: Wrench, color: '#fcd34d', border: '#d97706' },
+                      { mod: 'PROCUREMENT', cat: 'OPERATIONS', title: '14. Supplies & Purchasing', desc: 'Order medical supplies, check deliveries on arrival, and match supplier bills.', img: '/assets/images/procurement_supply_chain_real.jpg', icon: Package, color: 'var(--gold-300)', border: 'var(--border-gold)' },
+                      { mod: 'HR', cat: 'OPERATIONS', title: '15. Staff, Shifts & Leave', desc: 'Check staff licenses, build duty schedules, track clock-ins, and review leave.', img: '/assets/images/hr_medical_staff_real.jpg', icon: Users, color: '#7dd3fc', border: 'var(--border-gold)' },
+                      { mod: 'QUALITY', cat: 'OPERATIONS', title: '16. Safety & Quality Checks', desc: 'Report safety incidents, manage infection isolation, and record safety audits.', img: '/assets/images/quality_infection_control_real.jpg', icon: Shield, color: '#fbbf24', border: 'var(--border-gold)' },
+                      { mod: 'NHIA_CLAIMS', cat: 'OPERATIONS', title: '17. NHIS Insurance Claims', desc: 'Check NHIS member cards, vet claims before sending, and track insurance payouts.', img: '/assets/images/nhia_claims_center_real.jpg', icon: CreditCard, color: '#86efac', border: '#22c55e' },
+                      { mod: 'VOICE_AUTH', cat: 'TECHNOLOGY', title: '18. Voice & Fingerprint Lock', desc: 'Use quick voice or fingerprint checks for extra security on sensitive tasks.', img: '/assets/images/voice_biometric_security_real.jpg', icon: Mic, color: 'var(--gold-300)', border: 'var(--border-gold)' }
                     ]
                       .filter((card) => {
                         if (card.mod === 'DEVELOPER_NOC' && !isDeveloperAuthenticated) return false;
@@ -1236,8 +1236,8 @@ export default function App() {
             window.gbsBrainNotify({
               type: 'success',
               method: 'AUTH',
-              title: `Authenticated as ${user.fullName || user.email}`,
-              message: `Signed into ${user.role} dashboard cleanly. Live telemetry active.`,
+              title: `Welcome, ${user.fullName || user.email}`,
+              message: `Signed into your ${user.role} dashboard. Everything is ready.`,
               role: user.role || currentRole,
               module: activeModule,
               forceToast: true,

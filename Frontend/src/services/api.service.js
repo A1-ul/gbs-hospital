@@ -108,7 +108,7 @@ async function coreRequest(endpoint, options = {}) {
   } catch (networkErr) {
     if (fingerprint) pendingSubmissionLocks.delete(fingerprint);
     const err = new Error(
-      `Unable to reach the GBS Hospital Backend API at ${API_BASE}${endpoint}. Ensure the PostgreSQL & Express backend server is running.`
+      `Could not reach the hospital server. Please check your internet connection and try again.`
     );
     err.cause = networkErr;
     err.code = 'NETWORK_ERROR';
@@ -118,7 +118,7 @@ async function coreRequest(endpoint, options = {}) {
         method,
         endpoint,
         code: 'NETWORK_ERROR',
-        title: `Network Error (${method})`,
+        title: 'Connection Problem',
         message: err.message,
         role: activeRole,
       });
@@ -178,8 +178,8 @@ async function coreRequest(endpoint, options = {}) {
         status: response.status,
         code: err.code,
         requestId: err.requestId,
-        title: `Operation Failed (${err.code})`,
-        message: `${errorMsg}${err.requestId ? ` [Ref: ${err.requestId.slice(0, 8)}]` : ''}`,
+        title: response.status === 403 ? 'Permission Needed' : response.status === 404 ? 'Not Found' : 'Could Not Complete Action',
+        message: `${errorMsg}${err.requestId ? ` (Ref: ${err.requestId.slice(0, 8)})` : ''}`,
         role: activeRole,
       });
     }
@@ -191,7 +191,7 @@ async function coreRequest(endpoint, options = {}) {
     const serverMsg =
       (data && data.message) ||
       (resolved && resolved.message) ||
-      `${method} ${endpoint} completed cleanly.`;
+      'Your changes were saved.';
     window.gbsBrainNotify({
       type: 'success',
       method,
@@ -199,7 +199,7 @@ async function coreRequest(endpoint, options = {}) {
       status: response.status,
       code: data?.code || 'SUCCESS',
       requestId: data?.requestId || null,
-      title: `Action Executed (${data?.code || method})`,
+      title: response.status === 202 ? 'Waiting for Approval' : 'Saved Successfully',
       message: serverMsg,
       role: activeRole,
     });

@@ -90,13 +90,13 @@ export function PatientManagementView() {
         <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'flex-end', flexWrap: 'wrap', gap: '12px' }}>
           <div>
             <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--gold-400)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-              1. Patient Management, Master Patient Index (MPI) & Physical Folder Vault
+              1. Patient Registration & Folder Records
             </span>
             <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#fff', marginTop: '4px' }}>
-              Patient Registration, Identity Resolution & Medical Records Archive
+              Patient Registration, Search & Medical Folders
             </h2>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              Enterprise identity resolution, sequential MRN issuance, and paper archive shelf chain-of-custody tracking.
+              Register new patients, find patient records fast, and track physical paper folders across hospital desks.
             </p>
           </div>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -135,14 +135,14 @@ export function PatientManagementView() {
             <Search size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-dim)' }} />
             <input
               type="text"
-              placeholder="Search Master Patient Index by MRN, Name, Phone, or National ID..."
+              placeholder="Search patient by Name, Folder Number (MRN), Phone, or National ID..."
               value={query}
               onChange={e => setQuery(e.target.value)}
-              style={{ width: '100%', padding: '10px 14px 10px 40px', borderRadius: '6px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-gold)', color: '#fff', fontSize: '0.875rem' }}
+              style={{ width: '100%', padding: '10px 14px 10px 40px', borderRadius: '10px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-gold)', color: '#fff', fontSize: '0.875rem' }}
             />
           </div>
           <button type="submit" disabled={searching} className="btn-gold" style={{ padding: '0 24px' }}>
-            {searching ? 'Searching...' : 'Search MPI'}
+            {searching ? 'Searching...' : 'Search Patients'}
           </button>
           <button type="button" onClick={() => { setQuery(''); loadInitialPatients(''); }} className="btn-outline-gold">
             Refresh
@@ -671,11 +671,11 @@ export function ClinicalCareView() {
             Workstations:
           </span>
           {[
-            { id: 'NURSE_TRIAGE', label: '1. Nurse Triage Station', icon: Activity, dept: 'OPD Triage' },
-            { id: 'DOCTOR_CONSULT', label: '2. Doctor Consultation', icon: Stethoscope, dept: 'Clinical OPD' },
-            { id: 'LAB_LIS', label: '3. Laboratory (LIS)', icon: FlaskConical, dept: 'Pathology' },
-            { id: 'RADIOLOGY_RIS', label: '4. Radiology (RIS/PACS)', icon: Radio, dept: 'Imaging' },
-            { id: 'BILLING_FINANCE', label: '5. Billing & Cashier', icon: CreditCard, dept: 'Finance' }
+            { id: 'NURSE_TRIAGE', label: '1. Nurse Check-In & Vitals', icon: Activity, dept: 'Outpatient Triage' },
+            { id: 'DOCTOR_CONSULT', label: '2. Doctor Visits', icon: Stethoscope, dept: 'Doctor Care' },
+            { id: 'LAB_LIS', label: '3. Lab Tests', icon: FlaskConical, dept: 'Laboratory' },
+            { id: 'RADIOLOGY_RIS', label: '4. X-Ray & Scans', icon: Radio, dept: 'Imaging' },
+            { id: 'BILLING_FINANCE', label: '5. Bills & Cashier', icon: CreditCard, dept: 'Finance' }
           ].map((tab) => {
             const TabIcon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -710,7 +710,7 @@ export function ClinicalCareView() {
       {activeTab === 'NURSE_TRIAGE' && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
           <form onSubmit={handleRecordVitals} className="glass-panel" style={{ padding: '20px' }}>
-            <h3 style={{ fontSize: '1rem', color: 'var(--gold-400)', marginBottom: '14px' }}>Record Patient Vitals & Compute NEWS2</h3>
+            <h3 style={{ fontSize: '1rem', color: 'var(--gold-400)', marginBottom: '14px' }}>Record Patient Vital Signs</h3>
             <div style={{ marginBottom: '12px' }}>
               <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Patient ID or MRN *</label>
               <input required type="text" placeholder="Enter Patient UUID or MRN" value={vitals.patientId} onChange={e => setVitals({ ...vitals, patientId: e.target.value })} style={{ width: '100%', padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
@@ -742,12 +742,12 @@ export function ClinicalCareView() {
               </div>
             </div>
             <div style={{ marginTop: '14px', display: 'flex', justifyContent: 'flex-end' }}>
-              <button type="submit" className="btn-gold">Save Vitals & Compute NEWS2</button>
+              <button type="submit" className="btn-gold">Save Vitals & Check Risk Score</button>
             </div>
           </form>
 
           <div className="glass-panel" style={{ padding: '20px' }}>
-            <h3 style={{ fontSize: '1rem', color: 'var(--gold-400)', marginBottom: '14px' }}>OPD Triage Live Telemetry</h3>
+            <h3 style={{ fontSize: '1rem', color: 'var(--gold-400)', marginBottom: '14px' }}>Outpatient Live Summary</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', background: 'rgba(0,0,0,0.4)', borderRadius: '4px' }}>
                 <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Active OPD Queue:</span>
@@ -1687,13 +1687,13 @@ export function PharmacyView() {
         <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'flex-end', flexWrap: 'wrap', gap: '12px' }}>
           <div>
             <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--gold-400)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-              Pharmacy Subsystem
+              Pharmacy & Medicine Store
             </span>
             <h2 style={{ fontSize: '1.4rem', color: '#fff', fontWeight: 800 }}>
-              FEFO Prescription Dispensing & Inventory Expiry Engine
+              Medicine Dispensing & Stock Expiry Tracking
             </h2>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              First Expired First Out batch allocation, out-of-stock guard, and automated reorder alerts.
+              Give out nearest-to-expire stock first, prevent out-of-stock mistakes, and get low-stock alerts early.
             </p>
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
@@ -2293,18 +2293,18 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
         <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'flex-end', flexWrap: 'wrap', gap: '12px' }}>
           <div>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 8px', borderRadius: '4px', background: 'rgba(239, 68, 68, 0.2)', border: '1px solid #ef4444', fontSize: '0.72rem', color: '#fca5a5', fontWeight: 700, textTransform: 'uppercase' }}>
-                <Shield size={12} /> Restricted Developer Landlord Platform (NOC Authority Only)
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 8px', borderRadius: '6px', background: 'rgba(239, 68, 68, 0.2)', border: '1px solid #ef4444', fontSize: '0.72rem', color: '#fca5a5', fontWeight: 700, textTransform: 'uppercase' }}>
+                <Shield size={12} /> Developer Control Center (Restricted)
               </span>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 10px', borderRadius: '4px', background: isProdEnv ? 'rgba(16, 185, 129, 0.2)' : 'rgba(245, 158, 11, 0.2)', border: `1px solid ${isProdEnv ? '#10b981' : '#f59e0b'}`, fontSize: '0.72rem', color: isProdEnv ? '#6ee7b7' : '#fcd34d', fontWeight: 800 }}>
-                ACTIVE ENVIRONMENT: {activeEnvLabel}
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 10px', borderRadius: '6px', background: isProdEnv ? 'rgba(16, 185, 129, 0.2)' : 'rgba(245, 158, 11, 0.2)', border: `1px solid ${isProdEnv ? '#10b981' : '#f59e0b'}`, fontSize: '0.72rem', color: isProdEnv ? '#6ee7b7' : '#fcd34d', fontWeight: 800 }}>
+                CURRENT MODE: {activeEnvLabel}
               </span>
             </div>
             <h2 style={{ fontSize: '1.4rem', color: '#fff', fontWeight: 800 }}>
-              Developer Landlord Control Center, Environment Identification & Tenant Command Console
+              Developer Control Center — System Modes, Branches & Backups
             </h2>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              Backend-authoritative multi-tenant governance, database backup & verification, production data activation, and subscription locking.
+              Manage hospital branches, run verified backups, switch between training and live mode, and control access.
             </p>
           </div>
 
@@ -2331,7 +2331,7 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
       {/* Developer Platform Exclusive Subsystem Navigation Bar */}
       <div className="glass-panel" style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', border: '1px solid var(--border-gold)' }}>
         <div style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--gold-400)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-          Developer Platform Subsystems (Exclusive to Developer Dashboard):
+          Developer Tools:
         </div>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <button
@@ -2340,7 +2340,7 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
             className={devSubTab === 'ALL' ? 'btn-gold' : 'btn-outline-gold'}
             style={{ fontSize: '0.78rem', padding: '6px 14px' }}
           >
-            All Developer Subsystems (Complete View)
+            Show Everything
           </button>
           <button
             type="button"
@@ -2348,7 +2348,7 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
             className={devSubTab === 'NOC' ? 'btn-gold' : 'btn-outline-gold'}
             style={{ fontSize: '0.78rem', padding: '6px 14px' }}
           >
-            <Shield size={14} /> 1. NOC Landlord Command & Tenants
+            <Shield size={14} /> 1. Branches & Backups
           </button>
           <button
             type="button"
@@ -2356,7 +2356,7 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
             className={devSubTab === 'MIGRATION' ? 'btn-gold' : 'btn-outline-gold'}
             style={{ fontSize: '0.78rem', padding: '6px 14px' }}
           >
-            <Database size={14} /> 2. Data Migration & Ingestion Hub
+            <Database size={14} /> 2. Data Import & Transfer
           </button>
           <button
             type="button"
@@ -2364,7 +2364,7 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
             className={devSubTab === 'GIS_TELEMEDICINE' ? 'btn-gold' : 'btn-outline-gold'}
             style={{ fontSize: '0.78rem', padding: '6px 14px' }}
           >
-            <Video size={14} /> 3. GIS Radar, Live Tenant Tracking & Telemedicine
+            <Video size={14} /> 3. Live Map & Video Calls
           </button>
           <button
             type="button"
@@ -2372,7 +2372,7 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
             className={devSubTab === 'RCCE' ? 'btn-gold' : 'btn-outline-gold'}
             style={{ fontSize: '0.78rem', padding: '6px 14px' }}
           >
-            <Shield size={14} /> 4. GBS-RCCE Control, Permissions & Audits
+            <Shield size={14} /> 4. Permissions, Privacy & Logs
           </button>
         </div>
       </div>

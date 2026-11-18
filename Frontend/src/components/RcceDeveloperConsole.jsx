@@ -154,11 +154,11 @@ export default function RcceDeveloperConsole({ onStatusMsg }) {
     <div className="glass-panel" style={{ padding: '20px', border: '1px solid var(--border-gold)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px' }}>
         <div>
-          <h3 style={{ fontSize: '1.1rem', color: 'var(--gold-400)', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Shield size={18} /> GBS-RCCE Unified Developer & Governance Control Engine
+          <h3 style={{ fontSize: '1.12rem', color: 'var(--gold-400)', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Shield size={18} /> System Control, Permissions & Privacy Center
           </h3>
-          <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-            Central API response enforcement, permission overrides, privacy-guarded user monitoring, error diagnostics & SHA-256 audit log viewer.
+          <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+            Check system health, manage who can use each feature, review issues, and protect private staff & patient information.
           </p>
         </div>
 
@@ -167,17 +167,17 @@ export default function RcceDeveloperConsole({ onStatusMsg }) {
             type="button"
             onClick={() => loadRcce()}
             className="btn-outline-gold"
-            style={{ fontSize: '0.75rem', padding: '5px 10px' }}
+            style={{ fontSize: '0.78rem', padding: '6px 12px' }}
           >
-            <RefreshCw size={13} className={loading ? 'animate-spin' : ''} /> Refresh Engine State
+            <RefreshCw size={13} className={loading ? 'animate-spin' : ''} /> Refresh
           </button>
           <button
             type="button"
             onClick={handleToggleMaintenance}
             className={maintenanceOn ? 'btn-gold' : 'btn-danger'}
-            style={{ fontSize: '0.75rem', padding: '5px 12px' }}
+            style={{ fontSize: '0.78rem', padding: '6px 14px' }}
           >
-            <Wrench size={13} /> {maintenanceOn ? 'Exit Maintenance Mode' : 'Engage Maintenance Mode'}
+            <Wrench size={13} /> {maintenanceOn ? 'Turn Off Maintenance Mode' : 'Turn On Maintenance Mode'}
           </button>
         </div>
       </div>
@@ -235,11 +235,11 @@ export default function RcceDeveloperConsole({ onStatusMsg }) {
       {/* Sub-Tabs */}
       <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
         {[
-          { id: 'OVERVIEW', label: 'User Activity (Privacy-Guarded)', icon: Activity },
-          { id: 'PRIVACY_GRANTS', label: 'Sensitive Access Grants', icon: Key },
-          { id: 'PERMISSIONS', label: 'Role Permission Control', icon: Lock },
-          { id: 'ERRORS', label: `Error Diagnostics (${errorsData.unresolvedCount || 0})`, icon: AlertTriangle },
-          { id: 'AUDITS', label: 'Audit Trail & Events', icon: FileText }
+          { id: 'OVERVIEW', label: 'Staff Activity (Private Details Hidden)', icon: Activity },
+          { id: 'PRIVACY_GRANTS', label: 'Private Access Requests', icon: Key },
+          { id: 'PERMISSIONS', label: 'Role Permissions', icon: Lock },
+          { id: 'ERRORS', label: `System Issues (${errorsData.unresolvedCount || 0})`, icon: AlertTriangle },
+          { id: 'AUDITS', label: 'Full Activity Log', icon: FileText }
         ].map((tab) => {
           const Icon = tab.icon;
           const active = subTab === tab.id;

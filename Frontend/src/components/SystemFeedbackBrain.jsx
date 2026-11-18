@@ -48,10 +48,10 @@ export default function SystemFeedbackBrain({ currentRole, activeModule }) {
       id: 'boot-brain',
       timestamp: new Date().toLocaleTimeString(),
       type: 'success',
-      title: 'GBS System Feedback Brain Active',
-      message: 'All clicks, commands, API writes, dispatches, prints, and module links are monitored live.',
+      title: 'System Ready',
+      message: 'Connected to hospital records — ready when you are.',
       endpoint: '/api/v1/health',
-      method: 'SYSTEM',
+      method: 'READY',
       status: 200,
       module: activeModule || 'OVERVIEW',
       role: currentRole || 'GUEST',
@@ -163,15 +163,15 @@ export default function SystemFeedbackBrain({ currentRole, activeModule }) {
             >
               <Icon size={18} style={{ color: text, flexShrink: 0, marginTop: '2px' }} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: '0.82rem', fontWeight: 800, color: '#fff', display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
+                <div style={{ fontSize: '0.84rem', fontWeight: 700, color: '#fff', display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
                   <span>{toast.title}</span>
-                  <span style={{ fontSize: '0.68rem', color: text }}>{toast.status ? `HTTP ${toast.status}` : toast.method || 'OK'}</span>
+                  <span style={{ fontSize: '0.7rem', color: text }}>{toast.type === 'error' ? 'Needs Attention' : toast.type === 'warning' ? 'Notice' : 'Done'}</span>
                 </div>
-                <div style={{ fontSize: '0.76rem', color: '#f5f5f4', marginTop: '2px', wordBreak: 'break-word' }}>
+                <div style={{ fontSize: '0.8rem', color: '#f5f5f4', marginTop: '3px', wordBreak: 'break-word' }}>
                   {toast.message}
                 </div>
-                <div style={{ fontSize: '0.65rem', color: '#d6d3d1', marginTop: '4px' }}>
-                  Role: {toast.role} • Module: {toast.module} • {toast.timestamp}
+                <div style={{ fontSize: '0.68rem', color: '#d6d3d1', marginTop: '4px' }}>
+                  {toast.role?.replace(/_/g, ' ')} • {toast.timestamp}
                 </div>
               </div>
               <button
@@ -331,19 +331,19 @@ export default function SystemFeedbackBrain({ currentRole, activeModule }) {
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
             <Brain size={15} style={{ color: '#fde68a', flexShrink: 0 }} />
-            <span style={{ color: '#fde68a', fontWeight: 800, fontSize: '0.76rem', whiteSpace: 'nowrap' }}>
-              SYSTEM BRAIN:
+            <span style={{ color: '#fde68a', fontWeight: 700, fontSize: '0.76rem', whiteSpace: 'nowrap' }}>
+              LIVE STATUS:
             </span>
-            <span style={{ color: '#fff', fontSize: '0.76rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {latest ? `${latest.title} — ${latest.message}` : 'Ready for command across all 17 roles.'}
+            <span style={{ color: '#fff', fontSize: '0.78rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {latest ? `${latest.title} — ${latest.message}` : 'Everything is connected and ready.'}
             </span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0, fontSize: '0.72rem', color: '#e7e2d8' }}>
-            <span>Role: <strong style={{ color: '#fde68a' }}>{currentRole || 'GUEST'}</strong></span>
-            <span>View: <strong style={{ color: '#fde68a' }}>{activeModule || 'OVERVIEW'}</strong></span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0, fontSize: '0.74rem', color: '#e7e2d8' }}>
+            <span>Account: <strong style={{ color: '#fde68a' }}>{(currentRole || 'GUEST').replace(/_/g, ' ')}</strong></span>
+            <span>Area: <strong style={{ color: '#fde68a' }}>{(activeModule || 'HOME').replace(/_/g, ' ')}</strong></span>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#fde68a', fontWeight: 700 }}>
               {expanded ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
-              {expanded ? 'Hide Brain' : 'Open Brain'}
+              {expanded ? 'Hide Activity' : 'Activity Log'}
             </span>
           </div>
         </div>

@@ -175,10 +175,10 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
               </div>
             </div>
             <div style={{ fontSize: '0.75rem', color: 'var(--gold-400)', fontWeight: 700 }}>
-              GBS Hospital Zero-Trust Identity • {currentRoleObj.id}
+              Staff Sign-In • {currentRoleObj.name || currentRoleObj.id}
             </div>
             <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>
-              Dedicated Role Login • RBAC Policy Enforcement • Audit Logged
+              Secure Staff Portal • Role-Based Access • Activity Logged
             </div>
           </div>
         </div>
@@ -365,10 +365,10 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
                 gap: '8px'
               }}>
                 <div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--gold-400)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                    ⚡ Verified Account • {currentRoleObj.name}
+                  <div style={{ fontSize: '0.72rem', color: 'var(--gold-400)', fontWeight: 700, letterSpacing: '0.03em' }}>
+                    ⚡ Quick Demo Login • {currentRoleObj.name}
                   </div>
-                  <div style={{ fontSize: '0.78rem', color: '#fff', fontWeight: 600 }}>
+                  <div style={{ fontSize: '0.8rem', color: '#fff', fontWeight: 600 }}>
                     {activeDemoCreds.email}
                   </div>
                 </div>
@@ -378,15 +378,15 @@ export default function RoleLoginModal({ isOpen, onClose, onLoginSuccess, initia
                   disabled={loading}
                   className="btn-gold"
                   style={{
-                    padding: '5px 12px',
-                    fontSize: '0.76rem',
+                    padding: '6px 14px',
+                    fontSize: '0.78rem',
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '5px',
                     boxShadow: '0 2px 8px rgba(212, 175, 55, 0.3)'
                   }}
                 >
-                  <Zap size={13} /> 1-Click Sign In
+                  <Zap size={13} /> Instant Sign In
                 </button>
               </div>
             )}

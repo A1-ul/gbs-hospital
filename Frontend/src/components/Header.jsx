@@ -7,30 +7,30 @@ import {
 import { api } from '../services/api.service';
 
 export const ROLE_CATEGORIES = [
-  { id: 'ALL', label: 'All Staff Portals', icon: '⭐' },
-  { id: 'EXECUTIVE', label: 'Executive & Governance', icon: '🏛️' },
-  { id: 'PHYSICIANS', label: 'Physicians & Specialists', icon: '🩺' },
-  { id: 'NURSING_DIAGNOSTICS', label: 'Nursing & Allied Care', icon: '🏥' },
-  { id: 'OPERATIONS', label: 'Operations & Patients', icon: '📋' }
+  { id: 'ALL', label: 'All Staff Roles', icon: '⭐' },
+  { id: 'EXECUTIVE', label: 'Leadership & Admin', icon: '🏛️' },
+  { id: 'PHYSICIANS', label: 'Doctors & Specialists', icon: '🩺' },
+  { id: 'NURSING_DIAGNOSTICS', label: 'Nurses, Pharmacy & Lab', icon: '🏥' },
+  { id: 'OPERATIONS', label: 'Front Desk, Billing & Patients', icon: '📋' }
 ];
 
 export const ROLES = [
-  { id: 'ADMINISTRATOR', name: 'Administrator', desc: 'Hospital Administration & Governance', img: '/assets/images/portrait_admin.jpg', loginBg: '/assets/images/hospital_admin_office_real.jpg', dept: 'Administration & Governance', category: 'EXECUTIVE' },
-  { id: 'HOSPITAL_DIRECTOR', name: 'Hospital Director', desc: 'Clinical Executive Oversight & Strategy', img: '/assets/images/portrait_director.jpg', loginBg: '/assets/images/hospital_director_boardroom_real.jpg', dept: 'Medical Directorate & Strategy', category: 'EXECUTIVE' },
-  { id: 'DEVELOPER', name: 'Developer (NOC)', desc: 'Telemetry, System Lock & Multi-Tenant', img: '/assets/images/portrait_developer.jpg', loginBg: '/assets/images/developer_control_center_real.jpg', dept: 'Landlord Network Operations Center', category: 'EXECUTIVE' },
-  { id: 'DOCTOR', name: 'Medical Doctor', desc: 'Consultations, Rx, Records, Lab Orders', img: '/assets/images/portrait_doctor.jpg', loginBg: '/assets/images/doctor_consultation_real.jpg', dept: 'Outpatient & Inpatient Medicine', category: 'PHYSICIANS' },
-  { id: 'SURGEON', name: 'Surgeon', desc: 'Surgery Plan, OT Mgmt & Post-Op Care', img: '/assets/images/portrait_surgeon.jpg', loginBg: '/assets/images/operating_theatre_real.jpg', dept: 'Surgical Suite & Operating Theatre', category: 'PHYSICIANS' },
-  { id: 'DENTIST', name: 'Dentist', desc: 'Dental & Maxillofacial Care', img: '/assets/images/portrait_dentist.jpg', loginBg: '/assets/images/dental_clinic_real.jpg', dept: 'Dental & Maxillofacial Clinic', category: 'PHYSICIANS' },
-  { id: 'EYE_DOCTOR', name: 'Ophthalmologist', desc: 'Ophthalmic Surgery & Vision Health', img: '/assets/images/portrait_eye_doctor.jpg', loginBg: '/assets/images/ophthalmology_eye_clinic_real.jpg', dept: 'Ophthalmology & Vision Center', category: 'PHYSICIANS' },
-  { id: 'RADIOLOGIST', name: 'Radiologist', desc: 'PACS Imaging & Diagnostic Scan Analysis', img: '/assets/images/portrait_radiologist.jpg', loginBg: '/assets/images/radiology_pacs_mri_real.jpg', dept: 'Diagnostic Radiology & PACS MRI/CT', category: 'PHYSICIANS' },
-  { id: 'NURSE', name: 'Staff Nurse', desc: 'Vitals, Medications & Ward Care Notes', img: '/assets/images/portrait_nurse.jpg', loginBg: '/assets/images/nurse_triage_station.jpg', dept: 'Nursing Care, OPD Triage & Wards', category: 'NURSING_DIAGNOSTICS' },
-  { id: 'PHARMACIST', name: 'Pharmacist', desc: 'Dispensing, Stock & Drug Safety Alerts', img: '/assets/images/portrait_pharmacist.jpg', loginBg: '/assets/images/pharmacy_dispensary_real.jpg', dept: 'Hospital Pharmacy & FEFO Dispensary', category: 'NURSING_DIAGNOSTICS' },
-  { id: 'LAB_TECHNICIAN', name: 'Lab Scientist', desc: 'Clinical Tests, Samples & Pathology', img: '/assets/images/portrait_lab_scientist.jpg', loginBg: '/assets/images/laboratory_pathology_real.jpg', dept: 'Clinical Pathology & Hematology Lab', category: 'NURSING_DIAGNOSTICS' },
-  { id: 'RECEPTIONIST', name: 'Receptionist', desc: 'Registration, Appointments & Queue', img: '/assets/images/portrait_receptionist.jpg', loginBg: '/assets/images/patient_registration_archive_real.jpg', dept: 'Front Desk, MPI Registration & Queue', category: 'OPERATIONS' },
-  { id: 'FOLDER_RETRIEVER', name: 'Archivist', desc: 'Physical Archive & Shelf Folder Vault', img: '/assets/images/portrait_archivist.jpg', loginBg: '/assets/images/medical_records_archive_real.jpg', dept: 'Medical Records & Archive Vault', category: 'OPERATIONS' },
-  { id: 'ACCOUNTANT', name: 'Accountant', desc: 'Billing, Payments & NHIA Claims', img: '/assets/images/portrait_accountant.jpg', loginBg: '/assets/images/nhia_claims_center_real.jpg', dept: 'Hospital Finance & NHIA Claims', category: 'OPERATIONS' },
-  { id: 'HR_MANAGER', name: 'HR Manager', desc: 'Staff Credentials & Duty Rostering', img: '/assets/images/portrait_hr_manager.jpg', loginBg: '/assets/images/hr_medical_staff_real.jpg', dept: 'Human Resources & Credentialing', category: 'OPERATIONS' },
-  { id: 'PATIENT', name: 'Patient Portal', desc: 'Self-Service, Appointments & Records', img: '/assets/images/portrait_patient.jpg', loginBg: '/assets/images/patient_registration_archive_real.jpg', dept: 'Patient Self-Service Portal', category: 'OPERATIONS' }
+  { id: 'ADMINISTRATOR', name: 'Administrator', desc: 'Hospital management, staff accounts & settings', img: '/assets/images/portrait_admin.jpg', loginBg: '/assets/images/hospital_admin_office_real.jpg', dept: 'Hospital Administration', category: 'EXECUTIVE' },
+  { id: 'HOSPITAL_DIRECTOR', name: 'Hospital Director', desc: 'Executive overview & hospital performance', img: '/assets/images/portrait_director.jpg', loginBg: '/assets/images/hospital_director_boardroom_real.jpg', dept: 'Medical Director Office', category: 'EXECUTIVE' },
+  { id: 'DEVELOPER', name: 'Developer Control', desc: 'System health, error logs, permissions & privacy', img: '/assets/images/portrait_developer.jpg', loginBg: '/assets/images/developer_control_center_real.jpg', dept: 'System Engineering', category: 'EXECUTIVE' },
+  { id: 'DOCTOR', name: 'Medical Doctor', desc: 'See patients, write notes, prescribe & order tests', img: '/assets/images/portrait_doctor.jpg', loginBg: '/assets/images/doctor_consultation_real.jpg', dept: 'General Medicine', category: 'PHYSICIANS' },
+  { id: 'SURGEON', name: 'Surgeon', desc: 'Plan surgeries, operating rooms & recovery care', img: '/assets/images/portrait_surgeon.jpg', loginBg: '/assets/images/operating_theatre_real.jpg', dept: 'Surgery & Operating Rooms', category: 'PHYSICIANS' },
+  { id: 'DENTIST', name: 'Dentist', desc: 'Dental checkups, treatments & oral care', img: '/assets/images/portrait_dentist.jpg', loginBg: '/assets/images/dental_clinic_real.jpg', dept: 'Dental Clinic', category: 'PHYSICIANS' },
+  { id: 'EYE_DOCTOR', name: 'Eye Doctor', desc: 'Vision tests, eye care & eye procedures', img: '/assets/images/portrait_eye_doctor.jpg', loginBg: '/assets/images/ophthalmology_eye_clinic_real.jpg', dept: 'Eye Clinic', category: 'PHYSICIANS' },
+  { id: 'RADIOLOGIST', name: 'Radiologist', desc: 'Read X-rays, MRI/CT scans & write reports', img: '/assets/images/portrait_radiologist.jpg', loginBg: '/assets/images/radiology_pacs_mri_real.jpg', dept: 'X-Rays & Scans', category: 'PHYSICIANS' },
+  { id: 'NURSE', name: 'Nurse', desc: 'Check vital signs, ward notes & patient care', img: '/assets/images/portrait_nurse.jpg', loginBg: '/assets/images/nurse_triage_station.jpg', dept: 'Nursing & Wards', category: 'NURSING_DIAGNOSTICS' },
+  { id: 'PHARMACIST', name: 'Pharmacist', desc: 'Give out medicines, manage stock & expiry alerts', img: '/assets/images/portrait_pharmacist.jpg', loginBg: '/assets/images/pharmacy_dispensary_real.jpg', dept: 'Hospital Pharmacy', category: 'NURSING_DIAGNOSTICS' },
+  { id: 'LAB_TECHNICIAN', name: 'Lab Technician', desc: 'Collect lab samples, run tests & share results', img: '/assets/images/portrait_lab_scientist.jpg', loginBg: '/assets/images/laboratory_pathology_real.jpg', dept: 'Laboratory & Blood Bank', category: 'NURSING_DIAGNOSTICS' },
+  { id: 'RECEPTIONIST', name: 'Receptionist', desc: 'Register new patients, check in & manage queue', img: '/assets/images/portrait_receptionist.jpg', loginBg: '/assets/images/patient_registration_archive_real.jpg', dept: 'Front Desk', category: 'OPERATIONS' },
+  { id: 'FOLDER_RETRIEVER', name: 'File Archivist', desc: 'Find and deliver paper patient folders', img: '/assets/images/portrait_archivist.jpg', loginBg: '/assets/images/medical_records_archive_real.jpg', dept: 'Medical Records Room', category: 'OPERATIONS' },
+  { id: 'ACCOUNTANT', name: 'Accountant', desc: 'Create patient bills, collect payments & NHIS', img: '/assets/images/portrait_accountant.jpg', loginBg: '/assets/images/nhia_claims_center_real.jpg', dept: 'Billing & Accounts', category: 'OPERATIONS' },
+  { id: 'HR_MANAGER', name: 'HR Manager', desc: 'Staff schedules, licenses, attendance & leave', img: '/assets/images/portrait_hr_manager.jpg', loginBg: '/assets/images/hr_medical_staff_real.jpg', dept: 'Human Resources', category: 'OPERATIONS' },
+  { id: 'PATIENT', name: 'Patient Portal', desc: 'View your visits, appointments & records', img: '/assets/images/portrait_patient.jpg', loginBg: '/assets/images/patient_registration_archive_real.jpg', dept: 'Patient Self-Service', category: 'OPERATIONS' }
 ];
 
 export default function Header({
@@ -189,8 +189,8 @@ export default function Header({
         const mins = Math.floor(upSec / 60);
         const secs = upSec % 60;
         setHealth({
-          server: res.server === 'running' ? 'Online' : 'Degraded',
-          database: res.database === 'connected' ? 'Connected (PostgreSQL)' : 'Disconnected',
+          server: res.server === 'running' ? 'Online' : 'Offline',
+          database: res.database === 'connected' ? 'Connected (Live Data)' : 'Disconnected',
           uptime: mins > 0 ? `${mins}m ${secs}s` : `${secs}s`,
           environment: res.environment || 'DEVELOPMENT'
         });
@@ -305,26 +305,26 @@ export default function Header({
                 </button>
               )}
               <button onClick={onLogout} className="btn-outline-gold" style={{ padding: '6px 12px', fontSize: '0.8rem' }}>
-                <LogOut size={14} /> Logout
+                <LogOut size={14} /> Sign Out
               </button>
             </div>
           ) : (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <button onClick={onOpenLogin} className="btn-gold" style={{ padding: '8px 16px' }}>
-                <LogIn size={16} /> Sign In to Your Account
+                <LogIn size={16} /> Sign In
               </button>
               <button
                 onClick={() => onSelectRole('DEVELOPER')}
                 className="btn-outline-gold"
                 style={{ padding: '8px 10px', fontSize: '0.75rem', borderColor: '#ef4444', color: '#fca5a5' }}
-                title="Restricted Root Developer Access (Requires Developer Authentication)"
+                title="Restricted Developer Controls (Login Required)"
               >
                 <Lock size={14} /> Developer
               </button>
             </div>
           )}
 
-          {/* GBS-RCCE Live Notifications Bell */}
+          {/* Live Notifications Bell */}
           <div style={{ position: 'relative' }}>
             <button
               onClick={() => {
@@ -334,7 +334,7 @@ export default function Header({
               }}
               className="btn-outline-gold"
               style={{ padding: '8px 12px', fontSize: '0.8rem', position: 'relative' }}
-              title="GBS-RCCE Event & Notification Engine Alerts"
+              title="View live hospital alerts and updates"
             >
               <Bell size={16} /> Alerts
               {unreadNotifications > 0 && (
@@ -362,15 +362,15 @@ export default function Header({
                   width: '360px',
                   maxHeight: '420px',
                   overflowY: 'auto',
-                  padding: '14px',
+                  padding: '16px',
                   zIndex: 9998,
                   border: '1px solid var(--gold-400)',
-                  boxShadow: '0 12px 32px rgba(0,0,0,0.85)'
+                  boxShadow: '0 16px 36px rgba(0,0,0,0.85)'
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '8px' }}>
                   <span style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--gold-400)' }}>
-                    System Notifications ({unreadNotifications} unread)
+                    Notifications ({unreadNotifications} new)
                   </span>
                   <div style={{ display: 'flex', gap: '6px' }}>
                     <button
@@ -396,7 +396,7 @@ export default function Header({
 
                 {notificationsList.length === 0 ? (
                   <div style={{ textAlign: 'center', padding: '16px', color: 'var(--text-dim)', fontSize: '0.78rem' }}>
-                    No notifications recorded yet.
+                    You're all caught up — no new alerts right now.
                   </div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -404,8 +404,8 @@ export default function Header({
                       <div
                         key={n.id}
                         style={{
-                          padding: '8px 10px',
-                          borderRadius: '6px',
+                          padding: '10px 12px',
+                          borderRadius: '10px',
                           background: n.isRead ? 'rgba(0,0,0,0.28)' : 'rgba(212,175,55,0.12)',
                           border: `1px solid ${n.isRead ? 'var(--border-subtle)' : 'var(--border-gold)'}`
                         }}
@@ -443,9 +443,9 @@ export default function Header({
               onClick={toggleRoleCountsDropdown}
               className="btn-outline-gold"
               style={{ padding: '8px 14px', fontSize: '0.8rem', background: showRoleCounts ? 'var(--gold-glow)' : 'transparent' }}
-              title="Click to fetch real PostgreSQL registered user counts by role"
+              title="Click to see how many staff are registered in each department"
             >
-              <Users size={16} /> Role Registers <ChevronDown size={14} />
+              <Users size={16} /> Staff Directory <ChevronDown size={14} />
             </button>
 
             {/* Dropdown Card */}
@@ -465,14 +465,14 @@ export default function Header({
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '8px' }}>
                   <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--gold-400)' }}>
-                    PostgreSQL Registered Users by Role
+                    Registered Staff & Role Accounts
                   </div>
                   <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Mandatory Step 7</span>
                 </div>
 
                 {loadingCounts ? (
                   <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                    Querying PostgreSQL role counts...
+                    Loading live staff role counts...
                   </div>
                 ) : countsError ? (
                   <div style={{ padding: '16px', textAlign: 'center', background: 'rgba(0,0,0,0.4)', borderRadius: '6px' }}>
@@ -480,7 +480,7 @@ export default function Header({
                       Administrator Credential Required
                     </div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
-                      Per Step 7 security, role counts query PostgreSQL securely via administrator authorization.
+                      Sign in as an Administrator to view live user counts for each hospital role.
                     </div>
                     <button
                       onClick={() => {
@@ -516,7 +516,7 @@ export default function Header({
 
                     <div style={{ marginTop: '12px', paddingTop: '8px', borderTop: '1px solid var(--border-subtle)', textAlign: 'center' }}>
                       <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>
-                        Source: PostgreSQL database (No mock data)
+                        Live hospital database (verified records)
                       </span>
                     </div>
                   </div>
@@ -638,22 +638,22 @@ export default function Header({
           {/* Clinical Direct Actions */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
             <span style={{ color: 'var(--gold-400)', fontWeight: 700, textTransform: 'uppercase', fontSize: '0.72rem', letterSpacing: '0.05em', marginRight: '2px' }}>
-              🩺 Clinical:
+              🩺 Quick Actions:
             </span>
-            <button onClick={() => onOpenQuickAction('NEW_APPOINTMENT')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.74rem' }} title="Schedule a new patient appointment or register an outpatient">
-              <PlusCircle size={13} /> New Appointment
+            <button onClick={() => onOpenQuickAction('NEW_APPOINTMENT')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.76rem' }} title="Register a new patient or schedule an appointment">
+              <PlusCircle size={13} /> New Patient
             </button>
-            <button onClick={() => onOpenQuickAction('PATIENT_SEARCH')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.74rem' }} title="Search the Master Patient Index (MPI) and medical folders">
-              <Search size={13} /> Patient Search (MPI)
+            <button onClick={() => onOpenQuickAction('PATIENT_SEARCH')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.76rem' }} title="Search patients and medical folders">
+              <Search size={13} /> Find Patient
             </button>
-            <button onClick={() => onOpenQuickAction('BED_AVAILABILITY')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.74rem' }} title="Inspect hospital wards, rooms, and real-time bed occupancy matrix">
-              <Bed size={13} /> Bed Matrix
+            <button onClick={() => onOpenQuickAction('BED_AVAILABILITY')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.76rem' }} title="See open hospital beds and rooms">
+              <Bed size={13} /> Free Beds
             </button>
-            <button onClick={() => onOpenQuickAction('LAB_REQUESTS')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.74rem' }} title="Open Laboratory Pathology & Diagnostic Test Requests">
+            <button onClick={() => onOpenQuickAction('LAB_REQUESTS')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.76rem' }} title="Order or check lab tests">
               <FlaskConical size={13} /> Lab Tests
             </button>
-            <button onClick={() => onOpenQuickAction('PHARMACY_STOCK')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.74rem' }} title="Open Pharmacy FEFO Dispensary & Drug Inventory">
-              <Pill size={13} /> Pharmacy Stock
+            <button onClick={() => onOpenQuickAction('PHARMACY_STOCK')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.76rem' }} title="Check pharmacy medicine inventory">
+              <Pill size={13} /> Medicine Stock
             </button>
           </div>
 
@@ -662,31 +662,29 @@ export default function Header({
           {/* Dossiers & Intelligence Pages */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
             <span style={{ color: '#38bdf8', fontWeight: 700, textTransform: 'uppercase', fontSize: '0.72rem', letterSpacing: '0.05em', marginRight: '2px' }}>
-              📊 Dossiers:
+              📊 Records:
             </span>
-            <button onClick={() => onOpenQuickAction('VIEW_REPORTS')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.74rem' }} title="Open full-page Clinical, Operational, Duty & Annual Financial Reports">
+            <button onClick={() => onOpenQuickAction('VIEW_REPORTS')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.76rem' }} title="View hospital reports">
               <FileText size={13} /> Reports
             </button>
-            <button onClick={() => onOpenQuickAction('VIEW_NOTIFICATIONS')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.74rem' }} title="Open full-page Hospital Alerts & Dispatched Clinical Notifications">
-              <AlertTriangle size={13} /> Alerts
+            <button onClick={() => onOpenQuickAction('VIEW_NOTIFICATIONS')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.76rem' }} title="View all system alerts">
+              <AlertTriangle size={13} /> All Alerts
             </button>
-            <button onClick={() => onOpenQuickAction('VIEW_APPLICATIONS')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.74rem' }} title="Open Staff Account Registrations & Leave Applications">
-              <UserCheck size={13} /> Applications
+            <button onClick={() => onOpenQuickAction('VIEW_APPLICATIONS')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.76rem' }} title="Review pending account and leave requests">
+              <UserCheck size={13} /> Requests
             </button>
-            <button onClick={() => onOpenQuickAction('VIEW_HOSPITAL_INFORMATION')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.74rem' }} title="Open full-page Hospital Facility Profile, Wards & Operational Summary">
-              <Database size={13} /> Facility Profile
+            <button onClick={() => onOpenQuickAction('VIEW_HOSPITAL_INFORMATION')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.76rem' }} title="View hospital details and summary">
+              <Database size={13} /> Hospital Info
             </button>
-            <button onClick={() => onOpenQuickAction('VIEW_SYSTEM_INFORMATION')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.74rem' }} title="Open full-page System Telemetry, PostgreSQL Status & Architecture Info">
-              <Activity size={13} /> Telemetry
+            <button onClick={() => onOpenQuickAction('VIEW_SYSTEM_INFORMATION')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.76rem' }} title="Check server speed and system health">
+              <Activity size={13} /> System Health
             </button>
           </div>
         </div>
 
         {/* Patient Safety Guardrail Tag */}
-
-        {/* Patient Safety Guardrail Tag */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--status-online)', fontSize: '0.75rem', fontWeight: 600 }}>
-          <Shield size={14} /> Clinical Systems Never Lock • 24/7 Emergency Bypass Active
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--status-online)', fontSize: '0.76rem', fontWeight: 600 }}>
+          <Shield size={14} /> Patient Safety Protected • Emergency Access Always Open
         </div>
       </div>
 
@@ -798,7 +796,7 @@ export default function Header({
                   Cancel
                 </button>
                 <button type="submit" disabled={savingBranding} className="btn-gold" style={{ padding: '8px 18px' }}>
-                  {savingBranding ? 'Saving to PostgreSQL...' : 'Save Preferred Hospital Name'}
+                  {savingBranding ? 'Saving...' : 'Save Hospital Name'}
                 </button>
               </div>
             </form>

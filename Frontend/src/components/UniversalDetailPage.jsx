@@ -48,7 +48,7 @@ export default function UniversalDetailPage({
   const pageTitle = detailState?.title || formatDetailTitle(detailType, moduleKey);
   const pageSubtitle =
     detailState?.subtitle ||
-    `Dedicated ${detailType.replace(/_/g, ' ')} view connected to PostgreSQL (${moduleKey})`;
+    `Live hospital details for ${detailType.replace(/^VIEW_/, '').replace(/_/g, ' ').toLowerCase()} (${moduleKey})`;
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -213,7 +213,7 @@ export default function UniversalDetailPage({
         if (patient) setLiveData(patient);
       }
     } catch (err) {
-      setError(err.message || 'Unable to load detail record from PostgreSQL');
+      setError(err.message || 'Unable to load this information right now. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -265,7 +265,7 @@ export default function UniversalDetailPage({
       });
       setActionFeedback({
         type: 'success',
-        text: `Duty report recorded in PostgreSQL for role ${currentRole}.`
+        text: `Shift duty report saved for ${currentRole}.`
       });
       await loadDetailData();
     } catch (err) {
@@ -391,7 +391,7 @@ export default function UniversalDetailPage({
               color: envInfo?.activeEnvironment === 'PRODUCTION' ? '#86efac' : '#7dd3fc'
             }}
           >
-            ENV: {envInfo?.activeEnvironment || 'DEVELOPMENT'} • PostgreSQL
+            {envInfo?.activeEnvironment === 'PRODUCTION' ? 'Live Hospital Mode' : 'Training / Practice Mode'}
           </span>
 
           <button
@@ -399,7 +399,7 @@ export default function UniversalDetailPage({
             className="btn-outline-gold"
             style={{ padding: '7px 12px', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '6px' }}
           >
-            <RefreshCw size={14} /> Refresh Live Data
+            <RefreshCw size={14} /> Refresh
           </button>
 
           <button
@@ -407,7 +407,7 @@ export default function UniversalDetailPage({
             className="btn-outline-gold"
             style={{ padding: '7px 12px', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '6px' }}
           >
-            <Printer size={14} /> Print Dossier
+            <Printer size={14} /> Print Page
           </button>
         </div>
       </div>
@@ -511,7 +511,7 @@ export default function UniversalDetailPage({
                   onClick={() => setReportCategory(cat.id)}
                   className={reportCategory === cat.id ? 'btn-gold' : 'btn-outline-gold'}
                   style={{ padding: '6px 12px', fontSize: '0.75rem' }}
-                  title={`Load ${cat.label} from PostgreSQL`}
+                  title={`Load ${cat.label}`}
                 >
                   {cat.label}
                 </button>
@@ -579,16 +579,16 @@ export default function UniversalDetailPage({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '10px' }}>
           <h3 style={{ margin: 0, fontSize: '1.05rem', color: 'var(--gold-400)', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Database size={18} />
-            Authoritative PostgreSQL Record Attributes
+            Live Hospital Record Details
           </h3>
           <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-            URL: {typeof window !== 'undefined' ? window.location.pathname : ''}
+            Page: {typeof window !== 'undefined' ? window.location.pathname : ''}
           </span>
         </div>
 
         {loading ? (
           <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>
-            Loading live record attributes from PostgreSQL...
+            Loading latest information...
           </div>
         ) : liveData && typeof liveData === 'object' && Object.keys(liveData).length > 0 ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
@@ -643,8 +643,8 @@ export default function UniversalDetailPage({
             })}
           </div>
         ) : (
-          <div style={{ padding: '28px', textAlign: 'center', color: 'var(--text-muted)', background: 'rgba(0,0,0,0.3)', borderRadius: '8px' }}>
-            No records available in PostgreSQL for this view yet.
+          <div style={{ padding: '28px', textAlign: 'center', color: 'var(--text-muted)', background: 'rgba(0,0,0,0.28)', borderRadius: '10px' }}>
+            No records added for this view yet.
           </div>
         )}
       </div>
@@ -656,25 +656,25 @@ export default function UniversalDetailPage({
             <div>
               <h3 style={{ margin: 0, fontSize: '1.05rem', color: 'var(--gold-400)' }}>
                 {detailType === 'VIEW_APPLICATIONS' ? 'Submitted Applications & Approvals Queue' :
-                  detailType === 'VIEW_TRANSACTIONS' ? 'Financial Invoices & Payment Ledger' :
-                    detailType === 'VIEW_HISTORY' ? 'Immutable PostgreSQL Audit Log Trail' :
-                      detailType === 'VIEW_NOTIFICATIONS' ? 'System & Clinical Broadcast Notifications' :
-                        detailType === 'VIEW_SYSTEM_INFORMATION' ? 'Database Table Record & Environment Source Matrix' :
-                          'Associated PostgreSQL Records'}
+                  detailType === 'VIEW_TRANSACTIONS' ? 'Bills, Payments & Receipts' :
+                    detailType === 'VIEW_HISTORY' ? 'Activity History & Audit Log' :
+                      detailType === 'VIEW_NOTIFICATIONS' ? 'Hospital Alerts & Messages' :
+                        detailType === 'VIEW_SYSTEM_INFORMATION' ? 'System Data & Environment Summary' :
+                          'Related Records'}
               </h3>
               <p style={{ margin: '2px 0 0', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                Showing {filteredExtraRecords.length} live database entries (0 fake or sample rows)
+                Showing {filteredExtraRecords.length} live records
               </p>
             </div>
 
             <input
               type="text"
-              placeholder="Filter records on this page..."
+              placeholder="Search or filter this list..."
               value={detailFilter}
               onChange={(e) => setDetailFilter(e.target.value)}
               style={{
                 padding: '8px 14px',
-                borderRadius: '6px',
+                borderRadius: '10px',
                 background: 'rgba(6, 12, 24, 0.88)',
                 border: '1px solid var(--border-gold)',
                 color: '#fff',
@@ -685,8 +685,8 @@ export default function UniversalDetailPage({
           </div>
 
           {filteredExtraRecords.length === 0 ? (
-            <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)', background: 'rgba(0,0,0,0.35)', borderRadius: '8px' }}>
-              No records available
+            <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)', background: 'rgba(0,0,0,0.32)', borderRadius: '10px' }}>
+              No records found yet.
             </div>
           ) : (
             <div style={{ overflowX: 'auto' }}>
@@ -789,18 +789,18 @@ export default function UniversalDetailPage({
 
 function formatDetailTitle(detailType, moduleKey) {
   const map = {
-    VIEW_DETAILS: `${moduleKey} — Record Details Dossier`,
-    VIEW_PROFILE: `${moduleKey} — Profile & Identity Dossier`,
-    VIEW_RECORDS: `${moduleKey} — Complete PostgreSQL Records Register`,
-    VIEW_REPORTS: `${moduleKey} — Analytical & Clinical Reports`,
-    VIEW_TRANSACTIONS: `${moduleKey} — Financial Transactions & Invoices`,
-    VIEW_HISTORY: `${moduleKey} — Chronological Audit & Activity History`,
-    VIEW_NOTIFICATIONS: `${moduleKey} — Real-Time Alerts & Notifications`,
-    VIEW_APPLICATIONS: `${moduleKey} — Pending Applications & Onboarding Queue`,
-    VIEW_HOSPITAL_INFORMATION: `Hospital Facility & Infrastructure Information`,
-    VIEW_SYSTEM_INFORMATION: `System Telemetry, Environment & Database Information`
+    VIEW_DETAILS: `${moduleKey} — Full Details`,
+    VIEW_PROFILE: `${moduleKey} — Profile & Info`,
+    VIEW_RECORDS: `${moduleKey} — All Records`,
+    VIEW_REPORTS: `${moduleKey} — Department Reports`,
+    VIEW_TRANSACTIONS: `${moduleKey} — Bills & Payments`,
+    VIEW_HISTORY: `${moduleKey} — Activity History`,
+    VIEW_NOTIFICATIONS: `${moduleKey} — Alerts & Messages`,
+    VIEW_APPLICATIONS: `${moduleKey} — Applications & Requests`,
+    VIEW_HOSPITAL_INFORMATION: `Hospital Details & Setup`,
+    VIEW_SYSTEM_INFORMATION: `System Health & Data Overview`
   };
-  return map[detailType] || `${moduleKey} — Detailed Information`;
+  return map[detailType] || `${moduleKey} — Details`;
 }
 
 function formatKeyLabel(key) {
