@@ -322,45 +322,34 @@ async function getTelemedicineTelemetry() {
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
 
-    const [
-        totalConsultations,
-        activeInCall,
-        waitingRoom,
-        scheduledToday,
-        completedToday,
-        avgDurationAgg,
-        avgQualityAgg,
-        upcomingSessions
-    ] = await Promise.all([
-        prisma.telemedicineConsultation.count(),
-        prisma.telemedicineConsultation.count({ where: { status: "IN_CALL" } }),
-        prisma.telemedicineConsultation.count({ where: { status: "WAITING_ROOM" } }),
-        prisma.telemedicineConsultation.count({
-            where: {
-                scheduledAt: { gte: todayStart },
-                status: "SCHEDULED"
-            }
-        }),
-        prisma.telemedicineConsultation.count({
-            where: {
-                endedAt: { gte: todayStart },
-                status: "COMPLETED"
-            }
-        }),
-        prisma.telemedicineConsultation.aggregate({
-            _avg: { durationSeconds: true },
-            where: { status: "COMPLETED" }
-        }),
-        prisma.telemedicineConsultation.aggregate({
-            _avg: { callQualityRating: true },
-            where: { status: "COMPLETED" }
-        }),
-        prisma.telemedicineConsultation.findMany({
-            where: { status: { in: ["SCHEDULED", "WAITING_ROOM", "IN_CALL"] } },
-            take: 5,
-            orderBy: { scheduledAt: "asc" }
-        })
-    ]);
+    const totalConsultations = await prisma.telemedicineConsultation.count();
+    const activeInCall = await prisma.telemedicineConsultation.count({ where: { status: "IN_CALL" } });
+    const waitingRoom = await prisma.telemedicineConsultation.count({ where: { status: "WAITING_ROOM" } });
+    const scheduledToday = await prisma.telemedicineConsultation.count({
+        where: {
+            scheduledAt: { gte: todayStart },
+            status: "SCHEDULED"
+        }
+    });
+    const completedToday = await prisma.telemedicineConsultation.count({
+        where: {
+            endedAt: { gte: todayStart },
+            status: "COMPLETED"
+        }
+    });
+    const avgDurationAgg = await prisma.telemedicineConsultation.aggregate({
+        _avg: { durationSeconds: true },
+        where: { status: "COMPLETED" }
+    });
+    const avgQualityAgg = await prisma.telemedicineConsultation.aggregate({
+        _avg: { callQualityRating: true },
+        where: { status: "COMPLETED" }
+    });
+    const upcomingSessions = await prisma.telemedicineConsultation.findMany({
+        where: { status: { in: ["SCHEDULED", "WAITING_ROOM", "IN_CALL"] } },
+        take: 5,
+        orderBy: { scheduledAt: "asc" }
+    });
 
     const avgSeconds = avgDurationAgg._avg.durationSeconds || 0;
     const avgDurationMinutes = Math.round((avgSeconds / 60) * 10) / 10;

@@ -254,24 +254,24 @@ async function login(email, password, ipAddress, userAgent, deviceFingerprint = 
     const token = generateToken(tokenPayload);
     const tokenDigest = sha256(token);
 
-    await prisma.$transaction(async (tx) => {
-        await tx.user.update({
-            where: { id: user.id },
-            data: { lastLogin: new Date() }
-        });
+    await prisma.user.update({
+        where: { id: user.id },
+        data: { lastLogin: new Date() }
+    });
 
-        await tx.session.create({
-            data: {
-                id: sessionId,
-                userId: user.id,
-                token: tokenDigest,
-                ipAddress: ipAddress || null,
-                userAgent: userAgent || null,
-                expiresAt
-            }
-        });
+    await prisma.session.create({
+        data: {
+            id: sessionId,
+            userId: user.id,
+            token: tokenDigest,
+            ipAddress: ipAddress || null,
+            userAgent: userAgent || null,
+            expiresAt
+        }
+    });
 
-        await tx.auditLog.create({
+    try {
+        await prisma.auditLog.create({
             data: {
                 userId: user.id,
                 role: user.role.name,
@@ -291,7 +291,7 @@ async function login(email, password, ipAddress, userAgent, deviceFingerprint = 
                 }
             }
         });
-    });
+    } catch (_auditErr) {}
 
     logger.info({
         message: "User login successful",

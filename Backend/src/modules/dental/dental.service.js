@@ -57,12 +57,10 @@ async function getDentalTelemetry() {
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
 
-    const [totalRecords, todayRecords, oralSurgeryCases, inProgressCases] = await Promise.all([
-        prisma.dentalRecord.count(),
-        prisma.dentalRecord.count({ where: { createdAt: { gte: startOfDay } } }),
-        prisma.dentalRecord.count({ where: { category: "ORAL_SURGERY" } }),
-        prisma.dentalRecord.count({ where: { status: { in: ["OPEN", "IN_PROGRESS"] } } })
-    ]);
+    const totalRecords = await prisma.dentalRecord.count();
+    const todayRecords = await prisma.dentalRecord.count({ where: { createdAt: { gte: startOfDay } } });
+    const oralSurgeryCases = await prisma.dentalRecord.count({ where: { category: "ORAL_SURGERY" } });
+    const inProgressCases = await prisma.dentalRecord.count({ where: { status: { in: ["OPEN", "IN_PROGRESS"] } } });
 
     return {
         totalRecords,

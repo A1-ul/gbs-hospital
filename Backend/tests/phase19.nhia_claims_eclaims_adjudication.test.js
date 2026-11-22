@@ -36,6 +36,9 @@ describe("Phase 19: NHIA Claims Batches, E-Claims & Electronic Adjudication Subs
                 email: "admin@gbs.com",
                 password: "Admin123"
             });
+        if (adminRes.status !== 200) {
+            console.error("FAIL phase19 login:", adminRes.status, adminRes.body);
+        }
         expect(adminRes.status).toBe(200);
         adminToken = adminRes.body.data.token;
         testNhisNumber = `NHIS-GH-${uniqueSuffix}`;
