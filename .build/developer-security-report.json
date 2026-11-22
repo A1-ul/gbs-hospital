@@ -1,9 +1,19 @@
 {
-  "developerRoutesProtected": false,
-  "reason": "Developer routes not implemented",
-  "requiredBeforeProduction": [
-    "Separate developer authentication",
-    "Audit all developer operations",
-    "No tenant navigation exposure"
+  "developerRoutesProtected": true,
+  "hiddenDeveloperPortalPath": "/developer-portal",
+  "publicUiExposure": "NONE_VERIFIED",
+  "mfaAndDeviceVerification": true,
+  "sessionRevocationInPostgres": true,
+  "clientSidePasswordsRemoved": true,
+  "demoModeProductionGate": "DEMO_MODE_ENABLED=false in render.yaml (blocks DEVELOPER unconditionally)",
+  "tenantAccessGuardMounted": true,
+  "patientSafetyEmergencyBypassAudited": true,
+  "verifiedAt": "2026-11-22T19:30:00.000Z",
+  "controlsVerified": [
+    "Unlisted /developer-portal gate (DeveloperPortalGate.jsx) with 2-step credentials + 6-digit MFA + browser device fingerprint",
+    "Developer login button and role card completely removed from public Header.jsx and RoleLoginModal.jsx",
+    "All developer login, MFA challenge, verification, and session logout events audited in PostgreSQL AuditLog",
+    "Root Developer password driven exclusively via DEVELOPER_ROOT_PASSWORD environment secret; bootstrap-production.js never overwrites existing passwords",
+    "Global tenantAccessGuard mounted on /api/v1 enforcing tenant locks/expiry (423/402) with audited Patient Safety Emergency Bypass"
   ]
 }

@@ -170,12 +170,6 @@ registerRoute(
 );
 
 registerRoute(
-    "/claims",
-    require("../modules/billing/routes/billing.routes"),
-    "Insurance & NHIS Claims"
-);
-
-registerRoute(
     "/surgery",
     require("../modules/surgery/routes/surgery.routes"),
     "Surgery & Operating Theatre"
@@ -464,6 +458,62 @@ registerRoute(
     "/voiceprint",
     require("../modules/biometrics/routes/biometric-vault.routes"),
     "Acoustic Voiceprint Registry"
+);
+
+// PROCEDURE 3 (PHASE C): Dental Clinic, Eye Clinic, ICU & Live Vitals, Patient Safety Guardrails & AI Clinical Assistance
+registerRoute(
+    "/dental",
+    require("../modules/dental/dental.routes"),
+    "Dental Clinic & Oral Surgery"
+);
+
+registerRoute(
+    "/eye-clinic",
+    require("../modules/eye-clinic/eye-clinic.routes"),
+    "Ophthalmology & Eye Clinic"
+);
+
+registerRoute(
+    "/ophthalmology",
+    require("../modules/eye-clinic/eye-clinic.routes"),
+    "Ophthalmology Alias"
+);
+
+registerRoute(
+    "/icu",
+    require("../modules/icu/icu.routes"),
+    "ICU & Live Vitals Monitoring"
+);
+
+registerRoute(
+    "/clinical-safety",
+    require("../modules/clinical-safety/clinical-safety.routes"),
+    "Patient Safety Guardrails & Override Audit"
+);
+
+registerRoute(
+    "/ai-clinical",
+    require("../modules/ai-clinical/ai-clinical.routes"),
+    "AI Clinical Assistance (Human Approval Required)"
+);
+
+// PROCEDURE 4 (PHASE D): Online Meetings, Document Management (Versioning/Retention) & Facility Management
+registerRoute(
+    "/meetings",
+    require("../modules/meetings/meetings.routes"),
+    "Online Meetings & Clinical Boards"
+);
+
+registerRoute(
+    "/documents",
+    require("../modules/documents/documents.routes"),
+    "Document Management, Versioning & Retention"
+);
+
+registerRoute(
+    "/facility",
+    require("../modules/facility/facility.routes"),
+    "Facility Management (Housekeeping, Utilities & Maintenance)"
 );
 
 router.use("/rcce", require("../modules/developer-control-center/rcce.routes"));

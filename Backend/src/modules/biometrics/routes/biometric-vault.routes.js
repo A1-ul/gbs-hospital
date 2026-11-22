@@ -24,4 +24,10 @@ router.post("/credentials/enroll", authMiddleware, controller.enrollCredential);
 router.get("/credentials", authMiddleware, controller.getUserCredentials);
 router.get("/credentials/:userId", authMiddleware, controller.getUserCredentials);
 
+// 4-Step Facial Recognition Security (Developer & Tenant Admin)
+router.post("/face/enroll", authMiddleware, controller.enrollFace);
+router.post("/face/verify", authMiddleware, controller.verifyFace);
+router.get("/face/status", authMiddleware, controller.getFaceStatus);
+router.get("/face/status/:userId", authMiddleware, controller.getFaceStatus);
+
 module.exports = router;

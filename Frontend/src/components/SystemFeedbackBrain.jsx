@@ -321,27 +321,28 @@ export default function SystemFeedbackBrain({ currentRole, activeModule }) {
             background: 'linear-gradient(90deg, rgba(24,19,12,0.92) 0%, rgba(42,33,18,0.94) 50%, rgba(20,16,10,0.92) 100%)',
             border: '1px solid rgba(229,195,88,0.58)',
             borderRadius: '8px',
-            padding: '6px 14px',
+            padding: '6px 12px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            gap: '12px',
+            flexWrap: 'wrap',
+            gap: '6px 12px',
             boxShadow: '0 6px 20px rgba(0,0,0,0.72)',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '180px', flex: '1 1 240px', overflow: 'hidden' }}>
             <Brain size={15} style={{ color: '#fde68a', flexShrink: 0 }} />
-            <span style={{ color: '#fde68a', fontWeight: 700, fontSize: '0.76rem', whiteSpace: 'nowrap' }}>
+            <span style={{ color: '#fde68a', fontWeight: 700, fontSize: '0.74rem', whiteSpace: 'nowrap', flexShrink: 0 }}>
               LIVE STATUS:
             </span>
-            <span style={{ color: '#fff', fontSize: '0.78rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <span style={{ color: '#fff', fontSize: '0.76rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
               {latest ? `${latest.title} — ${latest.message}` : 'Everything is connected and ready.'}
             </span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0, fontSize: '0.74rem', color: '#e7e2d8' }}>
+          <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '6px 10px', flexShrink: 0, fontSize: '0.72rem', color: '#e7e2d8' }}>
             <span>Account: <strong style={{ color: '#fde68a' }}>{(currentRole || 'GUEST').replace(/_/g, ' ')}</strong></span>
             <span>Area: <strong style={{ color: '#fde68a' }}>{(activeModule || 'HOME').replace(/_/g, ' ')}</strong></span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#fde68a', fontWeight: 700 }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#fde68a', fontWeight: 700, whiteSpace: 'nowrap' }}>
               {expanded ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
               {expanded ? 'Hide Activity' : 'Activity Log'}
             </span>

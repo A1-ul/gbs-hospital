@@ -66,6 +66,13 @@ router.get(
     controller.searchMPI
 );
 
+// Patient Self-Service Portal for Logged-in Patient
+router.get(
+    "/me/dashboard",
+    authorizeRoles(...PATIENT_VIEW_ROLES),
+    controller.getMyPatientDashboard
+);
+
 // Patient Role Personal Dashboard
 router.get(
     "/:id/dashboard",

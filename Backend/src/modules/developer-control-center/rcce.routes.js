@@ -34,14 +34,14 @@ router.get("/audit-logs", authorizeRoles(...ADMIN_ROLES), controller.getAuditLog
 router.get("/events", authorizeRoles(...ADMIN_ROLES), controller.getEvents);
 
 // Error Diagnostics Repository (Developer & System Admin only)
-router.get("/errors", authorizeRoles(...DEVELOPER_ROLES, ROLES.ADMIN, ROLES.HOSPITAL_DIRECTOR), controller.getErrorLogs);
-router.patch("/errors/:id/resolve", authorizeRoles(...DEVELOPER_ROLES, ROLES.ADMIN), controller.resolveErrorLog);
+router.get("/errors", authorizeRoles(...DEVELOPER_ROLES, ROLES.ADMINISTRATOR, ROLES.HOSPITAL_DIRECTOR), controller.getErrorLogs);
+router.patch("/errors/:id/resolve", authorizeRoles(...DEVELOPER_ROLES, ROLES.ADMINISTRATOR), controller.resolveErrorLog);
 
 // Unified User & Developer Control Engine
 router.get("/developer/overview", authorizeRoles(...ADMIN_ROLES), controller.getDeveloperOverview);
 router.get("/developer/users-activity", authorizeRoles(...ADMIN_ROLES), controller.getUsersActivity);
 router.get("/developer/permissions", authorizeRoles(...ADMIN_ROLES), controller.getPermissionsMatrix);
-router.patch("/developer/permissions", authorizeRoles(...DEVELOPER_ROLES, ROLES.ADMIN), controller.updateRolePermissions);
+router.patch("/developer/permissions", authorizeRoles(...DEVELOPER_ROLES, ROLES.ADMINISTRATOR), controller.updateRolePermissions);
 
 // Explicit Audited Sensitive-Data Access Grants
 router.get("/developer/access-grants", authorizeRoles(...ADMIN_ROLES), controller.listAccessGrants);
@@ -59,7 +59,13 @@ router.patch(
 
 // System Configuration & Maintenance Mode
 router.get("/developer/configs", authorizeRoles(...ADMIN_ROLES), controller.listConfigurations);
-router.put("/developer/configs/:key", authorizeRoles(...DEVELOPER_ROLES, ROLES.ADMIN), controller.upsertConfiguration);
-router.post("/developer/maintenance", authorizeRoles(...DEVELOPER_ROLES, ROLES.ADMIN), controller.toggleMaintenanceMode);
+router.put("/developer/configs/:key", authorizeRoles(...DEVELOPER_ROLES, ROLES.ADMINISTRATOR), controller.upsertConfiguration);
+router.post("/developer/maintenance", authorizeRoles(...DEVELOPER_ROLES, ROLES.ADMINISTRATOR), controller.toggleMaintenanceMode);
+
+// Phase E: Automated Trial Expiration Sweep, Truthful Integrations Status, AI Developer Assistant & Tenant Analytics
+router.post("/developer/trial-sweep", authorizeRoles(...DEVELOPER_ROLES), controller.runTrialSweep);
+router.get("/developer/integrations-status", authorizeRoles(...ADMIN_ROLES), controller.getIntegrationsStatus);
+router.get("/developer/ai-assistant/diagnostics", authorizeRoles(...DEVELOPER_ROLES, ROLES.ADMINISTRATOR), controller.getAiDeveloperDiagnostics);
+router.get("/developer/tenant-analytics", authorizeRoles(...DEVELOPER_ROLES), controller.getTenantAnalytics);
 
 module.exports = router;

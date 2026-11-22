@@ -49,6 +49,10 @@ export default function Header({
   const [roleCountsData, setRoleCountsData] = useState(null);
   const [countsError, setCountsError] = useState(null);
   const [loadingCounts, setLoadingCounts] = useState(false);
+  const [expandedRoleName, setExpandedRoleName] = useState(null);
+  const [expandedRoleUsers, setExpandedRoleUsers] = useState([]);
+  const [loadingRoleUsers, setLoadingRoleUsers] = useState(false);
+  const [roleActionFeedback, setRoleActionFeedback] = useState('');
   const [showBrandingModal, setShowBrandingModal] = useState(false);
   const [hospitalNameInput, setHospitalNameInput] = useState('');
   const [mottoInput, setMottoInput] = useState('');
@@ -201,21 +205,72 @@ export default function Header({
   }, []);
 
   // Fetch DB-backed User Counts ONLY on drop-list click (Step 7 requirement!)
+  const refreshRoleCounts = async () => {
+    setLoadingCounts(true);
+    setCountsError(null);
+    try {
+      const data = await api.getCountsByRole();
+      setRoleCountsData(data);
+    } catch (err) {
+      setCountsError(err.message || 'Administrator authentication required');
+    } finally {
+      setLoadingCounts(false);
+    }
+  };
+
   const toggleRoleCountsDropdown = async () => {
     if (!showRoleCounts) {
-      setLoadingCounts(true);
       setShowRoleCounts(true);
-      setCountsError(null);
-      try {
-        const data = await api.getCountsByRole();
-        setRoleCountsData(data);
-      } catch (err) {
-        setCountsError(err.message || 'Administrator authentication required');
-      } finally {
-        setLoadingCounts(false);
-      }
+      setExpandedRoleName(null);
+      setExpandedRoleUsers([]);
+      setRoleActionFeedback('');
+      await refreshRoleCounts();
     } else {
       setShowRoleCounts(false);
+    }
+  };
+
+  const handleInspectRoleUsers = async (roleName) => {
+    if (expandedRoleName === roleName) {
+      setExpandedRoleName(null);
+      setExpandedRoleUsers([]);
+      return;
+    }
+    setExpandedRoleName(roleName);
+    setLoadingRoleUsers(true);
+    setRoleActionFeedback('');
+    try {
+      const res = await api.getUsers(roleName);
+      const list = Array.isArray(res) ? res : (res?.users || []);
+      setExpandedRoleUsers(list);
+    } catch (err) {
+      setExpandedRoleUsers([]);
+      setRoleActionFeedback(err.message || 'Could not load users for this role.');
+    } finally {
+      setLoadingRoleUsers(false);
+    }
+  };
+
+  const handleRoleUserAction = async (userObj, action) => {
+    setRoleActionFeedback('');
+    try {
+      if (action === 'APPROVE') {
+        await api.approveUser(userObj.id);
+        setRoleActionFeedback(`Approved & activated ${userObj.firstName} ${userObj.lastName}.`);
+      } else if (action === 'ACTIVATE') {
+        await api.setUserStatus(userObj.id, true);
+        setRoleActionFeedback(`Activated ${userObj.firstName} ${userObj.lastName}.`);
+      } else if (action === 'DEACTIVATE') {
+        await api.setUserStatus(userObj.id, false);
+        setRoleActionFeedback(`Deactivated ${userObj.firstName} ${userObj.lastName}.`);
+      }
+      await refreshRoleCounts();
+      if (expandedRoleName) {
+        const res = await api.getUsers(expandedRoleName);
+        setExpandedRoleUsers(Array.isArray(res) ? res : (res?.users || []));
+      }
+    } catch (err) {
+      setRoleActionFeedback(`Action failed: ${err.message}`);
     }
   };
 
@@ -224,13 +279,12 @@ export default function Header({
       {/* Top Banner */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 20px', borderBottom: '1px solid var(--border-subtle)', flexWrap: 'wrap', gap: '12px' }}>
         {/* Hospital Branding */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <div style={{ width: '48px', height: '48px', borderRadius: '8px', border: '2px solid var(--gold-400)', overflow: 'hidden', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title={`${activeHospitalName} Official Logo`}>
-            <img src={activeLogoUrl} alt="Hospital Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.style.display = 'none'; }} />
-            <Shield style={{ color: 'var(--gold-400)', width: '28px', height: '28px' }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0, maxWidth: '100%' }}>
+          <div style={{ width: '48px', height: '48px', minWidth: '48px', minHeight: '48px', flexShrink: 0, borderRadius: '8px', border: '2px solid var(--gold-400)', overflow: 'hidden', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title={`${activeHospitalName} Official Logo`}>
+            <img src={activeLogoUrl} alt="Hospital Logo" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} onError={(e) => { e.target.style.display = 'none'; }} />
           </div>
-          <div>
-            <h1 className="header-3d" style={{ fontSize: '1.52rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          <div style={{ minWidth: 0 }}>
+            <h1 className="header-3d" style={{ fontSize: 'clamp(1.05rem, 2.4vw, 1.52rem)', textTransform: 'uppercase', letterSpacing: '0.04em', lineHeight: 1.2, margin: 0 }}>
               <span className="header-3d-gold">GBS HOSPITAL</span> MANAGEMENT SYSTEM
             </h1>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginTop: '2px' }}>
@@ -255,35 +309,29 @@ export default function Header({
           </div>
         </div>
 
-        {/* Live System Telemetry Status Card (Loan System Navy) */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', background: 'rgba(11, 23, 44, 0.85)', padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--border-color)', boxShadow: '0 4px 14px rgba(0,0,0,0.45)' }}>
+        {/* Live System Telemetry Status Card (GBS Hospital Obsidian Navy) */}
+        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '12px 16px', maxWidth: '100%', boxSizing: 'border-box', background: 'rgba(11, 23, 44, 0.85)', padding: '8px 14px', borderRadius: '8px', border: '1px solid var(--border-color)', boxShadow: '0 4px 14px rgba(0,0,0,0.45)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span className="pulse-live"></span>
             <div>
               <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Server Status</div>
-              <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--status-online)' }}>{health.server}</div>
+              <div style={{ fontSize: '0.82rem', fontWeight: 700, color: health.server === 'Online' ? 'var(--status-online)' : '#f87171' }}>{health.server}</div>
             </div>
           </div>
 
-          <div style={{ width: '1px', height: '24px', background: 'var(--border-subtle)' }} />
-
-          <div>
+          <div style={{ borderLeft: '1px solid var(--border-subtle)', paddingLeft: '12px' }}>
             <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Database</div>
-            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#fff' }}>{health.database}</div>
+            <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#fff' }}>{health.database}</div>
           </div>
 
-          <div style={{ width: '1px', height: '24px', background: 'var(--border-subtle)' }} />
-
-          <div>
+          <div style={{ borderLeft: '1px solid var(--border-subtle)', paddingLeft: '12px' }}>
             <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>System Uptime</div>
-            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--gold-400)' }}>{health.uptime}</div>
+            <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--gold-400)' }}>{health.uptime}</div>
           </div>
 
-          <div style={{ width: '1px', height: '24px', background: 'var(--border-subtle)' }} />
-
-          <div>
+          <div style={{ borderLeft: '1px solid var(--border-subtle)', paddingLeft: '12px' }}>
             <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Current Time</div>
-            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--cyan-accent)', fontFamily: 'var(--font-mono)' }}>{time}</div>
+            <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--cyan-accent)', fontFamily: 'var(--font-mono)' }}>{time}</div>
           </div>
         </div>
 
@@ -310,16 +358,8 @@ export default function Header({
             </div>
           ) : (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <button onClick={onOpenLogin} className="btn-gold" style={{ padding: '8px 16px' }}>
+              <button onClick={() => onOpenLogin && onOpenLogin(currentRole)} className="btn-gold" style={{ padding: '8px 16px' }}>
                 <LogIn size={16} /> Sign In
-              </button>
-              <button
-                onClick={() => onSelectRole('DEVELOPER')}
-                className="btn-outline-gold"
-                style={{ padding: '8px 10px', fontSize: '0.75rem', borderColor: '#ef4444', color: '#fca5a5' }}
-                title="Restricted Developer Controls (Login Required)"
-              >
-                <Lock size={14} /> Developer
               </button>
             </div>
           )}
@@ -502,21 +542,119 @@ export default function Header({
                       <span style={{ color: 'var(--status-warning)' }}>Pending: {roleCountsData.summary?.totalPendingUsers ?? 0}</span>
                     </div>
 
-                    <div style={{ maxHeight: '260px', overflowY: 'auto' }}>
-                      {(roleCountsData.roles || []).map(rc => (
-                        <div key={rc.roleId || rc.roleName} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 8px', borderBottom: '1px solid rgba(255,255,255,0.03)', fontSize: '0.8rem' }}>
-                          <span style={{ fontWeight: 500, color: '#e5e5e5' }}>{rc.roleName}</span>
-                          <div style={{ display: 'flex', gap: '8px' }}>
-                            <span style={{ color: 'var(--gold-400)', fontWeight: 700 }}>{rc.totalUsers} total</span>
-                            <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>({rc.activeUsers} active)</span>
+                    <div style={{ maxHeight: '320px', overflowY: 'auto' }}>
+                      {(roleCountsData.roles || []).map(rc => {
+                        const isExpanded = expandedRoleName === rc.roleName;
+                        return (
+                          <div key={rc.roleId || rc.roleName} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                            <button
+                              type="button"
+                              onClick={() => handleInspectRoleUsers(rc.roleName)}
+                              style={{
+                                width: '100%',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                padding: '7px 8px',
+                                fontSize: '0.8rem',
+                                background: isExpanded ? 'rgba(212,175,55,0.12)' : 'transparent',
+                                border: 'none',
+                                cursor: 'pointer',
+                                color: '#e5e5e5',
+                                textAlign: 'left'
+                              }}
+                              title={`Click to view, verify & manage ${rc.roleName} accounts`}
+                            >
+                              <span style={{ fontWeight: isExpanded ? 700 : 500, color: isExpanded ? 'var(--gold-300)' : '#e5e5e5' }}>
+                                {isExpanded ? '▾ ' : '▸ '}{rc.roleName}
+                              </span>
+                              <div style={{ display: 'flex', gap: '8px' }}>
+                                <span style={{ color: 'var(--gold-400)', fontWeight: 700 }}>{rc.totalUsers} total</span>
+                                <span style={{ color: 'var(--text-muted)', fontSize: '0.74rem' }}>({rc.activeUsers} active)</span>
+                              </div>
+                            </button>
+
+                            {isExpanded && (
+                              <div style={{ padding: '6px 10px 10px', background: 'rgba(6,12,24,0.75)', borderRadius: '6px', margin: '0 4px 6px' }}>
+                                {loadingRoleUsers ? (
+                                  <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', padding: '6px 0' }}>
+                                    Loading {rc.roleName} accounts from PostgreSQL...
+                                  </div>
+                                ) : expandedRoleUsers.length === 0 ? (
+                                  <div style={{ fontSize: '0.74rem', color: 'var(--text-dim)', padding: '4px 0' }}>
+                                    No users currently registered under {rc.roleName}.
+                                  </div>
+                                ) : (
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                    {expandedRoleUsers.map((u) => (
+                                      <div
+                                        key={u.id}
+                                        style={{
+                                          display: 'flex',
+                                          justifyContent: 'space-between',
+                                          alignItems: 'center',
+                                          gap: '8px',
+                                          padding: '6px 8px',
+                                          borderRadius: '6px',
+                                          background: 'rgba(15,27,49,0.75)',
+                                          border: '1px solid var(--border-subtle)',
+                                          fontSize: '0.74rem'
+                                        }}
+                                      >
+                                        <div style={{ minWidth: 0 }}>
+                                          <div style={{ fontWeight: 700, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                            {u.firstName} {u.lastName}
+                                          </div>
+                                          <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                            {u.email}
+                                          </div>
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                                          <span style={{ fontSize: '0.66rem', fontWeight: 700, color: u.active ? 'var(--status-online)' : 'var(--status-warning)' }}>
+                                            {u.active ? 'ACTIVE' : 'PENDING'}
+                                          </span>
+                                          {!u.active ? (
+                                            <button
+                                              type="button"
+                                              onClick={() => handleRoleUserAction(u, 'APPROVE')}
+                                              className="btn-gold"
+                                              style={{ padding: '2px 7px', fontSize: '0.68rem' }}
+                                            >
+                                              Approve
+                                            </button>
+                                          ) : (
+                                            u.id !== currentUser?.id && String(u.email || '').toLowerCase() !== 'gabosei48@gmail.com' && (
+                                              <button
+                                                type="button"
+                                                onClick={() => handleRoleUserAction(u, 'DEACTIVATE')}
+                                                className="btn-outline-gold"
+                                                style={{ padding: '2px 7px', fontSize: '0.68rem', borderColor: '#ef4444', color: '#fca5a5' }}
+                                              >
+                                                Deactivate
+                                              </button>
+                                            )
+                                          )}
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
 
-                    <div style={{ marginTop: '12px', paddingTop: '8px', borderTop: '1px solid var(--border-subtle)', textAlign: 'center' }}>
+                    {roleActionFeedback && (
+                      <div style={{ marginTop: '8px', padding: '6px 8px', borderRadius: '6px', background: 'rgba(16,185,129,0.14)', border: '1px solid rgba(16,185,129,0.4)', color: '#6ee7b7', fontSize: '0.72rem' }}>
+                        {roleActionFeedback}
+                      </div>
+                    )}
+
+                    <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px solid var(--border-subtle)', textAlign: 'center' }}>
                       <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>
-                        Live hospital database (verified records)
+                        Click any role row to inspect, approve, or deactivate live PostgreSQL accounts
                       </span>
                     </div>
                   </div>
@@ -527,7 +665,7 @@ export default function Header({
         </div>
       </div>
 
-      {/* Blueprint Roles Navigation Ribbon with Departmental Categorization Tabs (GBS Loan System Navy) */}
+      {/* Blueprint Roles Navigation Ribbon with Departmental Categorization Tabs (GBS Hospital Obsidian Navy) */}
       <div style={{ background: 'rgba(8, 16, 32, 0.95)', borderBottom: '1px solid var(--border-color)' }}>
         {/* Departmental Filter Tabs for Quick Role Identification */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 16px', borderBottom: '1px solid rgba(212,175,55,0.12)', flexWrap: 'wrap', gap: '8px' }}>

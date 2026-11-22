@@ -74,17 +74,18 @@ export default function UniversalDetailPage({
         setLiveData({ overview, environment: envStatus });
         setExtraRecords(envStatus?.tables || []);
       } else if (detailType === 'VIEW_HOSPITAL_INFORMATION') {
+        const isDevActor = currentUser?.role === 'DEVELOPER' || currentRole === 'DEVELOPER';
         const [overview, wards, theatres, tenants] = await Promise.all([
           api.getGlobalOverviewStats().catch(() => null),
           api.getWards().catch(() => []),
           api.getOperatingTheatres().catch(() => []),
-          api.getTenants().catch(() => [])
+          isDevActor ? api.getTenants().catch(() => []) : Promise.resolve([])
         ]);
         setLiveData({
           overview: overview?.metrics || {},
           totalWards: Array.isArray(wards) ? wards.length : 0,
           totalOperatingTheatres: Array.isArray(theatres) ? theatres.length : 0,
-          registeredInstitutions: Array.isArray(tenants) ? tenants.length : 0
+          registeredInstitutions: Array.isArray(tenants) ? tenants.length : (overview?.metrics?.totalTenants ?? 1)
         });
         setExtraRecords(Array.isArray(wards) ? wards : []);
       } else if (detailType === 'VIEW_NOTIFICATIONS') {
@@ -118,8 +119,9 @@ export default function UniversalDetailPage({
         });
         setExtraRecords(billList);
       } else if (detailType === 'VIEW_APPLICATIONS') {
+        const isDevActor = currentUser?.role === 'DEVELOPER' || currentRole === 'DEVELOPER';
         const [tenants, users, leaves] = await Promise.all([
-          api.getTenants().catch(() => []),
+          isDevActor ? api.getTenants().catch(() => []) : Promise.resolve([]),
           api.getUsers().catch(() => []),
           api.getLeaveRequests().catch(() => [])
         ]);

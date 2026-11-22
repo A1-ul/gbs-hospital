@@ -9,38 +9,82 @@ LOCATION: src/modules/tenant-management/tenant-access.middleware.js
 ====================================================
 */
 
+const jwt = require("jsonwebtoken");
 const prisma = require("../../core/database/prisma.client");
+const { environment } = require("../../config/environment");
 const { calculateCountdown } = require("./helpers/countdown.engine");
 const { hasDeveloperAccess } = require("../../config/roles");
 const logger = require("../../core/utils/logger");
 
+function resolveRequestActor(req) {
+    if (req.user && typeof req.user === "object") {
+        return req.user;
+    }
+    try {
+        const authHeader = req.headers && req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            return null;
+        }
+        const secret = environment?.JWT_SECRET || process.env.JWT_SECRET;
+        if (!secret) return null;
+        return jwt.verify(authHeader.slice(7).trim(), secret, { algorithms: ["HS256"] });
+    } catch (_err) {
+        return null;
+    }
+}
+
+const TENANT_BYPASS_PREFIXES = [
+    "/health",
+    "/auth",
+    "/tenants/register",
+    "/tenants/developer",
+    "/developer",
+    "/rcce/developer"
+];
+
+const EMERGENCY_CLINICAL_PATH_TOKENS = [
+    "/emergency",
+    "/ambulance",
+    "/ems",
+    "/triage",
+    "/blood-bank",
+    "/transfusion",
+    "/icu",
+    "/clinical/trauma"
+];
+
 /**
  * Tenant Access Guard
  * Verifies that the tenant associated with the current user or request
- * is approved, active, and has an active subscription.
+ * is approved, active, unlocked, and has an active subscription.
  *
- * CRITICAL SAFETY REQUIREMENT:
+ * CRITICAL PATIENT SAFETY GUARDRAIL:
  * If an institution is expired or locked, emergency clinical workflows
- * (ER triage, emergency prescriptions, trauma care) must NEVER be blocked.
- * The system grants instant audited bypass for emergency endpoints or headers.
+ * (ER triage, ambulance dispatch, ICU, blood bank, emergency prescriptions, trauma care)
+ * must NEVER be blocked. The system grants instant audited bypass for emergency
+ * endpoints or explicit emergency override headers.
  */
 async function tenantAccessGuard(req, res, next) {
     try {
-        const user = req.user;
+        const cleanPath = String(req.path || "").split("?")[0];
+        if (TENANT_BYPASS_PREFIXES.some((prefix) => cleanPath === prefix || cleanPath.startsWith(`${prefix}/`))) {
+            return next();
+        }
 
-        // If no user context (e.g. public routes), continue
+        const user = resolveRequestActor(req);
+
+        // If no user context (e.g. unauthenticated public route), let route auth handle it
         if (!user) {
             return next();
         }
 
-        // Developer / Super Admin have absolute system bypass
+        // Permanent Developer role has platform-wide authority bypass
         if (hasDeveloperAccess(user.role)) {
             return next();
         }
 
-        // Determine tenant identifier or hospital ID
         const hospitalId = user.hospitalId || req.headers["x-hospital-id"] || req.query.hospitalId;
-        const tenantHeader = req.headers["x-tenant-id"];
+        const tenantHeader = user.tenantId || req.headers["x-tenant-id"];
 
         let tenant = null;
 
@@ -48,25 +92,26 @@ async function tenantAccessGuard(req, res, next) {
             tenant = await prisma.tenant.findFirst({
                 where: {
                     OR: [
-                        { id: tenantHeader },
-                        { tenantId: tenantHeader }
+                        { id: String(tenantHeader) },
+                        { tenantId: String(tenantHeader) },
+                        { tenantCode: String(tenantHeader) }
                     ]
                 },
                 include: {
                     subscriptions: {
-                        orderBy: { endsAt: "desc" },
+                        orderBy: { createdAt: "desc" },
                         take: 1
                     }
                 }
             });
         } else if (hospitalId) {
             const hospital = await prisma.hospital.findUnique({
-                where: { id: hospitalId },
+                where: { id: String(hospitalId) },
                 include: {
                     tenant: {
                         include: {
                             subscriptions: {
-                                orderBy: { endsAt: "desc" },
+                                orderBy: { createdAt: "desc" },
                                 take: 1
                             }
                         }
@@ -78,37 +123,49 @@ async function tenantAccessGuard(req, res, next) {
             }
         }
 
-        // If no tenant is bound yet (e.g. initial onboarding phase), allow through
+        // If user/request is not scoped to a tenant record yet, allow normal auth/RBAC to govern
         if (!tenant) {
             return next();
         }
 
         req.tenant = tenant;
 
-        // Check Emergency Bypass Criteria
-        const isEmergencyPath = req.path.includes("/emergency") || req.path.includes("/triage") || req.path.includes("/clinical/trauma");
-        const hasEmergencyHeader = req.headers["x-emergency-override"] === "true";
+        const isEmergencyPath = EMERGENCY_CLINICAL_PATH_TOKENS.some((tok) => cleanPath.includes(tok));
+        const hasEmergencyHeader = String(req.headers["x-emergency-override"] || "").toLowerCase() === "true";
         const isEmergencyBypass = isEmergencyPath || hasEmergencyHeader;
 
-        // 1. Check Tenant Approval & Lock Status
-        if (tenant.status === "PENDING") {
+        // 1. Check Tenant Approval & Lock/Suspension Status
+        if (tenant.status === "PENDING" || tenant.status === "VERIFICATION_REQUIRED") {
             return res.status(403).json({
                 success: false,
-                error: "TENANT_PENDING_APPROVAL",
+                code: "TENANT_PENDING_APPROVAL",
                 message: "Institution account is pending review and provisioning by GBS Developer Administration.",
-                tenantId: tenant.tenantId
+                data: {
+                    tenantId: tenant.tenantId,
+                    status: tenant.status
+                }
             });
         }
 
-        if (tenant.status === "LOCKED" || tenant.status === "SUSPENDED" || tenant.status === "TERMINATED") {
+        const isTenantBlocked =
+            Boolean(tenant.systemLocked) ||
+            ["LOCKED", "SUSPENDED", "TERMINATED", "CANCELLED", "ARCHIVED"].includes(tenant.status);
+
+        if (isTenantBlocked) {
             if (isEmergencyBypass) {
-                // Log Patient Safety Emergency Bypass in Audit Trail
                 try {
                     await prisma.auditLog.create({
                         data: {
-                            userId: user.id,
+                            userId: user.id || null,
+                            role: user.role || null,
+                            tenantId: tenant.id,
+                            hospitalId: tenant.hospitalId || null,
                             action: "PATIENT_SAFETY_EMERGENCY_BYPASS",
                             module: "TENANT_ACCESS",
+                            outcome: "SUCCESS",
+                            requestId: req.requestId || null,
+                            method: req.method,
+                            path: req.originalUrl,
                             description: `Emergency clinical bypass invoked for locked tenant ${tenant.name} (${tenant.tenantId}) on ${req.method} ${req.originalUrl}. Emergency Reason: ${req.headers["x-emergency-reason"] || "Clinical Emergency Override"}`
                         }
                     });
@@ -117,38 +174,48 @@ async function tenantAccessGuard(req, res, next) {
                 }
 
                 res.setHeader("X-Tenant-Emergency-Access", "ACTIVE_AUDITED");
-                res.setHeader("X-Tenant-Lock-Status", tenant.status);
+                res.setHeader("X-Tenant-Lock-Status", tenant.systemLocked ? "LOCKED" : tenant.status);
                 return next();
             }
 
-            return res.status(403).json({
+            return res.status(423).json({
                 success: false,
-                error: "TENANT_ACCESS_LOCKED",
-                message: `Institution access is currently ${tenant.status.toLowerCase()}. ${tenant.lockReason || "Please contact GBS Developer Administration."}`,
-                tenantId: tenant.tenantId,
-                status: tenant.status,
-                lockReason: tenant.lockReason
+                code: "SYSTEM_LOCKED",
+                message: `Institution access is currently ${tenant.systemLocked ? "locked" : tenant.status.toLowerCase()}. ${tenant.lockReason || "Please contact GBS Developer Administration."}`,
+                data: {
+                    tenantId: tenant.tenantId,
+                    status: tenant.status,
+                    systemLocked: Boolean(tenant.systemLocked),
+                    lockReason: tenant.lockReason || null,
+                    emergencyBypassSupported: true
+                }
             });
         }
 
-        // 2. Check Subscription & Realtime Countdown Status
+        // 2. Check Subscription & Authoritative Realtime Countdown Status
         const activeSub = tenant.subscriptions && tenant.subscriptions[0];
         if (activeSub) {
             const countdown = calculateCountdown(activeSub, tenant.systemLocked);
 
-            // Attach realtime subscription telemetry headers
-            res.setHeader("X-Tenant-Subscription-Tier", activeSub.plan || activeSub.tier || "STANDARD");
-            res.setHeader("X-Tenant-Days-Remaining", countdown.remainingDays);
+            res.setHeader("X-Tenant-Subscription-Tier", activeSub.plan || "STANDARD");
+            res.setHeader("X-Tenant-Days-Remaining", String(countdown.remainingDays));
             res.setHeader("X-Tenant-Warning-Tier", countdown.warningTier);
 
-            if (countdown.isExpired) {
+            if (countdown.isLocked) {
                 if (isEmergencyBypass) {
                     try {
                         await prisma.auditLog.create({
                             data: {
-                                userId: user.id,
+                                userId: user.id || null,
+                                role: user.role || null,
+                                tenantId: tenant.id,
+                                hospitalId: tenant.hospitalId || null,
                                 action: "PATIENT_SAFETY_EMERGENCY_BYPASS_EXPIRED",
                                 module: "TENANT_ACCESS",
+                                outcome: "SUCCESS",
+                                requestId: req.requestId || null,
+                                method: req.method,
+                                path: req.originalUrl,
                                 description: `Emergency clinical bypass invoked for expired subscription of tenant ${tenant.name} (${tenant.tenantId}) on ${req.method} ${req.originalUrl}`
                             }
                         });
@@ -161,13 +228,16 @@ async function tenantAccessGuard(req, res, next) {
                     return next();
                 }
 
-                return res.status(403).json({
+                return res.status(402).json({
                     success: false,
-                    error: "SUBSCRIPTION_EXPIRED",
-                    message: "Institution subscription has expired. Please contact GBS Developer Administration to renew license.",
-                    tenantId: tenant.tenantId,
-                    expiredAt: activeSub.endsAt,
-                    countdown
+                    code: "SUBSCRIPTION_EXPIRED",
+                    message: "Institution subscription has expired. Please renew your license or contact GBS Developer Administration. Emergency clinical care remains accessible.",
+                    data: {
+                        tenantId: tenant.tenantId,
+                        expiredAt: activeSub.subscriptionEndDate || activeSub.trialEndDate,
+                        countdown,
+                        emergencyBypassSupported: true
+                    }
                 });
             }
         }

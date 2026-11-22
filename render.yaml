@@ -23,8 +23,20 @@ services:
         value: PRODUCTION
       - key: PORT
         value: 5000
+      - key: DEMO_MODE_ENABLED
+        value: "false"
+      - key: RENDER_SERVICE_NAME
+        value: gbs-hospital-system
+      - key: PRODUCTION_PUBLIC_URL
+        value: https://gbs-hospital-system.onrender.com
       - key: GBS_OFFICIAL_ACCOUNT_EMAIL
         value: gabosei48@gmail.com
+      - key: DEVELOPER_ROOT_EMAIL
+        value: gabosei48@gmail.com
+      - key: DEVELOPER_ROOT_PASSWORD
+        sync: false
+      - key: BOOTSTRAP_ADMIN_PASSWORD
+        sync: false
       - key: DATABASE_URL
         sync: false
       - key: JWT_SECRET
@@ -35,4 +47,3 @@ services:
         generateValue: true
       - key: CORS_ORIGIN
         value: https://gbs-hospital-system.onrender.com
-

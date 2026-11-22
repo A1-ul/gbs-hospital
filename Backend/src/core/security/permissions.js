@@ -2,331 +2,246 @@
 
 /*
 ====================================================
-
 GBS HOSPITAL MANAGEMENT SYSTEM
-
-SECURITY PERMISSIONS REGISTRY
-
-Production Hardened
-CommonJS Only
-
-LOCATION:
-src/core/security/permissions.js
-
+UNIFIED ENTERPRISE PERMISSIONS REGISTRY (SINGLE SOURCE OF TRUTH)
+Production Hardened - CommonJS Only
+16-Role Master Blueprint Alignment (82 Canonical Permissions)
+LOCATION: Backend/src/core/security/permissions.js
 ====================================================
 */
 
-
-const PERMISSIONS =
-Object.freeze({
-
-
-
-    /*
-    ================================================
-    SYSTEM
-    ================================================
-    */
-
-
-    SYSTEM_ADMIN:
-        "system.admin",
-
-
-    SYSTEM_SETTINGS:
-        "system.settings",
-
-
-
-
-
-
-    /*
-    ================================================
-    HOSPITAL MANAGEMENT
-    ================================================
-    */
-
-
-    HOSPITAL_CREATE:
-        "hospital.create",
-
-
-    HOSPITAL_READ:
-        "hospital.read",
-
-
-    HOSPITAL_UPDATE:
-        "hospital.update",
-
-
-    HOSPITAL_DELETE:
-        "hospital.delete",
-
-
-
-
-
-
-    /*
-    ================================================
-    PATIENT MANAGEMENT
-    ================================================
-    */
-
-
-    PATIENT_CREATE:
-        "patient.create",
-
-
-    PATIENT_READ:
-        "patient.read",
-
-
-    PATIENT_UPDATE:
-        "patient.update",
-
-
-    PATIENT_DELETE:
-        "patient.delete",
-
-
-
-
-
-
-    /*
-    ================================================
-    MEDICAL RECORDS
-    ================================================
-    */
-
-
-    MEDICAL_RECORD_CREATE:
-        "medical_record.create",
-
-
-    MEDICAL_RECORD_READ:
-        "medical_record.read",
-
-
-    MEDICAL_RECORD_UPDATE:
-        "medical_record.update",
-
-
-    MEDICAL_RECORD_DELETE:
-        "medical_record.delete",
-
-
-
-
-
-
-    /*
-    ================================================
-    STAFF
-    ================================================
-    */
-
-
-    STAFF_CREATE:
-        "staff.create",
-
-
-    STAFF_READ:
-        "staff.read",
-
-
-    STAFF_UPDATE:
-        "staff.update",
-
-
-    STAFF_DELETE:
-        "staff.delete",
-
-
-
-
-
-
-    /*
-    ================================================
-    APPOINTMENTS
-    ================================================
-    */
-
-
-    APPOINTMENT_CREATE:
-        "appointment.create",
-
-
-    APPOINTMENT_READ:
-        "appointment.read",
-
-
-    APPOINTMENT_UPDATE:
-        "appointment.update",
-
-
-    APPOINTMENT_CANCEL:
-        "appointment.cancel",
-
-
-
-
-
-
-    /*
-    ================================================
-    BILLING
-    ================================================
-    */
-
-
-    BILLING_CREATE:
-        "billing.create",
-
-
-    BILLING_READ:
-        "billing.read",
-
-
-    BILLING_UPDATE:
-        "billing.update",
-
-
-    BILLING_REFUND:
-        "billing.refund",
-
-
-
-
-
-
-    /*
-    ================================================
-    PHARMACY
-    ================================================
-    */
-
-
-    MEDICATION_CREATE:
-        "medication.create",
-
-
-    MEDICATION_READ:
-        "medication.read",
-
-
-    MEDICATION_UPDATE:
-        "medication.update",
-
-
-    MEDICATION_DELETE:
-        "medication.delete",
-
-
-
-
-
-
-    /*
-    ================================================
-    REPORTING
-    ================================================
-    */
-
-
-    REPORT_VIEW:
-        "report.view",
-
-
-    REPORT_EXPORT:
-        "report.export",
-
-
-
-
-
-
-    /*
-    ================================================
-    AUDIT
-    ================================================
-    */
-
-
-    AUDIT_READ:
-        "audit.read",
-
-
-    AUDIT_EXPORT:
-        "audit.export"
-
-
-
+const PERMISSIONS = Object.freeze({
+    // SYSTEM & DEVELOPER
+    SYSTEM_ADMIN: "SYSTEM_ADMIN",
+    SYSTEM_SETTINGS: "SYSTEM_SETTINGS",
+    SYSTEM_MONITOR: "SYSTEM_MONITOR",
+    DEVELOPER_ACCESS: "DEVELOPER_ACCESS",
+    REMOTE_CONTROL: "REMOTE_CONTROL",
+    DIAGNOSTICS_VIEW: "DIAGNOSTICS_VIEW",
+    TENANT_MANAGE: "TENANT_MANAGE",
+
+    // USER MANAGEMENT
+    USER_CREATE: "USER_CREATE",
+    USER_READ: "USER_READ",
+    USER_UPDATE: "USER_UPDATE",
+    USER_DELETE: "USER_DELETE",
+    USER_APPROVE: "USER_APPROVE",
+
+    // HOSPITAL CONFIGURATION
+    HOSPITAL_CREATE: "HOSPITAL_CREATE",
+    HOSPITAL_READ: "HOSPITAL_READ",
+    HOSPITAL_UPDATE: "HOSPITAL_UPDATE",
+    HOSPITAL_DELETE: "HOSPITAL_DELETE",
+    HOSPITAL_BRANCH_CREATE: "HOSPITAL_BRANCH_CREATE",
+    HOSPITAL_BRANCH_READ: "HOSPITAL_BRANCH_READ",
+    HOSPITAL_BRANCH_UPDATE: "HOSPITAL_BRANCH_UPDATE",
+    HOSPITAL_BRANCH_DELETE: "HOSPITAL_BRANCH_DELETE",
+
+    // PATIENT MANAGEMENT
+    PATIENT_CREATE: "PATIENT_CREATE",
+    PATIENT_READ: "PATIENT_READ",
+    PATIENT_UPDATE: "PATIENT_UPDATE",
+    PATIENT_DELETE: "PATIENT_DELETE",
+
+    // CLINICAL CARE, AI ASSISTANCE & ICU
+    DOCTOR_CONSULT: "DOCTOR_CONSULT",
+    DOCTOR_CREATE: "DOCTOR_CREATE",
+    DOCTOR_READ: "DOCTOR_READ",
+    DOCTOR_UPDATE: "DOCTOR_UPDATE",
+    DOCTOR_DELETE: "DOCTOR_DELETE",
+    DIAGNOSIS_CREATE: "DIAGNOSIS_CREATE",
+    TREATMENT_PLAN: "TREATMENT_PLAN",
+    AI_CLINICAL_REVIEW: "AI_CLINICAL_REVIEW",
+    CLINICAL_OVERRIDE_LOG: "CLINICAL_OVERRIDE_LOG",
+    ICU_MONITOR: "ICU_MONITOR",
+    ICU_CRITICAL_ACTION: "ICU_CRITICAL_ACTION",
+
+    // SURGICAL
+    SURGERY_SCHEDULE: "SURGERY_SCHEDULE",
+    SURGERY_PERFORM: "SURGERY_PERFORM",
+    OT_MANAGE: "OT_MANAGE",
+
+    // DENTAL CLINIC
+    DENTAL_RECORD_CREATE: "DENTAL_RECORD_CREATE",
+    DENTAL_PROCEDURE_LOG: "DENTAL_PROCEDURE_LOG",
+
+    // EYE CLINIC
+    EYE_EXAM_CREATE: "EYE_EXAM_CREATE",
+    VISION_TEST_LOG: "VISION_TEST_LOG",
+
+    // RADIOLOGY & PACS
+    RADIOLOGY_REQUEST: "RADIOLOGY_REQUEST",
+    RADIOLOGY_SCAN_UPLOAD: "RADIOLOGY_SCAN_UPLOAD",
+    RADIOLOGY_REPORT_SIGN: "RADIOLOGY_REPORT_SIGN",
+    DICOM_VIEW: "DICOM_VIEW",
+
+    // NURSING & VITALS
+    VITALS_RECORD: "VITALS_RECORD",
+    NURSE_MEDICATION_ADMIN: "NURSE_MEDICATION_ADMIN",
+    PATIENT_CARE_NOTE: "PATIENT_CARE_NOTE",
+
+    // MEDICAL RECORDS, ARCHIVES & DOCUMENT MANAGEMENT
+    MEDICAL_RECORD_CREATE: "MEDICAL_RECORD_CREATE",
+    MEDICAL_RECORD_READ: "MEDICAL_RECORD_READ",
+    MEDICAL_RECORD_UPDATE: "MEDICAL_RECORD_UPDATE",
+    MEDICAL_RECORD_DELETE: "MEDICAL_RECORD_DELETE",
+    FOLDER_RETRIEVAL_DISPATCH: "FOLDER_RETRIEVAL_DISPATCH",
+    ARCHIVE_MANAGE: "ARCHIVE_MANAGE",
+    DOCUMENT_MANAGE: "DOCUMENT_MANAGE",
+
+    // APPOINTMENT & QUEUE
+    APPOINTMENT_CREATE: "APPOINTMENT_CREATE",
+    APPOINTMENT_READ: "APPOINTMENT_READ",
+    APPOINTMENT_UPDATE: "APPOINTMENT_UPDATE",
+    APPOINTMENT_CANCEL: "APPOINTMENT_CANCEL",
+    QUEUE_MANAGE: "QUEUE_MANAGE",
+
+    // PHARMACY & INVENTORY
+    MEDICATION_CREATE: "MEDICATION_CREATE",
+    MEDICATION_READ: "MEDICATION_READ",
+    MEDICATION_UPDATE: "MEDICATION_UPDATE",
+    MEDICATION_DELETE: "MEDICATION_DELETE",
+    PRESCRIPTION_DISPENSE: "PRESCRIPTION_DISPENSE",
+    INVENTORY_MANAGE: "INVENTORY_MANAGE",
+    DRUG_INTERACTION_CHECK: "DRUG_INTERACTION_CHECK",
+
+    // BILLING & INSURANCE
+    BILLING_CREATE: "BILLING_CREATE",
+    BILLING_READ: "BILLING_READ",
+    BILLING_UPDATE: "BILLING_UPDATE",
+    BILLING_REFUND: "BILLING_REFUND",
+    INSURANCE_CLAIM_PROCESS: "INSURANCE_CLAIM_PROCESS",
+
+    // HR, MEETINGS & FACILITY OPERATIONS
+    HR_STAFF_MANAGE: "HR_STAFF_MANAGE",
+    ATTENDANCE_LOG: "ATTENDANCE_LOG",
+    PAYROLL_RUN: "PAYROLL_RUN",
+    MEETING_SCHEDULE: "MEETING_SCHEDULE",
+    FACILITY_MANAGE: "FACILITY_MANAGE",
+
+    // REPORTING & AUDIT
+    REPORT_VIEW: "REPORT_VIEW",
+    REPORT_EXPORT: "REPORT_EXPORT",
+    AUDIT_READ: "AUDIT_READ",
+    AUDIT_EXPORT: "AUDIT_EXPORT"
 });
 
+const ALL_PERMISSIONS = Object.freeze(Object.values(PERMISSIONS));
 
+const ROLE_PERMISSIONS_MAP = Object.freeze({
+    DEVELOPER: ALL_PERMISSIONS,
+    ADMINISTRATOR: Object.freeze(
+        ALL_PERMISSIONS.filter((p) => !["DEVELOPER_ACCESS", "REMOTE_CONTROL"].includes(p))
+    ),
+    HOSPITAL_DIRECTOR: Object.freeze([
+        "SYSTEM_SETTINGS", "SYSTEM_MONITOR", "DIAGNOSTICS_VIEW", "USER_READ", "HOSPITAL_READ",
+        "PATIENT_READ", "DOCTOR_READ", "REPORT_VIEW", "REPORT_EXPORT", "AUDIT_READ", "AUDIT_EXPORT",
+        "MEDICAL_RECORD_READ", "APPOINTMENT_READ", "BILLING_READ", "MEETING_SCHEDULE", "FACILITY_MANAGE"
+    ]),
+    DOCTOR: Object.freeze([
+        "DOCTOR_CONSULT", "DOCTOR_READ", "DOCTOR_CREATE", "DOCTOR_UPDATE", "DIAGNOSIS_CREATE",
+        "TREATMENT_PLAN", "AI_CLINICAL_REVIEW", "CLINICAL_OVERRIDE_LOG", "ICU_MONITOR", "ICU_CRITICAL_ACTION",
+        "PATIENT_READ", "PATIENT_CREATE", "PATIENT_UPDATE", "MEDICAL_RECORD_READ",
+        "MEDICAL_RECORD_CREATE", "MEDICAL_RECORD_UPDATE", "VITALS_RECORD", "RADIOLOGY_REQUEST",
+        "DICOM_VIEW", "APPOINTMENT_READ", "APPOINTMENT_CREATE", "APPOINTMENT_UPDATE", "QUEUE_MANAGE",
+        "DRUG_INTERACTION_CHECK", "REPORT_VIEW", "FOLDER_RETRIEVAL_DISPATCH", "MEETING_SCHEDULE", "DOCUMENT_MANAGE"
+    ]),
+    SURGEON: Object.freeze([
+        "SURGERY_SCHEDULE", "SURGERY_PERFORM", "OT_MANAGE", "DOCTOR_CONSULT", "DOCTOR_READ",
+        "DIAGNOSIS_CREATE", "TREATMENT_PLAN", "AI_CLINICAL_REVIEW", "CLINICAL_OVERRIDE_LOG", "ICU_MONITOR",
+        "PATIENT_READ", "MEDICAL_RECORD_READ", "MEDICAL_RECORD_CREATE", "VITALS_RECORD",
+        "RADIOLOGY_REQUEST", "DICOM_VIEW", "REPORT_VIEW", "MEETING_SCHEDULE"
+    ]),
+    DENTIST: Object.freeze([
+        "DENTAL_RECORD_CREATE", "DENTAL_PROCEDURE_LOG", "DOCTOR_CONSULT", "DOCTOR_READ",
+        "DIAGNOSIS_CREATE", "TREATMENT_PLAN", "AI_CLINICAL_REVIEW", "PATIENT_READ",
+        "MEDICAL_RECORD_READ", "MEDICAL_RECORD_CREATE", "VITALS_RECORD", "RADIOLOGY_REQUEST", "REPORT_VIEW"
+    ]),
+    EYE_DOCTOR: Object.freeze([
+        "EYE_EXAM_CREATE", "VISION_TEST_LOG", "DOCTOR_CONSULT", "DOCTOR_READ",
+        "DIAGNOSIS_CREATE", "TREATMENT_PLAN", "AI_CLINICAL_REVIEW", "PATIENT_READ",
+        "MEDICAL_RECORD_READ", "MEDICAL_RECORD_CREATE", "VITALS_RECORD", "REPORT_VIEW"
+    ]),
+    RADIOLOGIST: Object.freeze([
+        "RADIOLOGY_REQUEST", "RADIOLOGY_SCAN_UPLOAD", "RADIOLOGY_REPORT_SIGN", "DICOM_VIEW",
+        "PATIENT_READ", "MEDICAL_RECORD_READ", "DOCTOR_READ", "REPORT_VIEW", "MEETING_SCHEDULE"
+    ]),
+    NURSE: Object.freeze([
+        "VITALS_RECORD", "NURSE_MEDICATION_ADMIN", "PATIENT_CARE_NOTE", "ICU_MONITOR",
+        "AI_CLINICAL_REVIEW", "PATIENT_READ", "PATIENT_CREATE", "MEDICAL_RECORD_READ",
+        "QUEUE_MANAGE", "APPOINTMENT_READ", "REPORT_VIEW"
+    ]),
+    PHARMACIST: Object.freeze([
+        "PRESCRIPTION_DISPENSE", "INVENTORY_MANAGE", "DRUG_INTERACTION_CHECK", "MEDICATION_READ",
+        "MEDICATION_CREATE", "MEDICATION_UPDATE", "MEDICATION_DELETE", "PATIENT_READ",
+        "MEDICAL_RECORD_READ", "REPORT_VIEW"
+    ]),
+    LAB_TECHNICIAN: Object.freeze([
+        "DIAGNOSTICS_VIEW", "PATIENT_READ", "MEDICAL_RECORD_READ", "DOCTOR_READ", "REPORT_VIEW"
+    ]),
+    RECEPTIONIST: Object.freeze([
+        "PATIENT_CREATE", "PATIENT_READ", "PATIENT_UPDATE", "APPOINTMENT_CREATE", "APPOINTMENT_READ",
+        "APPOINTMENT_UPDATE", "APPOINTMENT_CANCEL", "QUEUE_MANAGE", "FOLDER_RETRIEVAL_DISPATCH",
+        "BILLING_READ"
+    ]),
+    FOLDER_RETRIEVER: Object.freeze([
+        "FOLDER_RETRIEVAL_DISPATCH", "ARCHIVE_MANAGE", "DOCUMENT_MANAGE",
+        "MEDICAL_RECORD_READ", "MEDICAL_RECORD_UPDATE", "PATIENT_READ"
+    ]),
+    ACCOUNTANT: Object.freeze([
+        "BILLING_CREATE", "BILLING_READ", "BILLING_UPDATE", "BILLING_REFUND",
+        "INSURANCE_CLAIM_PROCESS", "REPORT_VIEW", "REPORT_EXPORT", "AUDIT_READ"
+    ]),
+    HR_MANAGER: Object.freeze([
+        "HR_STAFF_MANAGE", "ATTENDANCE_LOG", "PAYROLL_RUN", "USER_READ", "USER_CREATE",
+        "USER_UPDATE", "REPORT_VIEW", "MEETING_SCHEDULE", "FACILITY_MANAGE"
+    ]),
+    PATIENT: Object.freeze([
+        "PATIENT_READ", "APPOINTMENT_CREATE", "APPOINTMENT_READ", "APPOINTMENT_CANCEL",
+        "MEDICAL_RECORD_READ", "BILLING_READ"
+    ])
+});
 
+const LEGACY_PERMISSION_ALIASES = Object.freeze({
+    "STAFF_CREATE": "USER_CREATE",
+    "STAFF_READ": "USER_READ",
+    "STAFF_UPDATE": "USER_UPDATE",
+    "STAFF_DELETE": "USER_DELETE"
+});
 
-
-
-
-
-function hasPermission(
-
-    userPermissions,
-
-    permission
-
-){
-
-
-
-    if(
-        !Array.isArray(userPermissions)
-    ){
-
-        return false;
-
+/**
+ * Normalizes both canonical UPPER_SNAKE ("PATIENT_READ") and legacy dot-notation ("patient.read")
+ * into a single canonical permission key.
+ */
+function normalizePermission(permission) {
+    if (typeof permission !== "string" || !permission.trim()) {
+        return null;
     }
-
-
-
-    return userPermissions.includes(
-        permission
-    );
-
+    const upper = permission.trim().replace(/[.:-]+/g, "_").toUpperCase();
+    return LEGACY_PERMISSION_ALIASES[upper] || upper;
 }
 
-
-
-
-
-
-
-
-function validatePermission(permission){
-
-
-    return Object
-        .values(PERMISSIONS)
-        .includes(permission);
-
-
+function isValidPermission(permission) {
+    const normalized = normalizePermission(permission);
+    return Boolean(normalized && ALL_PERMISSIONS.includes(normalized));
 }
 
-module.exports = {
+function hasPermission(userPermissions, requiredPermission) {
+    if (!Array.isArray(userPermissions)) {
+        return false;
+    }
+    const target = normalizePermission(requiredPermission);
+    if (!target) {
+        return false;
+    }
+    return userPermissions.some((p) => normalizePermission(p) === target);
+}
 
-
+module.exports = Object.freeze({
     PERMISSIONS,
-
-
-    hasPermission,
-
-
-    validatePermission
-
-
-};
+    ALL_PERMISSIONS,
+    ROLE_PERMISSIONS_MAP,
+    normalizePermission,
+    isValidPermission,
+    hasPermission
+});

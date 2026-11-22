@@ -37,9 +37,9 @@ async function signup(req, res, next) {
                 requestId: req.requestId,
                 notifications: [
                     {
-                        recipientRole: "ADMIN",
+                        recipientRole: "ADMINISTRATOR",
                         title: "New User Registration Awaiting Approval",
-                        message: `${result.name || result.email} registered for role ${result.role} and is awaiting administrator approval.`,
+                        message: `${result.firstName} ${result.lastName} (${result.email}) registered for role ${result.role} and is awaiting administrator approval.`,
                         severity: "INFO",
                         affectedRecord: result.id
                     }
@@ -73,7 +73,8 @@ async function login(req, res, next) {
             email,
             password,
             req.ip || req.connection?.remoteAddress,
-            req.headers["user-agent"]
+            req.headers["user-agent"],
+            req.headers["x-device-fingerprint"] || req.body?.deviceFingerprint || null
         );
 
         return res.rcceSuccess("SUCCESS", result, {
@@ -91,10 +92,130 @@ async function login(req, res, next) {
     }
 }
 
+async function logout(req, res, next) {
+    try {
+        const result = await service.logout({
+            userId: req.user.id,
+            sessionId: req.user.sessionId || null,
+            ipAddress: req.ip || req.connection?.remoteAddress,
+            userAgent: req.headers["user-agent"]
+        });
+        return res.rcceSuccess("SUCCESS", result, {
+            httpStatus: 200,
+            message: result.message
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+async function listSessions(req, res, next) {
+    try {
+        const result = await service.listSessions(req.user.id);
+        return res.rcceSuccess("SUCCESS", result, { httpStatus: 200 });
+    } catch (error) {
+        next(error);
+    }
+}
+
+async function revokeSession(req, res, next) {
+    try {
+        const result = await service.revokeSession({
+            sessionId: req.params.sessionId,
+            actor: req.user
+        });
+        return res.rcceSuccess("RECORD_UPDATED", result, { httpStatus: 200 });
+    } catch (error) {
+        next(error);
+    }
+}
+
+async function forgotPassword(req, res, next) {
+    try {
+        const result = await service.requestPasswordReset({
+            email: req.body?.email,
+            ipAddress: req.ip || req.connection?.remoteAddress
+        });
+        return res.rcceSuccess("SUCCESS", result, {
+            httpStatus: 200,
+            message: result.message
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+async function resetPassword(req, res, next) {
+    try {
+        const result = await service.resetPassword({
+            email: req.body?.email,
+            resetToken: req.body?.resetToken || req.body?.token,
+            newPassword: req.body?.newPassword || req.body?.password,
+            ipAddress: req.ip || req.connection?.remoteAddress
+        });
+        return res.rcceSuccess("RECORD_UPDATED", result, {
+            httpStatus: 200,
+            message: result.message
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+async function developerMfaChallenge(req, res, next) {
+    try {
+        const result = await service.requestDeveloperMfaChallenge({
+            actor: req.user,
+            deviceFingerprint: req.headers["x-device-fingerprint"] || req.body?.deviceFingerprint,
+            ipAddress: req.ip || req.connection?.remoteAddress,
+            userAgent: req.headers["user-agent"]
+        });
+        return res.rcceSuccess("SUCCESS", result, {
+            httpStatus: 200,
+            message: "Developer MFA verification challenge generated."
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+async function developerMfaVerify(req, res, next) {
+    try {
+        const result = await service.verifyDeveloperMfaChallenge({
+            actor: req.user,
+            code: req.body?.code || req.headers["x-developer-mfa-code"],
+            deviceFingerprint: req.headers["x-device-fingerprint"] || req.body?.deviceFingerprint,
+            ipAddress: req.ip || req.connection?.remoteAddress,
+            userAgent: req.headers["user-agent"]
+        });
+        return res.rcceSuccess("SUCCESS", result, {
+            httpStatus: 200,
+            message: "Developer MFA and device verification completed."
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+async function startDemoSession(req, res, next) {
+    try {
+        const result = await service.startDemoSession({
+            role: req.body?.role,
+            ipAddress: req.ip || req.connection?.remoteAddress,
+            userAgent: req.headers["user-agent"]
+        });
+        return res.rcceSuccess("SUCCESS", result, {
+            httpStatus: 200,
+            message: `Supervised training demo session ready for ${result.user.role}.`
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
 async function me(req, res, next) {
     try {
         const result = await service.getMe(req.user.id);
-
         return res.status(200).json({
             success: true,
             data: result,
@@ -108,5 +229,13 @@ async function me(req, res, next) {
 module.exports = {
     signup,
     login,
+    logout,
+    listSessions,
+    revokeSession,
+    forgotPassword,
+    resetPassword,
+    developerMfaChallenge,
+    developerMfaVerify,
+    startDemoSession,
     me
 };

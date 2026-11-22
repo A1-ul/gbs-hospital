@@ -9,6 +9,7 @@ import { api } from '../services/api.service';
 import MigrationViewComponent from '../modules/migration/MigrationView';
 import TelemedicineGisViewComponent from '../modules/telemedicine/TelemedicineGisView';
 import RcceDeveloperConsole from './RcceDeveloperConsole';
+import DeveloperAdvancedOpsPanel from '../modules/developer/DeveloperAdvancedOpsPanel';
 
 // ==========================================
 // 1. PATIENT MANAGEMENT & MPI
@@ -2049,7 +2050,12 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
     administratorFullName: '',
     administratorEmail: '',
     administratorPhone: '',
-    subscriptionPlan: '1_MONTH_TRIAL'
+    adminPassword: '',
+    confirmAdminPassword: '',
+    subscriptionPlan: '1_MONTH_TRIAL',
+    termsAccepted: false,
+    privacyAccepted: false,
+    dataProcessingConsent: false
   });
 
   // Developer Landlord Messaging & Video Call State
@@ -2181,10 +2187,52 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
 
   const handleRegisterTenant = async (e) => {
     e.preventDefault();
+    if (!tenantForm.adminPassword || tenantForm.adminPassword.length < 8) {
+      setActionMsg({ type: 'error', msg: 'Administrator password must be at least 8 characters long.' });
+      return;
+    }
+    if (tenantForm.adminPassword !== tenantForm.confirmAdminPassword) {
+      setActionMsg({ type: 'error', msg: 'Administrator password and confirmation password do not match.' });
+      return;
+    }
+    if (!tenantForm.termsAccepted || !tenantForm.privacyAccepted || !tenantForm.dataProcessingConsent) {
+      setActionMsg({ type: 'error', msg: 'Please accept Terms of Service, Privacy Policy, and Data Processing Consent.' });
+      return;
+    }
     try {
-      const res = await api.registerTenant(tenantForm);
-      setActionMsg({ type: 'success', msg: `Hospital Facility Registered: ${res.tenant?.institutionName || tenantForm.institutionName} (${res.tenant?.tenantCode || 'Issued'})` });
+      const payload = {
+        ...tenantForm,
+        name: tenantForm.institutionName,
+        type: tenantForm.institutionType,
+        adminName: tenantForm.administratorFullName,
+        adminEmail: tenantForm.administratorEmail,
+        adminPhone: tenantForm.administratorPhone,
+        adminPassword: tenantForm.adminPassword
+      };
+      delete payload.confirmAdminPassword;
+      const res = await api.registerTenant(payload);
+      setActionMsg({ type: 'success', msg: `Hospital Facility Registered: ${res.name || tenantForm.institutionName} (${res.tenantCode || res.tenantId || 'Issued'})` });
       setShowRegisterTenantModal(false);
+      setTenantForm({
+        institutionName: '',
+        institutionType: 'PRIVATE_HOSPITAL',
+        organizationType: 'PRIVATE_HOSPITAL',
+        country: 'Ghana',
+        region: 'Greater Accra',
+        city: 'Accra',
+        address: '',
+        officialEmail: '',
+        officialPhone: '',
+        administratorFullName: '',
+        administratorEmail: '',
+        administratorPhone: '',
+        adminPassword: '',
+        confirmAdminPassword: '',
+        subscriptionPlan: '1_MONTH_TRIAL',
+        termsAccepted: false,
+        privacyAccepted: false,
+        dataProcessingConsent: false
+      });
       loadData();
     } catch (err) {
       setActionMsg({ type: 'error', msg: err.message });
@@ -2373,6 +2421,14 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
             style={{ fontSize: '0.78rem', padding: '6px 14px' }}
           >
             <Shield size={14} /> 4. Permissions, Privacy & Logs
+          </button>
+          <button
+            type="button"
+            onClick={() => setDevSubTab('ADVANCED_OPS')}
+            className={devSubTab === 'ADVANCED_OPS' ? 'btn-gold' : 'btn-outline-gold'}
+            style={{ fontSize: '0.78rem', padding: '6px 14px' }}
+          >
+            <Cpu size={14} /> 5. AI Diagnostics, Face Security &amp; Analytics
           </button>
         </div>
       </div>
@@ -3081,6 +3137,11 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
         <RcceDeveloperConsole onStatusMsg={setActionMsg} />
       )}
 
+      {/* Developer Exclusive Module: AI Diagnostics, 4-Step Facial Security, Trial Automation & Truthful Adapters */}
+      {(devSubTab === 'ALL' || devSubTab === 'ADVANCED_OPS') && (
+        <DeveloperAdvancedOpsPanel onStatusMsg={setActionMsg} />
+      )}
+
       {/* Developer Exclusive Module: GIS Radar, Live Tenant Facility Tracking & Video Telemedicine */}
       {(devSubTab === 'ALL' || devSubTab === 'GIS_TELEMEDICINE') && (
         <div className="glass-panel" style={{ padding: '20px', border: '1px solid #06b6d4' }}>
@@ -3136,7 +3197,30 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
                   <option value="LIFETIME">Lifetime Enterprise License (Permanent)</option>
                 </select>
               </div>
-              <input required type="text" placeholder="Street Address / City *" value={tenantForm.address} onChange={e => setTenantForm({ ...tenantForm, address: e.target.value })} style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <input required type="password" minLength={8} placeholder="Administrator Password (min 8 chars) *" value={tenantForm.adminPassword} onChange={e => setTenantForm({ ...tenantForm, adminPassword: e.target.value })} style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px' }} />
+                <input required type="password" minLength={8} placeholder="Confirm Administrator Password *" value={tenantForm.confirmAdminPassword} onChange={e => setTenantForm({ ...tenantForm, confirmAdminPassword: e.target.value })} style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px' }} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+                <input required type="text" placeholder="Country *" value={tenantForm.country} onChange={e => setTenantForm({ ...tenantForm, country: e.target.value })} style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input type="text" placeholder="Region / State" value={tenantForm.region} onChange={e => setTenantForm({ ...tenantForm, region: e.target.value })} style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+                <input type="text" placeholder="City" value={tenantForm.city} onChange={e => setTenantForm({ ...tenantForm, city: e.target.value })} style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+              </div>
+              <input required type="text" placeholder="Street Address *" value={tenantForm.address} onChange={e => setTenantForm({ ...tenantForm, address: e.target.value })} style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '10px', borderRadius: '6px', background: 'rgba(6, 12, 24, 0.65)', border: '1px solid var(--border-subtle)', fontSize: '0.76rem', color: 'var(--text-muted)' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                  <input type="checkbox" required checked={tenantForm.termsAccepted} onChange={e => setTenantForm({ ...tenantForm, termsAccepted: e.target.checked })} />
+                  <span>I accept the GBS Hospital Enterprise Terms of Service *</span>
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                  <input type="checkbox" required checked={tenantForm.privacyAccepted} onChange={e => setTenantForm({ ...tenantForm, privacyAccepted: e.target.checked })} />
+                  <span>I accept the Patient &amp; Facility Privacy Policy *</span>
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                  <input type="checkbox" required checked={tenantForm.dataProcessingConsent} onChange={e => setTenantForm({ ...tenantForm, dataProcessingConsent: e.target.checked })} />
+                  <span>I grant Data Processing &amp; Healthcare Audit Compliance Consent *</span>
+                </label>
+              </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '10px' }}>
                 <button type="button" onClick={() => setShowRegisterTenantModal(false)} className="btn-outline-gold">Cancel</button>
                 <button type="submit" className="btn-gold">Register Facility</button>

@@ -5,14 +5,16 @@ const app = require('../src/app');
 const prisma = require('../src/core/database/prisma.client');
 
 describe('Phase 24 — Production Data Activation, Environment Identification, Backup Protection & Universal Navigation', () => {
+  const ROOT_DEV_EMAIL = process.env.DEVELOPER_ROOT_EMAIL || 'gabosei48@gmail.com';
+  const ROOT_DEV_PASS = process.env.DEVELOPER_ROOT_PASSWORD || 'DevBootstrap123!';
   let devToken;
 
   beforeAll(async () => {
     const loginRes = await request(app)
       .post('/api/v1/auth/login')
       .send({
-        email: 'gabosei48@gmail.com',
-        password: '0543294615Gab'
+        email: ROOT_DEV_EMAIL,
+        password: ROOT_DEV_PASS
       });
     expect(loginRes.status).toBe(200);
     devToken = loginRes.body.data.token;
@@ -105,22 +107,22 @@ describe('Phase 24 — Production Data Activation, Environment Identification, B
     expect(adminUserAfter).not.toBeNull();
   });
 
-  test('8. Permanent Root Developer (gabosei48@gmail.com) authenticates ONLY with 0543294615Gab and unauthorized DEVELOPER signup is blocked', async () => {
+  test('8. Permanent Root Developer authenticates with configured credential and unauthorized DEVELOPER signup is blocked', async () => {
     const rootLogin = await request(app)
       .post('/api/v1/auth/login')
       .send({
-        email: 'gabosei48@gmail.com',
-        password: '0543294615Gab'
+        email: ROOT_DEV_EMAIL,
+        password: ROOT_DEV_PASS
       });
     expect(rootLogin.statusCode).toBe(200);
-    expect(rootLogin.body.data.user.email).toBe('gabosei48@gmail.com');
+    expect(rootLogin.body.data.user.email).toBe(ROOT_DEV_EMAIL);
     expect(rootLogin.body.data.user.role).toBe('DEVELOPER');
 
     const badPassLogin = await request(app)
       .post('/api/v1/auth/login')
       .send({
-        email: 'gabosei48@gmail.com',
-        password: 'Admin123'
+        email: ROOT_DEV_EMAIL,
+        password: 'WrongPassword999!'
       });
     expect(badPassLogin.statusCode).toBe(401);
 
@@ -136,9 +138,15 @@ describe('Phase 24 — Production Data Activation, Environment Identification, B
     expect(unauthorizedDevSignup.statusCode).toBe(403);
   });
 
-  test('9. Admin can change preferred Hospital Facility Name, Logo & Organization Type while Main System Name remains locked to GBS HOSPITAL MANAGEMENT SYSTEM', async () => {
+  test('9. Admin can change preferred Hospital Facility Name, Logo & Organization Type while Main System Name remains locked and unauthenticated writes are rejected', async () => {
+    const unauthRes = await request(app)
+      .put('/api/v1/health/facility-branding')
+      .send({ hospitalName: 'Unauthorized Tamper Attempt' });
+    expect(unauthRes.statusCode).toBe(401);
+
     const updateRes = await request(app)
       .put('/api/v1/health/facility-branding')
+      .set('Authorization', `Bearer ${devToken}`)
       .send({
         hospitalName: 'GBS Premier Specialist Teaching Hospital',
         motto: 'Smart Healthcare, Better Care.',

@@ -58,6 +58,9 @@ jobs:
           JWT_SECRET: gbs_ci_jwt_secret_key_2026_hospital_enterprise
           JWT_ACCESS_SECRET: gbs_ci_access_secret_key_2026_hospital_enterprise
           JWT_REFRESH_SECRET: gbs_ci_refresh_secret_key_2026_hospital_enterprise
+          DEVELOPER_ROOT_EMAIL: gabosei48@gmail.com
+          DEVELOPER_ROOT_PASSWORD: CiTestDevPassword2026!
+          DEMO_MODE_ENABLED: "true"
         run: |
           npm install
           npx prisma generate
@@ -72,6 +75,9 @@ jobs:
           JWT_SECRET: gbs_ci_jwt_secret_key_2026_hospital_enterprise
           JWT_ACCESS_SECRET: gbs_ci_access_secret_key_2026_hospital_enterprise
           JWT_REFRESH_SECRET: gbs_ci_refresh_secret_key_2026_hospital_enterprise
+          DEVELOPER_ROOT_EMAIL: gabosei48@gmail.com
+          DEVELOPER_ROOT_PASSWORD: CiTestDevPassword2026!
+          DEMO_MODE_ENABLED: "true"
         run: |
           npm test
 

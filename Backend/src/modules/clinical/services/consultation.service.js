@@ -12,6 +12,7 @@ LOCATION: src/modules/clinical/services/consultation.service.js
 const prisma = require("../../../core/database/prisma.client");
 const { ensureDefaultHospitalId } = require("../../../core/database/hospital-resolver");
 const { searchICD10, searchMedications, searchLabTests, ICD10_CATALOG } = require("../helpers/clinical-catalogs");
+const { checkPatientMedicationSafety, logClinicalSafetyOverride } = require("../../clinical-safety/clinical-safety.service");
 const AppError = require("../../../core/errors/app.error");
 const logger = require("../../../core/utils/logger");
 
@@ -82,8 +83,29 @@ async function recordDoctorConsultation(encounterId, consultationData = {}, doct
         diagnoses: rawDiagnoses = [],
         prescriptions = [],
         laboratoryRequests = [],
-        markComplete = false
+        markComplete = false,
+        safetyOverrideReason = null
     } = consultationData;
+
+    // PATIENT SAFETY GUARDRAIL (NEVER DISABLED): Allergy & Drug-Drug Interaction Enforcement
+    let safetyCheckReport = null;
+    if (Array.isArray(prescriptions) && prescriptions.length > 0) {
+        safetyCheckReport = await checkPatientMedicationSafety({
+            patientId: encounter.patientId,
+            proposedMedications: prescriptions
+        });
+        if (!safetyCheckReport.safeToProceedWithoutOverride) {
+            const reasonText = String(safetyOverrideReason || "").trim();
+            if (reasonText.length < 10) {
+                throw new AppError(
+                    `CLINICAL SAFETY ALERT: ${safetyCheckReport.blockingAlertsCount} high-severity allergy or drug interaction conflict(s) detected. Provide a documented safetyOverrideReason (>= 10 characters) to override with audit.`,
+                    409,
+                    "CLINICAL_SAFETY_ALERT_REQUIRES_OVERRIDE",
+                    { safetyReport: safetyCheckReport }
+                );
+            }
+        }
+    }
 
     const diagnoses = Array.isArray(rawDiagnoses) && rawDiagnoses.length > 0
         ? rawDiagnoses
@@ -137,7 +159,7 @@ async function recordDoctorConsultation(encounterId, consultationData = {}, doct
             createdDiagnoses.push(diagnosis);
         }
 
-        // 3. Create Electronic Prescriptions
+        // 3. Create Electronic Prescriptions (+ Log Audited Safety Overrides if applicable)
         const createdPrescriptions = [];
         for (const rx of prescriptions) {
             if (!rx.medicationName) continue;
@@ -154,6 +176,27 @@ async function recordDoctorConsultation(encounterId, consultationData = {}, doct
                 }
             });
             createdPrescriptions.push(prescription);
+        }
+
+        const loggedOverrides = [];
+        if (safetyCheckReport && !safetyCheckReport.safeToProceedWithoutOverride && safetyOverrideReason) {
+            for (const alert of safetyCheckReport.alerts.filter((a) => a.requiresOverride)) {
+                const ovr = await logClinicalSafetyOverride(
+                    {
+                        patientId: encounter.patientId,
+                        encounterId,
+                        alertCategory: alert.category,
+                        severity: alert.severity,
+                        offendingMedication: alert.offendingMedication,
+                        conflictingAgent: alert.conflictingAgent,
+                        alertSummary: alert.summary,
+                        overrideReason: String(safetyOverrideReason).trim()
+                    },
+                    doctorUser,
+                    tx
+                );
+                loggedOverrides.push(ovr);
+            }
         }
 
         // 4. Create Laboratory Investigation Requests
@@ -210,7 +253,9 @@ async function recordDoctorConsultation(encounterId, consultationData = {}, doct
             diagnoses: createdDiagnoses,
             prescriptions: createdPrescriptions,
             laboratoryRequests: createdLabRequests,
-            encounter: updatedEncounter
+            encounter: updatedEncounter,
+            safetyReport: safetyCheckReport,
+            safetyOverridesLogged: loggedOverrides
         };
     });
 

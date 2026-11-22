@@ -695,7 +695,12 @@ model Patient {
   surgicalCases     SurgicalCase[]
   emergencyCases    EmergencyCase[]
   transfusionRequests BloodTransfusionRequest[]
-  corpseRecords     CorpseRecord[]
+  corpseRecords         CorpseRecord[]
+  dentalRecords         DentalRecord[]
+  eyeClinicRecords      EyeClinicRecord[]
+  icuMonitoringRecords  IcuMonitoringRecord[]
+  safetyOverrides       ClinicalSafetyOverride[]
+  aiClinicalSuggestions AiClinicalSuggestion[]
 
   @@index([hospitalId])
   @@index([patientNumber])
@@ -3898,5 +3903,279 @@ model SystemConfiguration {
 
   @@index([category])
 }
+
+// ====================================================
+// PROCEDURE 3 (PHASE C): DENTAL CLINIC, EYE CLINIC,
+// ICU LIVE VITALS, PATIENT SAFETY OVERRIDES & AI CLINICAL
+// ====================================================
+
+model DentalRecord {
+  id               String    @id @default(uuid())
+  recordNumber     String    @unique
+  hospitalId       String
+  patientId        String
+  patient          Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  dentistId        String?
+  dentistName      String?
+  chiefComplaint   String
+  oralExamFindings String?   @db.Text
+  odontogram       Json?
+  toothNumbers     Json?
+  category         String    @default("RESTORATIVE")
+  procedureCode    String?
+  procedureName    String
+  anesthesiaUsed   String?
+  treatmentNotes   String?   @db.Text
+  oralSurgeryNotes String?   @db.Text
+  followUpDate     DateTime?
+  status           String    @default("COMPLETED")
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([hospitalId])
+  @@index([patientId])
+  @@index([category])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model EyeClinicRecord {
+  id                      String    @id @default(uuid())
+  examNumber              String    @unique
+  hospitalId              String
+  patientId               String
+  patient                 Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctorId                String?
+  doctorName              String?
+  chiefComplaint          String
+  visualAcuityOD          String?
+  visualAcuityOS          String?
+  visualAcuityCorrectedOD String?
+  visualAcuityCorrectedOS String?
+  iopRightMmHg            Float?
+  iopLeftMmHg             Float?
+  ocularHypertensionFlag  Boolean   @default(false)
+  refractionOD            Json?
+  refractionOS            Json?
+  pupillaryDistanceMm     Float?
+  slitLampFindings        String?   @db.Text
+  funduscopyFindings      String?   @db.Text
+  diagnosis               String
+  lensPrescription        String?
+  eyeDropMedication       String?
+  procedurePlanned        String?
+  followUpDate            DateTime?
+  status                  String    @default("COMPLETED")
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  @@index([hospitalId])
+  @@index([patientId])
+  @@index([ocularHypertensionFlag])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model IcuMonitoringRecord {
+  id                        String    @id @default(uuid())
+  monitorCode               String    @unique
+  hospitalId                String
+  patientId                 String
+  patient                   Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  admissionId               String?
+  wardName                  String    @default("Adult ICU")
+  bedNumber                 String?
+  recordedById              String?
+  recordedByName            String?
+  heartRateBpm              Int?
+  systolicBP                Int?
+  diastolicBP               Int?
+  meanArterialPressure      Float?
+  oxygenSaturationPct       Float?
+  respiratoryRate           Int?
+  temperatureC              Float?
+  glasgowComaScale          Int?
+  ventilatorMode            String    @default("ROOM_AIR")
+  fio2Percent               Float?
+  peepCmH2O                 Float?
+  news2Score                Int       @default(0)
+  alertLevel                String    @default("NORMAL")
+  triggeredAlerts           Json?
+  criticalCareInterventions String?   @db.Text
+  isAcknowledged            Boolean   @default(false)
+  acknowledgedBy            String?
+  acknowledgedAt            DateTime?
+  recordedAt                DateTime  @default(now())
+  createdAt                 DateTime  @default(now())
+  updatedAt                 DateTime  @updatedAt
+
+  @@index([hospitalId])
+  @@index([patientId])
+  @@index([alertLevel])
+  @@index([isAcknowledged])
+  @@index([recordedAt])
+}
+
+model ClinicalSafetyOverride {
+  id                    String   @id @default(uuid())
+  overrideCode          String   @unique
+  hospitalId            String
+  patientId             String
+  patient               Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  encounterId           String?
+  prescriptionId        String?
+  clinicianId           String?
+  clinicianName         String?
+  clinicianRole         String?
+  alertCategory         String
+  severity              String   @default("HIGH")
+  offendingMedication   String
+  conflictingAgent      String
+  alertSummary          String   @db.Text
+  overrideReason        String   @db.Text
+  clinicalJustification String?  @db.Text
+  status                String   @default("OVERRIDDEN_WITH_AUDIT")
+  createdAt             DateTime @default(now())
+
+  @@index([hospitalId])
+  @@index([patientId])
+  @@index([alertCategory])
+  @@index([severity])
+  @@index([createdAt])
+}
+
+model AiClinicalSuggestion {
+  id                    String    @id @default(uuid())
+  suggestionCode        String    @unique
+  hospitalId            String
+  patientId             String
+  patient               Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  encounterId           String?
+  requestedById         String?
+  requestedByName       String?
+  requestedByRole       String?
+  assistantType         String
+  inputContext          Json?
+  recommendationSummary String    @db.Text
+  recommendations       Json
+  confidenceScore       Float     @default(0.85)
+  riskLevel             String    @default("MODERATE")
+  disclaimer            String    @default("All outputs are recommendations only. Final decision requires a licensed clinician.")
+  workflowStatus        String    @default("SUGGESTED")
+  reviewedById          String?
+  reviewedByName        String?
+  reviewedByRole        String?
+  reviewedAt            DateTime?
+  humanDecision         String?
+  overrideNotes         String?   @db.Text
+  finalDecisionText     String?   @db.Text
+  finalDecidedById      String?
+  finalDecidedByName    String?
+  finalDecidedByRole    String?
+  finalDecidedAt        DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([hospitalId])
+  @@index([patientId])
+  @@index([assistantType])
+  @@index([workflowStatus])
+  @@index([riskLevel])
+  @@index([createdAt])
+}
+
+// ====================================================
+// PROCEDURE 4 (PHASE D): ONLINE MEETINGS, DOCUMENT MGMT
+// (VERSIONING & RETENTION) & FACILITY MANAGEMENT
+// ====================================================
+
+model HospitalMeeting {
+  id                 String    @id @default(uuid())
+  meetingCode        String    @unique
+  hospitalId         String
+  title              String
+  meetingType        String    @default("CLINICAL_BOARD")
+  department         String    @default("General Administration")
+  organizerId        String?
+  organizerName      String?
+  roomToken          String
+  scheduledStart     DateTime
+  scheduledEnd       DateTime?
+  startedAt          DateTime?
+  endedAt            DateTime?
+  status             String    @default("SCHEDULED")
+  participants       Json?
+  screenShareEnabled Boolean   @default(true)
+  agenda             String?   @db.Text
+  minutesSummary     String?   @db.Text
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@index([hospitalId])
+  @@index([status])
+  @@index([scheduledStart])
+}
+
+model HospitalDocument {
+  id                    String    @id @default(uuid())
+  documentCode          String    @unique
+  hospitalId            String
+  patientId             String?
+  title                 String
+  category              String    @default("MEDICAL_RECORD")
+  fileName              String
+  mimeType              String    @default("application/pdf")
+  fileSizeBytes         Int       @default(0)
+  storageChecksumSha256 String
+  versionNumber         Int       @default(1)
+  parentDocumentId      String?
+  retentionYears        Int       @default(7)
+  retentionExpiresAt    DateTime
+  deliveryStatus        String    @default("STORED")
+  deliveredTo           String?
+  deliveredAt           DateTime?
+  uploadedById          String?
+  uploadedByName        String?
+  isDeleted             Boolean   @default(false)
+  deletedAt             DateTime?
+  contentNotes          String?   @db.Text
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([hospitalId])
+  @@index([patientId])
+  @@index([category])
+  @@index([parentDocumentId])
+  @@index([isDeleted])
+  @@index([createdAt])
+}
+
+model FacilityTask {
+  id                 String    @id @default(uuid())
+  taskCode           String    @unique
+  hospitalId         String
+  category           String    @default("HOUSEKEEPING")
+  title              String
+  location           String
+  priority           String    @default("NORMAL")
+  assignedToName     String?
+  status             String    @default("OPEN")
+  utilityMetricValue Float?
+  utilityMetricUnit  String?
+  notes              String?   @db.Text
+  reportedById       String?
+  reportedByName     String?
+  completedAt        DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@index([hospitalId])
+  @@index([category])
+  @@index([status])
+  @@index([priority])
+  @@index([createdAt])
+}
+
+
 
 

@@ -89,41 +89,29 @@ NORMALIZE CORS ORIGINS
 
 
 function getAllowedOrigins() {
+    const productionDefaults = [
+        "https://gbs-hospital-system.onrender.com",
+        "https://gbs-hospital.onrender.com"
+    ];
 
+    const devDefaults = [
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "http://localhost:5000",
+        "http://localhost:5173",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:5173",
+        ...productionDefaults
+    ];
 
-    if (
-        !environment.CORS_ORIGIN
-    ) {
-
-
-        return [
-
-            "http://localhost:3000",
-            "http://localhost:3001",
-            "http://localhost:5000",
-            "http://localhost:5173",
-            "https://gbs-hospital-system.onrender.com",
-            "https://gbs-hospital.onrender.com"
-
-        ];
-
-
+    if (!environment.CORS_ORIGIN || environment.CORS_ORIGIN === "*") {
+        return environment.IS_PRODUCTION ? productionDefaults : devDefaults;
     }
 
-
-
     return environment.CORS_ORIGIN
-
         .split(",")
-
-        .map(
-            origin =>
-                origin.trim()
-        )
-
+        .map((origin) => origin.trim())
         .filter(Boolean);
-
-
 }
 
 
@@ -385,27 +373,16 @@ function applyCors(app) {
                 const isPrivateLanOrigin =
                     /^https?:\/\/(192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3})(:\d+)?$/.test(origin);
 
-                if (
-
-                    allowedOrigins.includes(
-                        origin
-                    ) ||
-                    origin.endsWith(".onrender.com") ||
-                    origin.endsWith(".lhr.life") ||
-                    origin.endsWith(".loca.lt") ||
-                    origin.endsWith(".trycloudflare.com") ||
-                    origin.startsWith("http://localhost:") ||
-                    origin.startsWith("http://127.0.0.1:") ||
-                    isPrivateLanOrigin
-
-                ) {
-
-                    return callback(
-                        null,
-                        true
+                const isDevLocalOrigin =
+                    !environment.IS_PRODUCTION &&
+                    (
+                        origin.startsWith("http://localhost:") ||
+                        origin.startsWith("http://127.0.0.1:") ||
+                        isPrivateLanOrigin
                     );
 
-
+                if (allowedOrigins.includes(origin) || isDevLocalOrigin) {
+                    return callback(null, true);
                 }
 
 
@@ -469,23 +446,25 @@ function applyCors(app) {
 
 
             allowedHeaders: [
-
                 "Content-Type",
-
                 "Authorization",
-
-                "X-Request-ID"
-
+                "X-Request-ID",
+                "X-Idempotency-Key",
+                "X-Tenant-Id",
+                "X-Hospital-Id",
+                "X-Emergency-Override",
+                "X-Emergency-Reason",
+                "X-Device-Fingerprint",
+                "X-Developer-MFA-Code"
             ],
 
-
-
-
-
             exposedHeaders: [
-
-                "X-Request-ID"
-
+                "X-Request-ID",
+                "X-Idempotency-Replayed",
+                "X-Tenant-Emergency-Access",
+                "X-Tenant-Warning-Tier",
+                "X-Tenant-Days-Remaining",
+                "X-GBS-Privacy-Redacted"
             ]
 
 
@@ -583,16 +562,12 @@ function applyRateLimit(app) {
 
 
             skip: function (req) {
-
-
-
                 return (
-
-                    req.path === "/health"
-
+                    !environment.SECURITY.ENABLE_RATE_LIMIT ||
+                    req.path === "/health" ||
+                    req.path === "/api/v1/health" ||
+                    req.originalUrl === "/api/v1/health"
                 );
-
-
             },
 
 
@@ -749,11 +724,8 @@ function applyCustomHeaders(app) {
 
 
             res.setHeader(
-
                 "Permissions-Policy",
-
-                "camera=(), microphone=(), geolocation=()"
-
+                "camera=(self), microphone=(self), geolocation=(self)"
             );
 
 

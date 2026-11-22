@@ -317,11 +317,13 @@ CUSTOM REQUEST MIDDLEWARE
 
 const { rcce } = require("./core/gbs-rcce.bootstrap");
 const { createRcceTrafficMiddleware } = require("./core/middleware/rcce-audit.middleware");
+const { tenantAccessGuard } = require("./modules/tenant-management/tenant-access.middleware");
 
 requestMiddleware(app);
 app.use(rcce.response.expressMiddleware());
 app.use("/api/v1", rcce.idempotency.middleware());
 app.use("/api/v1", createRcceTrafficMiddleware());
+app.use("/api/v1", tenantAccessGuard);
 
 
 

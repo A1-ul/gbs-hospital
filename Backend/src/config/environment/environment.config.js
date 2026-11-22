@@ -19,8 +19,13 @@ const isDevelopment = !isProduction && !isTest;
 const activeEnvironment = isProduction
     ? "PRODUCTION"
     : isTest
-    ? "DEVELOPMENT_TEST"
-    : "DEVELOPMENT";
+        ? "DEVELOPMENT_TEST"
+        : "DEVELOPMENT";
+
+const demoModeEnabled =
+    process.env.DEMO_MODE_ENABLED !== undefined
+        ? String(process.env.DEMO_MODE_ENABLED).toLowerCase() === "true"
+        : !isProduction;
 
 function getSafeDatabaseMetadata() {
     const dbUrl = process.env.DATABASE_URL || "";
@@ -50,11 +55,13 @@ module.exports = {
     isProduction,
     isDevelopment,
     isTest,
+    demoModeEnabled,
     defaultDataSource: isProduction ? "PRODUCTION" : isTest ? "DEVELOPMENT_TEST" : "PRODUCTION",
     allowDemoSeedingInProduction: false,
     backupDirectory: path.resolve(__dirname, "../../../backups"),
     officialCompanyEmail: "gabosei48@gmail.com",
     cloudHostingProvider: "Render.com",
+    renderServiceName: process.env.RENDER_SERVICE_NAME || "gbs-hospital-system",
+    productionPublicUrl: process.env.PRODUCTION_PUBLIC_URL || "https://gbs-hospital-system.onrender.com",
     getSafeDatabaseMetadata
 };
-

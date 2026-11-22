@@ -685,12 +685,49 @@ async function dispensePrescription(prescriptionId, dispenseData = {}, pharmacis
         quantityToDispense,
         counselingNotes,
         paymentStatus = "PAID",
-        instructions
+        instructions,
+        safetyOverrideReason = null
     } = dispenseData;
 
     const patient = prescription.encounter?.patient;
     const patientName = patient ? `${patient.firstName} ${patient.lastName}` : "Patient";
     const hospitalId = await resolveHospitalId();
+
+    // PATIENT SAFETY GUARDRAIL (NEVER DISABLED): Pharmacy Dispense Allergy & Interaction Verification
+    if (patient && prescription.medicationName) {
+        const { checkPatientMedicationSafety, logClinicalSafetyOverride } = require("../../clinical-safety/clinical-safety.service");
+        const safetyCheck = await checkPatientMedicationSafety({
+            patientId: patient.id,
+            proposedMedications: [prescription.medicationName]
+        });
+        if (!safetyCheck.safeToProceedWithoutOverride) {
+            const reasonText = String(safetyOverrideReason || "").trim();
+            if (reasonText.length < 10) {
+                throw new AppError(
+                    `PHARMACY SAFETY BLOCK: High-severity allergy or drug interaction detected for "${prescription.medicationName}". Provide a documented safetyOverrideReason (>= 10 characters) to dispense with audit.`,
+                    409,
+                    "CLINICAL_SAFETY_ALERT_REQUIRES_OVERRIDE",
+                    { safetyReport: safetyCheck }
+                );
+            }
+            for (const alert of safetyCheck.alerts.filter((a) => a.requiresOverride)) {
+                await logClinicalSafetyOverride(
+                    {
+                        patientId: patient.id,
+                        encounterId: prescription.encounterId,
+                        prescriptionId: prescription.id,
+                        alertCategory: alert.category,
+                        severity: alert.severity,
+                        offendingMedication: alert.offendingMedication,
+                        conflictingAgent: alert.conflictingAgent,
+                        alertSummary: alert.summary,
+                        overrideReason: reasonText
+                    },
+                    pharmacistUser
+                );
+            }
+        }
+    }
 
     // 1. Resolve matching PharmacyItem
     let item;

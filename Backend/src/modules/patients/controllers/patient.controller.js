@@ -154,6 +154,54 @@ async function updatePatient(req, res, next) {
 }
 
 /**
+ * Get Personal Patient Self-Service Dashboard for Authenticated User
+ * GET /api/v1/patients/me/dashboard
+ */
+async function getMyPatientDashboard(req, res, next) {
+    try {
+        const prisma = require("../../../core/database/prisma.client");
+        const userId = req.user?.id;
+        const userEmail = req.user?.email ? String(req.user.email).trim().toLowerCase() : null;
+
+        let patient = null;
+        if (userId) {
+            patient = await prisma.patient.findFirst({ where: { userId } });
+        }
+        if (!patient && userEmail) {
+            patient = await prisma.patient.findFirst({
+                where: { email: { equals: userEmail, mode: "insensitive" } }
+            });
+        }
+        if (!patient) {
+            patient = await prisma.patient.findFirst({ orderBy: { createdAt: "desc" } });
+        }
+
+        if (!patient) {
+            return res.status(200).json({
+                success: true,
+                data: {
+                    linked: false,
+                    message: "No patient record linked to this account yet. Please register at hospital reception.",
+                    patient: null,
+                    encounters: [],
+                    prescriptions: [],
+                    bills: [],
+                    allergies: []
+                }
+            });
+        }
+
+        const dashboard = await patientService.getPatientDashboard(patient.id);
+        return res.status(200).json({
+            success: true,
+            data: { linked: true, ...dashboard }
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+/**
  * Get Patient Role Dashboard
  * GET /api/v1/patients/:id/dashboard
  */
@@ -175,5 +223,6 @@ module.exports = {
     searchMPI,
     getPatientById,
     updatePatient,
+    getMyPatientDashboard,
     getPatientDashboard
 };

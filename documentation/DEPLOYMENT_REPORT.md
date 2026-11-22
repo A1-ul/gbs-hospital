@@ -4,39 +4,39 @@
 - **Official GBS Account Email**: `gabosei48@gmail.com`
 - **Exclusive Cloud Hosting Provider**: Render.com
 - **System Type**: GBS Hospital Management System (`HOSPITAL_ENTERPRISE`)
-- **Render Service Name**: `gbs-hospital`
-- **Public Production URL**: `https://gbs-hospital.onrender.com`
+- **Render Service Name**: `gbs-hospital-system`
+- **Public Production URL**: `https://gbs-hospital-system.onrender.com`
 - **Health Check Endpoint**: `/api/v1/health`
 
 ## 2. Continuous Deployment Pipeline (`GitHub -> Render`)
 ```
 Local Development (d:\version1\GBS_HOSPITAL_SYSTEM)
         ↓
-Automated Tests & Build Verification
+Automated Tests & Build Verification (Jest + Vite Production Build)
         ↓
-Verified Database Backup (Backend/backups/pre-production-activation-backup.json)
+Verified Database Backup (Backend/backups/ — excluded from Git tracking)
         ↓
-Git Commit & Push to GitHub (main branch)
+Git Commit & Push to GitHub (A1-ul/gbs-hospital — main branch)
         ↓
 GitHub Actions CI (.github/workflows/ci-render-deploy.yml)
         ↓
 Render Blueprint Automatic Build & Deploy (render.yaml)
         ↓
-Database Migrations (npx prisma migrate deploy)
+Database Sync & Idempotent Bootstrap (prisma db push + node prisma/bootstrap-production.js)
         ↓
 Health Check Verification (/api/v1/health)
         ↓
-Live Production URL (https://gbs-hospital.onrender.com)
+Live Production URL (https://gbs-hospital-system.onrender.com)
 ```
 
 ## 3. Environment & Data Identification Architecture
-- **Development Environment**: `.env.development` (`NODE_ENV=development`, `GBS_ENV=DEVELOPMENT`)
-- **Production Environment**: `.env.production` (`NODE_ENV=production`, `GBS_ENV=PRODUCTION`)
+- **Environment Templates**: `Backend/.env.example`, `Backend/.env.example.production`, `Frontend/.env.example` (live `.env*` files are strictly gitignored)
+- **Production Demo Gate**: `DEMO_MODE_ENABLED=false` in production (zero client-side credentials; real DB-backed sessions & MFA for hidden `/developer-portal`)
 - **Central Environment Config**: `Backend/src/config/environment/environment.config.js`
 - **Data Classification & Backup Service**: `Backend/src/modules/tenant-management/backup-and-environment.service.js`
   - Classifies all records into `PRODUCTION` vs. `DEVELOPMENT_TEST`
   - Creates SHA-256 verified full database backups in `Backend/backups/`
-  - Purges only development/test records while protecting system roles, permissions, ICD-10 codes, and permanent bootstrap accounts (`developer@gbs.com`, `admin@gbs.com`)
+  - Purges only development/test records while protecting system roles, permissions, ICD-10 codes, and permanent bootstrap accounts (`gabosei48@gmail.com`, `admin@gbs.com`)
 
 ## 4. Universal Page Navigation Architecture
 - **Dedicated Detail Page Component**: `Frontend/src/components/UniversalDetailPage.jsx`

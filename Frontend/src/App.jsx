@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Header, { ROLES, ROLE_CATEGORIES } from './components/Header';
 import RoleLoginModal from './components/RoleLoginModal';
+import DeveloperPortalGate from './components/DeveloperPortalGate';
 import UniversalDetailPage from './components/UniversalDetailPage';
 import SystemFeedbackBrain from './components/SystemFeedbackBrain';
+import SubscriptionLockOverlay from './components/SubscriptionLockOverlay';
 
 const MODULE_BACKGROUND_MAP = {
   OVERVIEW: '/assets/images/hospital_hero_exterior.jpg',
@@ -23,6 +25,16 @@ const MODULE_BACKGROUND_MAP = {
   DEVELOPER_NOC: '/assets/images/developer_control_center_real.jpg',
   MIGRATION: '/assets/images/migration_data_center_real.jpg',
   TELEMEDICINE: '/assets/images/telemedicine_command_center_real.jpg',
+  DENTAL: '/assets/images/dental_clinic_real.jpg',
+  EYE_CLINIC: '/assets/images/ophthalmology_eye_clinic_real.jpg',
+  ICU: '/assets/images/inpatient_ward_bed_real.jpg',
+  AI_SAFETY: '/assets/images/quality_infection_control_real.jpg',
+  LABORATORY: '/assets/images/laboratory_pathology_real.jpg',
+  RADIOLOGY: '/assets/images/radiology_pacs_mri_real.jpg',
+  BILLING: '/assets/images/nhia_claims_center_real.jpg',
+  PATIENT_PORTAL: '/assets/images/hospital_hero_exterior.jpg',
+  EXECUTIVE_BI: '/assets/images/hospital_director_boardroom_real.jpg',
+  OPERATIONS_HUB: '/assets/images/hospital_admin_office_real.jpg',
 };
 
 const ROLE_BACKGROUND_MAP = {
@@ -62,6 +74,16 @@ import {
   TelemedicineGisView,
   VoiceBiometricsView
 } from './components/ModuleViews';
+import DentalClinicView from './modules/clinical-specialties/DentalClinicView';
+import EyeClinicView from './modules/clinical-specialties/EyeClinicView';
+import IcuVitalsView from './modules/clinical-specialties/IcuVitalsView';
+import AiSafetyCenterView from './modules/clinical-specialties/AiSafetyCenterView';
+import LaboratoryView from './modules/diagnostics/LaboratoryView';
+import RadiologyPacsView from './modules/diagnostics/RadiologyPacsView';
+import BillingPaymentsView from './modules/finance/BillingPaymentsView';
+import PatientPortalView from './modules/patient-portal/PatientPortalView';
+import ExecutiveAdminBiView from './modules/executive/ExecutiveAdminBiView';
+import OperationsSuiteView from './modules/operations/OperationsSuiteView';
 import {
   Users, Activity, Pill, FlaskConical, Stethoscope,
   Bed, FileText, CreditCard, Shield, AlertTriangle,
@@ -69,7 +91,7 @@ import {
   Search, PlusCircle, Lock, Unlock, RefreshCw, Database,
   Video, MapPin, Mic, Eye, Bell, History, Building2, User, Layers
 } from 'lucide-react';
-import { api, ensureRoleAuthentication } from './services/api.service';
+import { api } from './services/api.service';
 
 export const SUBSYSTEM_CATEGORIES = {
   ALL: { id: 'ALL', label: 'All Departments', icon: Layers, badge: 'ALL 16' },
@@ -83,22 +105,32 @@ export const SUBSYSTEM_MODULES = [
   { key: 'PATIENTS', number: '1', label: 'Patients & Folders', icon: Users, category: 'CLINICAL_INPATIENT', color: '#38bdf8' },
   { key: 'CLINICAL', number: '2', label: 'Doctor & Nurse Care', icon: Activity, category: 'CLINICAL_INPATIENT', color: '#38bdf8' },
   { key: 'WARDS', number: '3', label: 'Wards & Free Beds', icon: Bed, category: 'CLINICAL_INPATIENT', color: '#38bdf8' },
-  { key: 'PHARMACY', number: '4', label: 'Pharmacy & Medicine', icon: Pill, category: 'CLINICAL_INPATIENT', color: '#38bdf8' },
-  { key: 'SURGERY', number: '5', label: 'Surgery & Operating Rooms', icon: Stethoscope, category: 'CLINICAL_INPATIENT', color: '#38bdf8' },
+  { key: 'ICU', number: '4', label: 'ICU & Live Vitals', icon: Activity, category: 'CLINICAL_INPATIENT', color: '#ef4444' },
+  { key: 'PHARMACY', number: '5', label: 'Pharmacy & Medicine', icon: Pill, category: 'CLINICAL_INPATIENT', color: '#38bdf8' },
+  { key: 'SURGERY', number: '6', label: 'Surgery & Operating Rooms', icon: Stethoscope, category: 'CLINICAL_INPATIENT', color: '#38bdf8' },
+  { key: 'DENTAL', number: '7', label: 'Dental Clinic', icon: Stethoscope, category: 'CLINICAL_INPATIENT', color: '#38bdf8' },
+  { key: 'EYE_CLINIC', number: '8', label: 'Eye Clinic', icon: Eye, category: 'CLINICAL_INPATIENT', color: '#38bdf8' },
 
-  { key: 'EMERGENCY', number: '6', label: 'Emergency & Ambulances', icon: AlertTriangle, category: 'ACUTE_DIAGNOSTICS', color: '#ef4444' },
-  { key: 'BLOOD_BANK', number: '7', label: 'Blood Bank', icon: FlaskConical, category: 'ACUTE_DIAGNOSTICS', color: '#ef4444' },
-  { key: 'MORTUARY', number: '8', label: 'Mortuary Services', icon: HardDrive, category: 'ACUTE_DIAGNOSTICS', color: '#a1a1aa' },
-  { key: 'BIOMEDICAL', number: '9', label: 'Equipment & Repairs', icon: Wrench, category: 'ACUTE_DIAGNOSTICS', color: '#d97706' },
+  { key: 'EMERGENCY', number: '9', label: 'Emergency & Ambulances', icon: AlertTriangle, category: 'ACUTE_DIAGNOSTICS', color: '#ef4444' },
+  { key: 'LABORATORY', number: '10', label: 'Laboratory & Pathology', icon: FlaskConical, category: 'ACUTE_DIAGNOSTICS', color: '#38bdf8' },
+  { key: 'RADIOLOGY', number: '11', label: 'Radiology & PACS', icon: Radio, category: 'ACUTE_DIAGNOSTICS', color: '#38bdf8' },
+  { key: 'BLOOD_BANK', number: '12', label: 'Blood Bank', icon: FlaskConical, category: 'ACUTE_DIAGNOSTICS', color: '#ef4444' },
+  { key: 'MORTUARY', number: '13', label: 'Mortuary Services', icon: HardDrive, category: 'ACUTE_DIAGNOSTICS', color: '#a1a1aa' },
+  { key: 'BIOMEDICAL', number: '14', label: 'Equipment & Repairs', icon: Wrench, category: 'ACUTE_DIAGNOSTICS', color: '#d97706' },
 
-  { key: 'PROCUREMENT', number: '10', label: 'Supplies & Purchasing', icon: Package, category: 'OPERATIONS_GOVERNANCE', color: 'var(--gold-400)' },
-  { key: 'HR', number: '11', label: 'Staff, Shifts & Leave', icon: Users, category: 'OPERATIONS_GOVERNANCE', color: '#38bdf8' },
-  { key: 'QUALITY', number: '12', label: 'Safety & Quality', icon: Shield, category: 'OPERATIONS_GOVERNANCE', color: '#d97706' },
-  { key: 'NHIA_CLAIMS', number: '13', label: 'Billing & Insurance', icon: CreditCard, category: 'OPERATIONS_GOVERNANCE', color: '#22c55e' },
-  { key: 'VOICE_AUTH', number: '14', label: 'Voice & Finger Lock', icon: Mic, category: 'OPERATIONS_GOVERNANCE', color: 'var(--gold-400)' },
+  { key: 'BILLING', number: '15', label: 'Billing & Payments', icon: CreditCard, category: 'OPERATIONS_GOVERNANCE', color: '#10b981' },
+  { key: 'NHIA_CLAIMS', number: '16', label: 'NHIA / NHIS Claims', icon: CreditCard, category: 'OPERATIONS_GOVERNANCE', color: '#22c55e' },
+  { key: 'PROCUREMENT', number: '17', label: 'Supplies & Purchasing', icon: Package, category: 'OPERATIONS_GOVERNANCE', color: 'var(--gold-400)' },
+  { key: 'HR', number: '18', label: 'Staff, Shifts & Leave', icon: Users, category: 'OPERATIONS_GOVERNANCE', color: '#38bdf8' },
+  { key: 'QUALITY', number: '19', label: 'Safety & Quality', icon: Shield, category: 'OPERATIONS_GOVERNANCE', color: '#d97706' },
+  { key: 'EXECUTIVE_BI', number: '20', label: 'Executive BI & Admin', icon: Building2, category: 'OPERATIONS_GOVERNANCE', color: 'var(--gold-400)' },
+  { key: 'OPERATIONS_HUB', number: '21', label: 'Meetings, Docs & Facility', icon: FileText, category: 'OPERATIONS_GOVERNANCE', color: '#38bdf8' },
 
-  { key: 'TELEMEDICINE', number: '15', label: 'Video Visits & Maps', icon: Video, category: 'TELEHEALTH_TECH', color: '#06b6d4' },
-  { key: 'DEVELOPER_NOC', number: '16', label: 'System Control Center', icon: Shield, category: 'TELEHEALTH_TECH', color: '#ef4444', devOnly: true }
+  { key: 'PATIENT_PORTAL', number: '22', label: 'Patient Self-Service', icon: User, category: 'TELEHEALTH_TECH', color: '#10b981' },
+  { key: 'VOICE_AUTH', number: '23', label: 'Voice & Finger Lock', icon: Mic, category: 'TELEHEALTH_TECH', color: 'var(--gold-400)' },
+  { key: 'AI_SAFETY', number: '24', label: 'AI & Safety Guardrails', icon: Shield, category: 'TELEHEALTH_TECH', color: '#10b981' },
+  { key: 'TELEMEDICINE', number: '25', label: 'Video Visits & Maps', icon: Video, category: 'TELEHEALTH_TECH', color: '#06b6d4' },
+  { key: 'DEVELOPER_NOC', number: '26', label: 'System Control Center', icon: Shield, category: 'TELEHEALTH_TECH', color: '#ef4444', devOnly: true }
 ];
 
 export const DETAIL_PAGE_GROUPS = [
@@ -145,6 +177,10 @@ export const ECOSYSTEM_CATEGORIES = {
 
 function parseUrlRoute(pathname) {
   const clean = (pathname || '/').replace(/\/+$/, '') || '/';
+  // Hidden unlisted Developer Control Center path
+  if (/^\/developer-portal(\/.*)?$/i.test(clean)) {
+    return { moduleKey: 'DEVELOPER_PORTAL', detail: null };
+  }
   // Match /module/:moduleKey/detail/:detailType/:recordId
   const detailMatch = clean.match(/^\/module\/([^/]+)\/detail\/([^/]+)\/(.+)$/);
   if (detailMatch) {
@@ -165,6 +201,26 @@ function parseUrlRoute(pathname) {
     };
   }
   return { moduleKey: 'OVERVIEW', detail: null };
+}
+
+function getDefaultModuleForRole(role) {
+  if (role === 'DEVELOPER') return 'DEVELOPER_NOC';
+  if (role === 'HOSPITAL_DIRECTOR' || role === 'ADMINISTRATOR') return 'EXECUTIVE_BI';
+  if (role === 'DENTIST') return 'DENTAL';
+  if (role === 'EYE_DOCTOR') return 'EYE_CLINIC';
+  if (role === 'LAB_TECHNICIAN') return 'LABORATORY';
+  if (role === 'RADIOLOGIST') return 'RADIOLOGY';
+  if (role === 'ACCOUNTANT') return 'BILLING';
+  if (role === 'PATIENT') return 'PATIENT_PORTAL';
+  if (['DOCTOR', 'NURSE'].includes(role)) return 'CLINICAL';
+  if (role === 'SURGEON') return 'SURGERY';
+  if (role === 'PHARMACIST') return 'PHARMACY';
+  if (['EMERGENCY_PHYSICIAN', 'PARAMEDIC', 'AMBULANCE_DRIVER'].includes(role)) return 'EMERGENCY';
+  if (['MORTUARY_OFFICER', 'PATHOLOGIST'].includes(role)) return 'MORTUARY';
+  if (role === 'BIOMEDICAL_ENGINEER') return 'BIOMEDICAL';
+  if (['FOLDER_RETRIEVER', 'RECEPTIONIST'].includes(role)) return 'PATIENTS';
+  if (role === 'HR_MANAGER') return 'HR';
+  return 'OVERVIEW';
 }
 
 export default function App() {
@@ -207,6 +263,10 @@ export default function App() {
     activeUsers: 0
   });
   const [activeEnvironment, setActiveEnvironment] = useState('DEVELOPMENT');
+  const [demoModeEnabled, setDemoModeEnabled] = useState(false);
+  const [isDeveloperMfaVerified, setIsDeveloperMfaVerified] = useState(
+    () => typeof window !== 'undefined' && sessionStorage.getItem('gbs_dev_mfa_verified') === 'true'
+  );
   const [recentAuditLogs, setRecentAuditLogs] = useState([]);
   const [recentNotifications, setRecentNotifications] = useState([]);
   const [facilityBranding, setFacilityBranding] = useState({
@@ -217,7 +277,8 @@ export default function App() {
 
   const isDeveloperAuthenticated = Boolean(
     currentUser &&
-    (currentUser.role === 'DEVELOPER' || String(currentUser.email || '').toLowerCase() === 'gabosei48@gmail.com')
+    currentUser.role === 'DEVELOPER' &&
+    isDeveloperMfaVerified
   );
 
   const loadGlobalOverview = async () => {
@@ -262,7 +323,7 @@ export default function App() {
     }
   };
 
-  // Check saved session & fetch live PostgreSQL overview metrics
+  // Verify saved session cleanly (ZERO silent auto-login, ZERO client credentials)
   useEffect(() => {
     const savedUser = localStorage.getItem('gbs_user');
     const savedToken = localStorage.getItem('gbs_token');
@@ -272,15 +333,43 @@ export default function App() {
         setCurrentUser(u);
         if (u.role) setCurrentRole(u.role);
       } catch (_e) { }
-    } else {
-      ensureRoleAuthentication('ADMINISTRATOR').then((data) => {
-        if (data?.user) {
-          setCurrentUser(data.user);
-          if (data.user.role) setCurrentRole(data.user.role);
-        }
-      }).catch(() => { });
+
+      api.me()
+        .then((freshUser) => {
+          if (freshUser && freshUser.id) {
+            setCurrentUser(freshUser);
+            localStorage.setItem('gbs_user', JSON.stringify(freshUser));
+            if (freshUser.role) {
+              setCurrentRole(freshUser.role);
+              localStorage.setItem('gbs_role', freshUser.role);
+            }
+          }
+        })
+        .catch(() => {
+          localStorage.removeItem('gbs_token');
+          localStorage.removeItem('gbs_user');
+          sessionStorage.removeItem('gbs_dev_mfa_verified');
+          setCurrentUser(null);
+          setIsDeveloperMfaVerified(false);
+        });
     }
+
+    api.getEnvironmentInfo()
+      .then((envInfo) => {
+        if (envInfo?.activeEnvironment) setActiveEnvironment(envInfo.activeEnvironment);
+        setDemoModeEnabled(Boolean(envInfo?.demoModeEnabled));
+      })
+      .catch(() => { });
+
     loadGlobalOverview();
+
+    const onSessionExpired = () => {
+      setCurrentUser(null);
+      setIsDeveloperMfaVerified(false);
+      setCurrentRole('ADMINISTRATOR');
+    };
+    window.addEventListener('gbs:session-expired', onSessionExpired);
+    return () => window.removeEventListener('gbs:session-expired', onSessionExpired);
   }, []);
 
   // Refresh overview metrics when switching back to OVERVIEW
@@ -391,16 +480,22 @@ export default function App() {
     };
   }, [activeModule]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await api.logout();
+    } catch (_e) { }
     localStorage.removeItem('gbs_token');
     localStorage.removeItem('gbs_user');
+    localStorage.removeItem('gbs_role');
+    sessionStorage.removeItem('gbs_dev_mfa_verified');
+    sessionStorage.removeItem('gbs_dev_device_fp');
     setCurrentUser(null);
-    if (currentRole === 'DEVELOPER') {
-      setCurrentRole('ADMINISTRATOR');
-    }
-    if (activeModule === 'DEVELOPER_NOC') {
+    setIsDeveloperMfaVerified(false);
+    setCurrentRole('ADMINISTRATOR');
+    if (activeModule === 'DEVELOPER_NOC' || activeModule === 'DEVELOPER_PORTAL' || activeModule === 'MIGRATION') {
       setActiveModule('OVERVIEW');
     }
+    loadGlobalOverview();
   };
 
   const handleQuickAction = (action) => {
@@ -416,7 +511,7 @@ export default function App() {
         setActiveModule('PHARMACY');
         break;
       case 'LAB_REQUESTS':
-        setActiveModule('CLINICAL');
+        setActiveModule('LABORATORY');
         break;
       case 'VIEW_REPORTS':
       case 'VIEW_NOTIFICATIONS':
@@ -435,59 +530,58 @@ export default function App() {
   };
 
   const handleSelectRole = async (r) => {
-    if (r === 'DEVELOPER' && !isDeveloperAuthenticated) {
-      setLoginModalRole('DEVELOPER');
+    // Hidden Developer Control Center is strictly isolated to /developer-portal with MFA
+    if (r === 'DEVELOPER') {
+      if (!isDeveloperAuthenticated) {
+        return;
+      }
+      setCurrentRole('DEVELOPER');
+      setActiveModule('DEVELOPER_NOC');
+      return;
+    }
+
+    // Require real authentication before switching into a role portal
+    const isExecutive = Boolean(
+      currentUser && ['ADMINISTRATOR', 'HOSPITAL_DIRECTOR', 'DEVELOPER'].includes(currentUser.role)
+    );
+    if (!currentUser || (!isExecutive && currentUser.role !== r)) {
+      setLoginModalRole(r);
       setIsLoginOpen(true);
       return;
     }
+
     if (typeof window !== 'undefined') localStorage.setItem('gbs_role', r);
     setCurrentRole(r);
 
-    try {
-      const authData = await ensureRoleAuthentication(r);
-      if (authData?.user) {
-        setCurrentUser(authData.user);
-      }
-    } catch (_e) { }
-
+    const targetMod = getDefaultModuleForRole(r);
     if (typeof window !== 'undefined' && typeof window.gbsBrainNotify === 'function') {
       window.gbsBrainNotify({
         type: 'info',
         method: 'ROLE',
-        title: `Switched to ${r.replace(/_/g, ' ')}`,
-        message: `Your workspace is ready for ${r.replace(/_/g, ' ').toLowerCase()}.`,
+        title: `Switched Workspace to ${r.replace(/_/g, ' ')}`,
+        message: `Workspace opened for ${r.replace(/_/g, ' ').toLowerCase()}.`,
         role: r,
-        module: activeModule,
+        module: targetMod,
       });
     }
-    if (r === 'DEVELOPER') {
-      setActiveModule('DEVELOPER_NOC');
-    } else if (r === 'DOCTOR' || r === 'NURSE' || r === 'DENTIST' || r === 'EYE_DOCTOR' || r === 'RADIOLOGIST') {
-      setActiveModule('CLINICAL');
-    } else if (r === 'SURGEON') {
-      setActiveModule('SURGERY');
-    } else if (r === 'PHARMACIST') {
-      setActiveModule('PHARMACY');
-    } else if (r === 'LAB_TECHNICIAN') {
-      setActiveModule('BLOOD_BANK');
-    } else if (r === 'EMERGENCY_PHYSICIAN' || r === 'PARAMEDIC' || r === 'AMBULANCE_DRIVER') {
-      setActiveModule('EMERGENCY');
-    } else if (r === 'MORTUARY_OFFICER' || r === 'PATHOLOGIST') {
-      setActiveModule('MORTUARY');
-    } else if (r === 'BIOMEDICAL_ENGINEER') {
-      setActiveModule('BIOMEDICAL');
-    } else if (r === 'FOLDER_RETRIEVER' || r === 'RECEPTIONIST') {
-      setActiveModule('PATIENTS');
-    } else if (r === 'ACCOUNTANT') {
-      setActiveModule('NHIA_CLAIMS');
-    } else if (r === 'HR_MANAGER') {
-      setActiveModule('HR');
-    } else if (r === 'PATIENT') {
-      setActiveModule('PATIENTS');
-    } else {
-      setActiveModule('OVERVIEW');
-    }
+    setActiveModule(targetMod);
   };
+
+  // Hidden Unlisted Developer Access Gate (/developer-portal)
+  if (activeModule === 'DEVELOPER_PORTAL' && !isDeveloperAuthenticated) {
+    return (
+      <DeveloperPortalGate
+        onDeveloperAuthenticated={(devUser) => {
+          setCurrentUser(devUser);
+          setCurrentRole('DEVELOPER');
+          setIsDeveloperMfaVerified(true);
+          setActiveModule('DEVELOPER_NOC');
+          loadGlobalOverview();
+        }}
+        onExitPortal={() => setActiveModule('OVERVIEW')}
+      />
+    );
+  }
 
   const activeBgSrc =
     activeModule === 'OVERVIEW'
@@ -1130,11 +1224,11 @@ export default function App() {
                       { mod: 'PATIENTS', cat: 'CLINICAL', title: '1. Patients & Medical Folders', desc: 'Register new patients, search existing patient records, and track paper folders.', img: '/assets/images/patient_registration_archive_real.jpg', icon: Users, color: 'var(--gold-400)', border: 'var(--border-gold)' },
                       { mod: 'CLINICAL', cat: 'CLINICAL', title: '2. Doctor & Nurse Care', desc: 'Check in walk-in patients, record vital signs, and write doctor visit notes.', img: '/assets/images/doctor_consultation_real.jpg', icon: Activity, color: 'var(--status-info)', border: 'var(--border-gold)' },
                       { mod: 'PHARMACY', cat: 'CLINICAL', title: '3. Pharmacy & Medicine Stock', desc: 'Give out prescribed medicines safely, watch stock levels, and track expiry dates.', img: '/assets/images/pharmacy_dispensary_real.jpg', icon: Pill, color: 'var(--status-warning)', border: 'var(--border-gold)' },
-                      { mod: 'CLINICAL', cat: 'ACUTE_DIAGNOSTICS', title: '4. Lab Tests & Results', desc: 'Order blood and lab tests, scan sample barcodes, and share test results.', img: '/assets/images/laboratory_pathology_real.jpg', icon: FlaskConical, color: 'var(--gold-400)', border: 'var(--border-gold)' },
+                      { mod: 'LABORATORY', cat: 'ACUTE_DIAGNOSTICS', title: '4. Lab Tests & Results', desc: 'Order blood and lab tests, scan sample barcodes, and share test results.', img: '/assets/images/laboratory_pathology_real.jpg', icon: FlaskConical, color: 'var(--gold-400)', border: 'var(--border-gold)' },
                       { mod: 'WARDS', cat: 'CLINICAL', title: '5. Wards & Free Hospital Beds', desc: 'Check open beds, admit patients into rooms, move beds, and track nursing notes.', img: '/assets/images/inpatient_ward_bed_real.jpg', icon: Bed, color: 'var(--status-online)', border: 'var(--border-gold)' },
                       { mod: 'SURGERY', cat: 'CLINICAL', title: '6. Surgery & Operating Rooms', desc: 'Schedule operations, fill out surgical safety checks, and track recovery.', img: '/assets/images/operating_theatre_real.jpg', icon: Stethoscope, color: 'var(--gold-400)', border: 'var(--border-gold)' },
-                      { mod: 'NHIA_CLAIMS', cat: 'OPERATIONS', title: '7. Billing & Health Insurance', desc: 'Create patient bills, collect cash/MoMo/card payments, and submit NHIS claims.', img: '/assets/images/nhia_claims_center_real.jpg', icon: CreditCard, color: 'var(--status-info)', border: 'var(--border-gold)' },
-                      { mod: 'CLINICAL', cat: 'ACUTE_DIAGNOSTICS', title: '8. X-Rays, Scans & Radiology', desc: 'Order MRI, CT, and X-ray scans, highlight urgent findings, and write reports.', img: '/assets/images/radiology_pacs_mri_real.jpg', icon: Radio, color: 'var(--gold-300)', border: 'var(--border-gold)' },
+                      { mod: 'BILLING', cat: 'OPERATIONS', title: '7. Billing & Payment Methods', desc: 'Create patient bills, collect Cash, Card, Mobile Money & Bank Transfer receipts.', img: '/assets/images/nhia_claims_center_real.jpg', icon: CreditCard, color: 'var(--status-info)', border: 'var(--border-gold)' },
+                      { mod: 'RADIOLOGY', cat: 'ACUTE_DIAGNOSTICS', title: '8. X-Rays, Scans & Radiology', desc: 'Order MRI, CT, and X-ray scans, index DICOM studies, and sign reports.', img: '/assets/images/radiology_pacs_mri_real.jpg', icon: Radio, color: 'var(--gold-300)', border: 'var(--border-gold)' },
                       { mod: 'DEVELOPER_NOC', cat: 'TECHNOLOGY', title: '9. System Control Center', desc: 'Monitor system health, manage facility accounts, permissions, error logs, and backups.', img: '/assets/images/developer_control_center_real.jpg', icon: Shield, color: '#fca5a5', border: '#ef4444' },
                       { mod: 'EMERGENCY', cat: 'ACUTE_DIAGNOSTICS', title: '10. Emergency & Ambulances', desc: 'Send ambulances quickly, assign emergency bays by urgency, and log urgent care.', img: '/assets/images/emergency_ambulance_fleet_real.jpg', icon: AlertTriangle, color: '#fca5a5', border: '#ef4444' },
                       { mod: 'BLOOD_BANK', cat: 'ACUTE_DIAGNOSTICS', title: '11. Blood Bank & Donors', desc: 'Track blood donors, manage cold blood bags, and match safe transfusions.', img: '/assets/images/blood_bank_transfusion_real.jpg', icon: FlaskConical, color: '#fca5a5', border: '#ef4444' },
@@ -1144,7 +1238,14 @@ export default function App() {
                       { mod: 'HR', cat: 'OPERATIONS', title: '15. Staff, Shifts & Leave', desc: 'Check staff licenses, build duty schedules, track clock-ins, and review leave.', img: '/assets/images/hr_medical_staff_real.jpg', icon: Users, color: '#7dd3fc', border: 'var(--border-gold)' },
                       { mod: 'QUALITY', cat: 'OPERATIONS', title: '16. Safety & Quality Checks', desc: 'Report safety incidents, manage infection isolation, and record safety audits.', img: '/assets/images/quality_infection_control_real.jpg', icon: Shield, color: '#fbbf24', border: 'var(--border-gold)' },
                       { mod: 'NHIA_CLAIMS', cat: 'OPERATIONS', title: '17. NHIS Insurance Claims', desc: 'Check NHIS member cards, vet claims before sending, and track insurance payouts.', img: '/assets/images/nhia_claims_center_real.jpg', icon: CreditCard, color: '#86efac', border: '#22c55e' },
-                      { mod: 'VOICE_AUTH', cat: 'TECHNOLOGY', title: '18. Voice & Fingerprint Lock', desc: 'Use quick voice or fingerprint checks for extra security on sensitive tasks.', img: '/assets/images/voice_biometric_security_real.jpg', icon: Mic, color: 'var(--gold-300)', border: 'var(--border-gold)' }
+                      { mod: 'VOICE_AUTH', cat: 'TECHNOLOGY', title: '18. Voice & Fingerprint Lock', desc: 'Use quick voice or fingerprint checks for extra security on sensitive tasks.', img: '/assets/images/voice_biometric_security_real.jpg', icon: Mic, color: 'var(--gold-300)', border: 'var(--border-gold)' },
+                      { mod: 'DENTAL', cat: 'CLINICAL', title: '19. Dental Clinic & Oral Surgery', desc: 'Interactive 32-tooth FDI odontogram, dental treatments, procedures, and oral surgery.', img: '/assets/images/dental_clinic_real.jpg', icon: Stethoscope, color: '#38bdf8', border: 'var(--border-gold)' },
+                      { mod: 'EYE_CLINIC', cat: 'CLINICAL', title: '20. Eye Clinic & Ophthalmology', desc: 'Snellen vision testing (OD/OS), glaucoma IOP alerts, refraction Rx, and eye exams.', img: '/assets/images/ophthalmology_eye_clinic_real.jpg', icon: Eye, color: '#38bdf8', border: 'var(--border-gold)' },
+                      { mod: 'ICU', cat: 'CLINICAL', title: '21. ICU & Live Vitals Monitoring', desc: 'Live critical care telemetry, NEWS2/MAP alerts, ventilator status, and vital trend analysis.', img: '/assets/images/inpatient_ward_bed_real.jpg', icon: Activity, color: '#ef4444', border: '#ef4444' },
+                      { mod: 'AI_SAFETY', cat: 'TECHNOLOGY', title: '22. AI Clinical & Safety Guardrails', desc: 'Mandatory human-approved AI decision support, drug interaction alerts & allergy guardrails.', img: '/assets/images/quality_infection_control_real.jpg', icon: Shield, color: '#10b981', border: '#10b981' },
+                      { mod: 'EXECUTIVE_BI', cat: 'OPERATIONS', title: '23. Executive BI & Admin Governance', desc: 'Hospital Director analytics, revenue KPIs, bed census & live staff account approvals.', img: '/assets/images/hospital_director_boardroom_real.jpg', icon: Building2, color: 'var(--gold-400)', border: 'var(--border-gold)' },
+                      { mod: 'OPERATIONS_HUB', cat: 'OPERATIONS', title: '24. Online Meetings, Docs & Facility', desc: 'Clinical board video meetings, versioned document vault & housekeeping/utilities ops.', img: '/assets/images/hospital_admin_office_real.jpg', icon: FileText, color: '#38bdf8', border: 'var(--border-gold)' },
+                      { mod: 'PATIENT_PORTAL', cat: 'CLINICAL', title: '25. Patient Self-Service Portal', desc: 'Personal patient visits, prescriptions, allergies, lab summaries & billing statements.', img: '/assets/images/hospital_hero_exterior.jpg', icon: User, color: '#10b981', border: '#10b981' }
                     ]
                       .filter((card) => {
                         if (card.mod === 'DEVELOPER_NOC' && !isDeveloperAuthenticated) return false;
@@ -1209,8 +1310,31 @@ export default function App() {
             {activeModule === 'NHIA_CLAIMS' && <NhiaClaimsView onNavigateDetail={openDetailPage} />}
             {activeModule === 'VOICE_AUTH' && <VoiceBiometricsView onNavigateDetail={openDetailPage} />}
             {activeModule === 'TELEMEDICINE' && <TelemedicineGisView onNavigateDetail={openDetailPage} />}
-            {(activeModule === 'DEVELOPER_NOC' || activeModule === 'MIGRATION') && (
-              <DeveloperControlCenterView onNavigateDetail={openDetailPage} />
+            {activeModule === 'DENTAL' && <DentalClinicView onNavigateDetail={openDetailPage} />}
+            {activeModule === 'EYE_CLINIC' && <EyeClinicView onNavigateDetail={openDetailPage} />}
+            {activeModule === 'ICU' && <IcuVitalsView onNavigateDetail={openDetailPage} />}
+            {activeModule === 'AI_SAFETY' && <AiSafetyCenterView onNavigateDetail={openDetailPage} />}
+            {activeModule === 'LABORATORY' && <LaboratoryView onNavigateDetail={openDetailPage} />}
+            {activeModule === 'RADIOLOGY' && <RadiologyPacsView onNavigateDetail={openDetailPage} />}
+            {activeModule === 'BILLING' && <BillingPaymentsView onNavigateDetail={openDetailPage} />}
+            {activeModule === 'PATIENT_PORTAL' && <PatientPortalView onNavigateDetail={openDetailPage} />}
+            {activeModule === 'EXECUTIVE_BI' && <ExecutiveAdminBiView currentRole={currentRole} />}
+            {activeModule === 'OPERATIONS_HUB' && <OperationsSuiteView />}
+            {(activeModule === 'DEVELOPER_NOC' || activeModule === 'MIGRATION' || activeModule === 'DEVELOPER_PORTAL') && (
+              isDeveloperAuthenticated ? (
+                <DeveloperControlCenterView onNavigateDetail={openDetailPage} />
+              ) : (
+                <div className="glass-panel" style={{ padding: '32px', textAlign: 'center', border: '1px solid #ef4444' }}>
+                  <Shield size={36} style={{ color: '#ef4444', marginBottom: '12px' }} />
+                  <h3 style={{ color: '#fff', marginBottom: '8px' }}>Restricted Area</h3>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.86rem', marginBottom: '16px' }}>
+                    This operational module is not available for standard hospital sessions.
+                  </p>
+                  <button type="button" onClick={() => setActiveModule('OVERVIEW')} className="btn-gold">
+                    Return to Hospital Home
+                  </button>
+                </div>
+              )
             )}
           </>
         )}
@@ -1221,25 +1345,22 @@ export default function App() {
         isOpen={isLoginOpen}
         onClose={() => setIsLoginOpen(false)}
         initialRole={loginModalRole || currentRole}
+        demoModeEnabled={demoModeEnabled}
         onLoginSuccess={(user) => {
           setCurrentUser(user);
           if (user.role) {
             setCurrentRole(user.role);
             if (typeof window !== 'undefined') localStorage.setItem('gbs_role', user.role);
-          }
-          if (user.role === 'DEVELOPER' || String(user.email || '').toLowerCase() === 'gabosei48@gmail.com') {
-            setCurrentRole('DEVELOPER');
-            if (typeof window !== 'undefined') localStorage.setItem('gbs_role', 'DEVELOPER');
-            setActiveModule('DEVELOPER_NOC');
+            setActiveModule(getDefaultModuleForRole(user.role));
           }
           if (typeof window !== 'undefined' && typeof window.gbsBrainNotify === 'function') {
             window.gbsBrainNotify({
               type: 'success',
               method: 'AUTH',
-              title: `Welcome, ${user.fullName || user.email}`,
+              title: `Welcome, ${user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user.email}`,
               message: `Signed into your ${user.role} dashboard. Everything is ready.`,
               role: user.role || currentRole,
-              module: activeModule,
+              module: getDefaultModuleForRole(user.role),
               forceToast: true,
             });
           }
@@ -1256,6 +1377,9 @@ export default function App() {
           © 2026 GBS HOSPITAL SYSTEM (Official Account: gabosei48@gmail.com • Render.com Cloud). All Rights Reserved. Production-Grade Connected Architecture.
         </div>
       </footer>
+
+      {/* Blueprint System Locked / Subscription Expired Overlay (with Audited Emergency Bypass) */}
+      <SubscriptionLockOverlay onNavigateModule={(mod) => setActiveModule(mod)} />
 
       {/* Central GBS System Feedback Brain */}
       <SystemFeedbackBrain currentRole={currentRole} activeModule={activeModule} />

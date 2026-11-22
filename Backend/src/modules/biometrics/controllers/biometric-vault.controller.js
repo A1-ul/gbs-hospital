@@ -153,6 +153,54 @@ class BiometricVaultController {
       next(err);
     }
   }
+
+  async enrollFace(req, res, next) {
+    try {
+      const userId = req.body.userId || req.user?.id;
+      const result = await biometricVaultService.enrollFacialBiometric(userId, req.body, req.user);
+      return res.status(201).json({
+        success: true,
+        message: '4-Step Facial Recognition Security template enrolled cleanly.',
+        data: result
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async verifyFace(req, res, next) {
+    try {
+      const userId = req.body.userId || req.user?.id;
+      const result = await biometricVaultService.verifyFacialBiometric(userId, {
+        ...req.body,
+        ipAddress: req.ip || req.connection?.remoteAddress || '127.0.0.1',
+        userAgent: req.headers['user-agent'] || 'GBS-Client'
+      });
+      const statusCode = result.verified ? 200 : result.stepFailed === 'LIVENESS_CHECK' ? 403 : 401;
+      return res.status(statusCode).json({
+        success: result.verified,
+        message: result.verified
+          ? '4-Step Facial Recognition verified — Access Granted.'
+          : result.rejectionReason,
+        data: result
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async getFaceStatus(req, res, next) {
+    try {
+      const userId = req.params.userId || req.user?.id;
+      const result = await biometricVaultService.getFacialBiometricStatus(userId);
+      return res.status(200).json({
+        success: true,
+        data: result
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 module.exports = new BiometricVaultController();

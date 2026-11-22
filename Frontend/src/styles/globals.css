@@ -103,7 +103,7 @@ h6 {
   letter-spacing: 0.02em;
 }
 
-/* Full-page Real-Life Hospital Dashboard Background Layer with Loan System Navy Tint */
+/* Full-page Real-Life Hospital Dashboard Background Layer with Obsidian Navy Tint */
 .dashboard-bg-stage {
   position: fixed;
   inset: 0;
@@ -273,7 +273,7 @@ h6 {
   background: linear-gradient(135deg, #F87171 0%, #B91C1C 100%);
 }
 
-/* Badges: GBS Loan System Spectrum */
+/* Badges: GBS Hospital Enterprise Spectrum */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -315,7 +315,7 @@ h6 {
   border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
-/* GBS Loan System Interactive Tab Bar & Tab Pills */
+/* GBS Hospital Enterprise Interactive Tab Bar & Tab Pills */
 .dashboard-tab-bar {
   display: flex;
   gap: 10px;
@@ -381,7 +381,7 @@ h6 {
   color: #F4E07B;
 }
 
-/* Metric Cards with Loan System 3D Gold Left Accent */
+/* Metric Cards with GBS Hospital 3D Gold Left Accent */
 .metric-card {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -481,7 +481,7 @@ h6 {
   box-shadow: 0 0 12px rgba(212, 175, 55, 0.4);
 }
 
-/* Inputs & Form Fields (GBS Loan System Obsidian Navy) */
+/* Inputs & Form Fields (GBS Hospital Obsidian Navy) */
 .gbs-input,
 .gbs-select,
 .gbs-textarea,
@@ -589,7 +589,7 @@ textarea:focus {
   animation: pulseGlow 2s infinite ease-in-out;
 }
 
-/* Official GBS® Gold Repeating Monogram Watermark (Extracted from GBS Loan System) */
+/* Official GBS Gold Repeating Monogram Watermark (GBS Hospital Enterprise) */
 .gbs-watermark-bg {
   background-color: #060e1f;
   background-image:
@@ -606,7 +606,7 @@ textarea:focus {
   background-repeat: repeat;
 }
 
-/* GBS Gold-Wine Onboarding Gradient (GBS Loan System Enterprise) */
+/* GBS Gold-Wine Onboarding Gradient (GBS Hospital Enterprise) */
 .onboarding-gold-wine-gradient {
   min-height: 100vh;
   background:

@@ -5,46 +5,25 @@
 
 const API_BASE = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_BASE_URL) || '/api/v1';
 
-export const ROLE_CREDENTIALS_MAP = {
-  DEVELOPER: { email: 'developer@gbs.com', password: 'Admin123', name: 'GBS Developer' },
-  ADMINISTRATOR: { email: 'admin@gbs.com', password: 'Admin123', name: 'System Administrator' },
-  HOSPITAL_DIRECTOR: { email: 'director@gbs.com', password: 'Director123', name: 'Hospital Director' },
-  DOCTOR: { email: 'doctor@gbs.com', password: 'Doctor123', name: 'Dr. Kwesi Mensah' },
-  SURGEON: { email: 'surgeon@gbs.com', password: 'Surgeon123', name: 'Dr. Ama Agyeman' },
-  DENTIST: { email: 'dentist@gbs.com', password: 'Dentist123', name: 'Dr. Kofi Appiah' },
-  EYE_DOCTOR: { email: 'eyedoctor@gbs.com', password: 'EyeDoctor123', name: 'Dr. Efua Sutherland' },
-  RADIOLOGIST: { email: 'radiologist@gbs.com', password: 'Radiologist123', name: 'Dr. Yaw Boateng' },
-  NURSE: { email: 'nurse@gbs.com', password: 'Nurse123', name: 'Sister Akosua Osei' },
-  PHARMACIST: { email: 'pharmacist@gbs.com', password: 'Pharmacist123', name: 'Pharm. Kojo Ansah' },
-  LAB_TECHNICIAN: { email: 'lab@gbs.com', password: 'Lab123', name: 'Scientist Esi Tetteh' },
-  RECEPTIONIST: { email: 'receptionist@gbs.com', password: 'Receptionist123', name: 'Adwoa Frimpong' },
-  FOLDER_RETRIEVER: { email: 'archivist@gbs.com', password: 'Archivist123', name: 'Kwame Owusu (Archivist)' },
-  ACCOUNTANT: { email: 'accountant@gbs.com', password: 'Accountant123', name: 'Kofi Darko (Accountant)' },
-  HR_MANAGER: { email: 'hr@gbs.com', password: 'HrManager123', name: 'Abena Asante (HR Manager)' },
-  PATIENT: { email: 'patient@gbs.com', password: 'Patient123', name: 'Kwadwo Baah (Patient)' },
-};
-
-export async function ensureRoleAuthentication(role) {
-  const targetRole = role || (typeof window !== 'undefined' ? localStorage.getItem('gbs_role') : null) || 'ADMINISTRATOR';
-  const creds = ROLE_CREDENTIALS_MAP[targetRole] || ROLE_CREDENTIALS_MAP.ADMINISTRATOR;
-  if (!creds) return null;
+export function getClientDeviceFingerprint() {
+  if (typeof window === 'undefined') return 'server-context';
   try {
-    const res = await fetch(`${API_BASE}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: creds.email, password: creds.password })
-    });
-    const data = await res.json();
-    if (res.ok && data?.data?.token) {
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('gbs_token', data.data.token);
-        localStorage.setItem('gbs_user', JSON.stringify(data.data.user));
-        localStorage.setItem('gbs_role', targetRole);
-      }
-      return data.data;
+    const raw = [
+      navigator.userAgent || '',
+      navigator.language || '',
+      String(window.screen?.width || 0),
+      String(window.screen?.height || 0),
+      Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
+    ].join('|');
+    let hash = 2166136261;
+    for (let i = 0; i < raw.length; i++) {
+      hash ^= raw.charCodeAt(i);
+      hash = Math.imul(hash, 16777619);
     }
-  } catch (_e) { }
-  return null;
+    return `gbs-dev-${(hash >>> 0).toString(16).padStart(8, '0')}`;
+  } catch (_e) {
+    return 'gbs-browser-standard';
+  }
 }
 
 const pendingSubmissionLocks = new Set();
@@ -60,17 +39,10 @@ function buildPayloadFingerprint(method, endpoint, body) {
 }
 
 async function coreRequest(endpoint, options = {}) {
-  let token = typeof window !== 'undefined' ? localStorage.getItem('gbs_token') : null;
+  const token = typeof window !== 'undefined' ? localStorage.getItem('gbs_token') : null;
   const method = (options.method || 'GET').toUpperCase();
-  const activeRole = (typeof window !== 'undefined' ? localStorage.getItem('gbs_role') : null) || 'ADMINISTRATOR';
+  const activeRole = (typeof window !== 'undefined' ? localStorage.getItem('gbs_role') : null) || 'GUEST';
   const isMutation = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method);
-
-  if (!token && !endpoint.startsWith('/auth') && !endpoint.startsWith('/health')) {
-    const autoAuth = await ensureRoleAuthentication(activeRole);
-    if (autoAuth?.token) {
-      token = autoAuth.token;
-    }
-  }
 
   let fingerprint = null;
   let idempotencyKey = options.idempotencyKey || null;
@@ -92,10 +64,24 @@ async function coreRequest(endpoint, options = {}) {
     }
   }
 
+  const emergencyOverrideActive =
+    typeof window !== 'undefined' && sessionStorage.getItem('gbs_emergency_override') === 'true';
+  const emergencyOverrideReason =
+    typeof window !== 'undefined'
+      ? sessionStorage.getItem('gbs_emergency_reason') || 'Active Patient Safety Clinical Emergency Bypass'
+      : '';
+
   const headers = {
     'Content-Type': 'application/json',
+    'X-Device-Fingerprint': getClientDeviceFingerprint(),
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(idempotencyKey ? { 'X-Idempotency-Key': idempotencyKey } : {}),
+    ...(emergencyOverrideActive
+      ? {
+        'X-Emergency-Override': 'true',
+        'X-Emergency-Reason': emergencyOverrideReason,
+      }
+      : {}),
     ...options.headers,
   };
 
@@ -130,22 +116,6 @@ async function coreRequest(endpoint, options = {}) {
     }
   }
 
-  // Auto-retry once on 401 Unauthorized using role credential auto-auth
-  if (response.status === 401 && !options._retried && !endpoint.startsWith('/auth')) {
-    const reauth = await ensureRoleAuthentication(activeRole);
-    if (reauth?.token) {
-      return coreRequest(endpoint, {
-        ...options,
-        _retried: true,
-        idempotencyKey,
-        headers: {
-          ...options.headers,
-          Authorization: `Bearer ${reauth.token}`
-        }
-      });
-    }
-  }
-
   if (fingerprint && response.status < 500) {
     actionIdempotencyKeys.delete(fingerprint);
   }
@@ -170,7 +140,36 @@ async function coreRequest(endpoint, options = {}) {
     err.errors = (data && data.errors) || [];
     err.requestId = (data && data.requestId) || null;
     err.data = data;
-    if (typeof window !== 'undefined' && typeof window.gbsBrainNotify === 'function') {
+
+    if (
+      response.status === 401 &&
+      token &&
+      !endpoint.startsWith('/auth/login') &&
+      !endpoint.startsWith('/auth/developer/mfa-verify') &&
+      typeof window !== 'undefined'
+    ) {
+      if (['SESSION_REVOKED', 'SESSION_EXPIRED', 'TOKEN_EXPIRED', 'INVALID_TOKEN', 'UNAUTHORIZED'].includes(err.code)) {
+        localStorage.removeItem('gbs_token');
+        localStorage.removeItem('gbs_user');
+        sessionStorage.removeItem('gbs_dev_mfa_verified');
+        window.dispatchEvent(new CustomEvent('gbs:session-expired', { detail: { code: err.code, message: errorMsg } }));
+      }
+    }
+
+    if ((response.status === 423 || response.status === 402) && typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('gbs:system-locked', {
+          detail: {
+            status: response.status,
+            code: err.code,
+            message: errorMsg,
+            data: (data && data.data) || data || {},
+          },
+        })
+      );
+    }
+
+    if (typeof window !== 'undefined' && typeof window.gbsBrainNotify === 'function' && !options.silentError) {
       window.gbsBrainNotify({
         type: 'error',
         method,
@@ -178,7 +177,16 @@ async function coreRequest(endpoint, options = {}) {
         status: response.status,
         code: err.code,
         requestId: err.requestId,
-        title: response.status === 403 ? 'Permission Needed' : response.status === 404 ? 'Not Found' : 'Could Not Complete Action',
+        title:
+          response.status === 401
+            ? 'Sign In Required'
+            : response.status === 403
+              ? 'Permission Needed'
+              : response.status === 423 || response.status === 402
+                ? 'System Access Locked'
+                : response.status === 404
+                  ? 'Not Found'
+                  : 'Could Not Complete Action',
         message: `${errorMsg}${err.requestId ? ` (Ref: ${err.requestId.slice(0, 8)})` : ''}`,
         role: activeRole,
       });
@@ -186,7 +194,7 @@ async function coreRequest(endpoint, options = {}) {
     throw err;
   }
 
-  const resolved = (data && data.data !== undefined) ? data.data : data;
+  const resolved = (data && typeof data === 'object' && data.data !== undefined && data.data !== null) ? data.data : data;
   if (typeof window !== 'undefined' && typeof window.gbsBrainNotify === 'function' && method !== 'GET') {
     const serverMsg =
       (data && data.message) ||
@@ -237,23 +245,58 @@ export const api = {
       body: JSON.stringify(payload),
     }),
 
-  // Auth
-  login: (email, password) =>
+  // Auth & Real Session Lifecycle
+  login: (email, password, extra = {}) =>
     request('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, ...extra }),
     }),
   signup: (payload) =>
     request('/auth/signup', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
+  me: () => request('/auth/me', { silentError: true }),
+  logout: () => request('/auth/logout', { method: 'POST', silentError: true }),
+  getSessions: () => request('/auth/sessions'),
+  revokeSession: (sessionId) =>
+    request(`/auth/sessions/${encodeURIComponent(sessionId)}`, { method: 'DELETE' }),
+  forgotPassword: (email) =>
+    request('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    }),
+  resetPassword: (payload) =>
+    request('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  startDemoSession: (role) =>
+    request('/auth/demo-session', {
+      method: 'POST',
+      body: JSON.stringify({ role }),
+    }),
+  requestDeveloperMfaChallenge: (deviceFingerprint) =>
+    request('/auth/developer/mfa-challenge', {
+      method: 'POST',
+      body: JSON.stringify({ deviceFingerprint: deviceFingerprint || getClientDeviceFingerprint() }),
+    }),
+  verifyDeveloperMfaChallenge: (code, deviceFingerprint) =>
+    request('/auth/developer/mfa-verify', {
+      method: 'POST',
+      body: JSON.stringify({ code, deviceFingerprint: deviceFingerprint || getClientDeviceFingerprint() }),
+    }),
 
   // Users & Role Counts (DB-backed, compulsory Step 7)
   getCountsByRole: () => request('/users/counts-by-role'),
   getUserCountsByRole: () => request('/users/counts-by-role'),
-  getUsers: (role) => request(`/users${role ? `?role=${role}` : ''}`),
-  approveUser: (id) => request(`/users/${id}/approve`, { method: 'PATCH' }),
+  getUsers: (role) => request(`/users${role ? `?role=${encodeURIComponent(role)}` : ''}`),
+  approveUser: (id) => request(`/users/${encodeURIComponent(id)}/approve`, { method: 'PATCH' }),
+  setUserStatus: (id, active) =>
+    request(`/users/${encodeURIComponent(id)}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ active }),
+    }),
 
   // Developer & Tenant Control Center
   getDeveloperSummary: () => request('/tenants/console-summary'),
@@ -1134,6 +1177,123 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ enabled, message }),
     }),
+
+  // Procedure 3 (Phase C): Dental Clinic, Eye Clinic, ICU & Live Vitals, Clinical Safety & AI Clinical Assistance
+  getDentalTelemetry: () => request('/dental/telemetry'),
+  getDentalRecords: (q = '') => request(`/dental/records${q ? `?${q}` : ''}`),
+  createDentalRecord: (payload) =>
+    request('/dental/records', { method: 'POST', body: JSON.stringify(payload) }),
+  updateDentalRecord: (id, payload) =>
+    request(`/dental/records/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify(payload) }),
+  getPatientOdontogram: (patientId) =>
+    request(`/dental/patients/${encodeURIComponent(patientId)}/odontogram`),
+
+  getEyeClinicTelemetry: () => request('/eye-clinic/telemetry'),
+  getEyeClinicExams: (q = '') => request(`/eye-clinic/exams${q ? `?${q}` : ''}`),
+  createEyeClinicExam: (payload) =>
+    request('/eye-clinic/exams', { method: 'POST', body: JSON.stringify(payload) }),
+  updateEyeClinicExam: (id, payload) =>
+    request(`/eye-clinic/exams/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify(payload) }),
+  getPatientEyeHistory: (patientId) =>
+    request(`/eye-clinic/patients/${encodeURIComponent(patientId)}/history`),
+
+  getIcuTelemetry: () => request('/icu/telemetry'),
+  getIcuMonitors: (q = '') => request(`/icu/monitors${q ? `?${q}` : ''}`),
+  recordIcuVitals: (payload) =>
+    request('/icu/monitors', { method: 'POST', body: JSON.stringify(payload) }),
+  acknowledgeIcuAlert: (id, payload = {}) =>
+    request(`/icu/monitors/${encodeURIComponent(id)}/acknowledge`, { method: 'PATCH', body: JSON.stringify(payload) }),
+  getIcuPatientTrends: (patientId) =>
+    request(`/icu/patients/${encodeURIComponent(patientId)}/trends`),
+
+  getSafetyGuardrailsStatus: () => request('/clinical-safety/guardrails-status'),
+  getPatientAllergies: (patientId) =>
+    request(`/clinical-safety/patients/${encodeURIComponent(patientId)}/allergies`),
+  recordPatientAllergy: (patientId, payload) =>
+    request(`/clinical-safety/patients/${encodeURIComponent(patientId)}/allergies`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  checkClinicalMedicationSafety: (payload) =>
+    request('/clinical-safety/check', { method: 'POST', body: JSON.stringify(payload) }),
+  getClinicalSafetyOverrides: (q = '') =>
+    request(`/clinical-safety/overrides${q ? `?${q}` : ''}`),
+  recordClinicalSafetyOverride: (payload) =>
+    request('/clinical-safety/overrides', { method: 'POST', body: JSON.stringify(payload) }),
+
+  getAiClinicalTelemetry: () => request('/ai-clinical/telemetry'),
+  getAiClinicalSuggestions: (q = '') =>
+    request(`/ai-clinical/suggestions${q ? `?${q}` : ''}`),
+  analyzeAiClinical: (payload) =>
+    request('/ai-clinical/analyze', { method: 'POST', body: JSON.stringify(payload) }),
+  reviewAiClinicalSuggestion: (id, payload) =>
+    request(`/ai-clinical/suggestions/${encodeURIComponent(id)}/review`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  finalizeAiClinicalSuggestion: (id, payload) =>
+    request(`/ai-clinical/suggestions/${encodeURIComponent(id)}/final-decision`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  // Procedure 4 (Phase D): Standalone Lab/Rad/Patient Portal, Meetings, Documents & Facility Ops
+  verifyLabResults: (requestId, payload = {}) =>
+    request(`/laboratory/requests/${encodeURIComponent(requestId)}/verify`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  acquireDicomStudy: (orderId, payload = {}) =>
+    request(`/radiology/orders/${encodeURIComponent(orderId)}/acquire`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  getMyPatientDashboard: () => request('/patients/me/dashboard'),
+
+  getMeetingTelemetry: () => request('/meetings/telemetry'),
+  getMeetings: (q = '') => request(`/meetings${q ? `?${q}` : ''}`),
+  scheduleMeeting: (payload) =>
+    request('/meetings', { method: 'POST', body: JSON.stringify(payload) }),
+  joinMeeting: (id) =>
+    request(`/meetings/${encodeURIComponent(id)}/join`, { method: 'POST' }),
+  endMeeting: (id, payload = {}) =>
+    request(`/meetings/${encodeURIComponent(id)}/end`, { method: 'POST', body: JSON.stringify(payload) }),
+
+  getDocumentTelemetry: () => request('/documents/telemetry'),
+  getDocuments: (q = '') => request(`/documents${q ? `?${q}` : ''}`),
+  createDocument: (payload) =>
+    request('/documents', { method: 'POST', body: JSON.stringify(payload) }),
+  createDocumentVersion: (id, payload = {}) =>
+    request(`/documents/${encodeURIComponent(id)}/new-version`, { method: 'POST', body: JSON.stringify(payload) }),
+  deliverDocument: (id, payload) =>
+    request(`/documents/${encodeURIComponent(id)}/deliver`, { method: 'POST', body: JSON.stringify(payload) }),
+  archiveDocument: (id) =>
+    request(`/documents/${encodeURIComponent(id)}/archive`, { method: 'PATCH' }),
+  restoreDocument: (id) =>
+    request(`/documents/${encodeURIComponent(id)}/restore`, { method: 'POST' }),
+
+  getFacilityTelemetry: () => request('/facility/telemetry'),
+  getFacilityTasks: (q = '') => request(`/facility/tasks${q ? `?${q}` : ''}`),
+  createFacilityTask: (payload) =>
+    request('/facility/tasks', { method: 'POST', body: JSON.stringify(payload) }),
+  updateFacilityTaskStatus: (id, payload) =>
+    request(`/facility/tasks/${encodeURIComponent(id)}/status`, { method: 'PATCH', body: JSON.stringify(payload) }),
+
+  // Procedure 5 (Phase E): 4-Step Facial Security, Automated Trial Sweep, Truthful Adapters & AI Dev Diagnostics
+  enrollFaceBiometric: (payload) =>
+    request('/biometrics/face/enroll', { method: 'POST', body: JSON.stringify(payload) }),
+  verifyFaceBiometric: (payload) =>
+    request('/biometrics/face/verify', { method: 'POST', body: JSON.stringify(payload) }),
+  getFaceBiometricStatus: (userId) =>
+    request(userId ? `/biometrics/face/status/${encodeURIComponent(userId)}` : '/biometrics/face/status'),
+  runDeveloperTrialSweep: () =>
+    request('/rcce/developer/trial-sweep', { method: 'POST' }),
+  getDeveloperIntegrationsStatus: () =>
+    request('/rcce/developer/integrations-status'),
+  getAiDeveloperDiagnostics: () =>
+    request('/rcce/developer/ai-assistant/diagnostics'),
+  getDeveloperTenantAnalytics: () =>
+    request('/rcce/developer/tenant-analytics'),
 };
 
 

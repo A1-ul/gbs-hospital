@@ -11,6 +11,7 @@ LOCATION: Backend/src/modules/developer-control-center/rcce.controller.js
 const jwt = require("jsonwebtoken");
 const { environment } = require("../../config/environment");
 const service = require("./rcce.service");
+const developerOpsService = require("./developer-ops.service");
 const { rcce } = require("../../core/gbs-rcce.bootstrap");
 
 async function getCatalogue(req, res, next) {
@@ -287,6 +288,44 @@ async function toggleMaintenanceMode(req, res, next) {
     }
 }
 
+async function runTrialSweep(req, res, next) {
+    try {
+        const result = await developerOpsService.runTrialExpirationSweep(req.user);
+        return res.rcceSuccess("SUCCESS", result, {
+            message: `Subscription sweep completed: ${result.totalTenantsEvaluated} evaluated, ${result.warningsIssuedCount} warnings, ${result.autoLockedCount} expired locked.`
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+async function getIntegrationsStatus(req, res, next) {
+    try {
+        const result = await developerOpsService.getExternalIntegrationsStatus();
+        return res.rcceSuccess("SUCCESS", result);
+    } catch (error) {
+        next(error);
+    }
+}
+
+async function getAiDeveloperDiagnostics(req, res, next) {
+    try {
+        const result = await developerOpsService.getAiDeveloperAssistantDiagnostics();
+        return res.rcceSuccess("SUCCESS", result);
+    } catch (error) {
+        next(error);
+    }
+}
+
+async function getTenantAnalytics(req, res, next) {
+    try {
+        const result = await developerOpsService.getTenantAnalyticsCenter();
+        return res.rcceSuccess("SUCCESS", result);
+    } catch (error) {
+        next(error);
+    }
+}
+
 module.exports = {
     getCatalogue,
     getNotifications,
@@ -307,5 +346,9 @@ module.exports = {
     revokeAccessGrant,
     listConfigurations,
     upsertConfiguration,
-    toggleMaintenanceMode
+    toggleMaintenanceMode,
+    runTrialSweep,
+    getIntegrationsStatus,
+    getAiDeveloperDiagnostics,
+    getTenantAnalytics
 };

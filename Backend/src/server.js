@@ -63,6 +63,12 @@ const {
     =
     require("./core/database/prisma.migration");
 
+const {
+    runTrialExpirationSweep
+}
+    =
+    require("./modules/developer-control-center/developer-ops.service");
+
 
 
 
@@ -72,6 +78,9 @@ let server = null;
 let started = false;
 
 let shuttingDown = false;
+
+let trialSweepInterval = null;
+let trialSweepStartupTimer = null;
 
 
 
@@ -449,6 +458,37 @@ async function start() {
 
                 printStartupBanner();
 
+                if (environment.NODE_ENV !== "test") {
+                    const executeScheduledSweep = async () => {
+                        try {
+                            const sweepResult = await runTrialExpirationSweep({ id: null, role: "SYSTEM_SCHEDULER" });
+                            if (sweepResult.autoLockedCount > 0 || sweepResult.warningsIssuedCount > 0) {
+                                logger.info({
+                                    message: "Automated subscription trial sweep completed",
+                                    evaluated: sweepResult.totalTenantsEvaluated,
+                                    warningsIssued: sweepResult.warningsIssuedCount,
+                                    autoLocked: sweepResult.autoLockedCount
+                                });
+                            }
+                        } catch (sweepErr) {
+                            logger.warn({
+                                message: "Scheduled trial expiration sweep skipped",
+                                error: normalizeError(sweepErr)
+                            });
+                        }
+                    };
+
+                    trialSweepStartupTimer = setTimeout(executeScheduledSweep, 30000);
+                    if (typeof trialSweepStartupTimer.unref === "function") {
+                        trialSweepStartupTimer.unref();
+                    }
+
+                    trialSweepInterval = setInterval(executeScheduledSweep, 6 * 60 * 60 * 1000);
+                    if (typeof trialSweepInterval.unref === "function") {
+                        trialSweepInterval.unref();
+                    }
+                }
+
 
 
 
@@ -538,6 +578,15 @@ async function shutdown(signal) {
 
 
     try {
+
+        if (trialSweepStartupTimer) {
+            clearTimeout(trialSweepStartupTimer);
+            trialSweepStartupTimer = null;
+        }
+        if (trialSweepInterval) {
+            clearInterval(trialSweepInterval);
+            trialSweepInterval = null;
+        }
 
 
 
