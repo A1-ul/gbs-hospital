@@ -25,32 +25,35 @@ async function getRoleUserCounts() {
         orderBy: { name: "asc" }
     });
 
-    // 2. Fetch aggregated user counts per role directly from database
-    const counts = await Promise.all(
-        roles.map(async (role) => {
-            const total = await prisma.user.count({
-                where: { roleId: role.id }
-            });
+    // 2. Efficient single aggregation query directly from database
+    const grouped = await prisma.user.groupBy({
+        by: ["roleId", "active"],
+        _count: { id: true }
+    });
 
-            const active = await prisma.user.count({
-                where: { roleId: role.id, active: true }
-            });
-
-            const inactive = await prisma.user.count({
-                where: { roleId: role.id, active: false }
-            });
-
-            return {
-                roleId: role.id,
-                roleName: role.name,
-                description: role.description,
-                totalUsers: total,
-                activeUsers: active,
-                inactiveUsers: inactive,
-                status: total > 0 ? "POPULATED" : "EMPTY"
-            };
-        })
-    );
+    const counts = roles.map((role) => {
+        let active = 0;
+        let inactive = 0;
+        for (const row of grouped) {
+            if (row.roleId === role.id) {
+                if (row.active) {
+                    active += row._count.id;
+                } else {
+                    inactive += row._count.id;
+                }
+            }
+        }
+        const total = active + inactive;
+        return {
+            roleId: role.id,
+            roleName: role.name,
+            description: role.description,
+            totalUsers: total,
+            activeUsers: active,
+            inactiveUsers: inactive,
+            status: total > 0 ? "POPULATED" : "EMPTY"
+        };
+    });
 
     const totalSystemUsers = counts.reduce((acc, curr) => acc + curr.totalUsers, 0);
     const totalActiveUsers = counts.reduce((acc, curr) => acc + curr.activeUsers, 0);

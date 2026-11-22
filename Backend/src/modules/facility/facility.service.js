@@ -20,13 +20,11 @@ async function generateFacilityTaskCode() {
 }
 
 async function getFacilityTelemetry() {
-    const [totalTasks, openTasks, housekeepingTasks, utilitiesTasks, completedTasks] = await Promise.all([
-        prisma.facilityTask.count(),
-        prisma.facilityTask.count({ where: { status: { in: ["OPEN", "IN_PROGRESS"] } } }),
-        prisma.facilityTask.count({ where: { category: "HOUSEKEEPING" } }),
-        prisma.facilityTask.count({ where: { category: { in: ["UTILITIES", "HVAC_WATER_POWER"] } } }),
-        prisma.facilityTask.count({ where: { status: { in: ["COMPLETED", "VERIFIED"] } } })
-    ]);
+    const totalTasks = await prisma.facilityTask.count();
+    const openTasks = await prisma.facilityTask.count({ where: { status: { in: ["OPEN", "IN_PROGRESS"] } } });
+    const housekeepingTasks = await prisma.facilityTask.count({ where: { category: "HOUSEKEEPING" } });
+    const utilitiesTasks = await prisma.facilityTask.count({ where: { category: { in: ["UTILITIES", "HVAC_WATER_POWER"] } } });
+    const completedTasks = await prisma.facilityTask.count({ where: { status: { in: ["COMPLETED", "VERIFIED"] } } });
 
     return {
         totalTasks,

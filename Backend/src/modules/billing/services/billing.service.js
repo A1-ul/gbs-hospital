@@ -776,46 +776,37 @@ async function getAnnualFinancialReport(yearParam) {
     const startOfYear = new Date(Date.UTC(fiscalYear, 0, 1, 0, 0, 0));
     const endOfYear = new Date(Date.UTC(fiscalYear, 11, 31, 23, 59, 59));
 
-    const [
-        bills,
-        payments,
-        claims,
-        newPatients,
-        purchaseOrders,
-        ledgerLogs
-    ] = await Promise.all([
-        prisma.patientBill.findMany({
-            where: { createdAt: { gte: startOfYear, lte: endOfYear } },
-            include: { patient: true },
-            orderBy: { createdAt: "desc" }
-        }),
-        prisma.patientPayment.findMany({
-            where: { paymentDate: { gte: startOfYear, lte: endOfYear } },
-            include: { bill: { include: { patient: true } } },
-            orderBy: { paymentDate: "desc" }
-        }),
-        prisma.insuranceClaim.findMany({
-            where: { createdAt: { gte: startOfYear, lte: endOfYear } },
-            orderBy: { createdAt: "desc" }
-        }),
-        prisma.patient.findMany({
-            where: { createdAt: { gte: startOfYear, lte: endOfYear } },
-            orderBy: { createdAt: "desc" }
-        }),
-        prisma.purchaseOrder.findMany({
-            where: { createdAt: { gte: startOfYear, lte: endOfYear } },
-            include: { vendor: true },
-            orderBy: { createdAt: "desc" }
-        }),
-        prisma.auditLog.findMany({
-            where: {
-                module: "FINANCE_LEDGER",
-                action: "FINANCIAL_LEDGER_ENTRY",
-                createdAt: { gte: startOfYear, lte: endOfYear }
-            },
-            orderBy: { createdAt: "desc" }
-        })
-    ]);
+    const bills = await prisma.patientBill.findMany({
+        where: { createdAt: { gte: startOfYear, lte: endOfYear } },
+        include: { patient: true },
+        orderBy: { createdAt: "desc" }
+    });
+    const payments = await prisma.patientPayment.findMany({
+        where: { paymentDate: { gte: startOfYear, lte: endOfYear } },
+        include: { bill: { include: { patient: true } } },
+        orderBy: { paymentDate: "desc" }
+    });
+    const claims = await prisma.insuranceClaim.findMany({
+        where: { createdAt: { gte: startOfYear, lte: endOfYear } },
+        orderBy: { createdAt: "desc" }
+    });
+    const newPatients = await prisma.patient.findMany({
+        where: { createdAt: { gte: startOfYear, lte: endOfYear } },
+        orderBy: { createdAt: "desc" }
+    });
+    const purchaseOrders = await prisma.purchaseOrder.findMany({
+        where: { createdAt: { gte: startOfYear, lte: endOfYear } },
+        include: { vendor: true },
+        orderBy: { createdAt: "desc" }
+    });
+    const ledgerLogs = await prisma.auditLog.findMany({
+        where: {
+            module: "FINANCE_LEDGER",
+            action: "FINANCIAL_LEDGER_ENTRY",
+            createdAt: { gte: startOfYear, lte: endOfYear }
+        },
+        orderBy: { createdAt: "desc" }
+    });
 
     const parsedLedgerEntries = ledgerLogs
         .map((l) => {

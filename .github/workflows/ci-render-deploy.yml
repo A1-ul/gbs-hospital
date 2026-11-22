@@ -53,7 +53,7 @@ jobs:
       - name: Install Backend Dependencies & Generate Prisma Client
         working-directory: ./Backend
         env:
-          DATABASE_URL: postgresql://postgres:Admin123@localhost:5432/gbs_hospital?schema=public
+          DATABASE_URL: postgresql://postgres:Admin123@localhost:5432/gbs_hospital?schema=public&connection_limit=25
           NODE_ENV: test
           JWT_SECRET: gbs_ci_jwt_secret_key_2026_hospital_enterprise
           JWT_ACCESS_SECRET: gbs_ci_access_secret_key_2026_hospital_enterprise
@@ -70,7 +70,7 @@ jobs:
       - name: Run Backend Automated Verification Suite
         working-directory: ./Backend
         env:
-          DATABASE_URL: postgresql://postgres:Admin123@localhost:5432/gbs_hospital?schema=public
+          DATABASE_URL: postgresql://postgres:Admin123@localhost:5432/gbs_hospital?schema=public&connection_limit=25
           NODE_ENV: test
           JWT_SECRET: gbs_ci_jwt_secret_key_2026_hospital_enterprise
           JWT_ACCESS_SECRET: gbs_ci_access_secret_key_2026_hospital_enterprise
