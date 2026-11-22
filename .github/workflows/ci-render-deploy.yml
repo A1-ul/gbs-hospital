@@ -79,7 +79,11 @@ jobs:
           DEVELOPER_ROOT_PASSWORD: CiTestDevPassword2026!
           DEMO_MODE_ENABLED: "true"
         run: |
-          npm test
+          set +e
+          npx jest --runInBand --forceExit --ci --json --outputFile=jest-results.json
+          JEST_EXIT=$?
+          node scripts/ci-report-jest-failures.js
+          exit $JEST_EXIT
 
       - name: Trigger Render.com Production Deploy Hook (if configured)
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
