@@ -64,17 +64,63 @@ function normalizeError(error){
         return error;
     }
 
+    const rawStatus = error ? (error.statusCode || error.status) : null;
+
     if(
         error &&
-        typeof error.statusCode === "number" &&
-        error.statusCode >= 400 &&
-        error.statusCode < 600
+        (error.type === "entity.parse.failed" || (error instanceof SyntaxError && rawStatus === 400))
     ){
+        const normalized = new AppError(
+            "Malformed JSON request body. Please check your request payload syntax.",
+            400,
+            "VALIDATION_FAILED"
+        );
+        normalized.originalError = error;
+        return normalized;
+    }
+
+    if(
+        error &&
+        (error.type === "entity.too.large" || rawStatus === 413)
+    ){
+        const normalized = new AppError(
+            "The submitted payload exceeds the maximum permitted size.",
+            413,
+            "PAYLOAD_TOO_LARGE"
+        );
+        normalized.originalError = error;
+        return normalized;
+    }
+
+    if(
+        error &&
+        typeof rawStatus === "number" &&
+        rawStatus >= 400 &&
+        rawStatus < 600
+    ){
+        const defaultCodeByStatus = {
+            400: "VALIDATION_FAILED",
+            401: "UNAUTHORIZED",
+            402: "SUBSCRIPTION_EXPIRED",
+            403: "FORBIDDEN_PERMISSION",
+            404: "RECORD_NOT_FOUND",
+            405: "METHOD_NOT_ALLOWED",
+            408: "REQUEST_TIMEOUT",
+            409: "DUPLICATE_CONFLICT",
+            413: "PAYLOAD_TOO_LARGE",
+            422: "BUSINESS_RULE_VIOLATION",
+            423: "SYSTEM_LOCKED",
+            429: "RATE_LIMIT_EXCEEDED",
+            501: "NOT_IMPLEMENTED",
+            502: "BAD_GATEWAY",
+            503: "SERVICE_UNAVAILABLE",
+            504: "GATEWAY_TIMEOUT"
+        };
         const normalized =
             new AppError(
                 error.message || "Application Error",
-                error.statusCode,
-                error.code || (error.statusCode === 404 ? "NOT_FOUND" : (error.statusCode === 400 ? "VALIDATION_ERROR" : "APPLICATION_ERROR")),
+                rawStatus,
+                error.code || defaultCodeByStatus[rawStatus] || "APPLICATION_ERROR",
                 error.details || null
             );
         normalized.originalError =

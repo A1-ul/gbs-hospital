@@ -185,6 +185,13 @@ const DEFAULT_RESPONSE_CATALOGUE = Object.freeze({
         category: "AUTHZ",
         message: "You do not have permission to perform this operation."
     },
+    CORS_POLICY_VIOLATION: {
+        code: "CORS_POLICY_VIOLATION",
+        httpStatus: 403,
+        severity: "WARNING",
+        category: "SECURITY",
+        message: "Cross-origin request denied by security policy."
+    },
     SENSITIVE_ACCESS_RESTRICTED: {
         code: "SENSITIVE_ACCESS_RESTRICTED",
         httpStatus: 403,
@@ -228,6 +235,34 @@ const DEFAULT_RESPONSE_CATALOGUE = Object.freeze({
         severity: "WARNING",
         category: "LOOKUP",
         message: "The requested service endpoint was not found."
+    },
+    METHOD_NOT_ALLOWED: {
+        code: "METHOD_NOT_ALLOWED",
+        httpStatus: 405,
+        severity: "WARNING",
+        category: "ROUTING",
+        message: "The HTTP method used is not supported for this endpoint."
+    },
+    REQUEST_TIMEOUT: {
+        code: "REQUEST_TIMEOUT",
+        httpStatus: 408,
+        severity: "WARNING",
+        category: "TIMEOUT",
+        message: "The request timed out before completing. Please try again."
+    },
+    PAYLOAD_TOO_LARGE: {
+        code: "PAYLOAD_TOO_LARGE",
+        httpStatus: 413,
+        severity: "WARNING",
+        category: "VALIDATION",
+        message: "The submitted payload exceeds the maximum permitted size."
+    },
+    RATE_LIMIT_EXCEEDED: {
+        code: "RATE_LIMIT_EXCEEDED",
+        httpStatus: 429,
+        severity: "WARNING",
+        category: "RATE_LIMIT",
+        message: "Too many requests. Please wait briefly and try again."
     },
     DUPLICATE_SUBMISSION: {
         code: "DUPLICATE_SUBMISSION",
@@ -293,6 +328,27 @@ const DEFAULT_RESPONSE_CATALOGUE = Object.freeze({
         severity: "ERROR",
         category: "SYSTEM",
         message: "An unexpected system error occurred. Technical teams have been notified."
+    },
+    NOT_IMPLEMENTED: {
+        code: "NOT_IMPLEMENTED",
+        httpStatus: 501,
+        severity: "WARNING",
+        category: "SYSTEM",
+        message: "This capability is not implemented on this server."
+    },
+    BAD_GATEWAY: {
+        code: "BAD_GATEWAY",
+        httpStatus: 502,
+        severity: "ERROR",
+        category: "NETWORK",
+        message: "An upstream service returned an invalid response. Please try again shortly."
+    },
+    GATEWAY_TIMEOUT: {
+        code: "GATEWAY_TIMEOUT",
+        httpStatus: 504,
+        severity: "ERROR",
+        category: "TIMEOUT",
+        message: "An upstream service timed out before responding. Please try again shortly."
     }
 });
 
@@ -347,11 +403,17 @@ function createResponseCatalogue(customEntries = {}) {
         if (httpStatus === 402) return "SUBSCRIPTION_EXPIRED";
         if (httpStatus === 403) return "FORBIDDEN_PERMISSION";
         if (httpStatus === 404) return "RECORD_NOT_FOUND";
+        if (httpStatus === 405) return "METHOD_NOT_ALLOWED";
+        if (httpStatus === 408) return "REQUEST_TIMEOUT";
         if (httpStatus === 409) return "DUPLICATE_CONFLICT";
+        if (httpStatus === 413) return "PAYLOAD_TOO_LARGE";
         if (httpStatus === 422) return "BUSINESS_RULE_VIOLATION";
         if (httpStatus === 423) return "SYSTEM_LOCKED";
-        if (httpStatus === 502) return "NETWORK_ERROR";
+        if (httpStatus === 429) return "RATE_LIMIT_EXCEEDED";
+        if (httpStatus === 501) return "NOT_IMPLEMENTED";
+        if (httpStatus === 502) return "BAD_GATEWAY";
         if (httpStatus === 503) return "SERVICE_UNAVAILABLE";
+        if (httpStatus === 504) return "GATEWAY_TIMEOUT";
         return "INTERNAL_ERROR";
     }
 

@@ -38,6 +38,14 @@ function classifyError(err) {
         return { category: "DATABASE", code: "DATABASE_ERROR", httpStatus: 503 };
     }
 
+    // Body-parser malformed JSON & oversized payload errors
+    if (err.type === "entity.parse.failed" || (err instanceof SyntaxError && status === 400)) {
+        return { category: "VALIDATION", code: "VALIDATION_FAILED", httpStatus: 400 };
+    }
+    if (err.type === "entity.too.large" || status === 413) {
+        return { category: "VALIDATION", code: "PAYLOAD_TOO_LARGE", httpStatus: 413 };
+    }
+
     // Network errors
     if (["ETIMEDOUT", "ENOTFOUND", "ECONNRESET", "EHOSTUNREACH", "ESOCKETTIMEDOUT"].includes(rawCode)) {
         return { category: "NETWORK", code: "NETWORK_ERROR", httpStatus: 502 };
@@ -48,16 +56,22 @@ function classifyError(err) {
         return { category: "AUTHORIZATION", code: "UNAUTHORIZED", httpStatus: 401 };
     }
 
-    // Explicit operational errors
+    // Explicit operational errors (Full Universal HTTP Status Coverage)
     if (status === 400) return { category: "VALIDATION", code: rawCode || "VALIDATION_FAILED", httpStatus: 400 };
     if (status === 401) return { category: "AUTHORIZATION", code: rawCode || "UNAUTHORIZED", httpStatus: 401 };
     if (status === 402) return { category: "TRANSACTION", code: rawCode || "SUBSCRIPTION_EXPIRED", httpStatus: 402 };
     if (status === 403) return { category: "AUTHORIZATION", code: rawCode || "FORBIDDEN_PERMISSION", httpStatus: 403 };
     if (status === 404) return { category: "NOT_FOUND", code: rawCode || "RECORD_NOT_FOUND", httpStatus: 404 };
+    if (status === 405) return { category: "ROUTING", code: rawCode || "METHOD_NOT_ALLOWED", httpStatus: 405 };
+    if (status === 408) return { category: "TIMEOUT", code: rawCode || "REQUEST_TIMEOUT", httpStatus: 408 };
     if (status === 409) return { category: "CONFLICT", code: rawCode || "DUPLICATE_CONFLICT", httpStatus: 409 };
     if (status === 422) return { category: "TRANSACTION", code: rawCode || "BUSINESS_RULE_VIOLATION", httpStatus: 422 };
     if (status === 423) return { category: "AUTHORIZATION", code: rawCode || "SYSTEM_LOCKED", httpStatus: 423 };
+    if (status === 429) return { category: "RATE_LIMIT", code: rawCode || "RATE_LIMIT_EXCEEDED", httpStatus: 429 };
+    if (status === 501) return { category: "SYSTEM", code: rawCode || "NOT_IMPLEMENTED", httpStatus: 501 };
+    if (status === 502) return { category: "NETWORK", code: rawCode || "BAD_GATEWAY", httpStatus: 502 };
     if (status === 503) return { category: "SERVICE_UNAVAILABLE", code: rawCode || "SERVICE_UNAVAILABLE", httpStatus: 503 };
+    if (status === 504) return { category: "TIMEOUT", code: rawCode || "GATEWAY_TIMEOUT", httpStatus: 504 };
 
     return {
         category: status >= 500 ? "INTERNAL" : "VALIDATION",

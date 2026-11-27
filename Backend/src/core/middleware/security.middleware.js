@@ -209,7 +209,7 @@ function applyHelmet(app) {
 
 
                             frameAncestors: [
-                            "'self'"
+                                "'self'"
                             ]
 
                         }
@@ -406,13 +406,10 @@ function applyCors(app) {
 
 
 
-                return callback(
-
-                    new Error(
-                        "CORS policy violation"
-                    )
-
-                );
+                const corsError = new Error("Cross-origin request denied by security policy.");
+                corsError.statusCode = 403;
+                corsError.code = "CORS_POLICY_VIOLATION";
+                return callback(corsError);
 
 
 
@@ -580,44 +577,21 @@ function applyRateLimit(app) {
 
 
 
-            handler: function (
-
-                req,
-
-                res
-
-            ) {
-
-
-
-                res.status(429)
-
-                    .json({
-
-
-
-                        success: false,
-
-
-                        error: {
-
-
-                            code:
-                                "RATE_LIMIT_EXCEEDED",
-
-
-
-                            message:
-                                "Too many requests. Try again later."
-
-                        }
-
-
-
-                    });
-
-
-
+            handler: function (req, res) {
+                const message = "Too many requests. Please wait briefly and try again.";
+                res.status(429).json({
+                    success: false,
+                    code: "RATE_LIMIT_EXCEEDED",
+                    message,
+                    data: null,
+                    errors: [],
+                    timestamp: new Date().toISOString(),
+                    requestId: req.requestId || null,
+                    error: {
+                        code: "RATE_LIMIT_EXCEEDED",
+                        message
+                    }
+                });
             }
 
 

@@ -97,6 +97,13 @@
       "phase": "REMEDIATION_7",
       "procedure": 7,
       "summary": "Removed all 49 UI hover tooltips (title= attributes) across Frontend/src/, implemented Frontend/src/services/navigation.manager.js with manual browser scrollRestoration, per-history-entry window + nested container scroll & filter context capture, async MutationObserver/RAF restoration on App Back and Browser Back/Forward (excluding Developer Dashboard), and built atomic PostgreSQL-backed 10-entry Demo Trial Quota middleware (Backend/src/core/middleware/demo-quota.middleware.js + GET /auth/demo-quota + RCCE DEMO_TRIAL_LIMIT_REACHED + live Header quota badge + render.yaml DEMO_MODE_ENABLED=true/DEMO_MAX_ENTRIES=10). Verified 7/7 Frontend automated tests, Vite build (1,608 modules), and Backend phase25/26/31/34 suites (25/25 passing)."
+    },
+    {
+      "timestamp": "2026-11-27T16:15:00.000Z",
+      "event": "UNIVERSAL HTTP STATUS CODE & ERROR ENGINE HARDENING VERIFIED (PHASE 35)",
+      "phase": "UNIVERSAL_HTTP_RELIABILITY",
+      "procedure": 8,
+      "summary": "Audited against REQUEST AND ERROR HTTP STATUS 200,401.docx. Fixed malformed JSON body-parser status bug (400 instead of 500 in error.middleware.js), CORS rejection status (403 CORS_POLICY_VIOLATION instead of 500), Express 5 HTTP 405 Method Not Allowed with RFC Allow header in notFound.middleware.js, standardized 429 RCCE envelope in security.middleware.js, and added 405/408/413/429/501/502/504 classifications to enterprise-framework/gbs-rcce/error.engine.js and response.catalogue.js. Verified Phase 0/25/26/35 suites (28/28 tests passing)."
     }
   ]
 }
