@@ -53,48 +53,37 @@ async function getHrStats() {
     const thirtyDaysFromNow = new Date(today);
     thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
 
-    const [
-        totalStaff,
-        activeCredentials,
-        expiringSoonCount,
-        expiredCount,
-        shiftsScheduledToday,
-        pendingHandovers,
-        activeClockedInToday,
-        pendingLeaves
-    ] = await Promise.all([
-        prisma.hospitalStaff.count(),
-        prisma.staffCredential.count({ where: { credentialStatus: "ACTIVE_VERIFIED" } }),
-        prisma.staffCredential.count({
-            where: {
-                expiryDate: {
-                    gte: today,
-                    lte: thirtyDaysFromNow
-                }
+    const totalStaff = await prisma.hospitalStaff.count();
+    const activeCredentials = await prisma.staffCredential.count({ where: { credentialStatus: "ACTIVE_VERIFIED" } });
+    const expiringSoonCount = await prisma.staffCredential.count({
+        where: {
+            expiryDate: {
+                gte: today,
+                lte: thirtyDaysFromNow
             }
-        }),
-        prisma.staffCredential.count({
-            where: {
-                expiryDate: { lt: today }
+        }
+    });
+    const expiredCount = await prisma.staffCredential.count({
+        where: {
+            expiryDate: { lt: today }
+        }
+    });
+    const shiftsScheduledToday = await prisma.dutyShiftRoster.count({
+        where: {
+            shiftDate: {
+                gte: today,
+                lt: tomorrow
             }
-        }),
-        prisma.dutyShiftRoster.count({
-            where: {
-                shiftDate: {
-                    gte: today,
-                    lt: tomorrow
-                }
-            }
-        }),
-        prisma.shiftHandover.count({ where: { status: "PENDING_COSIGNATURE" } }),
-        prisma.staffAttendance.count({
-            where: {
-                clockInDate: { gte: today, lt: tomorrow },
-                clockOutTime: null
-            }
-        }),
-        prisma.staffLeaveRequest.count({ where: { status: "PENDING_APPROVAL" } })
-    ]);
+        }
+    });
+    const pendingHandovers = await prisma.shiftHandover.count({ where: { status: "PENDING_COSIGNATURE" } });
+    const activeClockedInToday = await prisma.staffAttendance.count({
+        where: {
+            clockInDate: { gte: today, lt: tomorrow },
+            clockOutTime: null
+        }
+    });
+    const pendingLeaves = await prisma.staffLeaveRequest.count({ where: { status: "PENDING_APPROVAL" } });
 
     return {
         totalStaffCount: totalStaff,

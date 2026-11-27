@@ -1,14 +1,14 @@
-/**
- * GBS Hospital Management System — Enterprise Module Registry
- * Directory: Backend/src/modules/developer-control-center/tenant-console
- * Production subsystem module descriptor.
- */
-'use strict';
+"use strict";
+
+const tenantService = require("../../tenant-management/tenant-management.service");
+const { getTenantAnalyticsCenter } = require("../developer-ops.service");
 
 module.exports = {
-  moduleName: 'tenant-console',
-  directory: 'Backend/src/modules/developer-control-center/tenant-console',
-  domain: 'GBS_HOSPITAL_ENTERPRISE',
-  status: 'OPERATIONAL',
-  initializedAt: new Date().toISOString()
+    moduleName: "tenant-console",
+    getDeveloperConsoleSummary: tenantService.getDeveloperConsoleSummary,
+    getTenants: tenantService.getTenants,
+    approveAndProvisionTenant: tenantService.approveAndProvisionTenant,
+    updateTenantLifecycleStatus: tenantService.updateTenantLifecycleStatus,
+    getLiveTenantLocations: tenantService.getLiveTenantLocations,
+    getTenantAnalyticsCenter
 };

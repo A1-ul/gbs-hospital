@@ -264,15 +264,13 @@ async function getBatchClaims(batchId, query = {}) {
     const where = { batchId };
     if (adjudicationStatus) where.adjudicationStatus = adjudicationStatus;
 
-    const [total, claims] = await Promise.all([
-        prisma.nhiaClaimItem.count({ where }),
-        prisma.nhiaClaimItem.findMany({
-            where,
-            skip,
-            take,
-            orderBy: { createdAt: "asc" }
-        })
-    ]);
+    const total = await prisma.nhiaClaimItem.count({ where });
+    const claims = await prisma.nhiaClaimItem.findMany({
+        where,
+        skip,
+        take,
+        orderBy: { createdAt: "asc" }
+    });
 
     return {
         data: claims,
@@ -701,43 +699,33 @@ async function registerMemberPolicy(policyData) {
  * NHIA Command Center Live PostgreSQL Telemetry
  */
 async function getNhiaCommandCenterTelemetry() {
-    const [
-        totalBatches,
-        totalClaims,
-        batchesByStatus,
-        claimsByStatus,
-        financialSums,
-        recentBatches,
-        vouchers
-    ] = await Promise.all([
-        prisma.nhiaClaimBatch.count(),
-        prisma.nhiaClaimItem.count(),
-        prisma.nhiaClaimBatch.groupBy({
-            by: ["status"],
-            _count: { id: true }
-        }),
-        prisma.nhiaClaimItem.groupBy({
-            by: ["adjudicationStatus"],
-            _count: { id: true }
-        }),
-        prisma.nhiaClaimBatch.aggregate({
-            _sum: {
-                totalClaimedAmount: true,
-                totalApprovedAmount: true,
-                totalRejectedAmount: true
-            }
-        }),
-        prisma.nhiaClaimBatch.findMany({
-            take: 5,
-            orderBy: { createdAt: "desc" }
-        }),
-        prisma.nhiaReconciliationVoucher.aggregate({
-            _sum: {
-                netDisbursedAmount: true
-            },
-            _count: { id: true }
-        })
-    ]);
+    const totalBatches = await prisma.nhiaClaimBatch.count();
+    const totalClaims = await prisma.nhiaClaimItem.count();
+    const batchesByStatus = await prisma.nhiaClaimBatch.groupBy({
+        by: ["status"],
+        _count: { id: true }
+    });
+    const claimsByStatus = await prisma.nhiaClaimItem.groupBy({
+        by: ["adjudicationStatus"],
+        _count: { id: true }
+    });
+    const financialSums = await prisma.nhiaClaimBatch.aggregate({
+        _sum: {
+            totalClaimedAmount: true,
+            totalApprovedAmount: true,
+            totalRejectedAmount: true
+        }
+    });
+    const recentBatches = await prisma.nhiaClaimBatch.findMany({
+        take: 5,
+        orderBy: { createdAt: "desc" }
+    });
+    const vouchers = await prisma.nhiaReconciliationVoucher.aggregate({
+        _sum: {
+            netDisbursedAmount: true
+        },
+        _count: { id: true }
+    });
 
     const batchStatusMap = {};
     batchesByStatus.forEach(b => { batchStatusMap[b.status] = b._count.id; });

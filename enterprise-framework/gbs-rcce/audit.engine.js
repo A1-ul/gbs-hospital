@@ -34,6 +34,7 @@ function computeIntegrityHash(entry, previousHash = "GENESIS") {
 
 function createAuditEngine({ storageAdapter, logger }) {
     let lastHash = "GENESIS";
+    let hashHydrated = false;
 
     async function record(entry = {}) {
         const timestamp = new Date().toISOString();
@@ -59,9 +60,10 @@ function createAuditEngine({ storageAdapter, logger }) {
         };
 
         try {
-            if (storageAdapter && typeof storageAdapter.getLatestAuditHash === "function") {
+            if (!hashHydrated && storageAdapter && typeof storageAdapter.getLatestAuditHash === "function") {
                 const latest = await storageAdapter.getLatestAuditHash();
                 if (latest) lastHash = latest;
+                hashHydrated = true;
             }
             const previousHash = lastHash;
             const integrityHash = computeIntegrityHash(normalized, previousHash);

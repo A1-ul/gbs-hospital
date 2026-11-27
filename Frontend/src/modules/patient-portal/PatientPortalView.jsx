@@ -74,6 +74,12 @@ export default function PatientPortalView({ onNavigateDetail }) {
         </div>
       )}
 
+      {!loading && !error && dossier && dossier.linked === false && (
+        <div className="glass-panel" style={{ padding: '14px 18px', borderLeft: '4px solid var(--gold-400)', color: 'var(--gold-300)', fontSize: '0.84rem' }}>
+          {dossier.message || 'No patient record is linked to this account yet. Please register at hospital reception.'}
+        </div>
+      )}
+
       {loading ? (
         <div className="glass-panel" style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)' }}>
           Loading live patient health records from PostgreSQL...

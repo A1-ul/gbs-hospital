@@ -10,18 +10,18 @@ LOCATION: src/modules/blood-bank/blood-bank.service.js
 */
 
 const prisma = require("../../core/database/prisma.client");
-const { 
-    generateDonorNumber, 
-    generateUnitBarcode, 
-    generateTransfusionRequestNumber, 
-    generateCrossMatchNumber, 
-    generateTransfusionNumber 
+const {
+    generateDonorNumber,
+    generateUnitBarcode,
+    generateTransfusionRequestNumber,
+    generateCrossMatchNumber,
+    generateTransfusionNumber
 } = require("./helpers/blood-bank-id.generator");
-const { 
-    BLOOD_GROUPS, 
-    BLOOD_COMPONENTS, 
-    isBloodCompatible, 
-    evaluateDonorEligibility 
+const {
+    BLOOD_GROUPS,
+    BLOOD_COMPONENTS,
+    isBloodCompatible,
+    evaluateDonorEligibility
 } = require("./helpers/blood-bank-catalogs");
 
 class BloodBankService {
@@ -251,10 +251,10 @@ class BloodBankService {
             screeningNotes
         } = screeningData;
 
-        const isAnyReactive = 
-            hivScreening === "POSITIVE" || 
-            hepatitisBScreening === "POSITIVE" || 
-            hepatitisCScreening === "POSITIVE" || 
+        const isAnyReactive =
+            hivScreening === "POSITIVE" ||
+            hepatitisBScreening === "POSITIVE" ||
+            hepatitisCScreening === "POSITIVE" ||
             syphilisScreening === "POSITIVE";
 
         const newStatus = isAnyReactive ? "DISCARDED_REACTIVE" : "TESTED_SAFE";
@@ -634,42 +634,30 @@ class BloodBankService {
     // ==========================================
 
     async getBloodBankTelemetry() {
-        const [
-            totalUnits,
-            testedSafeUnits,
-            quarantineUnits,
-            reservedUnits,
-            donorsCount,
-            activeRequests,
-            unitsByGroup,
-            unitsByComponent,
-            expiringSoonCount
-        ] = await Promise.all([
-            prisma.bloodUnit.count(),
-            prisma.bloodUnit.count({ where: { status: "TESTED_SAFE" } }),
-            prisma.bloodUnit.count({ where: { status: "QUARANTINE" } }),
-            prisma.bloodUnit.count({ where: { status: "RESERVED" } }),
-            prisma.bloodDonor.count(),
-            prisma.bloodTransfusionRequest.count({ where: { status: { in: ["REQUESTED", "CROSS_MATCHING", "COMPATIBLE_READY"] } } }),
-            prisma.bloodUnit.groupBy({
-                by: ["bloodGroup"],
-                where: { status: "TESTED_SAFE" },
-                _count: { id: true }
-            }),
-            prisma.bloodUnit.groupBy({
-                by: ["componentType"],
-                where: { status: "TESTED_SAFE" },
-                _count: { id: true }
-            }),
-            prisma.bloodUnit.count({
-                where: {
-                    status: "TESTED_SAFE",
-                    expiryDate: {
-                        lte: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-                    }
+        const totalUnits = await prisma.bloodUnit.count();
+        const testedSafeUnits = await prisma.bloodUnit.count({ where: { status: "TESTED_SAFE" } });
+        const quarantineUnits = await prisma.bloodUnit.count({ where: { status: "QUARANTINE" } });
+        const reservedUnits = await prisma.bloodUnit.count({ where: { status: "RESERVED" } });
+        const donorsCount = await prisma.bloodDonor.count();
+        const activeRequests = await prisma.bloodTransfusionRequest.count({ where: { status: { in: ["REQUESTED", "CROSS_MATCHING", "COMPATIBLE_READY"] } } });
+        const unitsByGroup = await prisma.bloodUnit.groupBy({
+            by: ["bloodGroup"],
+            where: { status: "TESTED_SAFE" },
+            _count: { id: true }
+        });
+        const unitsByComponent = await prisma.bloodUnit.groupBy({
+            by: ["componentType"],
+            where: { status: "TESTED_SAFE" },
+            _count: { id: true }
+        });
+        const expiringSoonCount = await prisma.bloodUnit.count({
+            where: {
+                status: "TESTED_SAFE",
+                expiryDate: {
+                    lte: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
                 }
-            })
-        ]);
+            }
+        });
 
         // Calculate O-Negative emergency reserve count
         const oNegativeAvailable = unitsByGroup.find(g => g.bloodGroup === "O_NEGATIVE")?._count?.id || 0;
@@ -694,7 +682,7 @@ class BloodBankService {
             emergencyReserve: {
                 oNegativeUnitsAvailable: oNegativeAvailable,
                 isReserveCritical: oNegativeAvailable < 2,
-                alertMessage: oNegativeAvailable < 2 
+                alertMessage: oNegativeAvailable < 2
                     ? "CRITICAL WARNING: Universal O-Negative emergency reserve below threshold (< 2 units)."
                     : "Emergency reserve nominal."
             },

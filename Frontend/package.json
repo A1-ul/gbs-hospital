@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite --host --port 3000",
     "build": "vite build",
-    "preview": "vite preview --port 3000"
+    "preview": "vite preview --port 3000",
+    "test": "node --test tests/*.test.js"
   },
   "dependencies": {
     "react": "^18.3.1",

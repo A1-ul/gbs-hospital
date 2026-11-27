@@ -2,10 +2,24 @@
   "authoritativeBackendRoot": "Backend/src",
   "apiPrefix": "/api/v1",
   "routeRegistry": "Backend/src/routes/index.js",
-  "legacyRouteShim": "Backend/routes/index.js re-exports src/routes",
-  "conflictsRemaining": [
-    "Backend/src/routes duplicate empty stub files (v1.routes.js etc.) unused",
-    "Role naming: seed ADMIN vs config ADMINISTRATOR",
-    "Permission naming: seed SCREAMING_SNAKE vs permissions.js dot notation"
-  ]
+  "legacyRouteDirectoryRemoved": true,
+  "activeRouteFiles": 35,
+  "activeRouteEndpoints": 435,
+  "prismaModels": 124,
+  "baselineSqlDdl": "database/schema_124_models_baseline.sql",
+  "canonicalRoles": 16,
+  "canonicalPermissions": 82,
+  "brokenRequiresCount": 0,
+  "zeroByteCodeFiles": 0,
+  "emptyDirectories": 0,
+  "frontendPublicImages": 42,
+  "frontendMissingImages": 0,
+  "frontendUnusedImages": 0,
+  "frontendSrcLocalhostRefs": 0,
+  "frontendAutomatedSmokeTests": 5,
+  "developerIsolationVerified": true,
+  "migrationQueueWorkerVerified": true,
+  "externalAdaptersVerified": ["SMTP_EMAIL", "SMS_GATEWAY", "PAYMENT_GATEWAY"],
+  "conflictsRemaining": [],
+  "lastVerified": "2026-11-26T19:31:00.000Z"
 }

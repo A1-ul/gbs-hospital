@@ -1,14 +1,14 @@
-/**
- * GBS Hospital Management System — Enterprise Module Registry
- * Directory: Backend/src/modules/developer-control-center/system-updates
- * Production subsystem module descriptor.
- */
-'use strict';
+"use strict";
+
+const {
+    getDeploymentHistory,
+    recordDeploymentCheckpoint,
+    getRollbackReadiness
+} = require("../services/developer-remote-ops.service");
 
 module.exports = {
-  moduleName: 'system-updates',
-  directory: 'Backend/src/modules/developer-control-center/system-updates',
-  domain: 'GBS_HOSPITAL_ENTERPRISE',
-  status: 'OPERATIONAL',
-  initializedAt: new Date().toISOString()
+    moduleName: "system-updates",
+    getDeploymentHistory,
+    recordDeploymentCheckpoint,
+    getRollbackReadiness
 };

@@ -1139,29 +1139,21 @@ async function getPharmacistDashboardTelemetry(requestedHospitalId) {
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
 
-    const [
-        totalFormularyItems,
-        inventories,
-        allBatches,
-        pendingPrescriptionsCount,
-        todayDispenses
-    ] = await Promise.all([
-        prisma.pharmacyItem.count({ where: { hospitalId, active: true } }),
-        prisma.pharmacyInventory.findMany({
-            where: { hospitalId },
-            include: { item: true }
-        }),
-        prisma.pharmacyBatch.findMany({
-            where: { hospitalId, active: true }
-        }),
-        prisma.patientPrescription.count({ where: { status: "PENDING" } }),
-        prisma.prescriptionDispense.findMany({
-            where: {
-                hospitalId,
-                dispensedAt: { gte: todayStart }
-            }
-        })
-    ]);
+    const totalFormularyItems = await prisma.pharmacyItem.count({ where: { hospitalId, active: true } });
+    const inventories = await prisma.pharmacyInventory.findMany({
+        where: { hospitalId },
+        include: { item: true }
+    });
+    const allBatches = await prisma.pharmacyBatch.findMany({
+        where: { hospitalId, active: true }
+    });
+    const pendingPrescriptionsCount = await prisma.patientPrescription.count({ where: { status: "PENDING" } });
+    const todayDispenses = await prisma.prescriptionDispense.findMany({
+        where: {
+            hospitalId,
+            dispensedAt: { gte: todayStart }
+        }
+    });
 
     let totalStockUnits = 0;
     let outOfStockCount = 0;

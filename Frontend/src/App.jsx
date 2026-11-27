@@ -94,11 +94,11 @@ import {
 import { api } from './services/api.service';
 
 export const SUBSYSTEM_CATEGORIES = {
-  ALL: { id: 'ALL', label: 'All Departments', icon: Layers, badge: 'ALL 16' },
-  CLINICAL_INPATIENT: { id: 'CLINICAL_INPATIENT', label: 'Patient Care & Wards', icon: Stethoscope, badge: '5 AREAS' },
-  ACUTE_DIAGNOSTICS: { id: 'ACUTE_DIAGNOSTICS', label: 'Emergency & Lab', icon: AlertTriangle, badge: '4 AREAS' },
-  OPERATIONS_GOVERNANCE: { id: 'OPERATIONS_GOVERNANCE', label: 'Billing, Staff & Quality', icon: Building2, badge: '5 AREAS' },
-  TELEHEALTH_TECH: { id: 'TELEHEALTH_TECH', label: 'Video Visits & Tools', icon: Video, badge: '2 AREAS' }
+  ALL: { id: 'ALL', label: 'All Departments', icon: Layers, badge: 'ALL 26' },
+  CLINICAL_INPATIENT: { id: 'CLINICAL_INPATIENT', label: 'Patient Care & Wards', icon: Stethoscope, badge: '8 AREAS' },
+  ACUTE_DIAGNOSTICS: { id: 'ACUTE_DIAGNOSTICS', label: 'Emergency & Lab', icon: AlertTriangle, badge: '6 AREAS' },
+  OPERATIONS_GOVERNANCE: { id: 'OPERATIONS_GOVERNANCE', label: 'Billing, Staff & Quality', icon: Building2, badge: '7 AREAS' },
+  TELEHEALTH_TECH: { id: 'TELEHEALTH_TECH', label: 'Video Visits & Tools', icon: Video, badge: '5 AREAS' }
 };
 
 export const SUBSYSTEM_MODULES = [
@@ -215,9 +215,6 @@ function getDefaultModuleForRole(role) {
   if (['DOCTOR', 'NURSE'].includes(role)) return 'CLINICAL';
   if (role === 'SURGEON') return 'SURGERY';
   if (role === 'PHARMACIST') return 'PHARMACY';
-  if (['EMERGENCY_PHYSICIAN', 'PARAMEDIC', 'AMBULANCE_DRIVER'].includes(role)) return 'EMERGENCY';
-  if (['MORTUARY_OFFICER', 'PATHOLOGIST'].includes(role)) return 'MORTUARY';
-  if (role === 'BIOMEDICAL_ENGINEER') return 'BIOMEDICAL';
   if (['FOLDER_RETRIEVER', 'RECEPTIONIST'].includes(role)) return 'PATIENTS';
   if (role === 'HR_MANAGER') return 'HR';
   return 'OVERVIEW';

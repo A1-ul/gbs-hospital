@@ -2,18 +2,19 @@
   "developerRoutesProtected": true,
   "hiddenDeveloperPortalPath": "/developer-portal",
   "publicUiExposure": "NONE_VERIFIED",
+  "strictNonDeveloperAdminBlockVerified": true,
   "mfaAndDeviceVerification": true,
   "sessionRevocationInPostgres": true,
   "clientSidePasswordsRemoved": true,
   "demoModeProductionGate": "DEMO_MODE_ENABLED=false in render.yaml (blocks DEVELOPER unconditionally)",
   "tenantAccessGuardMounted": true,
   "patientSafetyEmergencyBypassAudited": true,
-  "verifiedAt": "2026-11-22T19:30:00.000Z",
+  "verifiedAt": "2026-11-26T19:18:00.000Z",
   "controlsVerified": [
     "Unlisted /developer-portal gate (DeveloperPortalGate.jsx) with 2-step credentials + 6-digit MFA + browser device fingerprint",
-    "Developer login button and role card completely removed from public Header.jsx and RoleLoginModal.jsx",
-    "All developer login, MFA challenge, verification, and session logout events audited in PostgreSQL AuditLog",
-    "Root Developer password driven exclusively via DEVELOPER_ROOT_PASSWORD environment secret; bootstrap-production.js never overwrites existing passwords",
+    "developerSecurityGuard strictly blocks ADMINISTRATOR, HOSPITAL_DIRECTOR, and all non-Developer roles (HTTP 403 + AuditLog) from all 16 Developer-only endpoints including /rcce/errors and /rcce/developer/*",
+    "Hospital Administrators retain non-self-approving access-grant governance and hospital audit-log review",
+    "All 9 Step 35 remote operations (cluster-health, cache/clear, database/optimize, logs/rotate, feature-flags, deployments, rollback-readiness) audited in PostgreSQL AuditLog",
     "Global tenantAccessGuard mounted on /api/v1 enforcing tenant locks/expiry (423/402) with audited Patient Safety Emergency Bypass"
   ]
 }

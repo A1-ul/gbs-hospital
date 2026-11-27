@@ -1,8 +1,0 @@
-# GBS Hospital Management System — Robots Policy
-User-agent: *
-Allow: /
-Disallow: /api/
-Disallow: /developer-portal
-Disallow: /developer-portal/
-Disallow: /module/DEVELOPER_NOC
-Disallow: /module/MIGRATION

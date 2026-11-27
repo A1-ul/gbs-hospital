@@ -11,18 +11,18 @@ LOCATION: src/modules/mortuary/mortuary.service.js
 
 const prisma = require("../../core/database/prisma.client");
 const AppError = require("../../core/errors/app.error");
-const { 
-    generateCorpseNumber, 
-    generateDeathCertificateNumber, 
-    generateAutopsyNumber, 
-    generateReleaseNumber, 
-    generateChamberCode 
+const {
+    generateCorpseNumber,
+    generateDeathCertificateNumber,
+    generateAutopsyNumber,
+    generateReleaseNumber,
+    generateChamberCode
 } = require("./helpers/mortuary-id.generator");
-const { 
-    CASE_CATEGORIES, 
-    STORAGE_TIERS, 
+const {
+    CASE_CATEGORIES,
+    STORAGE_TIERS,
     AUTOPSY_TYPES,
-    validateReleaseEligibility 
+    validateReleaseEligibility
 } = require("./helpers/mortuary-catalogs");
 
 class MortuaryService {
@@ -488,23 +488,13 @@ class MortuaryService {
     // ==========================================
 
     async getMortuaryTelemetry() {
-        const [
-            totalBodiesStored,
-            inStorage,
-            autopsyScheduled,
-            readyForRelease,
-            releasedTotal,
-            totalChambers,
-            chambers
-        ] = await Promise.all([
-            prisma.corpseRecord.count(),
-            prisma.corpseRecord.count({ where: { status: "IN_STORAGE" } }),
-            prisma.corpseRecord.count({ where: { status: "AUTOPSY_IN_PROGRESS" } }),
-            prisma.corpseRecord.count({ where: { status: "READY_FOR_RELEASE" } }),
-            prisma.corpseRecord.count({ where: { status: "RELEASED_TO_FAMILY" } }),
-            prisma.mortuaryChamber.count(),
-            prisma.mortuaryChamber.findMany()
-        ]);
+        const totalBodiesStored = await prisma.corpseRecord.count();
+        const inStorage = await prisma.corpseRecord.count({ where: { status: "IN_STORAGE" } });
+        const autopsyScheduled = await prisma.corpseRecord.count({ where: { status: "AUTOPSY_IN_PROGRESS" } });
+        const readyForRelease = await prisma.corpseRecord.count({ where: { status: "READY_FOR_RELEASE" } });
+        const releasedTotal = await prisma.corpseRecord.count({ where: { status: "RELEASED_TO_FAMILY" } });
+        const totalChambers = await prisma.mortuaryChamber.count();
+        const chambers = await prisma.mortuaryChamber.findMany();
 
         const totalCapacity = chambers.reduce((sum, c) => sum + c.capacity, 0);
         const totalOccupied = chambers.reduce((sum, c) => sum + c.occupiedCount, 0);
@@ -550,7 +540,7 @@ class MortuaryService {
                 vaultName: c.vaultName,
                 storageTier: c.storageTier,
                 currentTemperature: c.currentTemperature,
-                isNominal: c.storageTier === "REFRIGERATED" 
+                isNominal: c.storageTier === "REFRIGERATED"
                     ? (c.currentTemperature >= 1.0 && c.currentTemperature <= 5.0)
                     : (c.currentTemperature <= -10.0),
                 occupied: c.occupiedCount,

@@ -1,14 +1,9 @@
-/**
- * GBS Hospital Management System — Enterprise Module Registry
- * Directory: Backend/src/modules/developer-control-center/feature-flags
- * Production subsystem module descriptor.
- */
-'use strict';
+"use strict";
+
+const { listFeatureFlags, setFeatureFlag } = require("../services/developer-remote-ops.service");
 
 module.exports = {
-  moduleName: 'feature-flags',
-  directory: 'Backend/src/modules/developer-control-center/feature-flags',
-  domain: 'GBS_HOSPITAL_ENTERPRISE',
-  status: 'OPERATIONAL',
-  initializedAt: new Date().toISOString()
+    moduleName: "feature-flags",
+    listFeatureFlags,
+    setFeatureFlag
 };

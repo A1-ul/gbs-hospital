@@ -82,7 +82,10 @@ export default function Header({
 
   useEffect(() => {
     loadNotifications();
-    const poll = setInterval(loadNotifications, 20000);
+    const poll = setInterval(() => {
+      if (typeof document !== 'undefined' && document.hidden) return;
+      loadNotifications();
+    }, 45000);
 
     // Live SSE push channel from GBS-RCCE Event & Notification Engine
     let evtSource = null;
@@ -729,7 +732,7 @@ export default function Header({
               <button
                 key={role.id}
                 onClick={() => onSelectRole(role.id)}
-                title={`Open ${role.name} Portal (${role.dept || role.desc})`}
+                title={`Open ${/portal$/i.test(role.name) ? role.name : `${role.name} Portal`} (${role.dept || role.desc})`}
                 style={{
                   display: 'flex',
                   alignItems: 'center',

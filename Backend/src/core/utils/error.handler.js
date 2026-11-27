@@ -21,7 +21,7 @@ const logger =
 
 
 const ERROR_CODES =
-    require('./error.codes');
+    require('../errors/error.codes');
 
 
 

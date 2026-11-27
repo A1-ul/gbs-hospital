@@ -7,7 +7,10 @@
       "feature": "Central API route registry under /api/v1",
       "phase": 0,
       "implementationStatus": "COMPLETE",
-      "files": ["Backend/src/routes/index.js", "Backend/src/app.js"]
+      "files": [
+        "Backend/src/routes/index.js",
+        "Backend/src/app.js"
+      ]
     },
     {
       "id": "REQ-BP-002",
@@ -15,7 +18,9 @@
       "feature": "Health endpoint with real database connectivity check",
       "phase": 0,
       "implementationStatus": "COMPLETE",
-      "files": ["Backend/src/routes/health.routes.js"]
+      "files": [
+        "Backend/src/routes/health.routes.js"
+      ]
     },
     {
       "id": "REQ-BP-003",
@@ -879,6 +884,198 @@
         "Frontend/src/services/api.service.js",
         "Frontend/src/App.jsx"
       ]
+    },
+    {
+      "id": "REQ-GAP-001",
+      "blueprintSection": "CI/CD & Database Pool Resilience",
+      "feature": "Global Jest Prisma teardown (afterAll $disconnect), tracked RCCE background audit flush, single-boot audit hash hydration, and CI connection_limit=8&pool_timeout=30 tuning to prevent PostgreSQL max_connections exhaustion across all 31+ suites",
+      "phase": "REMEDIATION_1",
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/tests/setup/jest.afterEnv.js",
+        "Backend/package.json",
+        "Backend/src/core/middleware/rcce-audit.middleware.js",
+        "enterprise-framework/gbs-rcce/audit.engine.js",
+        "Backend/src/core/database/prisma.client.js",
+        ".github/workflows/ci-render-deploy.yml"
+      ]
+    },
+    {
+      "id": "REQ-GAP-009",
+      "blueprintSection": "CI Test Hygiene & Telemetry Resilience",
+      "feature": "Reconciled sequential telemetry service optimizations (inpatient, blood-bank, insurance-claims, mortuary, pharmacy) and removed temporary CI debug logs from phase14/phase19 tests",
+      "phase": "REMEDIATION_1",
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/admissions/services/inpatient.service.js",
+        "Backend/src/modules/blood-bank/blood-bank.service.js",
+        "Backend/src/modules/insurance-claims/services/insurance-claims.service.js",
+        "Backend/src/modules/mortuary/mortuary.service.js",
+        "Backend/src/modules/pharmacy/services/pharmacy.service.js",
+        "Backend/tests/phase14.mortuary_cold_storage_deceased_release.test.js",
+        "Backend/tests/phase19.nhia_claims_eclaims_adjudication.test.js"
+      ]
+    },
+    {
+      "id": "REQ-GAP-002",
+      "blueprintSection": "Developer Platform Access Control (Step 32)",
+      "feature": "Enforce strict DEVELOPER-only + MFA-verified session isolation on /api/v1/rcce/developer/* routes",
+      "phase": "REMEDIATION_3",
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/developer-control-center/services/developer-security-guard.middleware.js",
+        "Backend/src/modules/developer-control-center/rcce.routes.js",
+        "Backend/tests/phase26.security_auth_tenant_guard.test.js",
+        "Backend/tests/phase32.ci_pool_resilience_and_dev_isolation.test.js"
+      ]
+    },
+    {
+      "id": "REQ-GAP-003",
+      "blueprintSection": "Architecture Hygiene",
+      "feature": "Repair 3 broken require() paths in Backend/src/core/ and safely retire legacy Backend/routes/*",
+      "phase": "REMEDIATION_2",
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/core/audit/audit.service.js",
+        "Backend/src/core/utils/error.handler.js",
+        "Backend/src/core/utils/response.js"
+      ]
+    },
+    {
+      "id": "REQ-GAP-004",
+      "blueprintSection": "Duplication & Conflict Control (Step 15)",
+      "feature": "Remove obsolete scaffold directories, zero-byte JS stubs, corrupted PatientTable.jsx, and duplicate logo files",
+      "phase": "REMEDIATION_2",
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/routes (removed)",
+        "Backend/src/modules/{payments,tests,visitor-management,whatsapp,workforce} (removed)",
+        "Frontend/src/modules/{admissions,ai,ambulance,patients} (removed)",
+        "Backend/backups/index.js (removed)",
+        "Backend/prisma/backups (removed)",
+        "Frontend/public/assets/images/{gbs-crest.jpg,hospital-logo.png} (removed)"
+      ]
+    },
+    {
+      "id": "REQ-GAP-005",
+      "blueprintSection": "Developer Control Center Remote Management (Step 35)",
+      "feature": "Wire real audited remote management operations service into developer-control-center submodules",
+      "phase": "REMEDIATION_3",
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/developer-control-center/services/developer-remote-ops.service.js",
+        "Backend/src/modules/developer-control-center/rcce.controller.js",
+        "Backend/src/modules/developer-control-center/rcce.routes.js",
+        "Backend/src/modules/developer-control-center/cluster-monitor/index.js",
+        "Backend/src/modules/developer-control-center/deployment/index.js",
+        "Backend/src/modules/developer-control-center/feature-flags/index.js",
+        "Backend/src/modules/developer-control-center/license/index.js",
+        "Backend/src/modules/developer-control-center/maintenance/index.js",
+        "Backend/src/modules/developer-control-center/remote-shell/index.js",
+        "Backend/src/modules/developer-control-center/rollback/index.js",
+        "Backend/src/modules/developer-control-center/subscriptions/index.js",
+        "Backend/src/modules/developer-control-center/system-updates/index.js",
+        "Backend/src/modules/developer-control-center/tenant-console/index.js",
+        "Frontend/src/services/api.service.js",
+        "Frontend/src/modules/developer/DeveloperAdvancedOpsPanel.jsx",
+        "Backend/tests/phase32.ci_pool_resilience_and_dev_isolation.test.js"
+      ]
+    },
+    {
+      "id": "REQ-GAP-006",
+      "blueprintSection": "Migration Service Queue Worker (Step 30)",
+      "feature": "Implement BullMQ/Redis queue & worker abstraction with safe PostgreSQL fallback and downloadable migration reports",
+      "phase": "REMEDIATION_4",
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/migration/queues/migration.queue.js",
+        "Backend/src/modules/migration/workers/migration.worker.js",
+        "Backend/src/modules/migration/controllers/migration.controller.js",
+        "Backend/src/modules/migration/routes/migration.routes.js",
+        "Frontend/src/services/api.service.js",
+        "Backend/tests/phase33.migration_queue_and_external_adapters.test.js"
+      ]
+    },
+    {
+      "id": "REQ-GAP-007",
+      "blueprintSection": "Truthful External Integration Adapters",
+      "feature": "Implement SMTP email, SMS gateway, and Paystack/Stripe verification adapters with truthful configuration reporting",
+      "phase": "REMEDIATION_4",
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/core/integration/email.adapter.js",
+        "Backend/src/core/integration/sms.adapter.js",
+        "Backend/src/core/integration/payment-gateway.adapter.js",
+        "Backend/src/core/integration/index.js",
+        "Backend/src/modules/developer-control-center/developer-ops.service.js",
+        "Backend/tests/phase33.migration_queue_and_external_adapters.test.js"
+      ]
+    },
+    {
+      "id": "REQ-GAP-008",
+      "blueprintSection": "Frontend Production Cleanliness",
+      "feature": "Remove localhost UI fallback in ModuleViews.jsx and fix category badge counts & role mappings in App.jsx",
+      "phase": "REMEDIATION_2",
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Frontend/src/components/ModuleViews.jsx",
+        "Frontend/src/App.jsx"
+      ]
+    },
+    {
+      "id": "REQ-GAP-010",
+      "blueprintSection": "Build Memory & Documentation Consistency",
+      "feature": "Synchronize all .build/*.json files and database/ERD.md 124-model count",
+      "phase": "REMEDIATION_2",
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "database/ERD.md",
+        ".build/architecture-report.json",
+        ".build/dependency-report.json",
+        ".build/developer-module-status.json",
+        ".build/build-state.json",
+        ".build/validation-report.json",
+        ".build/build-history.json",
+        ".build/requirement-traceability.json"
+      ]
+    },
+    {
+      "id": "REQ-GAP-011",
+      "blueprintSection": "PostgreSQL Prisma Migrations",
+      "feature": "Generate synchronized Prisma baseline migration covering all 124 models",
+      "phase": "REMEDIATION_4",
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "database/schema_124_models_baseline.sql",
+        "documentation/GBS_HOSPITAL_MASTER_BLUEPRINT_TRACEABILITY.md"
+      ]
+    },
+    {
+      "id": "REQ-GAP-012",
+      "blueprintSection": "Frontend Automated Verification",
+      "feature": "Add automated Frontend smoke & route/asset verification tests",
+      "phase": "REMEDIATION_4",
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Frontend/tests/smoke.roles-and-dashboards.test.js",
+        "Frontend/package.json"
+      ]
+    },
+    {
+      "id": "REQ-GAP-013",
+      "blueprintSection": "GitHub Actions Green CI & Render Production Secrets",
+      "feature": "Push verified build to A1-ul/gbs-hospital main, confirm green CI, and configure Render production secrets",
+      "phase": "REMEDIATION_6",
+      "implementationStatus": "PENDING",
+      "files": []
+    },
+    {
+      "id": "REQ-GAP-014",
+      "blueprintSection": "Dashboard-by-Dashboard & Live Public Render Verification",
+      "feature": "Verify all 16 roles, 28 views, and live https://gbs-hospital-system.onrender.com on desktop and mobile",
+      "phase": "REMEDIATION_5_AND_7",
+      "implementationStatus": "PENDING",
+      "files": []
     }
   ]
 }

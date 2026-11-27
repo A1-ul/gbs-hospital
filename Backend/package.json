@@ -54,6 +54,9 @@
     "testMatch": [
       "<rootDir>/tests/**/*.test.js"
     ],
+    "setupFilesAfterEnv": [
+      "<rootDir>/tests/setup/jest.afterEnv.js"
+    ],
     "testTimeout": 30000
   }
 }

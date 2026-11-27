@@ -1,12 +1,25 @@
 {
   "backend": {
-    "node": ">=20",
+    "node": ">=20.0.0",
     "moduleSystem": "commonjs",
-    "database": "postgresql-prisma-6.19.3",
-    "missingForBlueprint": ["bullmq", "ioredis", "voice-auth-service"]
+    "express": "^5.1.0",
+    "database": "postgresql-16-prisma-6.19.3",
+    "prismaModels": 124,
+    "testRunner": "jest@29.7.0 + supertest@7.0.0 (global Prisma teardown enabled)",
+    "optionalExternalAdapters": [
+      "redis/bullmq (fallback: PostgreSQL queue)",
+      "smtp",
+      "sms",
+      "paystack/stripe"
+    ]
   },
   "frontend": {
-    "status": "non_runnable",
-    "packageJsonEmpty": true
-  }
+    "status": "operational_production_bundle_verified",
+    "framework": "react@18.3.1",
+    "bundler": "vite@5.4.11",
+    "icons": "lucide-react@0.468.0",
+    "transformedModules": 1607,
+    "packageJsonEmpty": false
+  },
+  "lastVerified": "2026-11-26T19:05:00.000Z"
 }

@@ -1,5 +1,5 @@
 "use strict";
 
-const { rcce } = require("../core/gbs-rcce.bootstrap");
+const { rcce } = require("../gbs-rcce.bootstrap");
 
 module.exports = rcce.audit;

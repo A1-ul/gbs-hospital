@@ -1,14 +1,11 @@
-/**
- * GBS Hospital Management System — Enterprise Module Registry
- * Directory: Backend/src/modules/developer-control-center/license
- * Production subsystem module descriptor.
- */
-'use strict';
+"use strict";
+
+const { runTrialExpirationSweep, getTenantAnalyticsCenter } = require("../developer-ops.service");
+const tenantService = require("../../tenant-management/tenant-management.service");
 
 module.exports = {
-  moduleName: 'license',
-  directory: 'Backend/src/modules/developer-control-center/license',
-  domain: 'GBS_HOSPITAL_ENTERPRISE',
-  status: 'OPERATIONAL',
-  initializedAt: new Date().toISOString()
+    moduleName: "license",
+    runTrialExpirationSweep,
+    getTenantAnalyticsCenter,
+    extendSubscription: tenantService.extendSubscription
 };

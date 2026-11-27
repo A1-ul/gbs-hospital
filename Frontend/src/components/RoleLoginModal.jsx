@@ -246,7 +246,7 @@ export default function RoleLoginModal({
               {currentRoleObj.dept || 'Authorized Hospital Portal'}
             </div>
             <h3 className="header-3d" style={{ fontSize: '1.5rem', fontWeight: 800 }}>
-              {currentRoleObj.name} Portal
+              {/portal$/i.test(currentRoleObj.name || '') ? currentRoleObj.name : `${currentRoleObj.name} Portal`}
             </h3>
             <p style={{ fontSize: '0.82rem', color: '#e5e7eb', marginTop: '4px' }}>
               {currentRoleObj.desc}

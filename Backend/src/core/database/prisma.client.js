@@ -316,6 +316,7 @@ async function disconnectPrisma(){
 
 
 if(
+    !environment.IS_TEST &&
     !global.__GBS_PRISMA_SHUTDOWN__
 ){
 

@@ -17,6 +17,8 @@ const path = require("path");
 const prisma = require("../../core/database/prisma.client");
 const { environment } = require("../../config/environment");
 const { calculateCountdown } = require("../tenant-management/helpers/countdown.engine");
+const { getAllExternalAdapterStatuses } = require("../../core/integration");
+const { detectQueueDriver } = require("../migration/queues/migration.queue");
 
 const BACKUPS_DIR = path.resolve(__dirname, "..", "..", "..", "backups");
 
@@ -148,11 +150,8 @@ async function getExternalIntegrationsStatus() {
     }
     const dbLatencyMs = Date.now() - dbStart;
 
-    const smtpConfigured = Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
-    const smsConfigured = Boolean(process.env.SMS_PROVIDER && process.env.SMS_API_KEY);
-    const paystackConfigured = Boolean(process.env.PAYSTACK_SECRET_KEY);
-    const stripeConfigured = Boolean(process.env.STRIPE_SECRET_KEY);
-    const redisConfigured = Boolean(process.env.REDIS_URL);
+    const externalAdapters = getAllExternalAdapterStatuses();
+    const queueInfo = detectQueueDriver();
 
     return {
         checkedAt: new Date().toISOString(),
@@ -175,41 +174,15 @@ async function getExternalIntegrationsStatus() {
                 configured: true,
                 detail: "PostgreSQL-backed voiceprint & 4-step facial liveness/cosine verification active"
             },
-            {
-                key: "SMTP_EMAIL",
-                name: "Outbound SMTP Email Gateway",
-                status: smtpConfigured ? "CONFIGURED" : "NOT_CONFIGURED",
-                configured: smtpConfigured,
-                detail: smtpConfigured
-                    ? `Configured host: ${process.env.SMTP_HOST}`
-                    : "SMTP credentials not configured in environment; password reset & alerts record truthfully in PostgreSQL."
-            },
-            {
-                key: "SMS_GATEWAY",
-                name: "Outbound SMS Notification Gateway",
-                status: smsConfigured ? "CONFIGURED" : "NOT_CONFIGURED",
-                configured: smsConfigured,
-                detail: smsConfigured
-                    ? `Configured provider: ${process.env.SMS_PROVIDER}`
-                    : "SMS API key not configured; in-app SSE & PostgreSQL notifications active."
-            },
-            {
-                key: "PAYMENT_GATEWAY",
-                name: "Online Card / MoMo Gateway (Paystack / Stripe)",
-                status: paystackConfigured || stripeConfigured ? "CONFIGURED" : "MANUAL_RECEIPT_MODE",
-                configured: paystackConfigured || stripeConfigured,
-                detail: paystackConfigured || stripeConfigured
-                    ? `Live gateway keys detected (${[paystackConfigured ? "Paystack" : null, stripeConfigured ? "Stripe" : null].filter(Boolean).join(", ")})`
-                    : "No external gateway secret key configured; hospital cashier & verified reference settlement active."
-            },
+            ...externalAdapters,
             {
                 key: "REDIS_BULLMQ",
                 name: "Distributed Queue / Cache (Redis & BullMQ)",
-                status: redisConfigured ? "CONFIGURED" : "IN_MEMORY_FALLBACK",
-                configured: redisConfigured,
-                detail: redisConfigured
-                    ? "REDIS_URL configured for distributed job workers"
-                    : "REDIS_URL not set; using safe single-node PostgreSQL + in-memory scheduler fallback."
+                status: queueInfo.driver === "BULLMQ_REDIS" ? "CONFIGURED" : "POSTGRESQL_ASYNC_QUEUE",
+                configured: queueInfo.driver === "BULLMQ_REDIS",
+                detail: queueInfo.driver === "BULLMQ_REDIS"
+                    ? "REDIS_URL & BullMQ active for distributed migration workers"
+                    : "REDIS_URL not set; using safe PostgreSQL-backed async migration worker queue."
             }
         ]
     };
@@ -219,37 +192,24 @@ async function getExternalIntegrationsStatus() {
  * 3. AI Developer Assistant — Live Automated Code, Crash, Security & Architecture Diagnostics
  */
 async function getAiDeveloperAssistantDiagnostics() {
-    const [
-        unresolvedErrors,
-        errorsByCategory,
-        activeSessions,
-        lockedTenants,
-        unackIcuCritical,
-        clinicalOverrides,
-        pendingAiClinical,
-        developerMfaLogs,
-        totalUsers,
-        totalPatients
-    ] = await Promise.all([
-        prisma.systemErrorLog.findMany({
-            where: { resolved: false },
-            orderBy: { createdAt: "desc" },
-            take: 15
-        }),
-        prisma.systemErrorLog.groupBy({
-            by: ["errorCategory"],
-            where: { resolved: false },
-            _count: { id: true }
-        }),
-        prisma.session.count({ where: { expiresAt: { gt: new Date() } } }),
-        prisma.tenant.count({ where: { systemLocked: true } }),
-        prisma.icuMonitoringRecord.count({ where: { alertLevel: "CRITICAL", isAcknowledged: false } }),
-        prisma.clinicalSafetyOverride.count(),
-        prisma.aiClinicalSuggestion.count({ where: { workflowStatus: { in: ["SUGGESTED", "UNDER_HUMAN_REVIEW"] } } }),
-        prisma.auditLog.count({ where: { action: "DEVELOPER_MFA_DEVICE_VERIFIED" } }),
-        prisma.user.count(),
-        prisma.patient.count()
-    ]);
+    const unresolvedErrors = await prisma.systemErrorLog.findMany({
+        where: { resolved: false },
+        orderBy: { createdAt: "desc" },
+        take: 15
+    });
+    const errorsByCategory = await prisma.systemErrorLog.groupBy({
+        by: ["errorCategory"],
+        where: { resolved: false },
+        _count: { id: true }
+    });
+    const activeSessions = await prisma.session.count({ where: { expiresAt: { gt: new Date() } } });
+    const lockedTenants = await prisma.tenant.count({ where: { systemLocked: true } });
+    const unackIcuCritical = await prisma.icuMonitoringRecord.count({ where: { alertLevel: "CRITICAL", isAcknowledged: false } });
+    const clinicalOverrides = await prisma.clinicalSafetyOverride.count();
+    const pendingAiClinical = await prisma.aiClinicalSuggestion.count({ where: { workflowStatus: { in: ["SUGGESTED", "UNDER_HUMAN_REVIEW"] } } });
+    const developerMfaLogs = await prisma.auditLog.count({ where: { action: "DEVELOPER_MFA_DEVICE_VERIFIED" } });
+    const totalUsers = await prisma.user.count();
+    const totalPatients = await prisma.patient.count();
 
     let verifiedBackupsCount = 0;
     try {

@@ -8,27 +8,62 @@ export default function DeveloperAdvancedOpsPanel({ onStatusMsg }) {
   const [integrations, setIntegrations] = useState(null);
   const [analytics, setAnalytics] = useState(null);
   const [faceStatus, setFaceStatus] = useState(null);
+  const [clusterHealth, setClusterHealth] = useState(null);
+  const [featureFlags, setFeatureFlags] = useState([]);
+  const [rollbackInfo, setRollbackInfo] = useState(null);
   const [sweepResult, setSweepResult] = useState(null);
   const [loading, setLoading] = useState(true);
   const [sweeping, setSweeping] = useState(false);
+  const [remoteBusy, setRemoteBusy] = useState('');
   const [faceModalOpen, setFaceModalOpen] = useState(false);
 
   const loadAll = async () => {
     setLoading(true);
     try {
-      const [diag, integ, anal, face] = await Promise.all([
+      const [diag, integ, anal, face, cluster, flagsRes, rb] = await Promise.all([
         api.getAiDeveloperDiagnostics().catch(() => null),
         api.getDeveloperIntegrationsStatus().catch(() => null),
         api.getDeveloperTenantAnalytics().catch(() => null),
         api.getFaceBiometricStatus().catch(() => null),
+        api.getDeveloperClusterHealth().catch(() => null),
+        api.getDeveloperFeatureFlags().catch(() => null),
+        api.getDeveloperRollbackReadiness().catch(() => null),
       ]);
       setDiagnostics(diag);
       setIntegrations(integ);
       setAnalytics(anal);
       setFaceStatus(face);
+      setClusterHealth(cluster);
+      setFeatureFlags(Array.isArray(flagsRes?.flags) ? flagsRes.flags : []);
+      setRollbackInfo(rb);
     } finally {
       setLoading(false);
     }
+  };
+
+  const executeRemoteOp = async (opKey, actionFn, successPrefix) => {
+    setRemoteBusy(opKey);
+    try {
+      const res = await actionFn();
+      if (typeof onStatusMsg === 'function') {
+        onStatusMsg({ type: 'success', msg: `${successPrefix}${res?.durationMs ? ` (${res.durationMs}ms)` : ''}` });
+      }
+      await loadAll();
+    } catch (err) {
+      if (typeof onStatusMsg === 'function') {
+        onStatusMsg({ type: 'error', msg: err.message });
+      }
+    } finally {
+      setRemoteBusy('');
+    }
+  };
+
+  const handleToggleFeatureFlag = async (flag) => {
+    await executeRemoteOp(
+      `flag_${flag.key}`,
+      () => api.setDeveloperFeatureFlag(flag.key, { enabled: !flag.enabled, description: flag.description }),
+      `Feature flag ${flag.key} set to ${!flag.enabled ? 'ENABLED' : 'DISABLED'}.`
+    );
   };
 
   useEffect(() => {
@@ -209,6 +244,85 @@ export default function DeveloperAdvancedOpsPanel({ onStatusMsg }) {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Step 35: Live Remote System Management, Cluster Telemetry & Feature Flags */}
+      <div className="glass-panel" style={{ padding: '18px', border: '1px solid var(--border-gold)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '12px' }}>
+          <div>
+            <h4 style={{ margin: 0, fontSize: '0.95rem', color: 'var(--gold-400)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Server size={16} /> Remote System Operations, PostgreSQL Optimization &amp; Feature Flags (Developer Only)
+            </h4>
+            <p style={{ margin: '2px 0 0', fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+              {clusterHealth
+                ? `PostgreSQL ${clusterHealth.database?.name} • ${clusterHealth.database?.activeConnections}/${clusterHealth.database?.maxConnections} conns • ${clusterHealth.database?.sizeMb} MB • ${clusterHealth.database?.latencyMs}ms • ${clusterHealth.cpu?.cores} CPU cores • RTO ${rollbackInfo?.rtoTarget || '<= 2 Hours'}`
+                : 'Live cluster health & remote maintenance commands audited to PostgreSQL.'}
+            </p>
+          </div>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              disabled={Boolean(remoteBusy)}
+              onClick={() => executeRemoteOp('cache', () => api.clearDeveloperCaches(), 'System control & RBAC caches cleared cleanly.')}
+              className="btn-outline-gold"
+              style={{ fontSize: '0.75rem', padding: '5px 10px' }}
+            >
+              {remoteBusy === 'cache' ? 'Clearing...' : 'Clear Control Caches'}
+            </button>
+            <button
+              type="button"
+              disabled={Boolean(remoteBusy)}
+              onClick={() => executeRemoteOp('optimize', () => api.optimizeDeveloperDatabase(), 'PostgreSQL ANALYZE optimization completed')}
+              className="btn-outline-gold"
+              style={{ fontSize: '0.75rem', padding: '5px 10px' }}
+            >
+              {remoteBusy === 'optimize' ? 'Optimizing...' : 'Optimize PostgreSQL'}
+            </button>
+            <button
+              type="button"
+              disabled={Boolean(remoteBusy)}
+              onClick={() => executeRemoteOp('rotate', () => api.rotateDeveloperLogs(), 'Expired sessions & idempotency keys rotated cleanly.')}
+              className="btn-outline-gold"
+              style={{ fontSize: '0.75rem', padding: '5px 10px' }}
+            >
+              {remoteBusy === 'rotate' ? 'Rotating...' : 'Prune Expired Sessions'}
+            </button>
+          </div>
+        </div>
+
+        {featureFlags.length > 0 && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '8px' }}>
+            {featureFlags.map((flag) => (
+              <div
+                key={flag.key}
+                style={{
+                  padding: '10px 12px',
+                  borderRadius: '8px',
+                  background: 'rgba(6,12,24,0.75)',
+                  border: '1px solid var(--border-subtle)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  gap: '10px'
+                }}
+              >
+                <div>
+                  <div style={{ fontSize: '0.76rem', fontWeight: 700, color: '#fff', fontFamily: 'monospace' }}>{flag.key}</div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{flag.description}</div>
+                </div>
+                <button
+                  type="button"
+                  disabled={Boolean(remoteBusy)}
+                  onClick={() => handleToggleFeatureFlag(flag)}
+                  className={flag.enabled ? 'btn-gold' : 'btn-outline-gold'}
+                  style={{ fontSize: '0.68rem', padding: '4px 10px', whiteSpace: 'nowrap' }}
+                >
+                  {flag.enabled ? 'ON' : 'OFF'}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Multi-Tenant Analytics Table */}

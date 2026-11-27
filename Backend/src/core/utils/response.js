@@ -20,7 +20,7 @@ const {
     API_VERSION
 }
 =
-require('../config/constants');
+require('../../config/constants');
 
 
 

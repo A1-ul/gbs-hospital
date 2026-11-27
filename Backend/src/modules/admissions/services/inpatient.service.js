@@ -888,50 +888,40 @@ async function getIpdDashboardTelemetry(hospitalId) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const [
-        totalWardsCount,
-        totalBedsCount,
-        occupiedBedsCount,
-        availableBedsCount,
-        admissionsToday,
-        dischargesToday,
-        recentAdmissions
-    ] = await Promise.all([
-        prisma.hospitalWard.count({
-            where: { ...hospitalFilter, active: true }
-        }),
-        prisma.hospitalBed.count({
-            where: { ...hospitalFilter, active: true }
-        }),
-        prisma.hospitalBed.count({
-            where: { ...hospitalFilter, status: "OCCUPIED", active: true }
-        }),
-        prisma.hospitalBed.count({
-            where: { ...hospitalFilter, status: "AVAILABLE", active: true }
-        }),
-        prisma.hospitalAdmission.count({
-            where: { ...hospitalFilter, admittedAt: { gte: today } }
-        }),
-        prisma.hospitalAdmission.count({
-            where: { ...hospitalFilter, status: "DISCHARGED", dischargedAt: { gte: today } }
-        }),
-        prisma.hospitalAdmission.findMany({
-            where: { ...hospitalFilter },
-            include: {
-                patient: {
-                    select: { firstName: true, lastName: true, patientNumber: true }
-                },
-                ward: {
-                    select: { name: true, code: true }
-                },
-                bed: {
-                    select: { bedNumber: true }
-                }
+    const totalWardsCount = await prisma.hospitalWard.count({
+        where: { ...hospitalFilter, active: true }
+    });
+    const totalBedsCount = await prisma.hospitalBed.count({
+        where: { ...hospitalFilter, active: true }
+    });
+    const occupiedBedsCount = await prisma.hospitalBed.count({
+        where: { ...hospitalFilter, status: "OCCUPIED", active: true }
+    });
+    const availableBedsCount = await prisma.hospitalBed.count({
+        where: { ...hospitalFilter, status: "AVAILABLE", active: true }
+    });
+    const admissionsToday = await prisma.hospitalAdmission.count({
+        where: { ...hospitalFilter, admittedAt: { gte: today } }
+    });
+    const dischargesToday = await prisma.hospitalAdmission.count({
+        where: { ...hospitalFilter, status: "DISCHARGED", dischargedAt: { gte: today } }
+    });
+    const recentAdmissions = await prisma.hospitalAdmission.findMany({
+        where: { ...hospitalFilter },
+        include: {
+            patient: {
+                select: { firstName: true, lastName: true, patientNumber: true }
             },
-            orderBy: { admittedAt: "desc" },
-            take: 10
-        })
-    ]);
+            ward: {
+                select: { name: true, code: true }
+            },
+            bed: {
+                select: { bedNumber: true }
+            }
+        },
+        orderBy: { admittedAt: "desc" },
+        take: 10
+    });
 
     const bedOccupancyRatePercentage = totalBedsCount > 0 ? Math.round((occupiedBedsCount / totalBedsCount) * 100) : 0;
 

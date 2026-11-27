@@ -39,6 +39,29 @@ let configCache = {
     loadedAt: 0
 };
 
+const pendingAuditWrites = new Set();
+
+function trackAuditWrite(promise) {
+    if (!promise || typeof promise.then !== "function") return;
+    const wrapped = Promise.resolve(promise)
+        .catch(() => {})
+        .finally(() => {
+            pendingAuditWrites.delete(wrapped);
+        });
+    pendingAuditWrites.add(wrapped);
+}
+
+async function waitForPendingAuditWrites(timeoutMs = 2000) {
+    if (pendingAuditWrites.size === 0) return;
+    await Promise.race([
+        Promise.allSettled(Array.from(pendingAuditWrites)),
+        new Promise((resolve) => {
+            const t = setTimeout(resolve, timeoutMs);
+            if (typeof t.unref === "function") t.unref();
+        })
+    ]);
+}
+
 async function refreshControlConfig(force = false) {
     const now = Date.now();
     if (!force && now - configCache.loadedAt < 3000) {
@@ -132,22 +155,24 @@ function createRcceTrafficMiddleware() {
         if (cfg.maintenanceMode?.enabled && !isBypassPath) {
             if (actor?.role !== "DEVELOPER") {
                 const def = rcce.catalogue.get("MAINTENANCE_MODE", 503, false);
-                rcce.audit.record({
-                    userId: actor?.id || null,
-                    role: actor?.role || "ANONYMOUS",
-                    tenantId: actor?.hospitalId || null,
-                    action: "MAINTENANCE_MODE_BLOCKED",
-                    module: moduleName,
-                    affectedRecord: `${req.method} ${fullPath}`,
-                    outcome: "DENIED",
-                    requestId: req.requestId,
-                    responseCode: def.code,
-                    httpStatus: 503,
-                    method: req.method,
-                    path: fullPath,
-                    ipAddress: req.ip,
-                    userAgent: req.get("user-agent")
-                });
+                trackAuditWrite(
+                    rcce.audit.record({
+                        userId: actor?.id || null,
+                        role: actor?.role || "ANONYMOUS",
+                        tenantId: actor?.hospitalId || null,
+                        action: "MAINTENANCE_MODE_BLOCKED",
+                        module: moduleName,
+                        affectedRecord: `${req.method} ${fullPath}`,
+                        outcome: "DENIED",
+                        requestId: req.requestId,
+                        responseCode: def.code,
+                        httpStatus: 503,
+                        method: req.method,
+                        path: fullPath,
+                        ipAddress: req.ip,
+                        userAgent: req.get("user-agent")
+                    })
+                );
                 res.locals.rcceAuditRecorded = true;
                 return res.status(503).json(
                     rcce.response.buildEnvelope({
@@ -165,22 +190,24 @@ function createRcceTrafficMiddleware() {
         if (actor?.role && !isBypassPath && !fullPath.startsWith("/api/v1/rcce")) {
             if (isModulePermissionRevoked(actor.role, moduleName, String(req.method).toUpperCase())) {
                 const def = rcce.catalogue.get("FORBIDDEN_PERMISSION", 403, false);
-                rcce.audit.record({
-                    userId: actor.id,
-                    role: actor.role,
-                    tenantId: actor.hospitalId || null,
-                    action: "DYNAMIC_PERMISSION_REVOKED_DENIED",
-                    module: moduleName,
-                    affectedRecord: `${req.method} ${fullPath}`,
-                    outcome: "DENIED",
-                    requestId: req.requestId,
-                    responseCode: def.code,
-                    httpStatus: 403,
-                    method: req.method,
-                    path: fullPath,
-                    ipAddress: req.ip,
-                    userAgent: req.get("user-agent")
-                });
+                trackAuditWrite(
+                    rcce.audit.record({
+                        userId: actor.id,
+                        role: actor.role,
+                        tenantId: actor.hospitalId || null,
+                        action: "DYNAMIC_PERMISSION_REVOKED_DENIED",
+                        module: moduleName,
+                        affectedRecord: `${req.method} ${fullPath}`,
+                        outcome: "DENIED",
+                        requestId: req.requestId,
+                        responseCode: def.code,
+                        httpStatus: 403,
+                        method: req.method,
+                        path: fullPath,
+                        ipAddress: req.ip,
+                        userAgent: req.get("user-agent")
+                    })
+                );
                 res.locals.rcceAuditRecorded = true;
                 return res.status(403).json(
                     rcce.response.buildEnvelope({
@@ -223,29 +250,31 @@ function createRcceTrafficMiddleware() {
                 ? `DEVELOPER_SENSITIVE_${method}`
                 : `${extractModuleFromPath(fullPath)}_${method}`;
 
-            rcce.audit.record({
-                userId: req.user?.id || null,
-                role: req.user?.role || "ANONYMOUS",
-                tenantId: req.user?.hospitalId || null,
-                hospitalId: req.user?.hospitalId || null,
-                action: actionName,
-                module: extractModuleFromPath(fullPath),
-                affectedRecord:
-                    (envelope?.data && (envelope.data.id || envelope.data.mrn || envelope.data.billNumber || envelope.data.tenantCode)) ||
-                    req.params?.id ||
-                    fullPath,
-                outcome,
-                requestId: req.requestId || res.getHeader("X-Request-ID") || null,
-                responseCode: envelope?.code || null,
-                httpStatus: res.statusCode,
-                method,
-                path: fullPath,
-                ipAddress: req.ip,
-                userAgent: req.get("user-agent"),
-                description: isDevSensitiveRead
-                    ? `Developer access on sensitive endpoint ${method} ${fullPath}`
-                    : `${method} ${fullPath} -> HTTP ${res.statusCode} (${outcome})`
-            }).catch(() => {});
+            trackAuditWrite(
+                rcce.audit.record({
+                    userId: req.user?.id || null,
+                    role: req.user?.role || "ANONYMOUS",
+                    tenantId: req.user?.hospitalId || null,
+                    hospitalId: req.user?.hospitalId || null,
+                    action: actionName,
+                    module: extractModuleFromPath(fullPath),
+                    affectedRecord:
+                        (envelope?.data && (envelope.data.id || envelope.data.mrn || envelope.data.billNumber || envelope.data.tenantCode)) ||
+                        req.params?.id ||
+                        fullPath,
+                    outcome,
+                    requestId: req.requestId || res.getHeader("X-Request-ID") || null,
+                    responseCode: envelope?.code || null,
+                    httpStatus: res.statusCode,
+                    method,
+                    path: fullPath,
+                    ipAddress: req.ip,
+                    userAgent: req.get("user-agent"),
+                    description: isDevSensitiveRead
+                        ? `Developer access on sensitive endpoint ${method} ${fullPath}`
+                        : `${method} ${fullPath} -> HTTP ${res.statusCode} (${outcome})`
+                })
+            );
         });
 
         return next();
@@ -257,5 +286,7 @@ module.exports = {
     refreshControlConfig,
     invalidateControlConfigCache,
     getRolePermissionOverride,
-    isModulePermissionRevoked
+    isModulePermissionRevoked,
+    trackAuditWrite,
+    waitForPendingAuditWrites
 };

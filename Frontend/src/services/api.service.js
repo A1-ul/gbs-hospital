@@ -1294,6 +1294,40 @@ export const api = {
     request('/rcce/developer/ai-assistant/diagnostics'),
   getDeveloperTenantAnalytics: () =>
     request('/rcce/developer/tenant-analytics'),
+
+  // Step 35: Developer Remote System Management & Infrastructure Ops
+  getDeveloperClusterHealth: () =>
+    request('/rcce/developer/remote/cluster-health'),
+  getDeveloperDeployments: () =>
+    request('/rcce/developer/remote/deployments'),
+  recordDeveloperDeployment: (payload) =>
+    request('/rcce/developer/remote/deployments', { method: 'POST', body: JSON.stringify(payload) }),
+  clearDeveloperCaches: () =>
+    request('/rcce/developer/remote/cache/clear', { method: 'POST' }),
+  optimizeDeveloperDatabase: () =>
+    request('/rcce/developer/remote/database/optimize', { method: 'POST' }),
+  rotateDeveloperLogs: () =>
+    request('/rcce/developer/remote/logs/rotate', { method: 'POST' }),
+  getDeveloperFeatureFlags: () =>
+    request('/rcce/developer/remote/feature-flags'),
+  setDeveloperFeatureFlag: (flagKey, payload) =>
+    request(`/rcce/developer/remote/feature-flags/${encodeURIComponent(flagKey)}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    }),
+  getDeveloperRollbackReadiness: () =>
+    request('/rcce/developer/remote/rollback-readiness'),
+
+  // Step 30: Migration Queue Status, Enqueue & Downloadable Verification Report
+  getMigrationQueueStatus: () =>
+    request('/migration/queue/status'),
+  enqueueMigrationJob: (jobId, payload = {}) =>
+    request(`/migration/jobs/${encodeURIComponent(jobId)}/enqueue`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  getMigrationVerificationReport: (jobId, format = 'json') =>
+    request(`/migration/jobs/${encodeURIComponent(jobId)}/report?format=${encodeURIComponent(format)}`),
 };
 
 

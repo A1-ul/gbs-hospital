@@ -202,31 +202,17 @@ async function getDeveloperControlOverview() {
     const dbLatencyMs = Date.now() - dbStart;
 
     const last24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const [
-        totalUsers,
-        activeUsers,
-        totalTenants,
-        lockedTenants,
-        unresolvedErrors,
-        totalEvents,
-        recentAudits24h,
-        deniedAudits24h,
-        activeGrants,
-        pendingGrants,
-        cfg
-    ] = await Promise.all([
-        prisma.user.count(),
-        prisma.user.count({ where: { active: true } }),
-        prisma.tenant.count(),
-        prisma.tenant.count({ where: { systemLocked: true } }),
-        prisma.systemErrorLog.count({ where: { resolved: false } }),
-        prisma.systemEvent.count(),
-        prisma.auditLog.count({ where: { createdAt: { gte: last24h } } }),
-        prisma.auditLog.count({ where: { createdAt: { gte: last24h }, outcome: { in: ["DENIED", "FAILURE"] } } }),
-        prisma.developerAccessGrant.count({ where: { status: "APPROVED", revokedAt: null } }),
-        prisma.developerAccessGrant.count({ where: { status: "PENDING" } }),
-        refreshControlConfig(true)
-    ]);
+    const totalUsers = await prisma.user.count();
+    const activeUsers = await prisma.user.count({ where: { active: true } });
+    const totalTenants = await prisma.tenant.count();
+    const lockedTenants = await prisma.tenant.count({ where: { systemLocked: true } });
+    const unresolvedErrors = await prisma.systemErrorLog.count({ where: { resolved: false } });
+    const totalEvents = await prisma.systemEvent.count();
+    const recentAudits24h = await prisma.auditLog.count({ where: { createdAt: { gte: last24h } } });
+    const deniedAudits24h = await prisma.auditLog.count({ where: { createdAt: { gte: last24h }, outcome: { in: ["DENIED", "FAILURE"] } } });
+    const activeGrants = await prisma.developerAccessGrant.count({ where: { status: "APPROVED", revokedAt: null } });
+    const pendingGrants = await prisma.developerAccessGrant.count({ where: { status: "PENDING" } });
+    const cfg = await refreshControlConfig(true);
 
     return {
         status: cfg.maintenanceMode?.enabled ? "MAINTENANCE" : "OPERATIONAL",

@@ -12,6 +12,7 @@ const jwt = require("jsonwebtoken");
 const { environment } = require("../../config/environment");
 const service = require("./rcce.service");
 const developerOpsService = require("./developer-ops.service");
+const remoteOpsService = require("./services/developer-remote-ops.service");
 const { rcce } = require("../../core/gbs-rcce.bootstrap");
 
 async function getCatalogue(req, res, next) {
@@ -326,6 +327,116 @@ async function getTenantAnalytics(req, res, next) {
     }
 }
 
+// Step 35: Remote System Management & Infrastructure Ops (Developer Only)
+async function getClusterHealth(req, res, next) {
+    try {
+        const result = await remoteOpsService.getClusterHealth();
+        return res.rcceSuccess("SUCCESS", result);
+    } catch (error) {
+        next(error);
+    }
+}
+
+async function getDeploymentHistory(req, res, next) {
+    try {
+        const result = await remoteOpsService.getDeploymentHistory();
+        return res.rcceSuccess("SUCCESS", result);
+    } catch (error) {
+        next(error);
+    }
+}
+
+async function recordDeploymentCheckpoint(req, res, next) {
+    try {
+        const result = await remoteOpsService.recordDeploymentCheckpoint({
+            version: req.body?.version,
+            gitCommit: req.body?.gitCommit,
+            notes: req.body?.notes,
+            status: req.body?.status,
+            actor: req.user,
+            ipAddress: req.ip
+        });
+        return res.rcceSuccess("RECORD_CREATED", result, { httpStatus: 201 });
+    } catch (error) {
+        next(error);
+    }
+}
+
+async function clearSystemCaches(req, res, next) {
+    try {
+        const result = await remoteOpsService.clearSystemCaches({
+            actor: req.user,
+            ipAddress: req.ip
+        });
+        return res.rcceSuccess("SUCCESS", result, {
+            message: "System control and permission caches cleared and refreshed."
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+async function optimizeDatabase(req, res, next) {
+    try {
+        const result = await remoteOpsService.optimizeDatabase({
+            actor: req.user,
+            ipAddress: req.ip
+        });
+        return res.rcceSuccess("SUCCESS", result, {
+            message: `PostgreSQL query planner optimization completed in ${result.durationMs}ms.`
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+async function rotateAndPruneLogs(req, res, next) {
+    try {
+        const result = await remoteOpsService.rotateAndPruneLogs({
+            actor: req.user,
+            ipAddress: req.ip
+        });
+        return res.rcceSuccess("SUCCESS", result, {
+            message: `Housekeeping completed: ${result.expiredSessionsPruned} expired session(s) and ${result.expiredIdempotencyRecordsPruned} expired idempotency record(s) pruned.`
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+async function listFeatureFlags(req, res, next) {
+    try {
+        const result = await remoteOpsService.listFeatureFlags();
+        return res.rcceSuccess("SUCCESS", result);
+    } catch (error) {
+        next(error);
+    }
+}
+
+async function setFeatureFlag(req, res, next) {
+    try {
+        const result = await remoteOpsService.setFeatureFlag({
+            flagKey: req.params.flagKey || req.body?.flagKey,
+            enabled: req.body?.enabled,
+            description: req.body?.description,
+            actor: req.user,
+            ipAddress: req.ip
+        });
+        return res.rcceSuccess("RECORD_UPDATED", result);
+    } catch (error) {
+        next(error);
+    }
+}
+
+async function getRollbackReadiness(req, res, next) {
+    try {
+        const result = await remoteOpsService.getRollbackReadiness();
+        return res.rcceSuccess("SUCCESS", result);
+    } catch (error) {
+        next(error);
+    }
+}
+
 module.exports = {
     getCatalogue,
     getNotifications,
@@ -350,5 +461,14 @@ module.exports = {
     runTrialSweep,
     getIntegrationsStatus,
     getAiDeveloperDiagnostics,
-    getTenantAnalytics
+    getTenantAnalytics,
+    getClusterHealth,
+    getDeploymentHistory,
+    recordDeploymentCheckpoint,
+    clearSystemCaches,
+    optimizeDatabase,
+    rotateAndPruneLogs,
+    listFeatureFlags,
+    setFeatureFlag,
+    getRollbackReadiness
 };

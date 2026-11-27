@@ -328,24 +328,15 @@ class BiometricVaultService {
    * Get direct PostgreSQL telemetry metrics for biometrics & voice authentication
    */
   async getBiometricsTelemetry() {
-    const [
-      totalEnrolledVoiceprints,
-      totalBiometricCredentials,
-      totalVerifications,
-      successfulVerifications,
-      failedVerifications,
-      recentLogs
-    ] = await Promise.all([
-      prisma.biometricVoiceprint.count({ where: { status: 'ACTIVE' } }),
-      prisma.biometricSecurityCredential.count({ where: { status: 'ACTIVE' } }),
-      prisma.biometricVerificationLog.count(),
-      prisma.biometricVerificationLog.count({ where: { status: 'SUCCESS' } }),
-      prisma.biometricVerificationLog.count({ where: { status: { in: ['FAILED', 'REJECTED'] } } }),
-      prisma.biometricVerificationLog.findMany({
-        take: 50,
-        select: { confidenceScore: true, antiSpoofingStatus: true, status: true }
-      })
-    ]);
+    const totalEnrolledVoiceprints = await prisma.biometricVoiceprint.count({ where: { status: 'ACTIVE' } });
+    const totalBiometricCredentials = await prisma.biometricSecurityCredential.count({ where: { status: 'ACTIVE' } });
+    const totalVerifications = await prisma.biometricVerificationLog.count();
+    const successfulVerifications = await prisma.biometricVerificationLog.count({ where: { status: 'SUCCESS' } });
+    const failedVerifications = await prisma.biometricVerificationLog.count({ where: { status: { in: ['FAILED', 'REJECTED'] } } });
+    const recentLogs = await prisma.biometricVerificationLog.findMany({
+      take: 50,
+      select: { confidenceScore: true, antiSpoofingStatus: true, status: true }
+    });
 
     // Average confidence calculation
     let avgConfidence = 0.94;

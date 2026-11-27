@@ -18,6 +18,7 @@ const { isValidRole, normalizeRole } = require("../../../config/roles");
 const { environment } = require("../../../config/environment");
 const AppError = require("../../../core/errors/app.error");
 const logger = require("../../../core/utils/logger");
+const { emailAdapter } = require("../../../core/integration");
 
 const RESET_TOKEN_TTL_MS = 15 * 60 * 1000; // 15 minutes
 const MFA_CHALLENGE_TTL_MS = 10 * 60 * 1000; // 10 minutes
@@ -25,6 +26,51 @@ const SESSION_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 function sha256(value) {
     return crypto.createHash("sha256").update(String(value), "utf8").digest("hex");
+}
+
+function decodeBase32(input) {
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+    const clean = String(input || "").toUpperCase().replace(/[^A-Z2-7]/g, "");
+    let bits = 0;
+    let value = 0;
+    const out = [];
+    for (let i = 0; i < clean.length; i++) {
+        const idx = alphabet.indexOf(clean[i]);
+        if (idx === -1) continue;
+        value = (value << 5) | idx;
+        bits += 5;
+        if (bits >= 8) {
+            out.push((value >>> (bits - 8)) & 0xff);
+            bits -= 8;
+        }
+    }
+    return Buffer.from(out);
+}
+
+function verifyTotpCode(secretBase32, submittedCode, windowSteps = 1) {
+    const cleanSecret = String(secretBase32 || "").trim();
+    const cleanCode = String(submittedCode || "").trim();
+    if (!cleanSecret || !/^\d{6}$/.test(cleanCode)) return false;
+    const key = decodeBase32(cleanSecret);
+    if (!key.length) return false;
+    const nowCounter = Math.floor(Date.now() / 1000 / 30);
+    for (let offset = -windowSteps; offset <= windowSteps; offset++) {
+        const counter = BigInt(nowCounter + offset);
+        const buf = Buffer.alloc(8);
+        buf.writeBigUInt64BE(counter);
+        const hmac = crypto.createHmac("sha1", key).update(buf).digest();
+        const pos = hmac[hmac.length - 1] & 0x0f;
+        const codeInt =
+            ((hmac[pos] & 0x7f) << 24) |
+            ((hmac[pos + 1] & 0xff) << 16) |
+            ((hmac[pos + 2] & 0xff) << 8) |
+            (hmac[pos + 3] & 0xff);
+        const expected = String(codeInt % 1000000).padStart(6, "0");
+        if (crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(cleanCode))) {
+            return true;
+        }
+    }
+    return false;
 }
 
 function getRootDeveloperEmail() {
@@ -459,6 +505,16 @@ async function requestPasswordReset({ email, ipAddress }) {
         }
     });
 
+    let emailDeliveryStatus = "SMTP_NOT_CONFIGURED";
+    if (smtpConfigured) {
+        const sendRes = await emailAdapter.sendEmail({
+            to: user.email,
+            subject: "GBS Hospital Management System — Password Recovery Code",
+            text: `Your single-use password reset code is: ${rawResetCode}. It expires in 15 minutes.`
+        });
+        emailDeliveryStatus = sendRes.delivered ? "SMTP_SENT" : "SMTP_DISPATCH_ERROR";
+    }
+
     await prisma.auditLog.create({
         data: {
             userId: user.id,
@@ -467,19 +523,22 @@ async function requestPasswordReset({ email, ipAddress }) {
             module: "AUTH",
             outcome: "SUCCESS",
             ipAddress: ipAddress || null,
-            description: `Password reset requested for ${user.email} (SMTP configured: ${smtpConfigured})`
+            description: `Password reset requested for ${user.email} (Delivery: ${emailDeliveryStatus})`
         }
     });
 
     return {
         accepted: true,
-        emailDeliveryStatus: smtpConfigured ? "SMTP_CONFIGURED_READY" : "SMTP_NOT_CONFIGURED",
+        emailDeliveryStatus,
         expiresAt,
         // Only surface dev/test verification code in non-production environments; never in production!
         ...(environment.IS_PRODUCTION ? {} : { devVerificationToken: rawResetCode }),
-        message: smtpConfigured
-            ? "Password reset code generated and queued for email delivery."
-            : "Password reset request recorded in PostgreSQL. Outbound SMTP email delivery is not configured on this server; contact your Hospital Administrator to complete recovery."
+        message:
+            emailDeliveryStatus === "SMTP_SENT"
+                ? "Password reset code has been sent to your registered email address."
+                : smtpConfigured
+                    ? "Password reset recorded, but outbound SMTP delivery encountered an error. Contact your Hospital Administrator."
+                    : "Password reset request recorded in PostgreSQL. Outbound SMTP email delivery is not configured on this server; contact your Hospital Administrator to complete recovery."
     };
 }
 
@@ -624,10 +683,25 @@ async function requestDeveloperMfaChallenge({ actor, deviceFingerprint, ipAddres
     });
 
     const smtpConfigured = Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
+    const totpConfigured = Boolean(String(process.env.DEVELOPER_MFA_TOTP_SECRET || "").trim());
+    let deliveryStatus = totpConfigured ? "AUTHENTICATOR_TOTP_READY" : "SMTP_NOT_CONFIGURED";
+
+    if (smtpConfigured) {
+        const sendRes = await emailAdapter.sendEmail({
+            to: actor.email,
+            subject: "GBS Hospital Developer Control Center — 6-Digit MFA Verification Code",
+            text: `Your 6-digit Developer Control Center MFA code is: ${mfaCode}. Device: ${deviceFingerprint || "unknown-device"}. Expires in 10 minutes.`
+        });
+        deliveryStatus = sendRes.delivered
+            ? "EMAIL_SENT"
+            : (totpConfigured ? "AUTHENTICATOR_TOTP_READY" : "EMAIL_DISPATCH_ERROR");
+    }
+
     return {
         challengeId,
         expiresAt,
-        deliveryStatus: smtpConfigured ? "EMAIL_DISPATCH_READY" : "AUTHENTICATOR_VERIFICATION_READY",
+        deliveryStatus,
+        totpSupported: totpConfigured,
         ...(environment.IS_PRODUCTION ? {} : { devMfaCode: mfaCode })
     };
 }
@@ -641,13 +715,23 @@ async function verifyDeveloperMfaChallenge({ actor, code, deviceFingerprint, ipA
     const record = await prisma.systemConfiguration.findUnique({ where: { configKey } });
     const val = record?.configValue || null;
 
-    if (
-        !val ||
-        val.verified === true ||
-        !val.expiresAt ||
-        new Date(val.expiresAt) <= new Date() ||
-        val.codeHash !== sha256(String(code || "").trim())
-    ) {
+    const submitted = String(code || "").trim();
+    const matchesChallengeCode = Boolean(
+        val &&
+        val.verified !== true &&
+        val.expiresAt &&
+        new Date(val.expiresAt) > new Date() &&
+        val.codeHash === sha256(submitted)
+    );
+    const matchesTotp = Boolean(
+        val &&
+        val.verified !== true &&
+        val.expiresAt &&
+        new Date(val.expiresAt) > new Date() &&
+        verifyTotpCode(process.env.DEVELOPER_MFA_TOTP_SECRET, submitted)
+    );
+
+    if (!matchesChallengeCode && !matchesTotp) {
         await prisma.auditLog.create({
             data: {
                 userId: actor.id,

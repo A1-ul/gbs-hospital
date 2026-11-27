@@ -23,17 +23,20 @@ const MIGRATION_ROLES = [
 router.use(authMiddleware);
 router.use(authorizeRoles(...MIGRATION_ROLES));
 
-// Catalogs & Real-time Telemetry
+// Catalogs, Queue Status & Real-time Telemetry
 router.get("/catalogs", controller.getCatalogs);
 router.get("/stats", controller.getTelemetry);
 router.get("/telemetry", controller.getTelemetry);
+router.get("/queue/status", controller.getQueueStatus);
 
 // Migration Jobs Lifecycle
 router.post("/jobs", controller.initializeJob);
 router.get("/jobs", controller.getJobs);
 router.get("/jobs/:jobId", controller.getJobById);
+router.get("/jobs/:jobId/report", controller.downloadVerificationReport);
 router.post("/jobs/:jobId/mapping", controller.applyMapping);
 router.post("/jobs/:jobId/approve", controller.approveJob);
+router.post("/jobs/:jobId/enqueue", controller.enqueueApprovedJob);
 router.post("/jobs/:jobId/execute", controller.executeImport);
 router.post("/jobs/:jobId/rollback", controller.rollbackJob);
 

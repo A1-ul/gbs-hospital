@@ -1,14 +1,18 @@
-/**
- * GBS Hospital Management System — Enterprise Module Registry
- * Directory: Backend/src/modules/developer-control-center/remote-shell
- * Production subsystem module descriptor.
- */
-'use strict';
+"use strict";
+
+const {
+    getClusterHealth,
+    clearSystemCaches,
+    optimizeDatabase,
+    rotateAndPruneLogs
+} = require("../services/developer-remote-ops.service");
+const { getExternalIntegrationsStatus } = require("../developer-ops.service");
 
 module.exports = {
-  moduleName: 'remote-shell',
-  directory: 'Backend/src/modules/developer-control-center/remote-shell',
-  domain: 'GBS_HOSPITAL_ENTERPRISE',
-  status: 'OPERATIONAL',
-  initializedAt: new Date().toISOString()
+    moduleName: "remote-shell",
+    getClusterHealth,
+    clearSystemCaches,
+    optimizeDatabase,
+    rotateAndPruneLogs,
+    getExternalIntegrationsStatus
 };

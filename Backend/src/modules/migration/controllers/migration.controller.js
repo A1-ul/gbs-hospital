@@ -9,7 +9,10 @@ LOCATION: src/modules/migration/controllers/migration.controller.js
 ====================================================
 */
 
+const crypto = require("crypto");
 const migrationService = require("../services/migration.service");
+const migrationQueue = require("../queues/migration.queue");
+require("../workers/migration.worker");
 const logger = require("../../../core/utils/logger");
 
 async function getCatalogs(req, res, next) {
@@ -261,6 +264,118 @@ async function getTemplates(req, res, next) {
     }
 }
 
+async function getQueueStatus(req, res, next) {
+    try {
+        const status = migrationQueue.getQueueStatus();
+        res.status(200).json({
+            success: true,
+            data: status
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
+async function enqueueApprovedJob(req, res, next) {
+    try {
+        const { jobId } = req.params;
+        const { duplicateStrategy = "SKIP", syncWait = false } = req.body || {};
+        const importedBy = req.user ? req.user.email : "SYSTEM_ADMIN";
+
+        // Verify job exists and has passed Human Approval Gate before enqueueing
+        const job = await migrationService.getJobDetails(jobId);
+        if (job.status !== "APPROVED") {
+            return res.status(400).json({
+                success: false,
+                code: "MIGRATION_APPROVAL_REQUIRED",
+                message: `Migration job ${job.jobCode} must be APPROVED before background queueing (current status: ${job.status}).`
+            });
+        }
+
+        const queued = await migrationQueue.enqueueMigrationJob({
+            jobId,
+            duplicateStrategy,
+            importedBy,
+            syncWait: Boolean(syncWait)
+        });
+
+        res.status(syncWait ? 200 : 202).json({
+            success: true,
+            message: syncWait
+                ? `Migration job ${job.jobCode} processed by background worker (${queued.state})`
+                : `Migration job ${job.jobCode} enqueued for background worker processing`,
+            data: queued
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
+async function downloadVerificationReport(req, res, next) {
+    try {
+        const { jobId } = req.params;
+        const format = String(req.query.format || "json").toLowerCase();
+        const job = await migrationService.getJobDetails(jobId);
+
+        const reportPayload = {
+            reportGeneratedAt: new Date().toISOString(),
+            jobId: job.id,
+            jobCode: job.jobCode,
+            targetEntity: job.targetEntity,
+            sourceType: job.sourceType,
+            fileName: job.fileName,
+            status: job.status,
+            initiatedBy: job.initiatedBy,
+            approvedBy: job.approvedBy || null,
+            totals: {
+                totalRecords: job.totalRecords,
+                importedRecords: job.importedRecords,
+                failedRecords: job.failedRecords,
+                duplicateRecords: job.duplicateRecords
+            },
+            rows: (job.records || []).map((r) => ({
+                rowNumber: r.rowNumber,
+                status: r.status,
+                createdEntityId: r.createdEntityId || null,
+                errorMessage: r.errorMessage || null
+            }))
+        };
+
+        const checksum = crypto
+            .createHash("sha256")
+            .update(JSON.stringify(reportPayload))
+            .digest("hex");
+
+        if (format === "csv") {
+            const header = "rowNumber,status,createdEntityId,errorMessage";
+            const csvLines = reportPayload.rows.map((r) =>
+                [
+                    r.rowNumber,
+                    `"${String(r.status || "").replace(/"/g, '""')}"`,
+                    `"${String(r.createdEntityId || "").replace(/"/g, '""')}"`,
+                    `"${String(r.errorMessage || "").replace(/"/g, '""')}"`
+                ].join(",")
+            );
+            const csvContent = [header, ...csvLines].join("\n");
+            res.setHeader("Content-Type", "text/csv; charset=utf-8");
+            res.setHeader("Content-Disposition", `attachment; filename="${job.jobCode}_verification_report.csv"`);
+            res.setHeader("X-Report-SHA256", checksum);
+            return res.status(200).send(csvContent);
+        }
+
+        res.setHeader("X-Report-SHA256", checksum);
+        return res.status(200).json({
+            success: true,
+            data: {
+                ...reportPayload,
+                reportChecksumSha256: checksum
+            }
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
 module.exports = {
     getCatalogs,
     getTelemetry,
@@ -272,5 +387,8 @@ module.exports = {
     getJobs,
     getJobById,
     saveTemplate,
-    getTemplates
+    getTemplates,
+    getQueueStatus,
+    enqueueApprovedJob,
+    downloadVerificationReport
 };

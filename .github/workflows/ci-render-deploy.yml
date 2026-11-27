@@ -41,7 +41,7 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Install & Build Frontend Production Bundle
+      - name: Install, Build & Verify Frontend Production Bundle
         working-directory: ./Frontend
         env:
           VITE_GBS_ENV: PRODUCTION
@@ -49,11 +49,12 @@ jobs:
         run: |
           npm install
           npm run build
+          npm test
 
       - name: Install Backend Dependencies & Generate Prisma Client
         working-directory: ./Backend
         env:
-          DATABASE_URL: postgresql://postgres:Admin123@localhost:5432/gbs_hospital?schema=public&connection_limit=25
+          DATABASE_URL: postgresql://postgres:Admin123@localhost:5432/gbs_hospital?schema=public&connection_limit=8&pool_timeout=30
           NODE_ENV: test
           JWT_SECRET: gbs_ci_jwt_secret_key_2026_hospital_enterprise
           JWT_ACCESS_SECRET: gbs_ci_access_secret_key_2026_hospital_enterprise
@@ -70,7 +71,7 @@ jobs:
       - name: Run Backend Automated Verification Suite
         working-directory: ./Backend
         env:
-          DATABASE_URL: postgresql://postgres:Admin123@localhost:5432/gbs_hospital?schema=public&connection_limit=25
+          DATABASE_URL: postgresql://postgres:Admin123@localhost:5432/gbs_hospital?schema=public&connection_limit=8&pool_timeout=30
           NODE_ENV: test
           JWT_SECRET: gbs_ci_jwt_secret_key_2026_hospital_enterprise
           JWT_ACCESS_SECRET: gbs_ci_access_secret_key_2026_hospital_enterprise

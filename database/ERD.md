@@ -46,7 +46,7 @@ erDiagram
 
 ---
 
-## 2. Complete Domain Inventory (116 PostgreSQL Models)
+## 2. Complete Domain Inventory (124 PostgreSQL Models)
 
 | # | Enterprise Domain | Models Included | Primary Keys / Business Identifiers |
 | :-: | :--- | :--- | :--- |

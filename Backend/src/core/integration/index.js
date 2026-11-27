@@ -1,14 +1,29 @@
-/**
- * GBS Hospital Management System — Enterprise Module Registry
- * Directory: Backend/src/core/integration
- * Production subsystem module descriptor.
- */
-'use strict';
+"use strict";
+
+/*
+================================================================================
+GBS HOSPITAL MANAGEMENT SYSTEM
+ENTERPRISE EXTERNAL INTEGRATION ADAPTERS REGISTRY
+CommonJS Only
+LOCATION: Backend/src/core/integration/index.js
+================================================================================
+*/
+
+const emailAdapter = require("./email.adapter");
+const smsAdapter = require("./sms.adapter");
+const paymentGatewayAdapter = require("./payment-gateway.adapter");
+
+function getAllExternalAdapterStatuses() {
+    return [
+        emailAdapter.getEmailAdapterStatus(),
+        smsAdapter.getSmsAdapterStatus(),
+        paymentGatewayAdapter.getPaymentGatewayStatus()
+    ];
+}
 
 module.exports = {
-  moduleName: 'integration',
-  directory: 'Backend/src/core/integration',
-  domain: 'GBS_HOSPITAL_ENTERPRISE',
-  status: 'OPERATIONAL',
-  initializedAt: new Date().toISOString()
+    emailAdapter,
+    smsAdapter,
+    paymentGatewayAdapter,
+    getAllExternalAdapterStatuses
 };

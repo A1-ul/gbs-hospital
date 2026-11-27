@@ -3,7 +3,8 @@ import {
   Users, Activity, Pill, FlaskConical, Stethoscope,
   Bed, FileText, CreditCard, Shield, AlertTriangle,
   Clock, CheckCircle, Search, PlusCircle, Lock, Unlock,
-  MapPin, RefreshCw, Send, Video, Radio, Cpu, AlertOctagon, ShieldAlert, Bell, Database
+  MapPin, RefreshCw, Send, Video, Radio, Cpu, AlertOctagon, ShieldAlert, Bell, Database,
+  HardDrive, Wrench, Package, Building2
 } from 'lucide-react';
 import { api } from '../services/api.service';
 import MigrationViewComponent from '../modules/migration/MigrationView';
@@ -2326,7 +2327,7 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
   const activeEnvLabel = envStatus?.activeEnvironment || envStatus?.environment?.environmentLabel || 'DEVELOPMENT';
   const isProdEnv = Boolean(envStatus?.isProduction || activeEnvLabel === 'PRODUCTION');
   const dbMeta = envStatus?.databaseMetadata || {};
-  const dbHostDisplay = dbMeta.host ? `${dbMeta.host}:${dbMeta.port || '5432'}/${dbMeta.databaseName || 'gbs_hospital'}` : 'localhost:5432/gbs_hospital';
+  const dbHostDisplay = dbMeta.host ? `${dbMeta.host}:${dbMeta.port || '5432'}/${dbMeta.databaseName || 'gbs_hospital'}` : 'Managed PostgreSQL (awaiting telemetry)';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

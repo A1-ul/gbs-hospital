@@ -46,45 +46,32 @@ async function getProcurementCatalogs() {
  * Aggregates live PostgreSQL Command Center telemetry for Supply Chain & Procurement
  */
 async function getProcurementStats() {
-    const [
-        totalVendors,
-        activeVendors,
-        pendingPOs,
-        approvedPOs,
-        fullyReceivedPOs,
-        allPOs,
-        totalGrns,
-        matchedGrns,
-        pendingInspectionGrns,
-        activeContractsCount
-    ] = await Promise.all([
-        prisma.procurementVendor.count(),
-        prisma.procurementVendor.count({ where: { status: "ACTIVE" } }),
-        prisma.purchaseOrder.count({
-            where: { status: { in: ["DRAFT", "SUBMITTED_FOR_APPROVAL"] } }
-        }),
-        prisma.purchaseOrder.count({
-            where: { status: { in: ["APPROVED", "ISSUED_TO_VENDOR"] } }
-        }),
-        prisma.purchaseOrder.count({
-            where: { status: "FULLY_RECEIVED" }
-        }),
-        prisma.purchaseOrder.findMany({
-            where: { status: { in: ["APPROVED", "ISSUED_TO_VENDOR", "PARTIALLY_RECEIVED", "FULLY_RECEIVED"] } },
-            select: { totalAmount: true }
-        }),
-        prisma.goodsReceiptNote.count(),
-        prisma.goodsReceiptNote.count({ where: { threeWayMatchVerified: true } }),
-        prisma.goodsReceiptNote.count({
-            where: {
-                OR: [
-                    { status: "RECEIVED_IN_QUARANTINE" },
-                    { inspectionStatus: { not: "INSPECTION_PASSED" } }
-                ]
-            }
-        }),
-        prisma.vendorContract.count({ where: { status: "ACTIVE" } })
-    ]);
+    const totalVendors = await prisma.procurementVendor.count();
+    const activeVendors = await prisma.procurementVendor.count({ where: { status: "ACTIVE" } });
+    const pendingPOs = await prisma.purchaseOrder.count({
+        where: { status: { in: ["DRAFT", "SUBMITTED_FOR_APPROVAL"] } }
+    });
+    const approvedPOs = await prisma.purchaseOrder.count({
+        where: { status: { in: ["APPROVED", "ISSUED_TO_VENDOR"] } }
+    });
+    const fullyReceivedPOs = await prisma.purchaseOrder.count({
+        where: { status: "FULLY_RECEIVED" }
+    });
+    const allPOs = await prisma.purchaseOrder.findMany({
+        where: { status: { in: ["APPROVED", "ISSUED_TO_VENDOR", "PARTIALLY_RECEIVED", "FULLY_RECEIVED"] } },
+        select: { totalAmount: true }
+    });
+    const totalGrns = await prisma.goodsReceiptNote.count();
+    const matchedGrns = await prisma.goodsReceiptNote.count({ where: { threeWayMatchVerified: true } });
+    const pendingInspectionGrns = await prisma.goodsReceiptNote.count({
+        where: {
+            OR: [
+                { status: "RECEIVED_IN_QUARANTINE" },
+                { inspectionStatus: { not: "INSPECTION_PASSED" } }
+            ]
+        }
+    });
+    const activeContractsCount = await prisma.vendorContract.count({ where: { status: "ACTIVE" } });
 
     const totalSpend = allPOs.reduce((acc, curr) => acc + (Number(curr.totalAmount) || 0), 0);
     const threeWayMatchCompliancePercent = totalGrns > 0

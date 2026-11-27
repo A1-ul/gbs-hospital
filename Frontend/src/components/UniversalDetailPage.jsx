@@ -210,9 +210,20 @@ export default function UniversalDetailPage({
             setExtraRecords(envRes.tables);
           }
         }
-      } else if (detailType === 'VIEW_PROFILE' && recordId && recordId !== 'summary' && !detailState?.recordData) {
-        const patient = await api.getPatientById(recordId).catch(() => null);
-        if (patient) setLiveData(patient);
+      } else if (detailType === 'VIEW_PROFILE' && recordId && !detailState?.recordData) {
+        const normalizedId = String(recordId).toLowerCase();
+        if (['all', 'directory', 'list'].includes(normalizedId)) {
+          const mpi = await api.searchMPI('').catch(() => null);
+          const list = Array.isArray(mpi?.patients) ? mpi.patients : [];
+          setLiveData({
+            directory: 'Master Patient Index',
+            totalPatientsReturned: list.length
+          });
+          setExtraRecords(list);
+        } else if (!['summary', 'new'].includes(normalizedId)) {
+          const patient = await api.getPatientById(recordId).catch(() => null);
+          if (patient) setLiveData(patient);
+        }
       }
     } catch (err) {
       setError(err.message || 'Unable to load this information right now. Please try again.');

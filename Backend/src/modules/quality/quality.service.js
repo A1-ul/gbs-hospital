@@ -50,32 +50,20 @@ async function getQualityStats() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const [
-        totalIncidents,
-        sentinelCount,
-        adverseCount,
-        nearMissCount,
-        activeIpcCases,
-        audits,
-        totalCapas,
-        overdueCapas,
-        activeAlerts
-    ] = await Promise.all([
-        prisma.clinicalIncident.count(),
-        prisma.clinicalIncident.count({ where: { severity: "SENTINEL_EVENT", status: { not: "CLOSED" } } }),
-        prisma.clinicalIncident.count({ where: { severity: "ADVERSE_EVENT", status: { not: "CLOSED" } } }),
-        prisma.clinicalIncident.count({ where: { severity: "NEAR_MISS", status: { not: "CLOSED" } } }),
-        prisma.infectionControlCase.count({ where: { status: "ACTIVE_ISOLATION" } }),
-        prisma.clinicalAudit.findMany({ select: { complianceScore: true } }),
-        prisma.correctiveActionPlan.count({ where: { status: { not: "VERIFIED_EFFECTIVE" } } }),
-        prisma.correctiveActionPlan.count({
-            where: {
-                status: "PENDING_EXECUTION",
-                targetDate: { lt: today }
-            }
-        }),
-        prisma.patientSafetyAlert.count({ where: { broadcastActive: true } })
-    ]);
+    const totalIncidents = await prisma.clinicalIncident.count();
+    const sentinelCount = await prisma.clinicalIncident.count({ where: { severity: "SENTINEL_EVENT", status: { not: "CLOSED" } } });
+    const adverseCount = await prisma.clinicalIncident.count({ where: { severity: "ADVERSE_EVENT", status: { not: "CLOSED" } } });
+    const nearMissCount = await prisma.clinicalIncident.count({ where: { severity: "NEAR_MISS", status: { not: "CLOSED" } } });
+    const activeIpcCases = await prisma.infectionControlCase.count({ where: { status: "ACTIVE_ISOLATION" } });
+    const audits = await prisma.clinicalAudit.findMany({ select: { complianceScore: true } });
+    const totalCapas = await prisma.correctiveActionPlan.count({ where: { status: { not: "VERIFIED_EFFECTIVE" } } });
+    const overdueCapas = await prisma.correctiveActionPlan.count({
+        where: {
+            status: "PENDING_EXECUTION",
+            targetDate: { lt: today }
+        }
+    });
+    const activeAlerts = await prisma.patientSafetyAlert.count({ where: { broadcastActive: true } });
 
     const complianceScoreAvg = audits.length > 0
         ? Math.round((audits.reduce((acc, a) => acc + a.complianceScore, 0) / audits.length) * 10) / 10

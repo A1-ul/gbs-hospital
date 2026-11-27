@@ -1,6 +1,12 @@
 {
   "developer-control-center": {
-    "status": "INCOMPLETE",
-    "phase": 12
+    "status": "COMPLETE_AND_VERIFIED",
+    "phase": "REMEDIATION_3",
+    "portalRoute": "/developer-portal",
+    "strictDeveloperGuardEnforced": true,
+    "wiredSubmodules": 10,
+    "remoteOpsEndpoints": 9,
+    "mfaRequired": true,
+    "lastVerified": "2026-11-26T19:18:00.000Z"
   }
 }

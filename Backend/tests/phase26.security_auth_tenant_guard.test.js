@@ -1,14 +1,21 @@
 'use strict';
 
+const fs = require('fs');
+const path = require('path');
 const request = require('supertest');
 const app = require('../src/app');
 const prisma = require('../src/core/database/prisma.client');
 const { bootstrapProduction } = require('../prisma/bootstrap-production');
 
+const BRANDING_FILE = path.resolve(__dirname, '../backups/facility-branding.json');
+
 describe('Phase 26 — Procedure 1 Security Hardening, Real Sessions, Developer MFA, Tenant Access Guard & Patient Safety Bypass', () => {
   const ROOT_DEV_EMAIL = process.env.DEVELOPER_ROOT_EMAIL || 'gabosei48@gmail.com';
   const ROOT_DEV_PASS = process.env.DEVELOPER_ROOT_PASSWORD || 'DevBootstrap123!';
   const RUN_ID = Date.now();
+  const originalBrandingSnapshot = fs.existsSync(BRANDING_FILE)
+    ? fs.readFileSync(BRANDING_FILE, 'utf8')
+    : null;
 
   let devToken;
   let adminToken;
@@ -98,6 +105,9 @@ describe('Phase 26 — Procedure 1 Security Hardening, Real Sessions, Developer 
     } catch (_cleanupErr) {
       // Non-fatal cleanup guard
     }
+    if (originalBrandingSnapshot !== null) {
+      fs.writeFileSync(BRANDING_FILE, originalBrandingSnapshot, 'utf8');
+    }
     await prisma.$disconnect();
   });
 
@@ -150,21 +160,49 @@ describe('Phase 26 — Procedure 1 Security Hardening, Real Sessions, Developer 
     expect(allowed.body.data.mainSystemName).toBe('GBS HOSPITAL MANAGEMENT SYSTEM');
   });
 
-  test('4. Fixed rcce.routes.js (ROLES.ADMINISTRATOR) allows ADMINISTRATOR to access RCCE diagnostics & permissions', async () => {
-    const errorsRes = await request(app)
+  test('4. Step 32 Developer Isolation: RCCE diagnostics, permissions & configs are DEVELOPER-only (403 for ADMINISTRATOR, 200 for DEVELOPER), while ADMINISTRATOR retains hospital audit-logs & access-grant governance', async () => {
+    // Non-developer ADMINISTRATOR is strictly blocked from hidden Developer Control Center diagnostics & configs
+    const adminErrorsRes = await request(app)
       .get('/api/v1/rcce/errors')
       .set('Authorization', `Bearer ${adminToken}`);
-    expect(errorsRes.statusCode).toBe(200);
+    expect(adminErrorsRes.statusCode).toBe(403);
 
-    const permsRes = await request(app)
+    const adminPermsRes = await request(app)
       .get('/api/v1/rcce/developer/permissions')
       .set('Authorization', `Bearer ${adminToken}`);
-    expect(permsRes.statusCode).toBe(200);
+    expect(adminPermsRes.statusCode).toBe(403);
 
-    const configsRes = await request(app)
+    const adminConfigsRes = await request(app)
       .get('/api/v1/rcce/developer/configs')
       .set('Authorization', `Bearer ${adminToken}`);
-    expect(configsRes.statusCode).toBe(200);
+    expect(adminConfigsRes.statusCode).toBe(403);
+
+    // Hospital ADMINISTRATOR retains legitimate hospital governance access (audit logs & grant approval queue)
+    const adminAuditRes = await request(app)
+      .get('/api/v1/rcce/audit-logs')
+      .set('Authorization', `Bearer ${adminToken}`);
+    expect(adminAuditRes.statusCode).toBe(200);
+
+    const adminGrantsRes = await request(app)
+      .get('/api/v1/rcce/developer/access-grants')
+      .set('Authorization', `Bearer ${adminToken}`);
+    expect(adminGrantsRes.statusCode).toBe(200);
+
+    // Verified DEVELOPER retains full 200 OK access to all Developer Control Center endpoints
+    const devErrorsRes = await request(app)
+      .get('/api/v1/rcce/errors')
+      .set('Authorization', `Bearer ${devToken}`);
+    expect(devErrorsRes.statusCode).toBe(200);
+
+    const devPermsRes = await request(app)
+      .get('/api/v1/rcce/developer/permissions')
+      .set('Authorization', `Bearer ${devToken}`);
+    expect(devPermsRes.statusCode).toBe(200);
+
+    const devConfigsRes = await request(app)
+      .get('/api/v1/rcce/developer/configs')
+      .set('Authorization', `Bearer ${devToken}`);
+    expect(devConfigsRes.statusCode).toBe(200);
   });
 
   test('5. Real PostgreSQL Session persistence & immediate JWT revocation on POST /api/v1/auth/logout', async () => {

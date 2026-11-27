@@ -1,64 +1,126 @@
 {
-  "lastRun": "2026-11-22T21:46:00.000Z",
-  "procedure": "Procedure 6 (Phase F — Comprehensive 16-Role Dashboard-by-Dashboard End-to-End Cross-Check, Live Chrome Interactive QA & Full Regression Gate)",
+  "lastRun": "2026-11-26T21:16:31.970Z",
+  "procedure": "Procedure 5 — Full 33-Suite Regression Gate & Live Dashboard-by-Dashboard Chrome Cross-Check",
   "checks": [
     {
-      "name": "phase31_all_16_roles_27_subsystems_44_assets_crosscheck",
+      "name": "static_structure_audit",
       "status": "PASSED",
-      "command": "npx jest tests/phase31.all_16_roles_full_system_crosscheck.test.js --runInBand --forceExit",
-      "totalPassed": 5,
-      "totalFailed": 0
+      "dirs": 335,
+      "files": 613,
+      "routeFiles": 35,
+      "endpoints": 435,
+      "prismaModels": 124,
+      "brokenRequires": 0,
+      "placeholderFiles": 0,
+      "missingImages": 0,
+      "unusedImages": 0,
+      "notes": "8 comment-only barrel index.js files in Frontend/src/{assets/*,components/{charts,forms,navigation},e2e}; Loan/Police strings exist only inside guard-assertion tests; localhost only in vite.config.js dev proxy"
     },
     {
-      "name": "live_chrome_interactive_qa_and_recheck",
+      "name": "frontend_vite_production_build",
       "status": "PASSED",
-      "targetUrl": "http://localhost:5050",
-      "desktopViewport": "1440x900",
-      "mobileViewport": "390x844",
-      "consoleErrors": 0,
-      "jsExceptions": 0,
-      "brokenImages": 0,
-      "mobileHorizontalOverflowPx": 0
-    },
-    {
-      "name": "frontend_production_build",
-      "status": "PASSED",
-      "command": "cd Frontend && npm run build",
       "transformedModules": 1607,
       "exitCode": 0
     },
     {
-      "name": "full_backend_regression_suite",
+      "name": "frontend_automated_smoke_tests",
       "status": "PASSED",
-      "command": "npm test (jest --runInBand --forceExit)",
-      "suitesPassed": 31,
-      "suitesTotal": 31,
-      "totalPassed": 343,
+      "totalPassed": 5,
       "totalFailed": 0
     },
     {
-      "name": "database_seed_restore",
+      "name": "backend_full_ci_parity_regression_pre_fix",
       "status": "PASSED",
-      "command": "node prisma/seed.js",
-      "roles": 16,
-      "permissions": 82,
-      "activeAccounts": 17
+      "suites": "33/33",
+      "tests": "349/349",
+      "postTestActiveConnections": "10/100"
+    },
+    {
+      "name": "backend_targeted_regression_post_fix",
+      "status": "PASSED",
+      "suites": "phase16,17,18,24,25,30,32 (7/7)",
+      "tests": "71/71"
+    },
+    {
+      "name": "live_chrome_qa_public_overview_1440x900",
+      "status": "PASSED",
+      "images": "57/57",
+      "consoleErrors": 0,
+      "developerExposure": false
+    },
+    {
+      "name": "live_chrome_qa_admin_all_subsystems",
+      "status": "PASSED",
+      "modules": [
+        "PATIENTS",
+        "CLINICAL",
+        "WARDS",
+        "ICU",
+        "PHARMACY",
+        "SURGERY",
+        "DENTAL",
+        "EYE_CLINIC",
+        "EMERGENCY",
+        "LABORATORY",
+        "RADIOLOGY",
+        "BLOOD_BANK",
+        "MORTUARY",
+        "BIOMEDICAL",
+        "BILLING",
+        "NHIA_CLAIMS",
+        "PROCUREMENT",
+        "HR",
+        "QUALITY",
+        "EXECUTIVE_BI",
+        "OPERATIONS_HUB",
+        "VOICE_AUTH",
+        "AI_SAFETY",
+        "TELEMEDICINE"
+      ],
+      "step7RoleCounts": "16 roles, live PostgreSQL counts",
+      "universalDetailPage": "PASSED (0 x 404)"
+    },
+    {
+      "name": "live_chrome_qa_doctor_portal",
+      "status": "PASSED",
+      "module": "CLINICAL",
+      "images": "18/18",
+      "consoleErrors": 0
+    },
+    {
+      "name": "patient_portal_api_and_ui_truthfulness",
+      "status": "PASSED",
+      "loginName": "Kwadwo Baah",
+      "containsUndefined": false,
+      "unlinkedRecordNoticeRendered": true
+    },
+    {
+      "name": "live_chrome_qa_developer_portal_step35",
+      "status": "PASSED",
+      "mfa": "2-step + 6-digit",
+      "clearCaches": "200",
+      "optimizePostgres": "200 (649ms)",
+      "images": "22/22"
+    },
+    {
+      "name": "live_chrome_qa_mobile_390x844",
+      "status": "PASSED",
+      "horizontalOverflowPx": 0,
+      "images": "57/57"
     }
   ],
   "errorsDiscovered": [
-    "67 leftover 0-byte scaffold files under Frontend/src/modules/logs and Backend/src/**/logs|backups",
-    "Legacy ADMIN role remained alongside ADMINISTRATOR in PostgreSQL (17 roles instead of exact 16)",
-    "Header telemetry showed Offline/Check DB because api.service.js unwrapped data: null from /api/v1/health",
-    "PatientPortalView rendered 'Welcome, undefined undefined' instead of patient.fullName",
-    "UniversalDetailPage called developer-only GET /api/v1/tenants for non-developer Admin causing a 403 console error",
-    "Mobile 390x844 layout showed +9px header telemetry overflow, squished header logo, and bottom LIVE STATUS text collision"
+    "ReferenceError: HardDrive/Wrench/Package/Building2 not defined -> white-screen crash on MORTUARY, BIOMEDICAL, PROCUREMENT (Frontend/src/components/ModuleViews.jsx)",
+    "GET /api/v1/patients/all 404 from UniversalDetailPage VIEW_PROFILE directory view (Frontend/src/components/UniversalDetailPage.jsx)",
+    "Duplicated \"Patient Portal Portal\" heading/tooltip (Frontend/src/components/RoleLoginModal.jsx, Header.jsx)",
+    "Prisma P2024 pool timeouts from wide parallel Promise.all telemetry bursts + 20s notification polling (biometric-vault, developer-ops, rcce, hr, procurement, quality services; Header.jsx)",
+    "Patient Portal silently hid the backend \"No patient record linked\" notice (Frontend/src/modules/patient-portal/PatientPortalView.jsx)"
   ],
   "errorsFixed": [
-    "Deleted all 67 leftover 0-byte source stubs and pruned empty directories",
-    "Updated seed.js and bootstrap-production.js to migrate and retire both SUPER_ADMIN and legacy ADMIN roles into ADMINISTRATOR (exact 16 Blueprint roles)",
-    "Fixed api.service.js null-safe response unwrapping so Header live telemetry renders Online / Connected (Live Data) / live uptime",
-    "Fixed PatientPortalView.jsx to render patient.fullName with safe fallback",
-    "Guarded UniversalDetailPage.jsx /tenants calls strictly to DEVELOPER actors (zero 403 console errors)",
-    "Hardened Header.jsx and SystemFeedbackBrain.jsx mobile flex/wrap CSS (0px horizontal overflow at 390x844, crisp 48x48 logo, clean two-row bottom status bar)"
+    "FIXED & VERIFIED: ReferenceError: HardDrive/Wrench/Package/Building2 not defined -> white-screen crash on MORTUARY, BIOMEDICAL, PROCUREMENT",
+    "FIXED & VERIFIED: GET /api/v1/patients/all 404 from UniversalDetailPage VIEW_PROFILE directory view",
+    "FIXED & VERIFIED: Duplicated \"Patient Portal Portal\" heading/tooltip",
+    "FIXED & VERIFIED: Prisma P2024 pool timeouts from wide parallel Promise.all telemetry bursts + 20s notification polling",
+    "FIXED & VERIFIED: Patient Portal silently hid the backend \"No patient record linked\" notice"
   ]
 }
