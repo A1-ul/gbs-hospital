@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../services/api.service';
-import { Activity, AlertTriangle, CheckCircle, RefreshCw, Search, HeartPulse, PlusCircle } from 'lucide-react';
+import { Activity, AlertTriangle, CheckCircle, RefreshCw, Search, HeartPulse, PlusCircle, Eye } from 'lucide-react';
 
-export default function IcuVitalsView() {
+export default function IcuVitalsView({ onNavigateDetail }) {
+  const openDetail = (payload) => {
+    const fn = onNavigateDetail || (typeof window !== 'undefined' ? window.gbsNavigateDetail : null);
+    if (typeof fn === 'function') fn(payload);
+  };
   const [telemetry, setTelemetry] = useState(null);
   const [monitors, setMonitors] = useState([]);
   const [patients, setPatients] = useState([]);
@@ -127,28 +131,44 @@ export default function IcuVitalsView() {
 
       {/* Live ICU KPIs */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '12px' }}>
-        <div className="metric-card">
+        <div
+          className="metric-card"
+          style={{ cursor: 'pointer' }}
+          onClick={() => openDetail({ detailType: 'VIEW_RECORDS', moduleKey: 'ICU', recordId: 'monitored-patients', title: 'ICU Active Monitored Patients & Telemetry', recordData: monitors })}
+        >
           <div>
             <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>Active Monitored Patients</div>
             <div className="metric-value">{telemetry?.uniquePatientsMonitored ?? 0}</div>
           </div>
           <HeartPulse size={20} style={{ color: '#38bdf8' }} />
         </div>
-        <div className="metric-card">
+        <div
+          className="metric-card"
+          style={{ cursor: 'pointer' }}
+          onClick={() => openDetail({ detailType: 'VIEW_RECORDS', moduleKey: 'ICU', recordId: 'critical-alerts', title: 'Unacknowledged Critical ICU Alerts', recordData: monitors.filter((m) => m.alertLevel === 'CRITICAL') })}
+        >
           <div>
             <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>Unacknowledged Critical Alerts</div>
             <div className="metric-value" style={{ color: '#ef4444' }}>{telemetry?.unacknowledgedCriticalAlerts ?? 0}</div>
           </div>
           <AlertTriangle size={20} style={{ color: '#ef4444' }} />
         </div>
-        <div className="metric-card">
+        <div
+          className="metric-card"
+          style={{ cursor: 'pointer' }}
+          onClick={() => openDetail({ detailType: 'VIEW_RECORDS', moduleKey: 'ICU', recordId: 'ventilator-telemetry', title: 'ICU Ventilator Telemetry Readings', recordData: monitors.filter((m) => m.ventilatorMode && m.ventilatorMode !== 'ROOM_AIR') })}
+        >
           <div>
             <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>Ventilator Readings (24h)</div>
             <div className="metric-value" style={{ color: '#f59e0b' }}>{telemetry?.ventilatedReadings24h ?? 0}</div>
           </div>
           <Activity size={20} style={{ color: '#f59e0b' }} />
         </div>
-        <div className="metric-card">
+        <div
+          className="metric-card"
+          style={{ cursor: 'pointer' }}
+          onClick={() => openDetail({ detailType: 'VIEW_REPORTS', moduleKey: 'ICU', recordId: 'icu-summary', title: 'ICU Vitals Summary & NEWS2 Report', recordData: telemetry || {} })}
+        >
           <div>
             <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>Avg SpO2 / Avg NEWS2</div>
             <div className="metric-value" style={{ color: '#10b981', fontSize: '1.35rem' }}>
@@ -273,9 +293,29 @@ export default function IcuVitalsView() {
       {/* Patient Trend Analysis */}
       {trends && trends.trends && trends.trends.length > 0 && (
         <div className="glass-panel" style={{ padding: '18px', overflowX: 'auto' }}>
-          <h3 style={{ margin: '0 0 10px', fontSize: '0.96rem', color: '#38bdf8' }}>
-            Vital Trend Analysis — {trends.patient.fullName} ({trends.patient.mrn}) • {trends.totalPoints} Reading(s)
-          </h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '10px' }}>
+            <h3 style={{ margin: 0, fontSize: '0.96rem', color: '#38bdf8' }}>
+              Vital Trend Analysis — {trends.patient.fullName} ({trends.patient.mrn}) • {trends.totalPoints} Reading(s)
+            </h3>
+            {selectedPatient && (
+              <button
+                type="button"
+                onClick={() =>
+                  openDetail({
+                    detailType: 'VIEW_PROFILE',
+                    moduleKey: 'ICU',
+                    recordId: String(selectedPatient.id),
+                    title: `ICU Patient Profile: ${trends.patient.fullName}`,
+                    recordData: selectedPatient
+                  })
+                }
+                className="btn-outline-gold"
+                style={{ padding: '4px 10px', fontSize: '0.72rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+              >
+                <Eye size={12} /> View Patient Profile
+              </button>
+            )}
+          </div>
           <table className="data-table">
             <thead>
               <tr>
@@ -374,15 +414,33 @@ export default function IcuVitalsView() {
                       : 'All parameters within safe range'}
                   </td>
                   <td>
-                    {m.alertLevel !== 'NORMAL' && !m.isAcknowledged ? (
-                      <button type="button" onClick={() => handleAcknowledge(m.id)} className="btn-danger" style={{ padding: '4px 9px', fontSize: '0.7rem' }}>
-                        Acknowledge
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          openDetail({
+                            detailType: 'VIEW_DETAILS',
+                            moduleKey: 'ICU',
+                            recordId: String(m.monitorCode || m.id),
+                            title: `ICU Reading: ${m.monitorCode || m.bedNumber}`,
+                            recordData: m
+                          })
+                        }
+                        className="btn-outline-gold"
+                        style={{ padding: '4px 8px', fontSize: '0.7rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                      >
+                        <Eye size={11} /> Details
                       </button>
-                    ) : (
-                      <span style={{ fontSize: '0.72rem', color: '#10b981' }}>
-                        {m.isAcknowledged ? `Ack (${m.acknowledgedBy || 'Clinician'})` : 'Stable'}
-                      </span>
-                    )}
+                      {m.alertLevel !== 'NORMAL' && !m.isAcknowledged ? (
+                        <button type="button" onClick={() => handleAcknowledge(m.id)} className="btn-danger" style={{ padding: '4px 9px', fontSize: '0.7rem' }}>
+                          Acknowledge
+                        </button>
+                      ) : (
+                        <span style={{ fontSize: '0.72rem', color: '#10b981' }}>
+                          {m.isAcknowledged ? `Ack (${m.acknowledgedBy || 'Clinician'})` : 'Stable'}
+                        </span>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

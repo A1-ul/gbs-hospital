@@ -31,12 +31,12 @@ Live Production URL (https://gbs-hospital-system.onrender.com)
 
 ## 3. Environment & Data Identification Architecture
 - **Environment Templates**: `Backend/.env.example`, `Backend/.env.example.production`, `Frontend/.env.example` (live `.env*` files are strictly gitignored)
-- **Production Demo Gate**: `DEMO_MODE_ENABLED=false` in production (zero client-side credentials; real DB-backed sessions & MFA for hidden `/developer-portal`)
+- **Interactive 10-Entry Learning Demo Trial Gate**: `DEMO_MODE_ENABLED=true` & `DEMO_MAX_ENTRIES=10` in `render.yaml`, atomically enforced in PostgreSQL by `Backend/src/core/middleware/demo-quota.middleware.js` (zero client-side credentials; `DEVELOPER` strictly excluded; real DB-backed sessions & MFA for hidden `/developer-portal`)
 - **Central Environment Config**: `Backend/src/config/environment/environment.config.js`
-- **Data Classification & Backup Service**: `Backend/src/modules/tenant-management/backup-and-environment.service.js`
-  - Classifies all records into `PRODUCTION` vs. `DEVELOPMENT_TEST`
-  - Creates SHA-256 verified full database backups in `Backend/backups/`
-  - Purges only development/test records while protecting system roles, permissions, ICD-10 codes, and permanent bootstrap accounts (`gabosei48@gmail.com`, `admin@gbs.com`)
+- **Data Classification, Purge Guard & 124-Model Backup Service**: `Backend/src/modules/tenant-management/backup-and-environment.service.js`
+  - Classifies records by explicit provenance/origin metadata & strict RFC 2606 / CI markers ONLY (zero false positives on genuine clinical text containing words like `"sample"` or `"phase"`)
+  - Creates SHA-256 verified full **124/124 Prisma model** database backups in `Backend/backups/` and supports non-destructive restore
+  - Enforces an HTTP `403` (`PRODUCTION_PURGE_AUTHORIZATION_REQUIRED`) hard guard in `PRODUCTION` and selectively deletes ONLY verified `DEVELOPMENT_TEST` records while protecting all genuine `PRODUCTION` records, RBAC roles/permissions, and permanent bootstrap accounts (`gabosei48@gmail.com`, `developer@gbs.com`, `admin@gbs.com`)
 
 ## 4. Universal Page Navigation Architecture
 - **Dedicated Detail Page Component**: `Frontend/src/components/UniversalDetailPage.jsx`

@@ -1437,7 +1437,8 @@ export default function App() {
                       { mod: 'AI_SAFETY', cat: 'TECHNOLOGY', title: '22. AI Clinical & Safety Guardrails', desc: 'Mandatory human-approved AI decision support, drug interaction alerts & allergy guardrails.', img: '/assets/images/quality_infection_control_real.jpg', icon: Shield, color: '#10b981', border: '#10b981' },
                       { mod: 'EXECUTIVE_BI', cat: 'OPERATIONS', title: '23. Executive BI & Admin Governance', desc: 'Hospital Director analytics, revenue KPIs, bed census & live staff account approvals.', img: '/assets/images/hospital_director_boardroom_real.jpg', icon: Building2, color: 'var(--gold-400)', border: 'var(--border-gold)' },
                       { mod: 'OPERATIONS_HUB', cat: 'OPERATIONS', title: '24. Online Meetings, Docs & Facility', desc: 'Clinical board video meetings, versioned document vault & housekeeping/utilities ops.', img: '/assets/images/hospital_admin_office_real.jpg', icon: FileText, color: '#38bdf8', border: 'var(--border-gold)' },
-                      { mod: 'PATIENT_PORTAL', cat: 'CLINICAL', title: '25. Patient Self-Service Portal', desc: 'Personal patient visits, prescriptions, allergies, lab summaries & billing statements.', img: '/assets/images/hospital_hero_exterior.jpg', icon: User, color: '#10b981', border: '#10b981' }
+                      { mod: 'PATIENT_PORTAL', cat: 'CLINICAL', title: '25. Patient Self-Service Portal', desc: 'Personal patient visits, prescriptions, allergies, lab summaries & billing statements.', img: '/assets/images/hospital_hero_exterior.jpg', icon: User, color: '#10b981', border: '#10b981' },
+                      { mod: 'TELEMEDICINE', cat: 'TECHNOLOGY', title: '26. Video Visits, Telehealth & GIS Maps', desc: 'WebRTC doctor-patient video consultations, hospital geofencing & interactive floor plans.', img: '/assets/images/telemedicine_command_center_real.jpg', icon: Video, color: '#06b6d4', border: '#06b6d4' }
                     ]
                       .filter((card) => {
                         if (card.mod === 'DEVELOPER_NOC' && !isDeveloperAuthenticated) return false;
@@ -1510,8 +1511,8 @@ export default function App() {
             {activeModule === 'RADIOLOGY' && <RadiologyPacsView onNavigateDetail={openDetailPage} />}
             {activeModule === 'BILLING' && <BillingPaymentsView onNavigateDetail={openDetailPage} />}
             {activeModule === 'PATIENT_PORTAL' && <PatientPortalView onNavigateDetail={openDetailPage} />}
-            {activeModule === 'EXECUTIVE_BI' && <ExecutiveAdminBiView currentRole={currentRole} />}
-            {activeModule === 'OPERATIONS_HUB' && <OperationsSuiteView />}
+            {activeModule === 'EXECUTIVE_BI' && <ExecutiveAdminBiView currentRole={currentRole} onNavigateDetail={openDetailPage} />}
+            {activeModule === 'OPERATIONS_HUB' && <OperationsSuiteView onNavigateDetail={openDetailPage} />}
             {(activeModule === 'DEVELOPER_NOC' || activeModule === 'MIGRATION' || activeModule === 'DEVELOPER_PORTAL') && (
               isDeveloperAuthenticated ? (
                 <DeveloperControlCenterView onNavigateDetail={openDetailPage} />

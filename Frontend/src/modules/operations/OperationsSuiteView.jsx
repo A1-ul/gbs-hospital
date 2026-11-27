@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../services/api.service';
-import { Video, FileText, Wrench, PlusCircle, RefreshCw, RotateCcw, Send, Archive } from 'lucide-react';
+import { Video, FileText, Wrench, PlusCircle, RefreshCw, RotateCcw, Send, Archive, Eye } from 'lucide-react';
 
-export default function OperationsSuiteView() {
+export default function OperationsSuiteView({ onNavigateDetail }) {
+  const openDetail = (payload) => {
+    const fn = onNavigateDetail || (typeof window !== 'undefined' ? window.gbsNavigateDetail : null);
+    if (typeof fn === 'function') fn(payload);
+  };
   const [tab, setTab] = useState('MEETINGS'); // MEETINGS | DOCUMENTS | FACILITY
   const [meetings, setMeetings] = useState([]);
   const [meetingTel, setMeetingTel] = useState(null);
@@ -221,28 +225,52 @@ export default function OperationsSuiteView() {
                 <tr><th>Code</th><th>Title</th><th>Department</th><th>Status</th><th>Action</th></tr>
               </thead>
               <tbody>
-                {meetings.map((m) => (
-                  <tr key={m.id}>
-                    <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--gold-300)' }}>{m.meetingCode}</td>
-                    <td style={{ fontWeight: 700 }}>{m.title}</td>
-                    <td>{m.department}</td>
-                    <td><span className={m.status === 'LIVE' ? 'badge badge-success' : 'badge badge-gold'}>{m.status}</span></td>
-                    <td>
-                      <div style={{ display: 'flex', gap: '6px' }}>
-                        {m.status !== 'COMPLETED' && m.status !== 'CANCELLED' && (
-                          <button type="button" onClick={() => handleJoinMeeting(m.id)} className="btn-gold" style={{ padding: '3px 9px', fontSize: '0.72rem' }}>
-                            Join Room
-                          </button>
-                        )}
-                        {m.status === 'LIVE' && (
-                          <button type="button" onClick={() => handleEndMeeting(m.id)} className="btn-outline-gold" style={{ padding: '3px 9px', fontSize: '0.72rem' }}>
-                            End
-                          </button>
-                        )}
-                      </div>
+                {meetings.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '16px' }}>
+                      No online hospital meetings scheduled yet.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  meetings.map((m) => (
+                    <tr key={m.id}>
+                      <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--gold-300)' }}>{m.meetingCode}</td>
+                      <td style={{ fontWeight: 700 }}>{m.title}</td>
+                      <td>{m.department}</td>
+                      <td><span className={m.status === 'LIVE' ? 'badge badge-success' : 'badge badge-gold'}>{m.status}</span></td>
+                      <td>
+                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              openDetail({
+                                detailType: 'VIEW_DETAILS',
+                                moduleKey: 'OPERATIONS_HUB',
+                                recordId: String(m.meetingCode || m.id),
+                                title: `Clinical Meeting: ${m.title}`,
+                                recordData: m
+                              })
+                            }
+                            className="btn-outline-gold"
+                            style={{ padding: '3px 8px', fontSize: '0.72rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                          >
+                            <Eye size={11} /> Details
+                          </button>
+                          {m.status !== 'COMPLETED' && m.status !== 'CANCELLED' && (
+                            <button type="button" onClick={() => handleJoinMeeting(m.id)} className="btn-gold" style={{ padding: '3px 9px', fontSize: '0.72rem' }}>
+                              Join Room
+                            </button>
+                          )}
+                          {m.status === 'LIVE' && (
+                            <button type="button" onClick={() => handleEndMeeting(m.id)} className="btn-outline-gold" style={{ padding: '3px 9px', fontSize: '0.72rem' }}>
+                              End
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -284,28 +312,52 @@ export default function OperationsSuiteView() {
                 <tr><th>Code</th><th>Title / File</th><th>Version</th><th>Retention</th><th>Status</th><th>Actions</th></tr>
               </thead>
               <tbody>
-                {documents.map((d) => (
-                  <tr key={d.id}>
-                    <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--gold-300)' }}>{d.documentCode}</td>
-                    <td><strong>{d.title}</strong><div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{d.fileName}</div></td>
-                    <td><span className="badge badge-cyan">v{d.versionNumber}</span></td>
-                    <td style={{ fontSize: '0.74rem' }}>{d.retentionYears} yrs</td>
-                    <td><span className={d.isDeleted ? 'badge badge-danger' : 'badge badge-success'}>{d.isDeleted ? 'ARCHIVED (RECOVERABLE)' : d.deliveryStatus}</span></td>
-                    <td>
-                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                        {!d.isDeleted ? (
-                          <>
-                            <button type="button" onClick={async () => { await api.createDocumentVersion(d.id, { contentNotes: 'Updated revision' }); loadAll(); }} className="btn-outline-gold" style={{ padding: '3px 8px', fontSize: '0.7rem' }}>+ v{d.versionNumber + 1}</button>
-                            <button type="button" onClick={async () => { await api.deliverDocument(d.id, { deliveredTo: 'Medical Records & Ward Desk' }); loadAll(); }} className="btn-outline-gold" style={{ padding: '3px 8px', fontSize: '0.7rem' }}><Send size={11} /> Deliver</button>
-                            <button type="button" onClick={async () => { await api.archiveDocument(d.id); loadAll(); }} className="btn-outline-gold" style={{ padding: '3px 8px', fontSize: '0.7rem', borderColor: '#f59e0b', color: '#fcd34d' }}><Archive size={11} /> Archive</button>
-                          </>
-                        ) : (
-                          <button type="button" onClick={async () => { await api.restoreDocument(d.id); loadAll(); }} className="btn-gold" style={{ padding: '3px 8px', fontSize: '0.7rem' }}><RotateCcw size={11} /> Restore</button>
-                        )}
-                      </div>
+                {documents.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '16px' }}>
+                      No hospital documents stored yet.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  documents.map((d) => (
+                    <tr key={d.id}>
+                      <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--gold-300)' }}>{d.documentCode}</td>
+                      <td><strong>{d.title}</strong><div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{d.fileName}</div></td>
+                      <td><span className="badge badge-cyan">v{d.versionNumber}</span></td>
+                      <td style={{ fontSize: '0.74rem' }}>{d.retentionYears} yrs</td>
+                      <td><span className={d.isDeleted ? 'badge badge-danger' : 'badge badge-success'}>{d.isDeleted ? 'ARCHIVED (RECOVERABLE)' : d.deliveryStatus}</span></td>
+                      <td>
+                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              openDetail({
+                                detailType: 'VIEW_DETAILS',
+                                moduleKey: 'OPERATIONS_HUB',
+                                recordId: String(d.documentCode || d.id),
+                                title: `Hospital Document: ${d.title}`,
+                                recordData: d
+                              })
+                            }
+                            className="btn-outline-gold"
+                            style={{ padding: '3px 8px', fontSize: '0.7rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                          >
+                            <Eye size={11} /> Details
+                          </button>
+                          {!d.isDeleted ? (
+                            <>
+                              <button type="button" onClick={async () => { await api.createDocumentVersion(d.id, { contentNotes: 'Updated revision' }); loadAll(); }} className="btn-outline-gold" style={{ padding: '3px 8px', fontSize: '0.7rem' }}>+ v{d.versionNumber + 1}</button>
+                              <button type="button" onClick={async () => { await api.deliverDocument(d.id, { deliveredTo: 'Medical Records & Ward Desk' }); loadAll(); }} className="btn-outline-gold" style={{ padding: '3px 8px', fontSize: '0.7rem' }}><Send size={11} /> Deliver</button>
+                              <button type="button" onClick={async () => { await api.archiveDocument(d.id); loadAll(); }} className="btn-outline-gold" style={{ padding: '3px 8px', fontSize: '0.7rem', borderColor: '#f59e0b', color: '#fcd34d' }}><Archive size={11} /> Archive</button>
+                            </>
+                          ) : (
+                            <button type="button" onClick={async () => { await api.restoreDocument(d.id); loadAll(); }} className="btn-gold" style={{ padding: '3px 8px', fontSize: '0.7rem' }}><RotateCcw size={11} /> Restore</button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -345,23 +397,49 @@ export default function OperationsSuiteView() {
                 <tr><th>Code</th><th>Category</th><th>Task</th><th>Location</th><th>Priority</th><th>Status</th><th>Action</th></tr>
               </thead>
               <tbody>
-                {tasks.map((t) => (
-                  <tr key={t.id}>
-                    <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--gold-300)' }}>{t.taskCode}</td>
-                    <td><span className="badge badge-cyan">{t.category}</span></td>
-                    <td style={{ fontWeight: 700 }}>{t.title}</td>
-                    <td>{t.location}</td>
-                    <td><span className={t.priority === 'URGENT' || t.priority === 'HIGH' ? 'badge badge-danger' : 'badge badge-gold'}>{t.priority}</span></td>
-                    <td><span className={t.status === 'COMPLETED' ? 'badge badge-success' : 'badge badge-warning'}>{t.status}</span></td>
-                    <td>
-                      {t.status !== 'COMPLETED' && (
-                        <button type="button" onClick={async () => { await api.updateFacilityTaskStatus(t.id, { status: 'COMPLETED' }); loadAll(); }} className="btn-gold" style={{ padding: '3px 9px', fontSize: '0.72rem' }}>
-                          Mark Completed
-                        </button>
-                      )}
+                {tasks.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '16px' }}>
+                      No facility or utilities tasks logged yet.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  tasks.map((t) => (
+                    <tr key={t.id}>
+                      <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--gold-300)' }}>{t.taskCode}</td>
+                      <td><span className="badge badge-cyan">{t.category}</span></td>
+                      <td style={{ fontWeight: 700 }}>{t.title}</td>
+                      <td>{t.location}</td>
+                      <td><span className={t.priority === 'URGENT' || t.priority === 'HIGH' ? 'badge badge-danger' : 'badge badge-gold'}>{t.priority}</span></td>
+                      <td><span className={t.status === 'COMPLETED' ? 'badge badge-success' : 'badge badge-warning'}>{t.status}</span></td>
+                      <td>
+                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              openDetail({
+                                detailType: 'VIEW_DETAILS',
+                                moduleKey: 'OPERATIONS_HUB',
+                                recordId: String(t.taskCode || t.id),
+                                title: `Facility Task: ${t.title}`,
+                                recordData: t
+                              })
+                            }
+                            className="btn-outline-gold"
+                            style={{ padding: '3px 8px', fontSize: '0.72rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                          >
+                            <Eye size={11} /> Details
+                          </button>
+                          {t.status !== 'COMPLETED' && (
+                            <button type="button" onClick={async () => { await api.updateFacilityTaskStatus(t.id, { status: 'COMPLETED' }); loadAll(); }} className="btn-gold" style={{ padding: '3px 9px', fontSize: '0.72rem' }}>
+                              Mark Completed
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

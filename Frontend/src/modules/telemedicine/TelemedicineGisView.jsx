@@ -7,7 +7,11 @@ import {
 } from 'lucide-react';
 import { api } from '../../services/api.service';
 
-export default function TelemedicineGisView() {
+export default function TelemedicineGisView({ onNavigateDetail }) {
+  const openDetail = (payload) => {
+    const fn = onNavigateDetail || (typeof window !== 'undefined' ? window.gbsNavigateDetail : null);
+    if (typeof fn === 'function') fn(payload);
+  };
   const [activeTab, setActiveTab] = useState('VIRTUAL_CLINIC'); // VIRTUAL_CLINIC, GEOFENCING, FLOOR_PLANS, TELEMETRY
   const [telemedTelemetry, setTelemedTelemetry] = useState(null);
   const [gisTelemetry, setGisTelemetry] = useState(null);
@@ -592,6 +596,22 @@ export default function TelemedicineGisView() {
                           </span>
                         </td>
                         <td className="py-3 px-4 text-right space-x-2">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              openDetail({
+                                detailType: 'VIEW_DETAILS',
+                                moduleKey: 'TELEMEDICINE',
+                                recordId: String(c.sessionCode || c.id),
+                                title: `Telemedicine Visit: ${c.sessionCode}`,
+                                recordData: c
+                              })
+                            }
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 transition-all"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            Details
+                          </button>
                           {['SCHEDULED', 'WAITING_ROOM'].includes(c.status) && (
                             <button
                               onClick={() => handleStartCall(c)}
@@ -656,22 +676,46 @@ export default function TelemedicineGisView() {
               </div>
 
               <div className="space-y-3">
-                {geofences.map(gf => (
-                  <div key={gf.id} className="p-4 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-sm text-white">{gf.name}</span>
-                        <span className="font-mono text-xs text-amber-400">{gf.code}</span>
+                {geofences.length === 0 ? (
+                  <div className="p-6 text-center text-slate-500 text-sm rounded-xl bg-slate-950 border border-slate-800">
+                    No campus geofences configured yet.
+                  </div>
+                ) : (
+                  geofences.map(gf => (
+                    <div key={gf.id} className="p-4 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between gap-3 flex-wrap">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-sm text-white">{gf.name}</span>
+                          <span className="font-mono text-xs text-amber-400">{gf.code}</span>
+                        </div>
+                        <div className="text-xs text-slate-400 mt-1">
+                          Type: <span className="text-slate-200">{gf.facilityType}</span> &bull; Radius: <span className="text-slate-200 font-mono">{gf.radiusMeters}m</span> &bull; Center: ({gf.centerLatitude}, {gf.centerLongitude})
+                        </div>
                       </div>
-                      <div className="text-xs text-slate-400 mt-1">
-                        Type: <span className="text-slate-200">{gf.facilityType}</span> &bull; Radius: <span className="text-slate-200 font-mono">{gf.radiusMeters}m</span> &bull; Center: ({gf.centerLatitude}, {gf.centerLongitude})
+                      <div className="flex items-center gap-2">
+                        <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-950/60 border border-emerald-500/40 text-emerald-300">
+                          {gf.status}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            openDetail({
+                              detailType: 'VIEW_DETAILS',
+                              moduleKey: 'TELEMEDICINE',
+                              recordId: String(gf.code || gf.id),
+                              title: `Hospital Geofence: ${gf.name}`,
+                              recordData: gf
+                            })
+                          }
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          Details
+                        </button>
                       </div>
                     </div>
-                    <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-950/60 border border-emerald-500/40 text-emerald-300">
-                      {gf.status}
-                    </span>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
 
@@ -794,9 +838,25 @@ export default function TelemedicineGisView() {
                   <h3 className="text-base font-bold text-white">{selectedFloorPlan.buildingName} - {selectedFloorPlan.floorName}</h3>
                   <div className="text-xs text-slate-400">Plan Code: <span className="font-mono text-amber-300">{selectedFloorPlan.code}</span></div>
                 </div>
-                <div className="flex gap-4 text-xs font-mono">
+                <div className="flex items-center gap-4 text-xs font-mono flex-wrap">
                   <span className="text-slate-400">Total Rooms: <strong className="text-white">{selectedFloorPlan.totalRooms}</strong></span>
                   <span className="text-slate-400">Total Beds: <strong className="text-white">{selectedFloorPlan.totalBeds}</strong></span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      openDetail({
+                        detailType: 'VIEW_DETAILS',
+                        moduleKey: 'TELEMEDICINE',
+                        recordId: String(selectedFloorPlan.code || selectedFloorPlan.id),
+                        title: `Floor Plan: ${selectedFloorPlan.buildingName} — ${selectedFloorPlan.floorName}`,
+                        recordData: selectedFloorPlan
+                      })
+                    }
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-sans font-medium bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    View Floor Details
+                  </button>
                 </div>
               </div>
 
@@ -828,22 +888,34 @@ export default function TelemedicineGisView() {
         <div className="space-y-6">
           {/* Top Metric Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl">
+            <div
+              onClick={() => openDetail({ detailType: 'VIEW_RECORDS', moduleKey: 'TELEMEDICINE', recordId: 'consultations', title: 'All Telehealth Consultations', recordData: consultations })}
+              className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl cursor-pointer"
+            >
               <div className="text-xs font-semibold text-slate-400 mb-1">Telehealth Consultations</div>
               <div className="text-3xl font-extrabold text-white">{telemedTelemetry?.totalConsultations || 0}</div>
               <div className="text-xs text-emerald-400 mt-2">{telemedTelemetry?.completedToday || 0} Completed Today</div>
             </div>
-            <div className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl">
+            <div
+              onClick={() => openDetail({ detailType: 'VIEW_RECORDS', moduleKey: 'TELEMEDICINE', recordId: 'active-calls', title: 'Active WebRTC Video Sessions', recordData: consultations.filter((c) => c.status === 'IN_CALL' || c.status === 'WAITING_ROOM') })}
+              className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl cursor-pointer"
+            >
               <div className="text-xs font-semibold text-slate-400 mb-1">Active WebRTC Sessions</div>
               <div className="text-3xl font-extrabold text-amber-400">{telemedTelemetry?.activeInCall || 0}</div>
               <div className="text-xs text-slate-400 mt-2">{telemedTelemetry?.waitingRoom || 0} in Waiting Room</div>
             </div>
-            <div className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl">
+            <div
+              onClick={() => openDetail({ detailType: 'VIEW_RECORDS', moduleKey: 'TELEMEDICINE', recordId: 'geofences', title: 'Hospital Campus Geofences', recordData: geofences })}
+              className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl cursor-pointer"
+            >
               <div className="text-xs font-semibold text-slate-400 mb-1">Active Campus Geofences</div>
               <div className="text-3xl font-extrabold text-emerald-400">{gisTelemetry?.activeGeofences || 0}</div>
               <div className="text-xs text-slate-400 mt-2">{gisTelemetry?.totalGeofences || 0} Total Defined</div>
             </div>
-            <div className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl">
+            <div
+              onClick={() => openDetail({ detailType: 'VIEW_RECORDS', moduleKey: 'TELEMEDICINE', recordId: 'floor-plans', title: 'Hospital Building Floor Plans & Spatial Beds', recordData: floorPlans })}
+              className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl cursor-pointer"
+            >
               <div className="text-xs font-semibold text-slate-400 mb-1">Spatial Tracked Beds</div>
               <div className="text-3xl font-extrabold text-blue-400">{gisTelemetry?.totalManagedBeds || 0}</div>
               <div className="text-xs text-slate-400 mt-2">{gisTelemetry?.totalFloorPlans || 0} Building Floor Plans</div>

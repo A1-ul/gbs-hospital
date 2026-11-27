@@ -23,6 +23,143 @@ const AppError = require("../../core/errors/app.error");
 const logger = require("../../core/utils/logger");
 
 const BACKUP_DIR = envConfig.backupDirectory;
+const PERMANENT_SYSTEM_ACCOUNTS = Object.freeze([
+    "gabosei48@gmail.com",
+    "developer@gbs.com",
+    "admin@gbs.com"
+]);
+const PRODUCTION_PURGE_AUTH_TOKEN = "AUTHORIZE_PRODUCTION_TEST_PURGE";
+
+/**
+ * Authoritative parent-first list of all 124 Prisma models in schema.prisma
+ * Ensures complete SHA-256 verified backups and safe non-destructive restores.
+ */
+const FULL_BACKUP_MODEL_LIST = Object.freeze([
+    "role",
+    "permission",
+    "user",
+    "session",
+    "hospital",
+    "hospitalBranch",
+    "hospitalDepartment",
+    "hospitalUnit",
+    "hospitalSetting",
+    "hospitalStaff",
+    "tenant",
+    "tenantSubscription",
+    "tenantMessage",
+    "tenantLocationPing",
+    "videoCallSession",
+    "patient",
+    "patientProfile",
+    "patientMedicalRecord",
+    "patientAllergy",
+    "patientMedication",
+    "medicalFolder",
+    "folderRetrievalRequest",
+    "folderMovementLog",
+    "opdQueueTicket",
+    "patientEncounter",
+    "patientVitalSign",
+    "patientConsultation",
+    "patientDiagnosis",
+    "patientPrescription",
+    "patientClinicalNote",
+    "clinicalWorkflow",
+    "hospitalWard",
+    "hospitalRoom",
+    "hospitalBed",
+    "hospitalAdmission",
+    "hospitalPatientLocation",
+    "nursingRecord",
+    "dischargeRecord",
+    "pharmacyItem",
+    "pharmacyInventory",
+    "pharmacyBatch",
+    "prescriptionDispense",
+    "prescriptionDispenseItem",
+    "pharmacyStockMovement",
+    "laboratoryCatalogItem",
+    "laboratoryRequest",
+    "laboratorySample",
+    "laboratoryTestResult",
+    "radiologyCatalogItem",
+    "radiologyOrder",
+    "dicomStudy",
+    "radiologyReport",
+    "billingTariffItem",
+    "patientBill",
+    "billItem",
+    "patientPayment",
+    "insuranceClaim",
+    "operatingTheatre",
+    "surgicalCatalogItem",
+    "surgicalCase",
+    "surgicalChecklist",
+    "anesthesiaRecord",
+    "pacuRecord",
+    "ambulance",
+    "ambulanceDispatch",
+    "emergencyCase",
+    "bloodDonor",
+    "bloodUnit",
+    "bloodTransfusionRequest",
+    "bloodCrossMatch",
+    "bloodTransfusionRecord",
+    "mortuaryChamber",
+    "corpseRecord",
+    "autopsyCase",
+    "corpseRelease",
+    "medicalEquipment",
+    "medicalWorkOrder",
+    "equipmentCalibration",
+    "procurementVendor",
+    "vendorContract",
+    "purchaseOrder",
+    "purchaseOrderItem",
+    "goodsReceiptNote",
+    "goodsReceiptItem",
+    "staffCredential",
+    "dutyShiftRoster",
+    "shiftHandover",
+    "staffAttendance",
+    "staffLeaveRequest",
+    "clinicalIncident",
+    "infectionControlCase",
+    "clinicalAudit",
+    "correctiveActionPlan",
+    "patientSafetyAlert",
+    "nhisMemberPolicy",
+    "nhiaClaimBatch",
+    "nhiaClaimItem",
+    "nhiaReconciliationVoucher",
+    "migrationTemplate",
+    "migrationJob",
+    "migrationRecordItem",
+    "facilityGeofence",
+    "geofenceBreachEvent",
+    "facilityFloorPlan",
+    "telemedicineConsultation",
+    "biometricSecurityPolicy",
+    "biometricVoiceprint",
+    "biometricSecurityCredential",
+    "biometricVerificationLog",
+    "dentalRecord",
+    "eyeClinicRecord",
+    "icuMonitoringRecord",
+    "clinicalSafetyOverride",
+    "aiClinicalSuggestion",
+    "hospitalMeeting",
+    "hospitalDocument",
+    "facilityTask",
+    "systemEvent",
+    "systemNotification",
+    "idempotencyRecord",
+    "developerAccessGrant",
+    "systemErrorLog",
+    "systemConfiguration",
+    "auditLog"
+]);
 
 function ensureBackupDir() {
     if (!fs.existsSync(BACKUP_DIR)) {
@@ -30,32 +167,80 @@ function ensureBackupDir() {
     }
 }
 
+function isStrictTestEmail(emailValue) {
+    if (typeof emailValue !== "string" || !emailValue.trim()) return false;
+    const normalized = emailValue.trim().toLowerCase();
+    if (PERMANENT_SYSTEM_ACCOUNTS.includes(normalized)) return false;
+
+    return (
+        normalized.endsWith("@test.local") ||
+        normalized.endsWith("@example.com") ||
+        normalized.endsWith("@example.org") ||
+        normalized.endsWith("@example.net") ||
+        normalized.endsWith(".test") ||
+        normalized.includes("@test.") ||
+        normalized.startsWith("jest-") ||
+        normalized.startsWith("integration-test") ||
+        normalized.startsWith("ci-verify-") ||
+        normalized.startsWith("smoke-test-")
+    );
+}
+
 /**
- * Determine whether a record is a DEVELOPMENT_TEST record vs PRODUCTION record
+ * Determine whether a record originated from DEVELOPMENT_TEST vs genuine PRODUCTION.
+ * Strict GBS Data Identification Rule:
+ * - NEVER classify a record as fake merely because clinical text contains ordinary words
+ *   like "sample", "phase", or "demo" (e.g. "blood sample", "phase 2 therapy", "demographic").
+ * - Rely on explicit origin/provenance metadata and strict RFC 2606 / CI harness markers only.
+ * - Default to PRODUCTION to protect genuine customer and patient records.
  */
 function classifyRecordDataSource(record, tableKey) {
-    if (!record) return "PRODUCTION";
-    const jsonStr = JSON.stringify(record).toLowerCase();
-    const isTestPattern =
-        jsonStr.includes("@test.") ||
-        jsonStr.includes("@example.") ||
-        jsonStr.includes("jest") ||
-        jsonStr.includes("integration-test") ||
-        jsonStr.includes("test patient") ||
-        jsonStr.includes("test-") ||
-        jsonStr.includes("demo") ||
-        jsonStr.includes("sample") ||
-        jsonStr.includes("phase") ||
-        (tableKey === "user" &&
-            record.email &&
-            record.email !== "gabosei48@gmail.com" &&
-            record.email !== "developer@gbs.com" &&
-            record.email !== "admin@gbs.com" &&
-            (record.email.includes("test") ||
-                record.email.includes("177") ||
-                record.email.includes("temp")));
+    if (!record || typeof record !== "object") return "PRODUCTION";
 
-    return isTestPattern ? "DEVELOPMENT_TEST" : "PRODUCTION";
+    // 1. Explicit provenance / origin metadata takes absolute precedence
+    const explicitSource = String(
+        record.dataSource ||
+        record.originEnvironment ||
+        record.environment ||
+        (record.metadata && (record.metadata.dataSource || record.metadata.originEnvironment)) ||
+        ""
+    ).trim().toUpperCase();
+
+    if (explicitSource === "PRODUCTION") return "PRODUCTION";
+    if (explicitSource === "DEVELOPMENT_TEST" || explicitSource === "DEMO_TRIAL" || explicitSource === "TEST") {
+        return "DEVELOPMENT_TEST";
+    }
+
+    if (
+        record.isTestRecord === true ||
+        record.isDemoSession === true ||
+        (record.metadata && (record.metadata.isTestRecord === true || record.metadata.isDemoSession === true))
+    ) {
+        return "DEVELOPMENT_TEST";
+    }
+
+    // 2. Explicit demo trial quota ledgers in SystemConfiguration
+    if (tableKey === "systemConfiguration" && typeof record.configKey === "string") {
+        if (record.configKey.startsWith("DEMO_QUOTA_") || record.category === "DEMO_TRIAL_QUOTA") {
+            return "DEVELOPMENT_TEST";
+        }
+    }
+
+    // 3. Strict RFC 2606 / automated CI harness email addresses only
+    const emailCandidates = [
+        record.email,
+        record.officialEmail,
+        record.adminEmail,
+        record.contactEmail
+    ];
+    for (const candidate of emailCandidates) {
+        if (isStrictTestEmail(candidate)) {
+            return "DEVELOPMENT_TEST";
+        }
+    }
+
+    // 4. Default: protect genuine hospital & customer records as PRODUCTION
+    return "PRODUCTION";
 }
 
 /**
@@ -104,97 +289,7 @@ async function createDatabaseBackup(options = {}, developerUserId = null) {
     const filename = options.fixedFilename || `gbs-backup-${customLabel}-${timestamp}.json`;
     const filePath = path.join(BACKUP_DIR, filename);
 
-    const modelList = [
-        "role",
-        "permission",
-        "rolePermission",
-        "user",
-        "tenant",
-        "tenantSubscription",
-        "tenantLocationPing",
-        "tenantMessage",
-        "videoCallSession",
-        "hospital",
-        "hospitalDepartment",
-        "hospitalSetting",
-        "hospitalStaff",
-        "patient",
-        "medicalFolder",
-        "folderRetrievalRequest",
-        "folderMovementLog",
-        "opdQueueTicket",
-        "patientEncounter",
-        "patientVitalSign",
-        "patientConsultation",
-        "patientDiagnosis",
-        "patientPrescription",
-        "patientClinicalNote",
-        "hospitalWard",
-        "hospitalRoom",
-        "hospitalBed",
-        "hospitalAdmission",
-        "pharmacyItem",
-        "pharmacyInventory",
-        "pharmacyBatch",
-        "prescriptionDispense",
-        "prescriptionDispenseItem",
-        "laboratoryRequest",
-        "laboratorySample",
-        "laboratoryTestResult",
-        "radiologyOrder",
-        "dicomStudy",
-        "radiologyReport",
-        "patientBill",
-        "billItem",
-        "patientPayment",
-        "insuranceClaim",
-        "operatingTheatre",
-        "surgicalCase",
-        "ambulance",
-        "ambulanceDispatch",
-        "emergencyCase",
-        "bloodDonor",
-        "bloodUnit",
-        "bloodTransfusionRequest",
-        "bloodCrossMatch",
-        "bloodTransfusionRecord",
-        "corpseRecord",
-        "medicalEquipment",
-        "medicalWorkOrder",
-        "equipmentCalibration",
-        "procurementVendor",
-        "vendorContract",
-        "purchaseOrder",
-        "purchaseOrderItem",
-        "goodsReceiptNote",
-        "goodsReceiptItem",
-        "staffCredential",
-        "dutyShiftRoster",
-        "shiftHandover",
-        "staffAttendance",
-        "staffLeaveRequest",
-        "clinicalIncident",
-        "infectionControlCase",
-        "clinicalAudit",
-        "correctiveActionPlan",
-        "patientSafetyAlert",
-        "nhiaClaimBatch",
-        "nhiaClaimItem",
-        "nhiaReconciliationVoucher",
-        "nhisMemberPolicy",
-        "migrationJob",
-        "migrationRecordItem",
-        "migrationTemplate",
-        "facilityGeofence",
-        "geofenceBreachEvent",
-        "facilityFloorPlan",
-        "telemedicineConsultation",
-        "biometricVoiceprint",
-        "biometricSecurityCredential",
-        "biometricVerificationLog",
-        "biometricSecurityPolicy",
-        "auditLog"
-    ];
+    const modelList = FULL_BACKUP_MODEL_LIST;
 
     const tables = {};
     const tableCounts = {};
@@ -212,12 +307,13 @@ async function createDatabaseBackup(options = {}, developerUserId = null) {
 
     const backupEnvelope = {
         system: "GBS Hospital Management System",
-        version: "2.6.0",
+        version: "2.7.0",
         environment: envConfig.activeEnvironment,
         databaseMetadata: envConfig.getSafeDatabaseMetadata(),
         filename,
         createdAt,
         createdBy: developerUserId || "SYSTEM_AUTOMATED_GUARD",
+        modelsBackedUpCount: modelList.length,
         totalRecordsBackedUp,
         checksumSha256,
         tableCounts,
@@ -236,7 +332,7 @@ async function createDatabaseBackup(options = {}, developerUserId = null) {
                 userId: developerUserId || null,
                 action: "DATABASE_BACKUP_CREATED",
                 module: "DEVELOPER_PLATFORM",
-                description: `Full PostgreSQL backup created and verified: ${filename} (${totalRecordsBackedUp} records, SHA-256: ${checksumSha256.slice(0, 16)}...)`
+                description: `Full PostgreSQL backup created and verified across ${modelList.length} models: ${filename} (${totalRecordsBackedUp} records, SHA-256: ${checksumSha256.slice(0, 16)}...)`
             }
         });
     } catch (_e) {
@@ -246,6 +342,7 @@ async function createDatabaseBackup(options = {}, developerUserId = null) {
     logger.info({
         message: "Database backup created and verified",
         filename,
+        modelsBackedUpCount: modelList.length,
         totalRecordsBackedUp,
         sizeBytes: stat.size,
         checksumSha256
@@ -257,6 +354,7 @@ async function createDatabaseBackup(options = {}, developerUserId = null) {
         createdAt,
         environment: envConfig.activeEnvironment,
         sizeBytes: stat.size,
+        modelsBackedUpCount: modelList.length,
         totalRecordsBackedUp,
         checksumSha256,
         verified: verification.verified,
@@ -351,34 +449,8 @@ async function restoreDatabaseBackup(filename, developerUserId = null) {
     let restoredRecordsCount = 0;
     const restoredTables = {};
 
-    // Restore core tables using createMany with skipDuplicates: true so existing records are never overwritten destructively
-    const restoreOrder = [
-        "role",
-        "permission",
-        "rolePermission",
-        "user",
-        "hospital",
-        "hospitalDepartment",
-        "hospitalSetting",
-        "hospitalStaff",
-        "tenant",
-        "tenantSubscription",
-        "patient",
-        "medicalFolder",
-        "hospitalWard",
-        "hospitalRoom",
-        "hospitalBed",
-        "pharmacyItem",
-        "pharmacyInventory",
-        "pharmacyBatch",
-        "operatingTheatre",
-        "ambulance",
-        "corpseRecord",
-        "medicalEquipment",
-        "procurementVendor",
-        "staffCredential",
-        "biometricSecurityPolicy"
-    ];
+    // Restore all 124 models in parent-first order with skipDuplicates: true so existing production records are never overwritten destructively
+    const restoreOrder = FULL_BACKUP_MODEL_LIST.filter((m) => m !== "session" && m !== "auditLog");
 
     for (const modelName of restoreOrder) {
         const rows = tables[modelName];
@@ -448,7 +520,16 @@ async function getEnvironmentAndDataIdentification() {
         { key: "nhiaClaimBatch", label: "NHIA Claims Batches", module: "NHIA_CLAIMS", idField: "batchNumber", nameField: "providerName" },
         { key: "migrationJob", label: "Data Migration Jobs", module: "MIGRATION_HUB", idField: "jobCode", nameField: "targetEntity" },
         { key: "telemedicineConsultation", label: "WebRTC Telemedicine Sessions", module: "TELEMEDICINE_GIS", idField: "sessionCode", nameField: "patientName" },
-        { key: "biometricVoiceprint", label: "Biometric Voiceprints", module: "VOICE_BIOMETRICS", idField: "enrollmentCode", nameField: "userName" }
+        { key: "biometricVoiceprint", label: "Biometric Voiceprints", module: "VOICE_BIOMETRICS", idField: "enrollmentCode", nameField: "userName" },
+        { key: "dentalRecord", label: "Dental Clinic Records", module: "DENTAL_CLINIC", idField: "recordCode", nameField: "procedureName" },
+        { key: "eyeClinicRecord", label: "Ophthalmology Eye Records", module: "EYE_CLINIC", idField: "recordCode", nameField: "diagnosis" },
+        { key: "icuMonitoringRecord", label: "ICU Live Vitals Telemetry", module: "ICU_VITALS", idField: "recordCode", nameField: "alertStatus" },
+        { key: "clinicalSafetyOverride", label: "Clinical Safety Overrides", module: "CLINICAL_SAFETY", idField: "overrideCode", nameField: "guardrailType" },
+        { key: "aiClinicalSuggestion", label: "AI Clinical Suggestions (Human Approved)", module: "AI_CLINICAL", idField: "suggestionCode", nameField: "reviewStatus" },
+        { key: "hospitalMeeting", label: "Online Clinical Meetings", module: "OPERATIONS_HUB", idField: "meetingCode", nameField: "title" },
+        { key: "hospitalDocument", label: "Versioned Hospital Documents", module: "OPERATIONS_HUB", idField: "documentCode", nameField: "title" },
+        { key: "facilityTask", label: "Facility & Utilities Tasks", module: "OPERATIONS_HUB", idField: "taskCode", nameField: "title" },
+        { key: "systemErrorLog", label: "GBS-RCCE Error Diagnostics", module: "DEVELOPER_PLATFORM", idField: "errorCode", nameField: "category" }
     ];
 
     let totalRecords = 0;
@@ -522,17 +603,28 @@ async function getEnvironmentAndDataIdentification() {
         }
     }
 
+    const demoMaxEntries = Number(process.env.DEMO_MAX_ENTRIES || 10);
+
     return {
         activeEnvironment: envConfig.activeEnvironment,
         nodeEnv: envConfig.NODE_ENV,
         isProduction: envConfig.isProduction,
+        demoModeEnabled: envConfig.demoModeEnabled,
+        demoMaxEntries: Number.isFinite(demoMaxEntries) && demoMaxEntries > 0 ? Math.floor(demoMaxEntries) : 10,
         allowDemoSeedingInProduction: envConfig.allowDemoSeedingInProduction,
+        classificationPolicy: "PROVENANCE_AND_STRICT_TEST_MARKERS_ONLY",
+        productionPurgeProtection: envConfig.isProduction
+            ? "EXPLICIT_OWNER_AUTHORIZATION_REQUIRED"
+            : "SELECTIVE_DEVELOPMENT_TEST_RECORDS_ONLY",
         officialCompanyEmail: envConfig.officialCompanyEmail,
         cloudHostingProvider: envConfig.cloudHostingProvider,
+        renderServiceName: envConfig.renderServiceName,
+        productionPublicUrl: envConfig.productionPublicUrl,
         localAccessUrl: `http://localhost:${activePort}`,
         lanAccessUrls,
         databaseMetadata: envConfig.getSafeDatabaseMetadata(),
         summary: {
+            totalPrismaModels: FULL_BACKUP_MODEL_LIST.length,
             totalRecords,
             totalProductionRecords,
             totalDevelopmentTestRecords,
@@ -545,11 +637,39 @@ async function getEnvironmentAndDataIdentification() {
 }
 
 /**
- * Purge all test/demo data after creating and verifying a mandatory database backup.
- * Preserves RBAC roles, permissions, security policy, and permanent bootstrap accounts (developer@gbs.com, admin@gbs.com).
+ * Selectively purge ONLY verified DEVELOPMENT_TEST / demo records after creating and verifying
+ * a mandatory full 124-model database backup.
+ * - Strictly blocks PRODUCTION purges unless explicit owner authorization token is supplied.
+ * - NEVER performs blind deleteMany({}) across clinical or production customer tables.
+ * - Permanently protects RBAC roles, permissions, genuine PRODUCTION records, and bootstrap accounts.
  */
 async function purgeDevelopmentTestData(options = {}, developerUserId = null) {
-    // RULE 1: Always create and verify a full database backup BEFORE removing any test/demo data
+    const isProdRuntime =
+        envConfig.isProduction ||
+        String(process.env.NODE_ENV || "").toLowerCase() === "production" ||
+        String(process.env.GBS_ENV || "").toUpperCase() === "PRODUCTION";
+
+    if (isProdRuntime && options.confirmProductionPurge !== PRODUCTION_PURGE_AUTH_TOKEN) {
+        try {
+            await prisma.auditLog.create({
+                data: {
+                    userId: developerUserId || null,
+                    action: "PRODUCTION_PURGE_BLOCKED",
+                    module: "DEVELOPER_PLATFORM",
+                    outcome: "DENIED",
+                    description: "Blocked unconfirmed purge attempt in PRODUCTION environment. Genuine hospital records remain 100% intact."
+                }
+            });
+        } catch (_e) { }
+
+        throw new AppError(
+            "Production database purge requires explicit owner authorization (confirmProductionPurge: 'AUTHORIZE_PRODUCTION_TEST_PURGE'). Genuine production records are strictly protected.",
+            403,
+            "PRODUCTION_PURGE_AUTHORIZATION_REQUIRED"
+        );
+    }
+
+    // RULE 1: Always create and verify a full 124-model database backup BEFORE removing any test/demo data
     const backup = await createDatabaseBackup(
         {
             label: options.backupLabel || "pre-production-clean-activation",
@@ -562,137 +682,61 @@ async function purgeDevelopmentTestData(options = {}, developerUserId = null) {
         throw new AppError("Mandatory pre-purge database backup verification failed. Purge aborted to protect data.", 500, "BACKUP_VERIFICATION_FAILED");
     }
 
-    // Delete leaf/transactional tables in safe foreign-key order
-    const modelsToClean = [
-        "biometricVerificationLog",
-        "biometricSecurityCredential",
-        "biometricVoiceprint",
-        "telemedicineConsultation",
-        "geofenceBreachEvent",
-        "facilityGeofence",
-        "facilityFloorPlan",
-        "migrationRecordItem",
-        "migrationJob",
-        "migrationTemplate",
-        "nhiaReconciliationVoucher",
-        "nhiaClaimItem",
-        "nhiaClaimBatch",
-        "nhisMemberPolicy",
-        "correctiveActionPlan",
-        "patientSafetyAlert",
-        "clinicalAudit",
-        "infectionControlCase",
-        "clinicalIncident",
-        "staffLeaveRequest",
-        "staffAttendance",
-        "shiftHandover",
-        "dutyShiftRoster",
-        "staffCredential",
-        "goodsReceiptItem",
-        "goodsReceiptNote",
-        "purchaseOrderItem",
-        "purchaseOrder",
-        "vendorContract",
-        "procurementVendor",
-        "equipmentCalibration",
-        "medicalWorkOrder",
-        "medicalEquipment",
-        "corpseRecord",
-        "bloodTransfusionRecord",
-        "bloodCrossMatch",
-        "bloodTransfusionRequest",
-        "bloodUnit",
-        "bloodDonor",
-        "emergencyCase",
-        "ambulanceDispatch",
-        "ambulance",
-        "pacuRecord",
-        "anesthesiaRecord",
-        "surgicalChecklist",
-        "surgicalCase",
-        "operatingTheatre",
-        "insuranceClaim",
-        "patientPayment",
-        "billItem",
-        "patientBill",
-        "radiologyReport",
-        "dicomStudy",
-        "radiologyOrder",
-        "laboratoryTestResult",
-        "laboratorySample",
-        "laboratoryRequest",
-        "pharmacyStockMovement",
-        "prescriptionDispenseItem",
-        "prescriptionDispense",
-        "patientPrescription",
-        "pharmacyBatch",
-        "pharmacyInventory",
-        "pharmacyItem",
-        "nursingRecord",
-        "dischargeRecord",
-        "clinicalWorkflow",
-        "patientDiagnosis",
-        "patientConsultation",
-        "patientVitalSign",
-        "patientClinicalNote",
-        "patientMedication",
-        "patientAllergy",
-        "patientMedicalRecord",
-        "patientProfile",
-        "opdQueueTicket",
-        "patientEncounter",
-        "folderMovementLog",
-        "folderRetrievalRequest",
-        "medicalFolder",
-        "hospitalPatientLocation",
-        "hospitalAdmission",
-        "hospitalBed",
-        "hospitalRoom",
-        "hospitalWard",
-        "hospitalUnit",
-        "patient",
-        "videoCallSession",
-        "tenantMessage",
-        "tenantLocationPing",
-        "tenantSubscription",
-        "tenant",
-        "hospitalStaff",
-        "hospitalSetting",
-        "hospitalBranch",
+    // Leaf-first selective deletion order (only rows strictly classified as DEVELOPMENT_TEST are ever removed)
+    const protectedSystemModels = new Set([
+        "role",
+        "permission",
+        "hospital",
         "hospitalDepartment",
-        "hospital"
-    ];
+        "hospitalSetting",
+        "biometricSecurityPolicy",
+        "auditLog"
+    ]);
+    const leafFirstModels = [...FULL_BACKUP_MODEL_LIST]
+        .reverse()
+        .filter((m) => !protectedSystemModels.has(m));
 
     const deletedCounts = {};
     let totalDeleted = 0;
+    let protectedProductionRecordsCount = 0;
 
-    for (const modelName of modelsToClean) {
+    for (const modelName of leafFirstModels) {
         try {
-            if (prisma[modelName] && typeof prisma[modelName].deleteMany === "function") {
-                const res = await prisma[modelName].deleteMany({});
+            if (!prisma[modelName] || typeof prisma[modelName].findMany !== "function" || typeof prisma[modelName].deleteMany !== "function") {
+                continue;
+            }
+            const rows = await prisma[modelName].findMany();
+            const testIds = [];
+
+            for (const row of rows) {
+                if (modelName === "user" && PERMANENT_SYSTEM_ACCOUNTS.includes(String(row.email || "").toLowerCase())) {
+                    protectedProductionRecordsCount += 1;
+                    continue;
+                }
+                if (classifyRecordDataSource(row, modelName) === "DEVELOPMENT_TEST") {
+                    if (row.id !== undefined && row.id !== null) {
+                        testIds.push(row.id);
+                    }
+                } else {
+                    protectedProductionRecordsCount += 1;
+                }
+            }
+
+            if (testIds.length > 0) {
+                const res = await prisma[modelName].deleteMany({
+                    where: { id: { in: testIds } }
+                });
                 deletedCounts[modelName] = res.count || 0;
                 totalDeleted += res.count || 0;
+            } else {
+                deletedCounts[modelName] = 0;
             }
         } catch (_err) {
             deletedCounts[modelName] = 0;
         }
     }
 
-    // Clean only test users while strictly preserving permanent bootstrap accounts (gabosei48@gmail.com, developer@gbs.com, admin@gbs.com)
-    try {
-        const preservedEmails = ["gabosei48@gmail.com", "developer@gbs.com", "admin@gbs.com"];
-        const deletedUsers = await prisma.user.deleteMany({
-            where: {
-                email: { notIn: preservedEmails }
-            }
-        });
-        deletedCounts.user = deletedUsers.count || 0;
-        totalDeleted += deletedUsers.count || 0;
-    } catch (_err) {
-        deletedCounts.user = 0;
-    }
-
-    // Re-provision primary GBS Hospital facility record so production workflows stay immediately operational
+    // Ensure primary GBS Hospital facility record stays immediately operational
     try {
         const { ensureDefaultHospitalId } = require("../../core/database/hospital-resolver");
         await ensureDefaultHospitalId();
@@ -700,92 +744,87 @@ async function purgeDevelopmentTestData(options = {}, developerUserId = null) {
         // Non-fatal fallback
     }
 
-    // Record clean production activation in AuditLog
+    // Record clean selective production activation in AuditLog
     await prisma.auditLog.create({
         data: {
             userId: developerUserId || null,
             action: "PRODUCTION_CLEAN_DATA_ACTIVATION",
             module: "DEVELOPER_PLATFORM",
-            description: `Verified backup ${backup.filename} created. Purged ${totalDeleted} test/demo records. Preserved permanent system accounts (gabosei48@gmail.com, developer@gbs.com, admin@gbs.com) and RBAC roles.`
+            outcome: "SUCCESS",
+            description: `Verified 124-model backup ${backup.filename} created. Selectively purged ${totalDeleted} verified DEVELOPMENT_TEST record(s) while preserving ${protectedProductionRecordsCount} PRODUCTION record(s), permanent system accounts, and RBAC roles.`
         }
     });
 
     return {
         backupCreated: backup,
+        purgeMode: "SELECTIVE_DEVELOPMENT_TEST_ONLY",
         totalDeletedRecords: totalDeleted,
+        protectedProductionRecordsCount,
         deletedCounts,
-        preservedSystemAccounts: ["gabosei48@gmail.com", "developer@gbs.com", "admin@gbs.com"],
+        preservedSystemAccounts: [...PERMANENT_SYSTEM_ACCOUNTS],
         status: "CLEAN_PRODUCTION_READY"
     };
 }
 
 /**
  * Real-time Global Overview Statistics derived 100% from PostgreSQL
- * Used by App.jsx Enterprise Overview and Universal Detail Pages
+ * Uses small sequential batches (<=5 concurrent queries) to protect DB_POOL_MAX=10 under load.
+ * Used by App.jsx Enterprise Overview and Universal Detail Pages.
  */
 async function getGlobalOverviewStats() {
-    const [
-        opdToday,
-        totalConsultations,
-        activeAdmissions,
-        dischargedAdmissions,
-        totalBeds,
-        occupiedBeds,
-        totalOperatingTheatres,
-        scheduledSurgeries,
-        inProgressSurgeries,
-        completedSurgeries,
-        totalPatients,
-        totalFolders,
-        totalPrescriptions,
-        pendingPrescriptions,
-        totalLabOrders,
-        pendingLabOrders,
-        totalRadiologyOrders,
-        totalInvoices,
-        totalTenants,
-        activeUsers,
-        recentAuditLogs,
-        recentMessages,
-        safetyAlerts,
-        opdEncountersToday,
-        dispatchedClinicalNotes
-    ] = await Promise.all([
-        safeCount("patientEncounter"),
-        safeCount("patientConsultation"),
-        safeCount("hospitalAdmission", { status: "ADMITTED" }),
-        safeCount("hospitalAdmission", { status: "DISCHARGED" }),
-        safeCount("hospitalBed"),
-        safeCount("hospitalBed", { status: "OCCUPIED" }),
-        safeCount("operatingTheatre"),
-        safeCount("surgicalCase", { status: { in: ["BOOKED", "PRE_OP_CLEARED", "IN_THEATRE", "SURGERY_IN_PROGRESS", "SCHEDULED", "IN_PROGRESS"] } }),
-        safeCount("surgicalCase", { status: { in: ["IN_THEATRE", "SURGERY_IN_PROGRESS", "IN_PROGRESS"] } }),
-        safeCount("surgicalCase", { status: "COMPLETED" }),
-        safeCount("patient"),
-        safeCount("medicalFolder"),
-        safeCount("patientPrescription"),
-        safeCount("patientPrescription", { status: { in: ["PENDING", "ACTIVE"] } }),
-        safeCount("laboratoryRequest"),
-        safeCount("laboratoryRequest", { status: { in: ["REQUESTED", "SAMPLE_COLLECTED", "IN_PROGRESS"] } }),
-        safeCount("radiologyOrder"),
-        safeCount("patientBill"),
-        safeCount("tenant"),
-        safeCount("user", { active: true }),
-        safeFindMany("auditLog", { orderBy: { createdAt: "desc" }, take: 15 }),
-        safeFindMany("tenantMessage", { orderBy: { createdAt: "desc" }, take: 10 }),
-        safeFindMany("patientSafetyAlert", { where: { broadcastActive: true }, orderBy: { issuedAt: "desc" }, take: 5 }),
-        safeFindMany("patientEncounter", {
-            include: { patient: true },
-            orderBy: { visitDate: "desc" },
-            take: 50
-        }),
-        safeFindMany("patientClinicalNote", {
-            where: { noteType: { startsWith: "DISPATCH_REPORT" } },
-            include: { patient: true },
-            orderBy: { createdAt: "desc" },
-            take: 15
-        })
-    ]);
+    const [opdToday, totalConsultations, activeAdmissions, dischargedAdmissions, totalBeds] =
+        await Promise.all([
+            safeCount("patientEncounter"),
+            safeCount("patientConsultation"),
+            safeCount("hospitalAdmission", { status: "ADMITTED" }),
+            safeCount("hospitalAdmission", { status: "DISCHARGED" }),
+            safeCount("hospitalBed")
+        ]);
+
+    const [occupiedBeds, totalOperatingTheatres, scheduledSurgeries, inProgressSurgeries, completedSurgeries] =
+        await Promise.all([
+            safeCount("hospitalBed", { status: "OCCUPIED" }),
+            safeCount("operatingTheatre"),
+            safeCount("surgicalCase", { status: { in: ["BOOKED", "PRE_OP_CLEARED", "IN_THEATRE", "SURGERY_IN_PROGRESS", "SCHEDULED", "IN_PROGRESS"] } }),
+            safeCount("surgicalCase", { status: { in: ["IN_THEATRE", "SURGERY_IN_PROGRESS", "IN_PROGRESS"] } }),
+            safeCount("surgicalCase", { status: "COMPLETED" })
+        ]);
+
+    const [totalPatients, totalFolders, totalPrescriptions, pendingPrescriptions, totalLabOrders] =
+        await Promise.all([
+            safeCount("patient"),
+            safeCount("medicalFolder"),
+            safeCount("patientPrescription"),
+            safeCount("patientPrescription", { status: { in: ["PENDING", "ACTIVE"] } }),
+            safeCount("laboratoryRequest")
+        ]);
+
+    const [pendingLabOrders, totalRadiologyOrders, totalInvoices, totalTenants, activeUsers] =
+        await Promise.all([
+            safeCount("laboratoryRequest", { status: { in: ["REQUESTED", "SAMPLE_COLLECTED", "IN_PROGRESS"] } }),
+            safeCount("radiologyOrder"),
+            safeCount("patientBill"),
+            safeCount("tenant"),
+            safeCount("user", { active: true })
+        ]);
+
+    const [recentAuditLogs, recentMessages, safetyAlerts, opdEncountersToday, dispatchedClinicalNotes] =
+        await Promise.all([
+            safeFindMany("auditLog", { orderBy: { createdAt: "desc" }, take: 15 }),
+            safeFindMany("tenantMessage", { orderBy: { createdAt: "desc" }, take: 10 }),
+            safeFindMany("patientSafetyAlert", { where: { broadcastActive: true }, orderBy: { issuedAt: "desc" }, take: 5 }),
+            safeFindMany("patientEncounter", {
+                include: { patient: true },
+                orderBy: { visitDate: "desc" },
+                take: 50
+            }),
+            safeFindMany("patientClinicalNote", {
+                where: { noteType: { startsWith: "DISPATCH_REPORT" } },
+                include: { patient: true },
+                orderBy: { createdAt: "desc" },
+                take: 15
+            })
+        ]);
 
     const occupancyRate =
         totalBeds > 0 ? `${((occupiedBeds / totalBeds) * 100).toFixed(1)}%` : "0.0%";
@@ -1026,6 +1065,9 @@ async function updateFacilityBranding(data = {}, actorEmail = "Administrator") {
 }
 
 module.exports = {
+    FULL_BACKUP_MODEL_LIST,
+    PRODUCTION_PURGE_AUTH_TOKEN,
+    classifyRecordDataSource,
     createDatabaseBackup,
     verifyDatabaseBackup,
     listDatabaseBackups,

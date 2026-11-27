@@ -195,23 +195,55 @@ export default function UniversalDetailPage({
           });
           setExtraRecords(detailState.recordData);
         } else {
-          const overview = await api.getGlobalOverviewStats().catch(() => null);
-          if (!detailState?.recordData) {
-            setLiveData(overview?.metrics || {});
+          const moduleLoaded = !detailState?.recordData
+            ? await fetchModuleLiveRecords(moduleKey)
+            : null;
+
+          if (moduleLoaded && Array.isArray(moduleLoaded.records)) {
+            setLiveData(moduleLoaded.summary);
+            setExtraRecords(moduleLoaded.records);
           } else {
-            setLiveData(detailState.recordData);
+            const overview = await api.getGlobalOverviewStats().catch(() => null);
+            if (!detailState?.recordData) {
+              setLiveData(overview?.metrics || {});
+            } else {
+              setLiveData(detailState.recordData);
+            }
+            if (Array.isArray(detailState?.recordData?.encountersToday)) {
+              setExtraRecords(detailState.recordData.encountersToday);
+            } else if (Array.isArray(detailState?.recordsList)) {
+              setExtraRecords(detailState.recordsList);
+            } else if (envRes?.tables) {
+              setExtraRecords(envRes.tables);
+            }
           }
-          if (Array.isArray(detailState?.recordData?.encountersToday)) {
-            setExtraRecords(detailState.recordData.encountersToday);
-          } else if (Array.isArray(detailState?.recordsList)) {
-            setExtraRecords(detailState.recordsList);
-          } else if (envRes?.tables) {
-            setExtraRecords(envRes.tables);
+        }
+      } else if (detailType === 'VIEW_DETAILS' && (!detailState?.recordData || Object.keys(detailState.recordData).length === 0)) {
+        const loaded = await fetchModuleLiveRecords(moduleKey, recordId);
+        if (loaded) {
+          if (loaded.matchedRecord) {
+            setLiveData(loaded.matchedRecord);
+            setExtraRecords(loaded.relatedRecords || []);
+          } else {
+            setLiveData(loaded.summary || {});
+            setExtraRecords(loaded.records || []);
           }
         }
       } else if (detailType === 'VIEW_PROFILE' && recordId && !detailState?.recordData) {
         const normalizedId = String(recordId).toLowerCase();
-        if (['all', 'directory', 'list'].includes(normalizedId)) {
+        if (moduleKey === 'EXECUTIVE_BI') {
+          const usersRes = await api.getUsers().catch(() => ({ users: [] }));
+          const userList = Array.isArray(usersRes) ? usersRes : (usersRes?.users || []);
+          const foundUser = userList.find(
+            (u) => String(u.id) === String(recordId) || String(u.email || '').toLowerCase() === normalizedId
+          );
+          if (foundUser) {
+            setLiveData(foundUser);
+          } else {
+            setLiveData({ directory: 'Hospital Staff Directory', totalStaffReturned: userList.length });
+            setExtraRecords(userList);
+          }
+        } else if (['all', 'directory', 'list'].includes(normalizedId)) {
           const mpi = await api.searchMPI('').catch(() => null);
           const list = Array.isArray(mpi?.patients) ? mpi.patients : [];
           setLiveData({
@@ -293,20 +325,31 @@ export default function UniversalDetailPage({
   });
 
   const heroImageMap = {
+    OVERVIEW: '/assets/images/hospital_hero_exterior.jpg',
     PATIENTS: '/assets/images/patient_registration_archive_real.jpg',
     PATIENT_MPI: '/assets/images/patient_registration_archive_real.jpg',
+    PATIENT_PORTAL: '/assets/images/hospital_hero_exterior.jpg',
     CLINICAL: '/assets/images/doctor_consultation_real.jpg',
     WARDS: '/assets/images/inpatient_ward_bed_real.jpg',
+    ICU: '/assets/images/inpatient_ward_bed_real.jpg',
     PHARMACY: '/assets/images/pharmacy_dispensary_real.jpg',
     SURGERY: '/assets/images/operating_theatre_real.jpg',
+    DENTAL: '/assets/images/dental_clinic_real.jpg',
+    EYE_CLINIC: '/assets/images/ophthalmology_eye_clinic_real.jpg',
     EMERGENCY: '/assets/images/emergency_ambulance_fleet_real.jpg',
+    LABORATORY: '/assets/images/laboratory_pathology_real.jpg',
+    RADIOLOGY: '/assets/images/radiology_pacs_mri_real.jpg',
     BLOOD_BANK: '/assets/images/blood_bank_transfusion_real.jpg',
     MORTUARY: '/assets/images/mortuary_cold_storage_real.jpg',
     BIOMEDICAL: '/assets/images/biomedical_engineering_equipment_real.jpg',
+    BILLING: '/assets/images/nhia_claims_center_real.jpg',
+    NHIA_CLAIMS: '/assets/images/nhia_claims_center_real.jpg',
     PROCUREMENT: '/assets/images/procurement_supply_chain_real.jpg',
     HR: '/assets/images/hr_medical_staff_real.jpg',
     QUALITY: '/assets/images/quality_infection_control_real.jpg',
-    NHIA_CLAIMS: '/assets/images/nhia_claims_center_real.jpg',
+    AI_SAFETY: '/assets/images/quality_infection_control_real.jpg',
+    EXECUTIVE_BI: '/assets/images/hospital_director_boardroom_real.jpg',
+    OPERATIONS_HUB: '/assets/images/hospital_admin_office_real.jpg',
     MIGRATION: '/assets/images/migration_data_center_real.jpg',
     TELEMEDICINE: '/assets/images/telemedicine_command_center_real.jpg',
     VOICE_AUTH: '/assets/images/voice_biometric_security_real.jpg',
@@ -715,18 +758,34 @@ export default function UniversalDetailPage({
                     const identifier =
                       row.reference ||
                       row.invoiceNumber ||
+                      row.billNumber ||
+                      row.monitorCode ||
+                      row.suggestionCode ||
+                      row.overrideCode ||
+                      row.sessionCode ||
+                      row.jobCode ||
+                      row.meetingCode ||
+                      row.documentCode ||
+                      row.taskCode ||
+                      row.recordCode ||
+                      row.requestNumber ||
+                      row.accessionNumber ||
                       row.tableKey ||
                       row.action ||
                       row.type ||
                       row.code ||
                       row.mrn ||
+                      row.patientNumber ||
                       row.id ||
                       `ROW-${idx + 1}`;
                     const summary =
                       row.applicantName ||
                       row.label ||
+                      row.recommendationSummary ||
+                      row.overrideReason ||
                       row.description ||
                       row.title ||
+                      row.patientName ||
                       row.name ||
                       (row.firstName ? `${row.firstName} ${row.lastName || ''}` : '') ||
                       JSON.stringify(row).slice(0, 90);
@@ -795,6 +854,177 @@ export default function UniversalDetailPage({
       )}
     </div>
   );
+}
+
+async function fetchModuleLiveRecords(moduleKey, recordId = null) {
+  const matchRecord = (rows) => {
+    if (!recordId || ['all', 'summary', 'live', 'directory'].includes(String(recordId).toLowerCase())) {
+      return null;
+    }
+    const target = String(recordId).toLowerCase();
+    return rows.find((r) =>
+      [
+        r.id,
+        r.code,
+        r.monitorCode,
+        r.suggestionCode,
+        r.overrideCode,
+        r.sessionCode,
+        r.jobCode,
+        r.meetingCode,
+        r.documentCode,
+        r.taskCode,
+        r.recordCode,
+        r.requestNumber,
+        r.accessionNumber,
+        r.billNumber,
+        r.email
+      ].some((v) => v !== undefined && v !== null && String(v).toLowerCase() === target)
+    ) || null;
+  };
+
+  try {
+    if (moduleKey === 'EXECUTIVE_BI') {
+      const [usersRes, counts] = await Promise.all([
+        api.getUsers().catch(() => ({ users: [] })),
+        api.getCountsByRole().catch(() => null)
+      ]);
+      const records = Array.isArray(usersRes) ? usersRes : (usersRes?.users || []);
+      return {
+        summary: {
+          module: 'Executive BI & Staff Governance',
+          totalSystemUsers: counts?.summary?.totalSystemUsers ?? records.length,
+          totalActiveUsers: counts?.summary?.totalActiveUsers ?? records.filter((u) => u.active).length
+        },
+        records,
+        matchedRecord: matchRecord(records)
+      };
+    }
+
+    if (moduleKey === 'OPERATIONS_HUB') {
+      const [mRes, dRes, fRes] = await Promise.all([
+        api.getMeetings().catch(() => ({ meetings: [] })),
+        api.getDocuments().catch(() => ({ documents: [] })),
+        api.getFacilityTasks().catch(() => ({ tasks: [] }))
+      ]);
+      const meetings = mRes?.meetings || [];
+      const documents = dRes?.documents || [];
+      const tasks = fRes?.tasks || [];
+      const records = [...meetings, ...documents, ...tasks];
+      return {
+        summary: {
+          module: 'Hospital Operations Suite',
+          totalMeetings: meetings.length,
+          totalDocuments: documents.length,
+          totalFacilityTasks: tasks.length
+        },
+        records,
+        matchedRecord: matchRecord(records)
+      };
+    }
+
+    if (moduleKey === 'ICU') {
+      const monRes = await api.getIcuMonitors().catch(() => ({ records: [] }));
+      const records = monRes?.records || (Array.isArray(monRes) ? monRes : []);
+      return {
+        summary: { module: 'ICU & Live Vitals Telemetry', totalReadings: records.length },
+        records,
+        matchedRecord: matchRecord(records)
+      };
+    }
+
+    if (moduleKey === 'AI_SAFETY') {
+      const [sugRes, ovrRes] = await Promise.all([
+        api.getAiClinicalSuggestions().catch(() => ({ suggestions: [] })),
+        api.getClinicalSafetyOverrides().catch(() => ({ overrides: [] }))
+      ]);
+      const suggestions = sugRes?.suggestions || [];
+      const overrides = ovrRes?.overrides || [];
+      const records = [...suggestions, ...overrides];
+      return {
+        summary: {
+          module: 'Patient Safety Guardrails & AI Clinical Assistance',
+          totalAiSuggestions: suggestions.length,
+          totalSafetyOverrides: overrides.length
+        },
+        records,
+        matchedRecord: matchRecord(records)
+      };
+    }
+
+    if (moduleKey === 'TELEMEDICINE') {
+      const [consRes, geoRes] = await Promise.all([
+        api.getTelemedicineConsultations().catch(() => ({ data: [] })),
+        api.getGeofences().catch(() => ({ data: [] }))
+      ]);
+      const consultations = Array.isArray(consRes?.data) ? consRes.data : (Array.isArray(consRes) ? consRes : []);
+      const geofences = Array.isArray(geoRes?.data) ? geoRes.data : (Array.isArray(geoRes) ? geoRes : []);
+      const records = [...consultations, ...geofences];
+      return {
+        summary: {
+          module: 'Telemedicine & GIS Facility Tracking',
+          totalConsultations: consultations.length,
+          totalGeofences: geofences.length
+        },
+        records,
+        matchedRecord: matchRecord(records)
+      };
+    }
+
+    if (moduleKey === 'MIGRATION') {
+      if (recordId && !['all', 'summary', 'live'].includes(String(recordId).toLowerCase())) {
+        const one = await api.getMigrationJob(recordId).catch(() => null);
+        if (one?.data) {
+          return {
+            summary: { module: 'Enterprise Data Migration Hub', jobCode: one.data.jobCode },
+            records: one.data.records || [],
+            matchedRecord: one.data,
+            relatedRecords: one.data.records || []
+          };
+        }
+      }
+      const jobsRes = await api.getMigrationJobs().catch(() => ({ data: [] }));
+      const records = Array.isArray(jobsRes?.data) ? jobsRes.data : (Array.isArray(jobsRes) ? jobsRes : []);
+      return {
+        summary: { module: 'Enterprise Data Migration Hub', totalJobs: records.length },
+        records,
+        matchedRecord: matchRecord(records)
+      };
+    }
+
+    if (moduleKey === 'DENTAL') {
+      const res = await api.getDentalRecords().catch(() => ({ records: [] }));
+      const records = res?.records || (Array.isArray(res) ? res : []);
+      return { summary: { module: 'Dental Clinic', totalRecords: records.length }, records, matchedRecord: matchRecord(records) };
+    }
+
+    if (moduleKey === 'EYE_CLINIC') {
+      const res = await api.getEyeClinicExams().catch(() => ({ exams: [] }));
+      const records = res?.exams || res?.records || (Array.isArray(res) ? res : []);
+      return { summary: { module: 'Eye Clinic & Ophthalmology', totalExams: records.length }, records, matchedRecord: matchRecord(records) };
+    }
+
+    if (moduleKey === 'LABORATORY') {
+      const res = await api.getLabRequests().catch(() => []);
+      const records = Array.isArray(res) ? res : (res?.requests || res?.data || []);
+      return { summary: { module: 'Laboratory & Pathology', totalRequests: records.length }, records, matchedRecord: matchRecord(records) };
+    }
+
+    if (moduleKey === 'RADIOLOGY') {
+      const res = await api.getRadiologyOrders().catch(() => []);
+      const records = Array.isArray(res) ? res : (res?.orders || res?.data || []);
+      return { summary: { module: 'Radiology & PACS', totalOrders: records.length }, records, matchedRecord: matchRecord(records) };
+    }
+
+    if (moduleKey === 'BILLING') {
+      const res = await api.getBills().catch(() => []);
+      const records = Array.isArray(res) ? res : (res?.bills || res?.data || []);
+      return { summary: { module: 'Billing & Payments', totalBills: records.length }, records, matchedRecord: matchRecord(records) };
+    }
+  } catch (_err) {
+    return null;
+  }
+  return null;
 }
 
 function formatDetailTitle(detailType, moduleKey) {

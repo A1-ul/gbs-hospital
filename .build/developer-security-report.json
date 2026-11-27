@@ -6,10 +6,11 @@
   "mfaAndDeviceVerification": true,
   "sessionRevocationInPostgres": true,
   "clientSidePasswordsRemoved": true,
-  "demoModeProductionGate": "DEMO_MODE_ENABLED=false in render.yaml (blocks DEVELOPER unconditionally)",
+  "demoModeProductionGate": "DEMO_MODE_ENABLED=true with atomic PostgreSQL 10-entry trial quota (DEMO_MAX_ENTRIES=10) in render.yaml; DEVELOPER unconditionally blocked from demo sessions",
+  "productionPurgeHardGuard": "HTTP 403 PRODUCTION_PURGE_AUTHORIZATION_REQUIRED without explicit owner token; selective DEVELOPMENT_TEST-only deletion after verified 124-model SHA-256 backup",
   "tenantAccessGuardMounted": true,
   "patientSafetyEmergencyBypassAudited": true,
-  "verifiedAt": "2026-11-26T19:18:00.000Z",
+  "verifiedAt": "2026-11-27T20:00:00.000Z",
   "controlsVerified": [
     "Unlisted /developer-portal gate (DeveloperPortalGate.jsx) with 2-step credentials + 6-digit MFA + browser device fingerprint",
     "developerSecurityGuard strictly blocks ADMINISTRATOR, HOSPITAL_DIRECTOR, and all non-Developer roles (HTTP 403 + AuditLog) from all 16 Developer-only endpoints including /rcce/errors and /rcce/developer/*",

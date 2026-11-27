@@ -6,7 +6,11 @@ import {
 } from 'lucide-react';
 import { api } from '../../services/api.service';
 
-export default function MigrationView() {
+export default function MigrationView({ onNavigateDetail }) {
+  const openDetail = (payload) => {
+    const fn = onNavigateDetail || (typeof window !== 'undefined' ? window.gbsNavigateDetail : null);
+    if (typeof fn === 'function') fn(payload);
+  };
   const [activeTab, setActiveTab] = useState('PIPELINE'); // PIPELINE, JOBS, TEMPLATES, TELEMETRY
   const [telemetry, setTelemetry] = useState(null);
   const [catalogs, setCatalogs] = useState({ supportedSources: [], targetEntities: {} });
@@ -34,10 +38,6 @@ export default function MigrationView() {
   // Template Save State
   const [saveTemplateName, setSaveTemplateName] = useState('');
   const [duplicateStrategy, setDuplicateStrategy] = useState('SKIP');
-
-  // Job Details Modal
-  const [selectedJobDetails, setSelectedJobDetails] = useState(null);
-  const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   useEffect(() => {
     fetchCatalogs();
@@ -216,7 +216,6 @@ export default function MigrationView() {
         setFeedback({ type: 'success', text: `Atomic rollback executed! ${res.data.revertedCount} entities reverted in PostgreSQL.` });
         fetchJobs();
         fetchTelemetry();
-        if (showDetailsModal) setShowDetailsModal(false);
       }
     } catch (err) {
       setFeedback({ type: 'error', text: err.message || 'Rollback failed' });
@@ -225,14 +224,22 @@ export default function MigrationView() {
     }
   };
 
-  // View Job Details
+  // View Job Details on Dedicated Full Page (Zero Popup Modal)
   const handleViewJobDetails = async (jobId) => {
     setLoading(true);
     try {
       const res = await api.getMigrationJob(jobId);
       if (res && res.data) {
-        setSelectedJobDetails(res.data);
-        setShowDetailsModal(true);
+        const job = res.data;
+        openDetail({
+          detailType: 'VIEW_DETAILS',
+          moduleKey: 'MIGRATION',
+          recordId: String(job.id || jobId),
+          title: `Migration Job Audit Trail — ${job.jobCode}`,
+          subtitle: `Target: ${job.targetEntity} • Source: ${job.sourceType} • Status: ${job.status}`,
+          recordData: job,
+          recordsList: Array.isArray(job.records) ? job.records : []
+        });
       }
     } catch (err) {
       setFeedback({ type: 'error', text: err.message || 'Failed to fetch job details' });
@@ -295,8 +302,8 @@ export default function MigrationView() {
       {/* Global Feedback Banner */}
       {feedback && (
         <div className={`p-4 rounded-xl border flex items-center justify-between transition-all ${feedback.type === 'error' ? 'bg-red-950/40 border-red-500/30 text-red-200' :
-            feedback.type === 'success' ? 'bg-emerald-950/40 border-emerald-500/30 text-emerald-200' :
-              'bg-amber-950/40 border-amber-500/30 text-amber-200'
+          feedback.type === 'success' ? 'bg-emerald-950/40 border-emerald-500/30 text-emerald-200' :
+            'bg-amber-950/40 border-amber-500/30 text-amber-200'
           }`}>
           <div className="flex items-center gap-3">
             {feedback.type === 'error' ? <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0" /> :
@@ -325,8 +332,8 @@ export default function MigrationView() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 transition-all ${isActive
-                  ? 'border-amber-400 text-amber-400 bg-amber-500/5'
-                  : 'border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-700'
+                ? 'border-amber-400 text-amber-400 bg-amber-500/5'
+                : 'border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-700'
                 }`}
             >
               <Icon className="w-4 h-4" />
@@ -353,14 +360,14 @@ export default function MigrationView() {
                 <div
                   key={step.num}
                   className={`p-4 rounded-xl border transition-all ${isCurrent ? 'bg-amber-950/20 border-amber-500/50 shadow-md shadow-amber-500/10' :
-                      isDone ? 'bg-slate-900/60 border-emerald-500/40 text-slate-300' :
-                        'bg-slate-900/40 border-slate-800 text-slate-500'
+                    isDone ? 'bg-slate-900/60 border-emerald-500/40 text-slate-300' :
+                      'bg-slate-900/40 border-slate-800 text-slate-500'
                     }`}
                 >
                   <div className="flex items-center gap-3">
                     <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${isCurrent ? 'bg-amber-500 text-slate-950' :
-                        isDone ? 'bg-emerald-500 text-slate-950' :
-                          'bg-slate-800 text-slate-400'
+                      isDone ? 'bg-emerald-500 text-slate-950' :
+                        'bg-slate-800 text-slate-400'
                       }`}>
                       {isDone ? <CheckCircle className="w-4 h-4" /> : step.num}
                     </div>
@@ -664,8 +671,8 @@ export default function MigrationView() {
                           <td className="py-2.5 px-3 text-slate-400">#{item.rowNumber}</td>
                           <td className="py-2.5 px-3">
                             <span className={`px-2 py-0.5 rounded text-[11px] font-sans font-semibold ${item.status === 'VALID' ? 'bg-emerald-950/60 border border-emerald-500/40 text-emerald-300' :
-                                item.status === 'DUPLICATE' ? 'bg-amber-950/60 border border-amber-500/40 text-amber-300' :
-                                  'bg-red-950/60 border border-red-500/40 text-red-300'
+                              item.status === 'DUPLICATE' ? 'bg-amber-950/60 border border-amber-500/40 text-amber-300' :
+                                'bg-red-950/60 border border-red-500/40 text-red-300'
                               }`}>
                               {item.status}
                             </span>
@@ -859,10 +866,10 @@ export default function MigrationView() {
                       </td>
                       <td className="py-3 px-4">
                         <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${job.status === 'COMPLETED' ? 'bg-emerald-950/60 border border-emerald-500/40 text-emerald-300' :
-                            job.status === 'ROLLED_BACK' ? 'bg-red-950/60 border border-red-500/40 text-red-300' :
-                              job.status === 'APPROVED' ? 'bg-blue-950/60 border border-blue-500/40 text-blue-300' :
-                                job.status === 'PROCESSING' ? 'bg-purple-950/60 border border-purple-500/40 text-purple-300 animate-pulse' :
-                                  'bg-amber-950/60 border border-amber-500/40 text-amber-300'
+                          job.status === 'ROLLED_BACK' ? 'bg-red-950/60 border border-red-500/40 text-red-300' :
+                            job.status === 'APPROVED' ? 'bg-blue-950/60 border border-blue-500/40 text-blue-300' :
+                              job.status === 'PROCESSING' ? 'bg-purple-950/60 border border-purple-500/40 text-purple-300 animate-pulse' :
+                                'bg-amber-950/60 border border-amber-500/40 text-amber-300'
                           }`}>
                           {job.status}
                         </span>
@@ -938,13 +945,31 @@ export default function MigrationView() {
                       <div>Created By: <span className="text-slate-300">{tmpl.createdBy}</span></div>
                     </div>
                   </div>
-                  <button
-                    onClick={() => handleApplyTemplate(tmpl)}
-                    className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-amber-500 hover:text-slate-950 text-slate-200 transition-all"
-                  >
-                    Load into Pipeline
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        openDetail({
+                          detailType: 'VIEW_DETAILS',
+                          moduleKey: 'MIGRATION',
+                          recordId: String(tmpl.id),
+                          title: `Mapping Template: ${tmpl.name}`,
+                          recordData: tmpl
+                        })
+                      }
+                      className="inline-flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-medium bg-slate-900 hover:bg-slate-800 text-amber-300 border border-slate-700 transition-all"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      Details
+                    </button>
+                    <button
+                      onClick={() => handleApplyTemplate(tmpl)}
+                      className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-amber-500 hover:text-slate-950 text-slate-200 transition-all"
+                    >
+                      Load into Pipeline
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               ))
             ) : (
@@ -961,22 +986,34 @@ export default function MigrationView() {
         <div className="space-y-6">
           {/* Top Metric Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl">
+            <div
+              onClick={() => openDetail({ detailType: 'VIEW_RECORDS', moduleKey: 'MIGRATION', recordId: 'all-jobs', title: 'All Data Migration Jobs', recordData: jobs })}
+              className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl cursor-pointer"
+            >
               <div className="text-xs font-semibold text-slate-400 mb-1">Total Migration Jobs</div>
               <div className="text-3xl font-extrabold text-white">{telemetry.totalJobs}</div>
               <div className="text-xs text-emerald-400 mt-2">{telemetry.completedJobs} Completed Successfully</div>
             </div>
-            <div className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl">
+            <div
+              onClick={() => openDetail({ detailType: 'VIEW_RECORDS', moduleKey: 'MIGRATION', recordId: 'imported-jobs', title: 'Completed Migration Imports', recordData: jobs.filter((j) => j.status === 'COMPLETED') })}
+              className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl cursor-pointer"
+            >
               <div className="text-xs font-semibold text-slate-400 mb-1">Total Records Processed</div>
               <div className="text-3xl font-extrabold text-amber-400">{telemetry.totalRecordsProcessed}</div>
               <div className="text-xs text-slate-400 mt-2">{telemetry.totalRecordsImported} Written to Database</div>
             </div>
-            <div className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl">
+            <div
+              onClick={() => openDetail({ detailType: 'VIEW_REPORTS', moduleKey: 'MIGRATION', recordId: 'ingestion-summary', title: 'Migration Ingestion Quality Report', recordData: telemetry })}
+              className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl cursor-pointer"
+            >
               <div className="text-xs font-semibold text-slate-400 mb-1">Overall Ingestion Success</div>
               <div className="text-3xl font-extrabold text-emerald-400">{telemetry.overallSuccessRate}%</div>
               <div className="text-xs text-slate-400 mt-2">{telemetry.totalRecordsFailed} Invalid / Filtered</div>
             </div>
-            <div className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl">
+            <div
+              onClick={() => openDetail({ detailType: 'VIEW_RECORDS', moduleKey: 'MIGRATION', recordId: 'rolled-back-jobs', title: 'Rolled-Back Migration Jobs', recordData: jobs.filter((j) => j.status === 'ROLLED_BACK') })}
+              className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl cursor-pointer"
+            >
               <div className="text-xs font-semibold text-slate-400 mb-1">Atomic Rollbacks</div>
               <div className="text-3xl font-extrabold text-red-400">{telemetry.rolledBackJobs}</div>
               <div className="text-xs text-slate-400 mt-2">{telemetry.totalDuplicatesDetected} Duplicates Blocked</div>
@@ -1019,104 +1056,6 @@ export default function MigrationView() {
                   </div>
                 ))}
               </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL: Comprehensive Job Details */}
-      {showDetailsModal && selectedJobDetails && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6 space-y-6 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-              <div>
-                <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-amber-400" />
-                  Job Audit Trail &bull; {selectedJobDetails.jobCode}
-                </h3>
-                <p className="text-xs text-slate-400">Target: {selectedJobDetails.targetEntity} &bull; Source: {selectedJobDetails.sourceType}</p>
-              </div>
-              <button onClick={() => setShowDetailsModal(false)} className="text-slate-400 hover:text-white">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Key stats */}
-            <div className="grid grid-cols-4 gap-4 text-xs font-mono">
-              <div className="p-3 bg-slate-950 rounded-lg border border-slate-800">
-                <span className="text-slate-500 block">Total Rows:</span>
-                <span className="text-white font-bold text-sm">{selectedJobDetails.totalRecords}</span>
-              </div>
-              <div className="p-3 bg-slate-950 rounded-lg border border-slate-800">
-                <span className="text-slate-500 block">Imported:</span>
-                <span className="text-emerald-400 font-bold text-sm">{selectedJobDetails.importedRecords}</span>
-              </div>
-              <div className="p-3 bg-slate-950 rounded-lg border border-slate-800">
-                <span className="text-slate-500 block">Status:</span>
-                <span className="text-amber-400 font-bold text-sm">{selectedJobDetails.status}</span>
-              </div>
-              <div className="p-3 bg-slate-950 rounded-lg border border-slate-800">
-                <span className="text-slate-500 block">Initiated By:</span>
-                <span className="text-slate-300 font-bold text-xs">{selectedJobDetails.initiatedBy}</span>
-              </div>
-            </div>
-
-            {/* Records List */}
-            <div>
-              <h4 className="text-xs font-semibold text-slate-300 uppercase mb-2">Record-Level Breakdown</h4>
-              <div className="overflow-x-auto rounded-xl border border-slate-800 max-h-64">
-                <table className="w-full text-left text-xs text-slate-300">
-                  <thead className="bg-slate-950 text-slate-400 uppercase sticky top-0">
-                    <tr>
-                      <th className="py-2 px-3">#</th>
-                      <th className="py-2 px-3">Status</th>
-                      <th className="py-2 px-3">Destination Entity ID</th>
-                      <th className="py-2 px-3">Error / Remark</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-800">
-                    {selectedJobDetails.records?.map(r => (
-                      <tr key={r.id} className="font-mono hover:bg-slate-800/40">
-                        <td className="py-2 px-3 text-slate-400">#{r.rowNumber}</td>
-                        <td className="py-2 px-3">
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-sans font-semibold ${r.status === 'IMPORTED' ? 'bg-emerald-950/60 text-emerald-300' :
-                              r.status === 'ROLLED_BACK' ? 'bg-red-950/60 text-red-300' :
-                                r.status === 'VALID' ? 'bg-blue-950/60 text-blue-300' :
-                                  'bg-amber-950/60 text-amber-300'
-                            }`}>
-                            {r.status}
-                          </span>
-                        </td>
-                        <td className="py-2 px-3 text-slate-300 font-mono text-[11px]">
-                          {r.destinationId || '-'}
-                        </td>
-                        <td className="py-2 px-3 font-sans text-xs text-slate-400">
-                          {r.errorMessage || 'Clean'}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
-              {selectedJobDetails.status === 'COMPLETED' && (
-                <button
-                  type="button"
-                  onClick={() => handleRollback(selectedJobDetails.id)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-red-950 hover:bg-red-900 border border-red-500/50 text-red-200 transition-all"
-                >
-                  Rollback Created Entities
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={() => setShowDetailsModal(false)}
-                className="px-4 py-2 rounded-xl text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200"
-              >
-                Close
-              </button>
             </div>
           </div>
         </div>

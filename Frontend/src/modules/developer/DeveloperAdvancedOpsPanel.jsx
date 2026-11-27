@@ -9,6 +9,7 @@ export default function DeveloperAdvancedOpsPanel({ onStatusMsg }) {
   const [analytics, setAnalytics] = useState(null);
   const [faceStatus, setFaceStatus] = useState(null);
   const [clusterHealth, setClusterHealth] = useState(null);
+  const [envStatus, setEnvStatus] = useState(null);
   const [featureFlags, setFeatureFlags] = useState([]);
   const [rollbackInfo, setRollbackInfo] = useState(null);
   const [sweepResult, setSweepResult] = useState(null);
@@ -20,14 +21,17 @@ export default function DeveloperAdvancedOpsPanel({ onStatusMsg }) {
   const loadAll = async () => {
     setLoading(true);
     try {
-      const [diag, integ, anal, face, cluster, flagsRes, rb] = await Promise.all([
+      const [diag, integ, anal, face] = await Promise.all([
         api.getAiDeveloperDiagnostics().catch(() => null),
         api.getDeveloperIntegrationsStatus().catch(() => null),
         api.getDeveloperTenantAnalytics().catch(() => null),
         api.getFaceBiometricStatus().catch(() => null),
+      ]);
+      const [cluster, flagsRes, rb, envRes] = await Promise.all([
         api.getDeveloperClusterHealth().catch(() => null),
         api.getDeveloperFeatureFlags().catch(() => null),
         api.getDeveloperRollbackReadiness().catch(() => null),
+        api.getDeveloperEnvironmentStatus().catch(() => null),
       ]);
       setDiagnostics(diag);
       setIntegrations(integ);
@@ -36,6 +40,7 @@ export default function DeveloperAdvancedOpsPanel({ onStatusMsg }) {
       setClusterHealth(cluster);
       setFeatureFlags(Array.isArray(flagsRes?.flags) ? flagsRes.flags : []);
       setRollbackInfo(rb);
+      setEnvStatus(envRes);
     } finally {
       setLoading(false);
     }
@@ -238,9 +243,39 @@ export default function DeveloperAdvancedOpsPanel({ onStatusMsg }) {
             })}
           </div>
           {integrations && (
-            <div style={{ marginTop: '10px', fontSize: '0.72rem', color: 'var(--text-muted)', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
-              <span>ENV: <strong style={{ color: '#fff' }}>{integrations.environment}</strong></span>
-              <span>DEMO MODE: <strong style={{ color: integrations.demoModeEnabled ? '#f59e0b' : '#10b981' }}>{integrations.demoModeEnabled ? 'ENABLED (DEV)' : 'DISABLED (PROD SAFE)'}</strong></span>
+            <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid var(--border-subtle)', fontSize: '0.72rem', color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
+                <span>ENV: <strong style={{ color: integrations.environment === 'PRODUCTION' ? '#10b981' : '#38bdf8' }}>{integrations.environment}</strong></span>
+                <span>
+                  DEMO TRIAL:{' '}
+                  <strong style={{ color: integrations.demoModeEnabled ? '#f59e0b' : '#10b981' }}>
+                    {integrations.demoModeEnabled
+                      ? `ENABLED (${envStatus?.demoMaxEntries || 10}-ENTRY TRIAL • DEV EXCLUDED)`
+                      : 'DISABLED (PROD ONLY)'}
+                  </strong>
+                </span>
+              </div>
+              {envStatus && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px', fontSize: '0.7rem' }}>
+                  <span>
+                    HOST: <strong style={{ color: '#fff' }}>{envStatus.cloudHostingProvider || 'Render.com'}</strong> ({envStatus.renderServiceName || 'gbs-hospital-system'})
+                  </span>
+                  <span>
+                    LIVE URL:{' '}
+                    <a
+                      href={envStatus.productionPublicUrl || 'https://gbs-hospital-system.onrender.com'}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ color: 'var(--gold-300)', textDecoration: 'underline' }}
+                    >
+                      {envStatus.productionPublicUrl || 'https://gbs-hospital-system.onrender.com'}
+                    </a>
+                  </span>
+                  <span>
+                    PURGE GUARD: <strong style={{ color: '#10b981' }}>{envStatus.productionPurgeProtection || 'SELECTIVE_DEVELOPMENT_TEST_RECORDS_ONLY'}</strong>
+                  </span>
+                </div>
+              )}
             </div>
           )}
         </div>

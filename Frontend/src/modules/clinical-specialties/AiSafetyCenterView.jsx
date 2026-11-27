@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../services/api.service';
-import { Shield, Brain, AlertTriangle, CheckCircle, Search, RefreshCw, Lock, FileCheck } from 'lucide-react';
+import { Shield, Brain, AlertTriangle, CheckCircle, Search, RefreshCw, Lock, FileCheck, Eye } from 'lucide-react';
 
 const AI_ASSISTANTS = [
   { id: 'TRIAGE_ASSISTANT', label: 'AI Triage Assistant', desc: 'NEWS2 + red-flag acuity triage recommendations' },
@@ -11,7 +11,11 @@ const AI_ASSISTANTS = [
   { id: 'RISK_PREDICTION', label: 'Risk Prediction', desc: 'Sepsis, deterioration & polypharmacy risk score' }
 ];
 
-export default function AiSafetyCenterView() {
+export default function AiSafetyCenterView({ onNavigateDetail }) {
+  const openDetail = (payload) => {
+    const fn = onNavigateDetail || (typeof window !== 'undefined' ? window.gbsNavigateDetail : null);
+    if (typeof fn === 'function') fn(payload);
+  };
   const [guardrails, setGuardrails] = useState(null);
   const [aiTelemetry, setAiTelemetry] = useState(null);
   const [overrides, setOverrides] = useState([]);
@@ -258,7 +262,27 @@ export default function AiSafetyCenterView() {
       {/* Patient Selector */}
       <div className="glass-panel" style={{ padding: '16px 20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '10px' }}>
-          <strong style={{ color: 'var(--gold-400)', fontSize: '0.92rem' }}>Select Active Patient for Safety Screening &amp; AI Review</strong>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            <strong style={{ color: 'var(--gold-400)', fontSize: '0.92rem' }}>Select Active Patient for Safety Screening &amp; AI Review</strong>
+            {selectedPatient && (
+              <button
+                type="button"
+                onClick={() =>
+                  openDetail({
+                    detailType: 'VIEW_PROFILE',
+                    moduleKey: 'AI_SAFETY',
+                    recordId: String(selectedPatient.id),
+                    title: `Patient Profile: ${selectedPatient.firstName} ${selectedPatient.lastName}`,
+                    recordData: selectedPatient
+                  })
+                }
+                className="btn-outline-gold"
+                style={{ padding: '4px 10px', fontSize: '0.72rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+              >
+                <Eye size={12} /> View Patient Profile
+              </button>
+            )}
+          </div>
           <div style={{ display: 'flex', gap: '8px' }}>
             <input type="text" value={patientSearch} onChange={(e) => setPatientSearch(e.target.value)} placeholder="Search patient name or MRN..." style={{ width: '220px', padding: '6px 10px', fontSize: '0.8rem' }} />
             <button type="button" onClick={loadAll} className="btn-outline-gold" style={{ padding: '6px 12px', fontSize: '0.78rem' }}>
@@ -393,18 +417,41 @@ export default function AiSafetyCenterView() {
 
         {/* Suggestions Queue with Mandatory Human Review / Override / Final Decision */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {suggestions.slice(0, 10).map((s) => (
-            <div key={s.id} style={{ padding: '14px', borderRadius: '8px', background: 'rgba(6,12,24,0.8)', border: '1px solid var(--border-color)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
-                <div>
-                  <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--gold-300)', fontWeight: 800, marginRight: '8px' }}>{s.suggestionCode}</span>
-                  <span className="badge badge-cyan" style={{ marginRight: '6px' }}>{s.assistantType}</span>
-                  <span className={s.riskLevel === 'CRITICAL' ? 'badge badge-danger' : s.riskLevel === 'HIGH' ? 'badge badge-warning' : 'badge badge-success'}>
-                    {s.riskLevel} RISK
-                  </span>
+          {suggestions.length === 0 ? (
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)', padding: '14px', textAlign: 'center', background: 'rgba(6,12,24,0.6)', borderRadius: '8px' }}>
+              No AI clinical suggestions recorded yet. Select a patient and run an advisory check above.
+            </div>
+          ) : (
+            suggestions.slice(0, 10).map((s) => (
+              <div key={s.id} style={{ padding: '14px', borderRadius: '8px', background: 'rgba(6,12,24,0.8)', border: '1px solid var(--border-color)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
+                  <div>
+                    <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--gold-300)', fontWeight: 800, marginRight: '8px' }}>{s.suggestionCode}</span>
+                    <span className="badge badge-cyan" style={{ marginRight: '6px' }}>{s.assistantType}</span>
+                    <span className={s.riskLevel === 'CRITICAL' ? 'badge badge-danger' : s.riskLevel === 'HIGH' ? 'badge badge-warning' : 'badge badge-success'}>
+                      {s.riskLevel} RISK
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span className="badge badge-gold">{s.workflowStatus}</span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        openDetail({
+                          detailType: 'VIEW_DETAILS',
+                          moduleKey: 'AI_SAFETY',
+                          recordId: String(s.suggestionCode || s.id),
+                          title: `AI Clinical Suggestion: ${s.suggestionCode}`,
+                          recordData: s
+                        })
+                      }
+                      className="btn-outline-gold"
+                      style={{ padding: '3px 8px', fontSize: '0.7rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                    >
+                      <Eye size={11} /> Details
+                    </button>
+                  </div>
                 </div>
-                <span className="badge badge-gold">{s.workflowStatus}</span>
-              </div>
 
               <div style={{ fontSize: '0.84rem', color: '#fff', fontWeight: 600, marginBottom: '6px' }}>
                 {s.patient ? `${s.patient.firstName} ${s.patient.lastName} (${s.patient.patientNumber}) — ` : ''}{s.recommendationSummary}
@@ -462,7 +509,8 @@ export default function AiSafetyCenterView() {
                 </div>
               )}
             </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
 
@@ -483,6 +531,7 @@ export default function AiSafetyCenterView() {
                 <th>Conflict</th>
                 <th>Clinician Rationale</th>
                 <th>Clinician</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -494,6 +543,24 @@ export default function AiSafetyCenterView() {
                   <td style={{ fontSize: '0.78rem' }}>{ov.offendingMedication} vs {ov.conflictingAgent}</td>
                   <td style={{ fontSize: '0.78rem', color: '#fff' }}>{ov.overrideReason}</td>
                   <td style={{ fontSize: '0.76rem' }}>{ov.clinicianName} ({ov.clinicianRole})</td>
+                  <td>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        openDetail({
+                          detailType: 'VIEW_DETAILS',
+                          moduleKey: 'AI_SAFETY',
+                          recordId: String(ov.overrideCode || ov.id),
+                          title: `Safety Override Audit: ${ov.overrideCode}`,
+                          recordData: ov
+                        })
+                      }
+                      className="btn-outline-gold"
+                      style={{ padding: '3px 8px', fontSize: '0.7rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                    >
+                      <Eye size={11} /> Details
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>

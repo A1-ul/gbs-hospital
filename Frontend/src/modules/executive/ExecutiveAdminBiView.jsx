@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../services/api.service';
 import FacialRecognitionModal from '../../components/FacialRecognitionModal';
-import { Building2, Users, Bed, DollarSign, Shield, RefreshCw, CheckCircle, Activity, ScanFace } from 'lucide-react';
+import { Building2, Users, Bed, DollarSign, Shield, RefreshCw, CheckCircle, Activity, ScanFace, Eye } from 'lucide-react';
 
-export default function ExecutiveAdminBiView({ currentRole }) {
+export default function ExecutiveAdminBiView({ currentRole, onNavigateDetail }) {
+  const openDetail = (payload) => {
+    const fn = onNavigateDetail || (typeof window !== 'undefined' ? window.gbsNavigateDetail : null);
+    if (typeof fn === 'function') fn(payload);
+  };
   const [overview, setOverview] = useState(null);
   const [annual, setAnnual] = useState(null);
   const [roleCounts, setRoleCounts] = useState(null);
@@ -92,46 +96,71 @@ export default function ExecutiveAdminBiView({ currentRole }) {
         </div>
       </div>
 
-      {/* Executive KPI Grid */}
+      {/* Executive KPI Grid (Each Card Opens Its Dedicated Detail Page) */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '12px' }}>
-        <div className="metric-card">
+        <div
+          className="metric-card"
+          style={{ cursor: 'pointer' }}
+          onClick={() => openDetail({ detailType: 'VIEW_PROFILE', moduleKey: 'PATIENTS', recordId: 'all', title: 'Master Patient Index — Registered Patients' })}
+        >
           <div>
             <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>Total Registered Patients</div>
             <div className="metric-value">{metrics.totalPatients ?? 0}</div>
+            <div style={{ fontSize: '0.68rem', color: 'var(--gold-400)', marginTop: '2px' }}>View Directory →</div>
           </div>
           <Users size={20} style={{ color: 'var(--gold-400)' }} />
         </div>
-        <div className="metric-card">
+        <div
+          className="metric-card"
+          style={{ cursor: 'pointer' }}
+          onClick={() => openDetail({ detailType: 'VIEW_RECORDS', moduleKey: 'WARDS', recordId: 'admissions-census', title: 'Inpatient Bed Occupancy & Ward Census', recordData: { admissions: metrics.admissions ?? 0, occupiedBeds: metrics.occupiedBeds ?? 0, totalBeds: metrics.totalBeds ?? 0, bedOccupancyRate: metrics.bedOccupancyRate || '0.0%' } })}
+        >
           <div>
             <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>Bed Occupancy Rate</div>
             <div className="metric-value" style={{ color: '#38bdf8' }}>{metrics.bedOccupancyRate || '0.0%'}</div>
+            <div style={{ fontSize: '0.68rem', color: 'var(--gold-400)', marginTop: '2px' }}>View Census →</div>
           </div>
           <Bed size={20} style={{ color: '#38bdf8' }} />
         </div>
-        <div className="metric-card">
+        <div
+          className="metric-card"
+          style={{ cursor: 'pointer' }}
+          onClick={() => openDetail({ detailType: 'VIEW_TRANSACTIONS', moduleKey: 'BILLING', recordId: 'annual-financial', title: 'Executive Annual Financial Summary & Bills', recordData: fin })}
+        >
           <div>
             <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>Annual Hospital Revenue</div>
             <div className="metric-value" style={{ color: '#10b981', fontSize: '1.35rem' }}>
               GHS {Number(fin.totalRevenue ?? fin.totalBilled ?? 0).toLocaleString()}
             </div>
+            <div style={{ fontSize: '0.68rem', color: 'var(--gold-400)', marginTop: '2px' }}>View Transactions →</div>
           </div>
           <DollarSign size={20} style={{ color: '#10b981' }} />
         </div>
-        <div className="metric-card">
+        <div
+          className="metric-card"
+          style={{ cursor: 'pointer' }}
+          onClick={() => openDetail({ detailType: 'VIEW_RECORDS', moduleKey: 'EXECUTIVE_BI', recordId: 'staff-accounts', title: 'All Registered Hospital Staff Accounts', recordData: usersList })}
+        >
           <div>
             <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>Active Staff Accounts</div>
             <div className="metric-value" style={{ color: 'var(--gold-300)' }}>
               {roleCounts?.summary?.totalActiveUsers ?? metrics.activeUsers ?? 0} / {roleCounts?.summary?.totalSystemUsers ?? 0}
             </div>
+            <div style={{ fontSize: '0.68rem', color: 'var(--gold-400)', marginTop: '2px' }}>View Staff List →</div>
           </div>
           <Building2 size={20} style={{ color: 'var(--gold-300)' }} />
         </div>
-        <div className="metric-card">
+        <div
+          className="metric-card"
+          style={{ cursor: 'pointer' }}
+          onClick={() => openDetail({ detailType: 'VIEW_RECORDS', moduleKey: 'AI_SAFETY', recordId: 'safety-guardrails', title: 'Clinical Safety Overrides & AI Human Reviews' })}
+        >
           <div>
             <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>Safety Overrides / AI Reviews</div>
             <div className="metric-value" style={{ color: '#f59e0b', fontSize: '1.35rem' }}>
               {guardrails?.metrics?.loggedClinicalOverrides ?? 0} • {guardrails?.metrics?.pendingHumanAiReviews ?? 0}
             </div>
+            <div style={{ fontSize: '0.68rem', color: 'var(--gold-400)', marginTop: '2px' }}>View Guardrails →</div>
           </div>
           <Shield size={20} style={{ color: '#f59e0b' }} />
         </div>
@@ -151,7 +180,20 @@ export default function ExecutiveAdminBiView({ currentRole }) {
           </h3>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(175px, 1fr))', gap: '8px' }}>
             {(roleCounts?.roles || []).map((r) => (
-              <div key={r.roleName} style={{ padding: '8px 10px', borderRadius: '6px', background: 'rgba(6,12,24,0.75)', border: '1px solid var(--border-subtle)', fontSize: '0.76rem' }}>
+              <div
+                key={r.roleName}
+                onClick={() => {
+                  const matchedUsers = usersList.filter((u) => (u.role?.name || u.role) === r.roleName);
+                  openDetail({
+                    detailType: 'VIEW_RECORDS',
+                    moduleKey: 'EXECUTIVE_BI',
+                    recordId: r.roleName,
+                    title: `${r.roleName} — Registered Staff Roster`,
+                    recordData: matchedUsers.length > 0 ? matchedUsers : r
+                  });
+                }}
+                style={{ padding: '8px 10px', borderRadius: '6px', background: 'rgba(6,12,24,0.75)', border: '1px solid var(--border-subtle)', fontSize: '0.76rem', cursor: 'pointer' }}
+              >
                 <div style={{ fontWeight: 700, color: '#fff' }}>{r.roleName}</div>
                 <div style={{ color: 'var(--gold-400)', fontWeight: 700 }}>{r.totalUsers} total <span style={{ color: '#10b981' }}>({r.activeUsers} active)</span></div>
               </div>
@@ -173,28 +215,54 @@ export default function ExecutiveAdminBiView({ currentRole }) {
               </tr>
             </thead>
             <tbody>
-              {usersList.slice(0, 14).map((u) => (
-                <tr key={u.id}>
-                  <td>
-                    <div style={{ fontWeight: 700 }}>{u.firstName} {u.lastName}</div>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{u.email}</div>
-                  </td>
-                  <td><span className="badge badge-gold">{u.role?.name || u.role}</span></td>
-                  <td><span className={u.active ? 'badge badge-success' : 'badge badge-warning'}>{u.active ? 'ACTIVE' : 'PENDING'}</span></td>
-                  <td>
-                    {String(u.email || '').toLowerCase() !== 'gabosei48@gmail.com' && (
-                      <button
-                        type="button"
-                        onClick={() => handleToggleUser(u)}
-                        className={u.active ? 'btn-outline-gold' : 'btn-gold'}
-                        style={{ padding: '3px 8px', fontSize: '0.7rem' }}
-                      >
-                        {u.active ? 'Deactivate' : 'Approve'}
-                      </button>
-                    )}
+              {usersList.length === 0 ? (
+                <tr>
+                  <td colSpan={4} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '16px' }}>
+                    No registered staff accounts available yet.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                usersList.slice(0, 14).map((u) => (
+                  <tr key={u.id}>
+                    <td>
+                      <div style={{ fontWeight: 700 }}>{u.firstName} {u.lastName}</div>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{u.email}</div>
+                    </td>
+                    <td><span className="badge badge-gold">{u.role?.name || u.role}</span></td>
+                    <td><span className={u.active ? 'badge badge-success' : 'badge badge-warning'}>{u.active ? 'ACTIVE' : 'PENDING'}</span></td>
+                    <td>
+                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            openDetail({
+                              detailType: 'VIEW_PROFILE',
+                              moduleKey: 'EXECUTIVE_BI',
+                              recordId: String(u.id),
+                              title: `Staff Profile: ${u.firstName} ${u.lastName}`,
+                              recordData: u
+                            })
+                          }
+                          className="btn-outline-gold"
+                          style={{ padding: '3px 8px', fontSize: '0.7rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                        >
+                          <Eye size={11} /> Profile
+                        </button>
+                        {String(u.email || '').toLowerCase() !== 'gabosei48@gmail.com' && (
+                          <button
+                            type="button"
+                            onClick={() => handleToggleUser(u)}
+                            className={u.active ? 'btn-outline-gold' : 'btn-gold'}
+                            style={{ padding: '3px 8px', fontSize: '0.7rem' }}
+                          >
+                            {u.active ? 'Deactivate' : 'Approve'}
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
