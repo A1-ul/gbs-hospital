@@ -473,14 +473,12 @@ export default function TelemedicineGisView() {
                   <button
                     onClick={() => setAudioMuted(!audioMuted)}
                     className={`p-3 rounded-full transition-all ${audioMuted ? 'bg-red-500 text-white' : 'bg-slate-800 text-slate-200 hover:bg-slate-700'}`}
-                    title={audioMuted ? "Unmute Microphone" : "Mute Microphone"}
                   >
                     {audioMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
                   </button>
                   <button
                     onClick={() => setVideoDisabled(!videoDisabled)}
                     className={`p-3 rounded-full transition-all ${videoDisabled ? 'bg-red-500 text-white' : 'bg-slate-800 text-slate-200 hover:bg-slate-700'}`}
-                    title={videoDisabled ? "Enable Video Camera" : "Disable Video Camera"}
                   >
                     {videoDisabled ? <VideoOff className="w-5 h-5" /> : <Video className="w-5 h-5" />}
                   </button>

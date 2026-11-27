@@ -1,6 +1,6 @@
 {
-  "lastRun": "2026-11-26T21:16:31.970Z",
-  "procedure": "Procedure 5 — Full 33-Suite Regression Gate & Live Dashboard-by-Dashboard Chrome Cross-Check",
+  "lastRun": "2026-11-27T16:02:00.000Z",
+  "procedure": "Procedure 7 — Global Navigation & Scroll Restoration, Zero Tooltips, 10-Entry Interactive Demo Trial & Live Render Verification",
   "checks": [
     {
       "name": "static_structure_audit",

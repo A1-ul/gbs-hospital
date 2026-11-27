@@ -92,6 +92,16 @@ import {
   Video, MapPin, Mic, Eye, Bell, History, Building2, User, Layers
 } from 'lucide-react';
 import { api } from './services/api.service';
+import {
+  isDeveloperRoute,
+  initManualScrollRestoration,
+  generateNavKey,
+  captureScrollSnapshot,
+  saveScrollSnapshot,
+  loadScrollSnapshot,
+  restoreScrollSnapshot,
+  scrollNewPageToTop
+} from './services/navigation.manager';
 
 export const SUBSYSTEM_CATEGORIES = {
   ALL: { id: 'ALL', label: 'All Departments', icon: Layers, badge: 'ALL 26' },
@@ -233,7 +243,27 @@ export default function App() {
   const [subsystemCategory, setSubsystemCategory] = useState('ALL');
   const [overviewStaffCategory, setOverviewStaffCategory] = useState('ALL');
   const [overviewModuleCategory, setOverviewModuleCategory] = useState('ALL');
-  const savedScrollRef = useRef({});
+  const [demoQuota, setDemoQuota] = useState(null);
+  const currentNavKeyRef = useRef(generateNavKey('init'));
+  const navDepthRef = useRef(0);
+  const roleNavDepthRef = useRef({});
+  const navStateRef = useRef({
+    activeModule: initialRoute.moduleKey,
+    activeDetail: initialRoute.detail,
+    currentRole: 'ADMINISTRATOR',
+    subsystemCategory: 'ALL',
+    overviewStaffCategory: 'ALL',
+    overviewModuleCategory: 'ALL'
+  });
+
+  navStateRef.current = {
+    activeModule,
+    activeDetail,
+    currentRole,
+    subsystemCategory,
+    overviewStaffCategory,
+    overviewModuleCategory
+  };
 
   // Zero hardcoded numbers: Initialized to 0, populated exclusively from PostgreSQL
   const [globalStats, setGlobalStats] = useState({
@@ -329,6 +359,7 @@ export default function App() {
         const u = JSON.parse(savedUser);
         setCurrentUser(u);
         if (u.role) setCurrentRole(u.role);
+        if (u.demoQuota) setDemoQuota(u.demoQuota);
       } catch (_e) { }
 
       api.me()
@@ -340,6 +371,7 @@ export default function App() {
               setCurrentRole(freshUser.role);
               localStorage.setItem('gbs_role', freshUser.role);
             }
+            setDemoQuota(freshUser.isDemoSession ? (freshUser.demoQuota || { isDemoSession: true, entriesUsed: 0, maxEntries: 10, remaining: 10, limitReached: false }) : null);
           }
         })
         .catch(() => {
@@ -347,6 +379,7 @@ export default function App() {
           localStorage.removeItem('gbs_user');
           sessionStorage.removeItem('gbs_dev_mfa_verified');
           setCurrentUser(null);
+          setDemoQuota(null);
           setIsDeveloperMfaVerified(false);
         });
     }
@@ -362,11 +395,19 @@ export default function App() {
 
     const onSessionExpired = () => {
       setCurrentUser(null);
+      setDemoQuota(null);
       setIsDeveloperMfaVerified(false);
       setCurrentRole('ADMINISTRATOR');
     };
+    const onDemoQuotaUpdated = (evt) => {
+      if (evt?.detail) setDemoQuota(evt.detail);
+    };
     window.addEventListener('gbs:session-expired', onSessionExpired);
-    return () => window.removeEventListener('gbs:session-expired', onSessionExpired);
+    window.addEventListener('gbs:demo-quota-updated', onDemoQuotaUpdated);
+    return () => {
+      window.removeEventListener('gbs:session-expired', onSessionExpired);
+      window.removeEventListener('gbs:demo-quota-updated', onDemoQuotaUpdated);
+    };
   }, []);
 
   // Refresh overview metrics when switching back to OVERVIEW
@@ -376,21 +417,98 @@ export default function App() {
     }
   }, [activeModule, activeDetail]);
 
-  // Universal Page Navigation & Browser Back/Forward Listener
-  const setActiveModule = (moduleKey) => {
-    savedScrollRef.current[activeModule] = typeof window !== 'undefined' ? window.scrollY : 0;
+  // Dynamic browser tab title per active page
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    if (activeDetail?.title) {
+      document.title = `${activeDetail.title} — GBS Hospital System`;
+      return;
+    }
+    const modMeta = SUBSYSTEM_MODULES.find((m) => m.key === activeModule);
+    if (modMeta) {
+      document.title = `${modMeta.label} — GBS Hospital System`;
+    } else if (activeModule === 'DEVELOPER_PORTAL') {
+      document.title = 'Developer Security Gate — GBS Hospital System';
+    } else {
+      document.title = 'GBS Hospital System — Simple, Modern Healthcare & Care Platform';
+    }
+  }, [activeModule, activeDetail]);
+
+  const persistOutgoingPageSnapshot = () => {
+    const snap = navStateRef.current;
+    if (isDeveloperRoute(snap.activeModule)) return;
+    const outgoingKey = currentNavKeyRef.current;
+    const scrollSnapshot = captureScrollSnapshot({
+      subsystemCategory: snap.subsystemCategory,
+      overviewStaffCategory: snap.overviewStaffCategory,
+      overviewModuleCategory: snap.overviewModuleCategory,
+      role: snap.currentRole
+    });
+    saveScrollSnapshot(outgoingKey, scrollSnapshot);
+    if (typeof window !== 'undefined') {
+      const existingState = window.history.state || {};
+      window.history.replaceState(
+        {
+          ...existingState,
+          navKey: outgoingKey,
+          moduleKey: snap.activeModule,
+          detail: snap.activeDetail,
+          role: snap.currentRole,
+          isAppEntry: true,
+          navDepth: navDepthRef.current
+        },
+        '',
+        window.location.pathname + window.location.search
+      );
+    }
+  };
+
+  // Global Page Navigation & Browser History (excludes Developer Dashboard scroll mutations)
+  const setActiveModule = (moduleKey, navOptions = {}) => {
+    const prev = navStateRef.current;
+    const nextRole = navOptions.role || prev.currentRole;
+    const targetUrl = moduleKey === 'OVERVIEW' ? '/' : `/module/${encodeURIComponent(moduleKey)}`;
+
+    if (prev.activeModule === moduleKey && !prev.activeDetail && typeof window !== 'undefined' && window.location.pathname === targetUrl) {
+      return;
+    }
+
+    if (!isDeveloperRoute(prev.activeModule)) {
+      persistOutgoingPageSnapshot();
+    }
+
+    const nextNavKey = generateNavKey(moduleKey.toLowerCase());
+    currentNavKeyRef.current = nextNavKey;
+    navDepthRef.current += 1;
+    roleNavDepthRef.current[nextRole] = (roleNavDepthRef.current[nextRole] || 0) + 1;
+
     setActiveDetail(null);
     setActiveModuleState(moduleKey);
+
     if (typeof window !== 'undefined') {
-      const targetUrl = moduleKey === 'OVERVIEW' ? '/' : `/module/${encodeURIComponent(moduleKey)}`;
-      if (window.location.pathname !== targetUrl) {
-        window.history.pushState({ moduleKey, detail: null }, '', targetUrl);
+      if (window.location.pathname !== targetUrl || window.history.state?.detail) {
+        window.history.pushState(
+          {
+            navKey: nextNavKey,
+            moduleKey,
+            detail: null,
+            role: nextRole,
+            isAppEntry: true,
+            navDepth: navDepthRef.current
+          },
+          '',
+          targetUrl
+        );
+      }
+      if (!isDeveloperRoute(moduleKey)) {
+        scrollNewPageToTop();
       }
     }
   };
 
   const openDetailPage = (payload) => {
-    const mod = payload?.moduleKey || activeModule || 'OVERVIEW';
+    const prev = navStateRef.current;
+    const mod = payload?.moduleKey || prev.activeModule || 'OVERVIEW';
     const rawType = String(payload?.detailType || 'VIEW_DETAILS').toUpperCase();
     const dTypeMap = {
       DETAILS: 'VIEW_DETAILS',
@@ -411,8 +529,8 @@ export default function App() {
       (recData && !Array.isArray(recData) && (recData.id || recData.mrn || recData.patientNumber || recData.code)) ||
       'summary';
 
-    if (typeof window !== 'undefined') {
-      savedScrollRef.current[mod] = window.scrollY;
+    if (!isDeveloperRoute(prev.activeModule)) {
+      persistOutgoingPageSnapshot();
     }
 
     const detailObj = {
@@ -423,51 +541,130 @@ export default function App() {
       recordData: recData
     };
 
+    const nextNavKey = generateNavKey(`detail-${dType.toLowerCase()}`);
+    currentNavKeyRef.current = nextNavKey;
+    navDepthRef.current += 1;
+    roleNavDepthRef.current[prev.currentRole] = (roleNavDepthRef.current[prev.currentRole] || 0) + 1;
+
     setActiveDetail(detailObj);
 
     if (typeof window !== 'undefined') {
       const targetUrl = `/module/${encodeURIComponent(mod)}/detail/${encodeURIComponent(dType)}/${encodeURIComponent(recId)}`;
-      window.history.pushState({ moduleKey: mod, detail: detailObj, prevScrollY: savedScrollRef.current[mod] || 0 }, '', targetUrl);
-    }
-  };
-
-  const handleBackFromDetail = () => {
-    const mod = activeDetail?.moduleKey || activeModule || 'OVERVIEW';
-    const restoreScroll = savedScrollRef.current[mod] || 0;
-
-    if (typeof window !== 'undefined' && window.history.state && window.history.state.detail) {
-      window.history.back();
-      setTimeout(() => {
-        window.scrollTo({ top: restoreScroll, behavior: 'instant' });
-      }, 40);
-    } else {
-      setActiveDetail(null);
-      if (typeof window !== 'undefined') {
-        const targetUrl = mod === 'OVERVIEW' ? '/' : `/module/${encodeURIComponent(mod)}`;
-        window.history.replaceState({ moduleKey: mod, detail: null }, '', targetUrl);
-        setTimeout(() => {
-          window.scrollTo({ top: restoreScroll, behavior: 'instant' });
-        }, 40);
+      window.history.pushState(
+        {
+          navKey: nextNavKey,
+          moduleKey: mod,
+          detail: detailObj,
+          role: prev.currentRole,
+          isAppEntry: true,
+          navDepth: navDepthRef.current
+        },
+        '',
+        targetUrl
+      );
+      if (!isDeveloperRoute(mod)) {
+        scrollNewPageToTop();
       }
     }
   };
 
+  const handleNavigateBack = () => {
+    const cur = navStateRef.current;
+    // Consistent with browser history when prior in-app history exists
+    if (typeof window !== 'undefined' && navDepthRef.current > 0) {
+      window.history.back();
+      return;
+    }
+
+    // Safe fallback when a page was opened directly via URL with no prior in-app history
+    if (cur.activeDetail) {
+      const fallbackMod = cur.activeDetail.moduleKey || getDefaultModuleForRole(cur.currentRole) || 'OVERVIEW';
+      setActiveDetail(null);
+      setActiveModuleState(fallbackMod);
+      if (typeof window !== 'undefined') {
+        const targetUrl = fallbackMod === 'OVERVIEW' ? '/' : `/module/${encodeURIComponent(fallbackMod)}`;
+        const fallbackKey = generateNavKey('fallback');
+        currentNavKeyRef.current = fallbackKey;
+        window.history.replaceState(
+          { navKey: fallbackKey, moduleKey: fallbackMod, detail: null, role: cur.currentRole, isAppEntry: true, navDepth: 0 },
+          '',
+          targetUrl
+        );
+      }
+      return;
+    }
+
+    const roleHome = getDefaultModuleForRole(cur.currentRole);
+    const fallbackTarget = cur.activeModule === roleHome ? 'OVERVIEW' : roleHome;
+    setActiveModule(fallbackTarget);
+  };
+
+  const handleBackFromDetail = handleNavigateBack;
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    initManualScrollRestoration();
     window.gbsNavigateDetail = openDetailPage;
 
+    // Stamp the initial entry with a navKey without altering URL or creating duplicate history
+    const initState = window.history.state;
+    if (!initState || !initState.navKey) {
+      const parsed = parseUrlRoute(window.location.pathname);
+      window.history.replaceState(
+        {
+          navKey: currentNavKeyRef.current,
+          moduleKey: parsed.moduleKey,
+          detail: parsed.detail,
+          role: navStateRef.current.currentRole,
+          isAppEntry: true,
+          navDepth: 0
+        },
+        '',
+        window.location.pathname + window.location.search
+      );
+    } else {
+      currentNavKeyRef.current = initState.navKey;
+      navDepthRef.current = Number(initState.navDepth || 0);
+    }
+
     const onPopState = (event) => {
-      if (event.state && event.state.moduleKey) {
-        setActiveModuleState(event.state.moduleKey);
-        setActiveDetail(event.state.detail || null);
-        if (!event.state.detail) {
-          const restoreY = savedScrollRef.current[event.state.moduleKey] || 0;
-          setTimeout(() => window.scrollTo({ top: restoreY, behavior: 'instant' }), 40);
+      const leaving = navStateRef.current;
+      // Save leaving page's scroll snapshot so Browser Forward restores its exact position too
+      if (!isDeveloperRoute(leaving.activeModule) && currentNavKeyRef.current) {
+        saveScrollSnapshot(
+          currentNavKeyRef.current,
+          captureScrollSnapshot({
+            subsystemCategory: leaving.subsystemCategory,
+            overviewStaffCategory: leaving.overviewStaffCategory,
+            overviewModuleCategory: leaving.overviewModuleCategory,
+            role: leaving.currentRole
+          })
+        );
+      }
+
+      const st = event.state;
+      const parsed = parseUrlRoute(window.location.pathname);
+      const targetMod = (st && st.moduleKey) ? st.moduleKey : parsed.moduleKey;
+      const targetDetail = (st && st.detail !== undefined) ? st.detail : parsed.detail;
+      const targetKey = (st && st.navKey) ? st.navKey : generateNavKey('pop');
+
+      currentNavKeyRef.current = targetKey;
+      navDepthRef.current = st && typeof st.navDepth === 'number'
+        ? Math.max(0, st.navDepth)
+        : Math.max(0, navDepthRef.current - 1);
+
+      setActiveModuleState(targetMod);
+      setActiveDetail(targetDetail || null);
+
+      // Exclude Developer Dashboard from scroll/context restoration overrides
+      if (!isDeveloperRoute(targetMod)) {
+        const savedSnap = loadScrollSnapshot(targetKey);
+        if (savedSnap) {
+          if (savedSnap.context?.subsystemCategory) setSubsystemCategory(savedSnap.context.subsystemCategory);
+          if (savedSnap.context?.overviewStaffCategory) setOverviewStaffCategory(savedSnap.context.overviewStaffCategory);
+          if (savedSnap.context?.overviewModuleCategory) setOverviewModuleCategory(savedSnap.context.overviewModuleCategory);
+          restoreScrollSnapshot(savedSnap);
         }
-      } else {
-        const parsed = parseUrlRoute(window.location.pathname);
-        setActiveModuleState(parsed.moduleKey);
-        setActiveDetail(parsed.detail);
       }
     };
 
@@ -475,7 +672,7 @@ export default function App() {
     return () => {
       window.removeEventListener('popstate', onPopState);
     };
-  }, [activeModule]);
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -487,6 +684,7 @@ export default function App() {
     sessionStorage.removeItem('gbs_dev_mfa_verified');
     sessionStorage.removeItem('gbs_dev_device_fp');
     setCurrentUser(null);
+    setDemoQuota(null);
     setIsDeveloperMfaVerified(false);
     setCurrentRole('ADMINISTRATOR');
     if (activeModule === 'DEVELOPER_NOC' || activeModule === 'DEVELOPER_PORTAL' || activeModule === 'MIGRATION') {
@@ -612,11 +810,12 @@ export default function App() {
           onOpenQuickAction={handleQuickAction}
           facilityBranding={facilityBranding}
           onUpdateFacilityBranding={setFacilityBranding}
+          demoQuota={demoQuota}
         />
       </div>
 
       {/* Main Content Area */}
-      <main style={{ position: 'relative', zIndex: 4, flex: 1, padding: '0 16px 68px', maxWidth: '1600px', margin: '0 auto', width: '100%' }}>
+      <main data-scroll-container="main-workspace" style={{ position: 'relative', zIndex: 4, flex: 1, padding: '0 16px 68px', maxWidth: '1600px', margin: '0 auto', width: '100%' }}>
         {/* Navigation Breadcrumb & Subsystem Category Switcher */}
         <div className="glass-panel" style={{ padding: '10px 14px', marginBottom: '12px', border: '1px solid var(--border-color)', background: 'rgba(8, 16, 32, 0.92)' }}>
           {/* Top Row: Subsystem Category Pills & Global Controls */}
@@ -665,13 +864,13 @@ export default function App() {
 
             {/* Active Role, Operating Guide, Scroll & Environment Controls */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: 'var(--text-muted)', flexWrap: 'wrap' }}>
-              {activeModule !== 'OVERVIEW' && (
+              {(activeDetail || activeModule !== 'OVERVIEW') && !isDeveloperRoute(activeModule) && (
                 <button
                   type="button"
-                  onClick={() => (activeDetail ? handleBackFromDetail() : setActiveModule('OVERVIEW'))}
+                  onClick={handleNavigateBack}
                   className="btn-outline-gold"
                   style={{ padding: '3px 10px', fontSize: '0.74rem' }}
-                  title="Return to previous screen or Home Overview"
+                  aria-label="Return to previous screen"
                 >
                   ← Back
                 </button>
@@ -681,7 +880,6 @@ export default function App() {
                 onClick={() => setShowOperatingGuide((prev) => !prev)}
                 className="btn-outline-gold"
                 style={{ padding: '3px 10px', fontSize: '0.74rem' }}
-                title="Show simple steps for how to use your dashboard"
               >
                 📖 Quick Guide
               </button>
@@ -690,16 +888,15 @@ export default function App() {
                 onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                 className="btn-outline-gold"
                 style={{ padding: '3px 10px', fontSize: '0.74rem' }}
-                title="Scroll smoothly to top of dashboard"
               >
                 ↑ Top
               </button>
               <span>Env:</span>
-              <span style={{ color: activeEnvironment === 'PRODUCTION' ? '#22c55e' : '#38bdf8', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', border: '1px solid currentColor' }} title="Current Active Backend & Database Environment">
+              <span style={{ color: activeEnvironment === 'PRODUCTION' ? '#22c55e' : '#38bdf8', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', border: '1px solid currentColor' }}>
                 {activeEnvironment}
               </span>
               <span>Role:</span>
-              <span style={{ color: 'var(--gold-400)', fontWeight: 700, background: 'var(--gold-glow)', padding: '2px 8px', borderRadius: '4px', border: '1px solid var(--border-gold)' }} title="Current Active Role Workspace">
+              <span style={{ color: 'var(--gold-400)', fontWeight: 700, background: 'var(--gold-glow)', padding: '2px 8px', borderRadius: '4px', border: '1px solid var(--border-gold)' }}>
                 {currentRole}
               </span>
             </div>
@@ -918,7 +1115,6 @@ export default function App() {
                     onClick={() => openDetailPage({ detailType: 'VIEW_RECORDS', moduleKey: 'CLINICAL', recordId: 'opd-today', title: 'Patient Visits Today', recordData: { opdToday: globalStats.opdToday, totalConsultations: globalStats.totalConsultations, encountersToday: globalStats.opdEncountersToday } })}
                     className="glass-panel"
                     style={{ padding: '18px 20px', borderLeft: '4px solid var(--gold-400)', cursor: 'pointer' }}
-                    title="Click to see all patients who visited today"
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)' }}>Patient Visits Today</span>
@@ -1160,7 +1356,6 @@ export default function App() {
                                 }}
                                 className="btn-gold"
                                 style={{ flex: 1, padding: '5px 8px', fontSize: '0.7rem', justifyContent: 'center' }}
-                                title={`Sign in to ${r.name} workspace`}
                               >
                                 Login
                               </button>
@@ -1345,10 +1540,11 @@ export default function App() {
         demoModeEnabled={demoModeEnabled}
         onLoginSuccess={(user) => {
           setCurrentUser(user);
+          setDemoQuota(user?.isDemoSession ? (user.demoQuota || { isDemoSession: true, entriesUsed: 0, maxEntries: 10, remaining: 10, limitReached: false }) : null);
           if (user.role) {
             setCurrentRole(user.role);
             if (typeof window !== 'undefined') localStorage.setItem('gbs_role', user.role);
-            setActiveModule(getDefaultModuleForRole(user.role));
+            setActiveModule(getDefaultModuleForRole(user.role), { role: user.role });
           }
           if (typeof window !== 'undefined' && typeof window.gbsBrainNotify === 'function') {
             window.gbsBrainNotify({

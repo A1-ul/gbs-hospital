@@ -51,7 +51,6 @@ export default function UniversalDetailPage({
     `Live hospital details for ${detailType.replace(/^VIEW_/, '').replace(/_/g, ' ').toLowerCase()} (${moduleKey})`;
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
     loadDetailData();
   }, [detailType, moduleKey, recordId, reportCategory]);
 
@@ -364,7 +363,6 @@ export default function UniversalDetailPage({
               cursor: 'pointer',
               boxShadow: '0 4px 16px rgba(212,175,55,0.28)'
             }}
-            title="Return to exact previous dashboard page with filters, tab, and scroll position preserved"
           >
             <ArrowLeft size={18} />
             Back
@@ -524,7 +522,6 @@ export default function UniversalDetailPage({
                   onClick={() => setReportCategory(cat.id)}
                   className={reportCategory === cat.id ? 'btn-gold' : 'btn-outline-gold'}
                   style={{ padding: '6px 12px', fontSize: '0.75rem' }}
-                  title={`Load ${cat.label}`}
                 >
                   {cat.label}
                 </button>

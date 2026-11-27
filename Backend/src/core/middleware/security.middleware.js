@@ -464,7 +464,11 @@ function applyCors(app) {
                 "X-Tenant-Emergency-Access",
                 "X-Tenant-Warning-Tier",
                 "X-Tenant-Days-Remaining",
-                "X-GBS-Privacy-Redacted"
+                "X-GBS-Privacy-Redacted",
+                "X-Demo-Mode",
+                "X-Demo-Entries-Used",
+                "X-Demo-Entries-Limit",
+                "X-Demo-Entries-Remaining"
             ]
 
 

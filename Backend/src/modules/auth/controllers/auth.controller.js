@@ -213,9 +213,23 @@ async function startDemoSession(req, res, next) {
     }
 }
 
+async function demoQuota(req, res, next) {
+    try {
+        const result = await service.getDemoQuota(req.user);
+        return res.rcceSuccess("SUCCESS", result, {
+            httpStatus: 200,
+            message: result.isDemoSession
+                ? `Demo trial quota: ${result.entriesUsed}/${result.maxEntries} entries used.`
+                : "Unlimited production account active."
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
 async function me(req, res, next) {
     try {
-        const result = await service.getMe(req.user.id);
+        const result = await service.getMe(req.user.id, req.user);
         return res.status(200).json({
             success: true,
             data: result,
@@ -237,5 +251,6 @@ module.exports = {
     developerMfaChallenge,
     developerMfaVerify,
     startDemoSession,
+    demoQuota,
     me
 };

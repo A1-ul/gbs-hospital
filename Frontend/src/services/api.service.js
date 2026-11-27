@@ -120,6 +120,30 @@ async function coreRequest(endpoint, options = {}) {
     actionIdempotencyKeys.delete(fingerprint);
   }
 
+  // Propagate real PostgreSQL-backed 10-entry Demo Trial quota headers immediately to UI
+  if (typeof window !== 'undefined') {
+    const demoModeHeader = response.headers.get('x-demo-mode');
+    const demoUsedHeader = response.headers.get('x-demo-entries-used');
+    const demoLimitHeader = response.headers.get('x-demo-entries-limit');
+    const demoRemHeader = response.headers.get('x-demo-entries-remaining');
+    if (demoModeHeader === 'true' && demoLimitHeader !== null) {
+      const entriesUsed = Number(demoUsedHeader || 0);
+      const maxEntries = Number(demoLimitHeader || 10);
+      const remaining = Number(demoRemHeader ?? Math.max(0, maxEntries - entriesUsed));
+      window.dispatchEvent(
+        new CustomEvent('gbs:demo-quota-updated', {
+          detail: {
+            isDemoSession: true,
+            entriesUsed,
+            maxEntries,
+            remaining,
+            limitReached: entriesUsed >= maxEntries
+          }
+        })
+      );
+    }
+  }
+
   const contentType = response.headers.get('content-type') || '';
   let data = null;
   if (contentType && contentType.includes('application/json')) {
@@ -178,15 +202,17 @@ async function coreRequest(endpoint, options = {}) {
         code: err.code,
         requestId: err.requestId,
         title:
-          response.status === 401
-            ? 'Sign In Required'
-            : response.status === 403
-              ? 'Permission Needed'
-              : response.status === 423 || response.status === 402
-                ? 'System Access Locked'
-                : response.status === 404
-                  ? 'Not Found'
-                  : 'Could Not Complete Action',
+          err.code === 'DEMO_TRIAL_LIMIT_REACHED'
+            ? 'Demo Trial Limit Reached (10/10)'
+            : response.status === 401
+              ? 'Sign In Required'
+              : response.status === 403
+                ? 'Permission Needed'
+                : response.status === 423 || response.status === 402
+                  ? 'System Access Locked'
+                  : response.status === 404
+                    ? 'Not Found'
+                    : 'Could Not Complete Action',
         message: `${errorMsg}${err.requestId ? ` (Ref: ${err.requestId.slice(0, 8)})` : ''}`,
         role: activeRole,
       });
@@ -276,6 +302,7 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ role }),
     }),
+  getDemoQuota: () => request('/auth/demo-quota', { silentError: true }),
   requestDeveloperMfaChallenge: (deviceFingerprint) =>
     request('/auth/developer/mfa-challenge', {
       method: 'POST',

@@ -110,3 +110,30 @@ test('5. Compiled Vite production bundle exists in Frontend/dist with non-empty 
   assert.ok(distAssets.some((f) => f.endsWith('.js') && fs.statSync(f).size > 50000), 'Compiled JS bundle missing');
   assert.ok(distAssets.some((f) => f.endsWith('.css') && fs.statSync(f).size > 2000), 'Compiled CSS bundle missing');
 });
+
+test('6. Zero browser hover tooltips (title= attributes) remain in Frontend/src UI components', () => {
+  const jsxFiles = walkFiles(SRC_DIR).filter((f) => /\.jsx$/i.test(f));
+  const offending = [];
+  for (const f of jsxFiles) {
+    const lines = fs.readFileSync(f, 'utf8').split(/\r?\n/);
+    lines.forEach((line, idx) => {
+      if (/(?<!\.)\btitle\s*=\s*["'{]/.test(line) && !/<iframe\b/i.test(line)) {
+        offending.push(`${path.relative(SRC_DIR, f)}:${idx + 1}`);
+      }
+    });
+  }
+  assert.deepEqual(offending, [], `UI hover tooltips found: ${offending.join(', ')}`);
+});
+
+test('7. Global page navigation & async scroll restoration manager is wired (excluding Developer Dashboard)', () => {
+  const navMgr = fs.readFileSync(path.join(SRC_DIR, 'services', 'navigation.manager.js'), 'utf8');
+  const appSrc = fs.readFileSync(path.join(SRC_DIR, 'App.jsx'), 'utf8');
+  const detailSrc = fs.readFileSync(path.join(SRC_DIR, 'components', 'UniversalDetailPage.jsx'), 'utf8');
+
+  assert.ok(navMgr.includes("scrollRestoration = 'manual'"), 'Manual scrollRestoration required');
+  assert.ok(navMgr.includes('isDeveloperRoute'), 'Developer Dashboard exclusion helper required');
+  assert.ok(navMgr.includes('MutationObserver'), 'Async-aware scroll restoration required');
+  assert.ok(appSrc.includes('handleNavigateBack'), 'Unified Back button handler required in App.jsx');
+  assert.ok(appSrc.includes('restoreScrollSnapshot'), 'Scroll restoration required on popstate');
+  assert.ok(!detailSrc.includes("window.scrollTo({ top: 0, behavior: 'smooth' })"), 'UniversalDetailPage must not override scroll restoration');
+});

@@ -200,7 +200,6 @@ export function PatientManagementView() {
                     type="checkbox"
                     checked={results.length > 0 && selectedIds.length === results.length}
                     onChange={(e) => setSelectedIds(e.target.checked ? results.map((p) => p.id) : [])}
-                    title="Select / Deselect All Patients"
                   />
                 </th>
                 <th>MRN</th>
@@ -238,7 +237,6 @@ export function PatientManagementView() {
                         }
                       }}
                       style={{ background: 'none', border: '1px solid var(--border-gold)', color: 'var(--gold-300)', borderRadius: '4px', padding: '1px 5px', fontSize: '0.65rem', cursor: 'pointer', marginLeft: '4px' }}
-                      title="Copy Patient MRN"
                     >
                       Copy
                     </button>
@@ -835,7 +833,6 @@ export function ClinicalCareView() {
                 value={dispatchForm.recipientRole}
                 onChange={(e) => setDispatchForm({ ...dispatchForm, recipientRole: e.target.value })}
                 style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px' }}
-                title="Select target specialist or staff role to receive this patient report"
               >
                 <option value="LAB_TECHNICIAN">Lab Scientist (Laboratory)</option>
                 <option value="PHARMACIST">Pharmacist (Dispensary)</option>
@@ -878,7 +875,6 @@ export function ClinicalCareView() {
                 type="button"
                 onClick={handleDispatchClinicalReport}
                 className="btn-gold"
-                title="Dispatch patient report to selected specialist/staff and record SENT notification in PostgreSQL"
               >
                 Send Patient Report →
               </button>
@@ -1039,7 +1035,6 @@ export function ClinicalCareView() {
                 value={invoiceForm.paymentMethod}
                 onChange={e => setInvoiceForm({ ...invoiceForm, paymentMethod: e.target.value })}
                 style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px' }}
-                title="Payment Gateway Channel"
               >
                 <option value="CASH">Cash Counter</option>
                 <option value="MOBILE_MONEY">Mobile Money (MTN / Telecel / AT)</option>
@@ -1230,7 +1225,6 @@ export function ClinicalCareView() {
                       borderRadius: '6px',
                       cursor: 'pointer'
                     }}
-                    title={`Click to ${isExp ? 'collapse' : 'expand'} ${card.label} records`}
                   >
                     <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>{card.label}</div>
                     <div style={{ fontSize: '1.15rem', fontWeight: 800, color: card.color, marginTop: '4px' }}>{card.val}</div>
@@ -1562,7 +1556,6 @@ export function InpatientWardsView() {
                         onClick={() => handleExtendStay(adm)}
                         className="btn-gold"
                         style={{ padding: '4px 8px', fontSize: '0.72rem' }}
-                        title="Extend patient hospital stay by 3 days in PostgreSQL"
                       >
                         Extend Stay (+3d)
                       </button>
@@ -1781,7 +1774,6 @@ export function PharmacyView() {
                           onClick={() => handleDispenseRx(rx)}
                           className="btn-gold"
                           style={{ padding: '4px 8px', fontSize: '0.72rem' }}
-                          title="Dispense medication using FEFO batch allocation and record amount to pay"
                         >
                           Dispense
                         </button>
@@ -2814,7 +2806,6 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
                                 rel="noreferrer"
                                 className="btn-outline-gold"
                                 style={{ padding: '3px 7px', fontSize: '0.68rem', textDecoration: 'none' }}
-                                title={`Locate ${t.institutionName || t.name} (${t.representativePhone || t.officialPhone || ''}) on Google Maps`}
                               >
                                 📍 Google Map
                               </a>
@@ -2844,19 +2835,19 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
                               >
                                 Approve
                               </button>
-                              <button onClick={() => handleExtendSubscription(tid, 30, '1_MONTH_TRIAL')} className="btn-outline-gold" style={{ padding: '3px 7px', fontSize: '0.68rem' }} title="Grant 1-Month Trial (30 Days)">
+                              <button onClick={() => handleExtendSubscription(tid, 30, '1_MONTH_TRIAL')} className="btn-outline-gold" style={{ padding: '3px 7px', fontSize: '0.68rem' }}>
                                 1-Mo Trial
                               </button>
-                              <button onClick={() => handleExtendSubscription(tid, 90, '3_MONTHS')} className="btn-outline-gold" style={{ padding: '3px 7px', fontSize: '0.68rem' }} title="Extend Subscription by 3 Months (90 Days)">
+                              <button onClick={() => handleExtendSubscription(tid, 90, '3_MONTHS')} className="btn-outline-gold" style={{ padding: '3px 7px', fontSize: '0.68rem' }}>
                                 +3 Months
                               </button>
-                              <button onClick={() => handleExtendSubscription(tid, 180, '6_MONTHS')} className="btn-outline-gold" style={{ padding: '3px 7px', fontSize: '0.68rem' }} title="Extend Subscription by 6 Months (180 Days)">
+                              <button onClick={() => handleExtendSubscription(tid, 180, '6_MONTHS')} className="btn-outline-gold" style={{ padding: '3px 7px', fontSize: '0.68rem' }}>
                                 +6 Months
                               </button>
-                              <button onClick={() => handleExtendSubscription(tid, 365, '1_YEAR')} className="btn-outline-gold" style={{ padding: '3px 7px', fontSize: '0.68rem' }} title="Extend Subscription by 1 Year (365 Days)">
+                              <button onClick={() => handleExtendSubscription(tid, 365, '1_YEAR')} className="btn-outline-gold" style={{ padding: '3px 7px', fontSize: '0.68rem' }}>
                                 +1 Year
                               </button>
-                              <button onClick={() => handleExtendSubscription(tid, 36500, 'LIFETIME')} className="btn-gold" style={{ padding: '3px 7px', fontSize: '0.68rem' }} title="Grant Permanent Lifetime License">
+                              <button onClick={() => handleExtendSubscription(tid, 36500, 'LIFETIME')} className="btn-gold" style={{ padding: '3px 7px', fontSize: '0.68rem' }}>
                                 Lifetime
                               </button>
                               {(t.systemLocked ?? t.isLocked) ? (
@@ -3172,7 +3163,6 @@ export function DeveloperControlCenterView({ onNavigateDetail }) {
                   value={tenantForm.institutionType}
                   onChange={e => setTenantForm({ ...tenantForm, institutionType: e.target.value, organizationType: e.target.value })}
                   style={{ padding: '8px', background: 'rgba(6, 12, 24, 0.88)', border: '1px solid var(--border-gold)', color: '#fff', borderRadius: '4px' }}
-                  title="Select Hospital Organization Type (Private Hospital, Government Hospital, etc.)"
                 >
                   <option value="PRIVATE_HOSPITAL">Private Hospital</option>
                   <option value="GOVERNMENT_HOSPITAL">Government Hospital</option>

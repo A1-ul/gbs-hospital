@@ -436,7 +436,6 @@ export default function RoleLoginModal({
                 <select
                   value={selectedRole}
                   onChange={(e) => handleSelectRoleOption(e.target.value)}
-                  title="Select your designated hospital role"
                   style={{
                     width: '100%',
                     padding: '7px 10px',
@@ -478,7 +477,6 @@ export default function RoleLoginModal({
                           type="button"
                           key={r.id}
                           onClick={() => handleSelectRoleOption(r.id)}
-                          title={`Select ${r.name} (${r.dept || r.desc})`}
                           style={{
                             display: 'flex',
                             alignItems: 'center',
@@ -560,10 +558,10 @@ export default function RoleLoginModal({
               >
                 <div>
                   <div style={{ fontSize: '0.72rem', color: 'var(--gold-400)', fontWeight: 700 }}>
-                    Training Mode Active • {currentRoleObj.name}
+                    Interactive Learning Demo (10-Entry Trial) • {currentRoleObj.name}
                   </div>
                   <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                    Server-issued audited training session (no client credentials)
+                    Works identically to live production, limited to 10 saved trial entries (Developer excluded)
                   </div>
                 </div>
                 <button
@@ -579,7 +577,7 @@ export default function RoleLoginModal({
                     gap: '5px'
                   }}
                 >
-                  <Zap size={13} /> Launch Training Session
+                  <Zap size={13} /> Start 10-Entry Demo Trial
                 </button>
               </div>
             )}

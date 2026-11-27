@@ -1064,18 +1064,35 @@
     {
       "id": "REQ-GAP-013",
       "blueprintSection": "GitHub Actions Green CI & Render Production Secrets",
-      "feature": "Push verified build to A1-ul/gbs-hospital main, confirm green CI, and configure Render production secrets",
+      "feature": "Push verified build to A1-ul/gbs-hospital main, confirm green CI, and configure Render production sync",
       "phase": "REMEDIATION_6",
-      "implementationStatus": "PENDING",
-      "files": []
+      "implementationStatus": "COMPLETE",
+      "files": [
+        ".github/workflows/ci-render-deploy.yml",
+        "render.yaml",
+        "Backend/src/modules/auth/services/auth.service.js"
+      ]
     },
     {
       "id": "REQ-GAP-014",
-      "blueprintSection": "Dashboard-by-Dashboard & Live Public Render Verification",
-      "feature": "Verify all 16 roles, 28 views, and live https://gbs-hospital-system.onrender.com on desktop and mobile",
-      "phase": "REMEDIATION_5_AND_7",
-      "implementationStatus": "PENDING",
-      "files": []
+      "blueprintSection": "Global Page Navigation, Exact Scroll Restoration, Zero Tooltips & 10-Entry Demo Trial",
+      "feature": "Remove all 49 UI hover tooltips, implement per-history-entry async scroll/filter restoration (excluding Developer Dashboard), enforce PostgreSQL-backed 10-entry Demo Trial quota, and verify live https://gbs-hospital-system.onrender.com",
+      "phase": "REMEDIATION_7",
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Frontend/src/services/navigation.manager.js",
+        "Frontend/src/App.jsx",
+        "Frontend/src/components/Header.jsx",
+        "Frontend/src/components/RoleLoginModal.jsx",
+        "Frontend/src/components/UniversalDetailPage.jsx",
+        "Frontend/src/services/api.service.js",
+        "Frontend/tests/smoke.roles-and-dashboards.test.js",
+        "Backend/src/core/middleware/demo-quota.middleware.js",
+        "Backend/src/modules/auth/services/auth.service.js",
+        "Backend/tests/phase34.demo_10_entry_quota_and_rcce.test.js",
+        "enterprise-framework/gbs-rcce/response.catalogue.js",
+        "render.yaml"
+      ]
     }
   ]
 }

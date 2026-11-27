@@ -157,6 +157,13 @@ const DEFAULT_RESPONSE_CATALOGUE = Object.freeze({
     },
 
     // Authentication, Authorization & Developer Privacy Controls
+    DEMO_TRIAL_LIMIT_REACHED: {
+        code: "DEMO_TRIAL_LIMIT_REACHED",
+        httpStatus: 403,
+        severity: "WARNING",
+        category: "DEMO_QUOTA",
+        message: "Demo trial limit reached (10/10 entries). Sign up or sign in with a verified account for unlimited production operations."
+    },
     UNAUTHORIZED: {
         code: "UNAUTHORIZED",
         httpStatus: 401,

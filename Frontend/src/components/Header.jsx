@@ -41,7 +41,8 @@ export default function Header({
   onLogout,
   onOpenQuickAction,
   facilityBranding,
-  onUpdateFacilityBranding
+  onUpdateFacilityBranding,
+  demoQuota = null
 }) {
   const [time, setTime] = useState(new Date().toLocaleTimeString());
   const [health, setHealth] = useState({ server: 'Checking...', database: 'Checking...', uptime: '0s', environment: 'DEVELOPMENT' });
@@ -283,7 +284,7 @@ export default function Header({
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 20px', borderBottom: '1px solid var(--border-subtle)', flexWrap: 'wrap', gap: '12px' }}>
         {/* Hospital Branding */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0, maxWidth: '100%' }}>
-          <div style={{ width: '48px', height: '48px', minWidth: '48px', minHeight: '48px', flexShrink: 0, borderRadius: '8px', border: '2px solid var(--gold-400)', overflow: 'hidden', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title={`${activeHospitalName} Official Logo`}>
+          <div style={{ width: '48px', height: '48px', minWidth: '48px', minHeight: '48px', flexShrink: 0, borderRadius: '8px', border: '2px solid var(--gold-400)', overflow: 'hidden', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <img src={activeLogoUrl} alt="Hospital Logo" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} onError={(e) => { e.target.style.display = 'none'; }} />
           </div>
           <div style={{ minWidth: 0 }}>
@@ -303,7 +304,6 @@ export default function Header({
                   onClick={openHospitalNameModal}
                   className="btn-outline-gold"
                   style={{ padding: '2px 8px', fontSize: '0.7rem', borderRadius: '4px' }}
-                  title="Admin: Change preferred Hospital Facility Name (Main System Name remains GBS HOSPITAL MANAGEMENT SYSTEM)"
                 >
                   Change Hospital Name
                 </button>
@@ -344,8 +344,33 @@ export default function Header({
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fff' }}>{currentUser.firstName} {currentUser.lastName}</div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--gold-400)' }}>{currentUser.role}</div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--gold-400)' }}>
+                  {currentUser.role}
+                  {currentUser.isDemoSession ? ' • DEMO TRIAL' : ''}
+                </div>
               </div>
+              {currentUser.isDemoSession && demoQuota && (
+                <div
+                  style={{
+                    padding: '4px 10px',
+                    borderRadius: '6px',
+                    fontSize: '0.74rem',
+                    fontWeight: 800,
+                    fontFamily: 'var(--font-mono)',
+                    border: demoQuota.limitReached
+                      ? '1px solid #ef4444'
+                      : demoQuota.entriesUsed >= Math.max(1, (demoQuota.maxEntries || 10) - 2)
+                        ? '1px solid #f59e0b'
+                        : '1px solid var(--gold-400)',
+                    background: demoQuota.limitReached
+                      ? 'rgba(239, 68, 68, 0.2)'
+                      : 'rgba(212, 175, 55, 0.14)',
+                    color: demoQuota.limitReached ? '#fca5a5' : 'var(--gold-300)'
+                  }}
+                >
+                  DEMO: {demoQuota.entriesUsed}/{demoQuota.maxEntries || 10} ENTRIES
+                </div>
+              )}
               {isDeveloperAuthenticated && (
                 <button
                   onClick={() => onSelectRole('DEVELOPER')}
@@ -377,7 +402,6 @@ export default function Header({
               }}
               className="btn-outline-gold"
               style={{ padding: '8px 12px', fontSize: '0.8rem', position: 'relative' }}
-              title="View live hospital alerts and updates"
             >
               <Bell size={16} /> Alerts
               {unreadNotifications > 0 && (
@@ -486,7 +510,6 @@ export default function Header({
               onClick={toggleRoleCountsDropdown}
               className="btn-outline-gold"
               style={{ padding: '8px 14px', fontSize: '0.8rem', background: showRoleCounts ? 'var(--gold-glow)' : 'transparent' }}
-              title="Click to see how many staff are registered in each department"
             >
               <Users size={16} /> Staff Directory <ChevronDown size={14} />
             </button>
@@ -532,7 +555,6 @@ export default function Header({
                       }}
                       className="btn-gold"
                       style={{ padding: '6px 14px', fontSize: '0.78rem' }}
-                      title="Sign in with Administrator credentials to query PostgreSQL role user counts"
                     >
                       <Key size={14} /> Sign In as Administrator
                     </button>
@@ -566,7 +588,6 @@ export default function Header({
                                 color: '#e5e5e5',
                                 textAlign: 'left'
                               }}
-                              title={`Click to view, verify & manage ${rc.roleName} accounts`}
                             >
                               <span style={{ fontWeight: isExpanded ? 700 : 500, color: isExpanded ? 'var(--gold-300)' : '#e5e5e5' }}>
                                 {isExpanded ? '▾ ' : '▸ '}{rc.roleName}
@@ -700,7 +721,6 @@ export default function Header({
                     cursor: 'pointer',
                     transition: 'all 0.18s ease'
                   }}
-                  title={`Filter to ${cat.label}`}
                 >
                   <span>{cat.icon}</span>
                   <span>{cat.label}</span>
@@ -732,7 +752,6 @@ export default function Header({
               <button
                 key={role.id}
                 onClick={() => onSelectRole(role.id)}
-                title={`Open ${/portal$/i.test(role.name) ? role.name : `${role.name} Portal`} (${role.dept || role.desc})`}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -781,19 +800,19 @@ export default function Header({
             <span style={{ color: 'var(--gold-400)', fontWeight: 700, textTransform: 'uppercase', fontSize: '0.72rem', letterSpacing: '0.05em', marginRight: '2px' }}>
               🩺 Quick Actions:
             </span>
-            <button onClick={() => onOpenQuickAction('NEW_APPOINTMENT')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.76rem' }} title="Register a new patient or schedule an appointment">
+            <button onClick={() => onOpenQuickAction('NEW_APPOINTMENT')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.76rem' }}>
               <PlusCircle size={13} /> New Patient
             </button>
-            <button onClick={() => onOpenQuickAction('PATIENT_SEARCH')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.76rem' }} title="Search patients and medical folders">
+            <button onClick={() => onOpenQuickAction('PATIENT_SEARCH')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.76rem' }}>
               <Search size={13} /> Find Patient
             </button>
-            <button onClick={() => onOpenQuickAction('BED_AVAILABILITY')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.76rem' }} title="See open hospital beds and rooms">
+            <button onClick={() => onOpenQuickAction('BED_AVAILABILITY')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.76rem' }}>
               <Bed size={13} /> Free Beds
             </button>
-            <button onClick={() => onOpenQuickAction('LAB_REQUESTS')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.76rem' }} title="Order or check lab tests">
+            <button onClick={() => onOpenQuickAction('LAB_REQUESTS')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.76rem' }}>
               <FlaskConical size={13} /> Lab Tests
             </button>
-            <button onClick={() => onOpenQuickAction('PHARMACY_STOCK')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.76rem' }} title="Check pharmacy medicine inventory">
+            <button onClick={() => onOpenQuickAction('PHARMACY_STOCK')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.76rem' }}>
               <Pill size={13} /> Medicine Stock
             </button>
           </div>
@@ -805,19 +824,19 @@ export default function Header({
             <span style={{ color: '#38bdf8', fontWeight: 700, textTransform: 'uppercase', fontSize: '0.72rem', letterSpacing: '0.05em', marginRight: '2px' }}>
               📊 Records:
             </span>
-            <button onClick={() => onOpenQuickAction('VIEW_REPORTS')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.76rem' }} title="View hospital reports">
+            <button onClick={() => onOpenQuickAction('VIEW_REPORTS')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.76rem' }}>
               <FileText size={13} /> Reports
             </button>
-            <button onClick={() => onOpenQuickAction('VIEW_NOTIFICATIONS')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.76rem' }} title="View all system alerts">
+            <button onClick={() => onOpenQuickAction('VIEW_NOTIFICATIONS')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.76rem' }}>
               <AlertTriangle size={13} /> All Alerts
             </button>
-            <button onClick={() => onOpenQuickAction('VIEW_APPLICATIONS')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.76rem' }} title="Review pending account and leave requests">
+            <button onClick={() => onOpenQuickAction('VIEW_APPLICATIONS')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.76rem' }}>
               <UserCheck size={13} /> Requests
             </button>
-            <button onClick={() => onOpenQuickAction('VIEW_HOSPITAL_INFORMATION')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.76rem' }} title="View hospital details and summary">
+            <button onClick={() => onOpenQuickAction('VIEW_HOSPITAL_INFORMATION')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.76rem' }}>
               <Database size={13} /> Hospital Info
             </button>
-            <button onClick={() => onOpenQuickAction('VIEW_SYSTEM_INFORMATION')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.76rem' }} title="Check server speed and system health">
+            <button onClick={() => onOpenQuickAction('VIEW_SYSTEM_INFORMATION')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.76rem' }}>
               <Activity size={13} /> System Health
             </button>
           </div>

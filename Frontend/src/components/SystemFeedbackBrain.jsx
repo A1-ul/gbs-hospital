@@ -178,7 +178,6 @@ export default function SystemFeedbackBrain({ currentRole, activeModule }) {
                 type="button"
                 onClick={() => setToasts((prev) => prev.filter((item) => item.id !== toast.id))}
                 style={{ background: 'none', border: 'none', color: '#e7e5e4', cursor: 'pointer', padding: '2px' }}
-                title="Dismiss notification"
               >
                 <X size={14} />
               </button>
@@ -300,7 +299,6 @@ export default function SystemFeedbackBrain({ currentRole, activeModule }) {
                           type="button"
                           onClick={() => handleCopyText(`${ev.title} - ${ev.message}`, 'Response Entry')}
                           style={{ background: 'none', border: 'none', color: '#fde68a', cursor: 'pointer' }}
-                          title="Copy response text"
                         >
                           <Copy size={12} />
                         </button>

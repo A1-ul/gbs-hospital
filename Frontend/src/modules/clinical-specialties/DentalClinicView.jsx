@@ -130,7 +130,6 @@ export default function DentalClinicView({ onNavigateDetail }) {
               key={tooth}
               type="button"
               onClick={() => handleToothClick(tooth)}
-              title={`Tooth FDI #${tooth}: ${meta.label} (Click to mark as ${activeBrush})`}
               style={{
                 padding: '7px 2px',
                 borderRadius: '6px',

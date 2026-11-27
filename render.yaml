@@ -24,7 +24,9 @@ services:
       - key: PORT
         value: 5000
       - key: DEMO_MODE_ENABLED
-        value: "false"
+        value: "true"
+      - key: DEMO_MAX_ENTRIES
+        value: "10"
       - key: RENDER_SERVICE_NAME
         value: gbs-hospital-system
       - key: PRODUCTION_PUBLIC_URL

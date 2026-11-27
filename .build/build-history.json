@@ -83,6 +83,20 @@
       "phase": "REMEDIATION_5",
       "procedure": 5,
       "summary": "Full 33/33 suite (349/349) CI-parity regression, static audit (0 broken requires, 0 placeholders, 42/42 images), and live Chrome dashboard-by-dashboard QA across public overview, all 24 Admin subsystems, Step 7 role counts, UniversalDetailPage, Doctor & Patient portals, hidden /developer-portal + Step 35 Remote Ops, and 390x844 mobile (0px overflow). Found and fixed 5 genuine defects (3 white-screen icon crashes, /patients/all 404, duplicated Portal label, DB pool exhaustion bursts, hidden unlinked-patient notice)."
+    },
+    {
+      "timestamp": "2026-11-27T15:35:00.000Z",
+      "event": "REMEDIATION PROCEDURE 6 VERIFIED (CI RUN #20 GREEN & RENDER LIVE)",
+      "phase": "REMEDIATION_6",
+      "procedure": 6,
+      "summary": "Wired real SMTP email dispatch + optional RFC 6238 Authenticator App TOTP into auth.service.js, added Frontend smoke tests to CI, untracked stale Frontend/dist files, preserved facility-branding.json in phase26 tests, pushed commit 2a72a597 to A1-ul/gbs-hospital main. GitHub Actions Run #20 PASSED (33/33 Backend suites / 349 tests, 5/5 Frontend tests, 0 failure annotations) and Render auto-deployed https://gbs-hospital-system.onrender.com (HTTP 200 healthy, PostgreSQL connected, HSTS/CSP/headers verified, 48/48 public assets HTTP 200)."
+    },
+    {
+      "timestamp": "2026-11-27T16:02:00.000Z",
+      "event": "GLOBAL NAVIGATION, ZERO TOOLTIPS & 10-ENTRY DEMO TRIAL QUOTA VERIFIED",
+      "phase": "REMEDIATION_7",
+      "procedure": 7,
+      "summary": "Removed all 49 UI hover tooltips (title= attributes) across Frontend/src/, implemented Frontend/src/services/navigation.manager.js with manual browser scrollRestoration, per-history-entry window + nested container scroll & filter context capture, async MutationObserver/RAF restoration on App Back and Browser Back/Forward (excluding Developer Dashboard), and built atomic PostgreSQL-backed 10-entry Demo Trial Quota middleware (Backend/src/core/middleware/demo-quota.middleware.js + GET /auth/demo-quota + RCCE DEMO_TRIAL_LIMIT_REACHED + live Header quota badge + render.yaml DEMO_MODE_ENABLED=true/DEMO_MAX_ENTRIES=10). Verified 7/7 Frontend automated tests, Vite build (1,608 modules), and Backend phase25/26/31/34 suites (25/25 passing)."
     }
   ]
 }

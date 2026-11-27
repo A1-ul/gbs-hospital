@@ -14,6 +14,7 @@ router.post("/reset-password", controller.resetPassword);
 router.post("/demo-session", controller.startDemoSession);
 
 router.get("/me", authMiddleware, controller.me);
+router.get("/demo-quota", authMiddleware, controller.demoQuota);
 router.post("/logout", authMiddleware, controller.logout);
 router.get("/sessions", authMiddleware, controller.listSessions);
 router.delete("/sessions/:sessionId", authMiddleware, controller.revokeSession);

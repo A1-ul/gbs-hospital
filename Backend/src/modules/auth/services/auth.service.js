@@ -19,6 +19,7 @@ const { environment } = require("../../../config/environment");
 const AppError = require("../../../core/errors/app.error");
 const logger = require("../../../core/utils/logger");
 const { emailAdapter } = require("../../../core/integration");
+const { initDemoQuota, getDemoQuotaStatus, getMaxDemoEntries } = require("../../../core/middleware/demo-quota.middleware");
 
 const RESET_TOKEN_TTL_MS = 15 * 60 * 1000; // 15 minutes
 const MFA_CHALLENGE_TTL_MS = 10 * 60 * 1000; // 10 minutes
@@ -272,7 +273,7 @@ async function login(email, password, ipAddress, userAgent, deviceFingerprint = 
                     userAgent: userAgent || null
                 }
             });
-        } catch (_e) {}
+        } catch (_e) { }
         throw new AppError("Invalid credentials", 401, "INVALID_CREDENTIALS");
     }
 
@@ -337,7 +338,7 @@ async function login(email, password, ipAddress, userAgent, deviceFingerprint = 
                 }
             }
         });
-    } catch (_auditErr) {}
+    } catch (_auditErr) { }
 
     logger.info({
         message: "User login successful",
@@ -813,7 +814,7 @@ async function startDemoSession({ role, ipAddress, userAgent }) {
         );
     }
 
-    const user = await prisma.user.findFirst({
+    let user = await prisma.user.findFirst({
         where: {
             active: true,
             role: { name: normalizedRole }
@@ -829,11 +830,44 @@ async function startDemoSession({ role, ipAddress, userAgent }) {
     });
 
     if (!user) {
-        throw new AppError(
-            `No active training account is configured for role ${normalizedRole}.`,
-            404,
-            "DEMO_ACCOUNT_NOT_AVAILABLE"
-        );
+        const roleRecord = await prisma.role.findUnique({
+            where: { name: normalizedRole },
+            include: { permissions: true }
+        });
+        if (!roleRecord) {
+            throw new AppError(
+                `Hospital role ${normalizedRole} is not configured in database.`,
+                404,
+                "DEMO_ACCOUNT_NOT_AVAILABLE"
+            );
+        }
+        const roleSlug = normalizedRole.toLowerCase().replace(/[^a-z0-9]+/g, "_");
+        const demoEmail = `demo.${roleSlug}@demo.gbs-hospital.local`;
+        const randomHash = await hashPassword(crypto.randomBytes(24).toString("hex"));
+        const readableRole = normalizedRole
+            .split("_")
+            .map((w) => w.charAt(0) + w.slice(1).toLowerCase())
+            .join(" ");
+
+        user = await prisma.user.upsert({
+            where: { email: demoEmail },
+            update: { active: true, roleId: roleRecord.id },
+            create: {
+                firstName: "Demo",
+                lastName: readableRole,
+                email: demoEmail,
+                password: randomHash,
+                roleId: roleRecord.id,
+                active: true
+            },
+            include: {
+                role: {
+                    include: {
+                        permissions: true
+                    }
+                }
+            }
+        });
     }
 
     const permissions = user.role.permissions.map((p) => p.name);
@@ -871,15 +905,21 @@ async function startDemoSession({ role, ipAddress, userAgent }) {
                 outcome: "SUCCESS",
                 ipAddress: ipAddress || null,
                 userAgent: userAgent || null,
-                description: `Supervised training demo session started for role ${user.role.name}`
+                description: `Supervised 10-entry demo trial session started for role ${user.role.name}`
             }
         });
+    });
+
+    const demoQuota = await initDemoQuota(sessionId, {
+        userId: user.id,
+        role: user.role.name
     });
 
     return {
         token,
         sessionId,
         isDemoSession: true,
+        demoQuota,
         expiresAt,
         user: {
             id: user.id,
@@ -888,15 +928,29 @@ async function startDemoSession({ role, ipAddress, userAgent }) {
             email: user.email,
             role: user.role.name,
             permissions,
-            isDemoSession: true
+            isDemoSession: true,
+            demoQuota
         }
     };
+}
+
+async function getDemoQuota(actor) {
+    if (!actor || actor.isDemoSession !== true) {
+        return {
+            isDemoSession: false,
+            entriesUsed: 0,
+            maxEntries: null,
+            remaining: null,
+            limitReached: false
+        };
+    }
+    return getDemoQuotaStatus(actor.sessionId || `anon-${actor.id}`);
 }
 
 /**
  * Retrieve authenticated user profile from database.
  */
-async function getMe(userId) {
+async function getMe(userId, actor = null) {
     const user = await prisma.user.findUnique({
         where: { id: userId },
         include: {
@@ -912,6 +966,9 @@ async function getMe(userId) {
         throw new AppError("User not found", 404, "USER_NOT_FOUND");
     }
 
+    const isDemoSession = Boolean(actor && actor.isDemoSession === true);
+    const demoQuota = isDemoSession ? await getDemoQuota(actor) : null;
+
     return {
         id: user.id,
         firstName: user.firstName,
@@ -921,7 +978,9 @@ async function getMe(userId) {
         active: user.active,
         permissions: user.role.permissions.map((p) => p.name),
         lastLogin: user.lastLogin,
-        createdAt: user.createdAt
+        createdAt: user.createdAt,
+        isDemoSession,
+        ...(demoQuota ? { demoQuota } : {})
     };
 }
 
@@ -936,5 +995,7 @@ module.exports = {
     requestDeveloperMfaChallenge,
     verifyDeveloperMfaChallenge,
     startDemoSession,
+    getDemoQuota,
+    getMaxDemoEntries,
     getMe
 };
