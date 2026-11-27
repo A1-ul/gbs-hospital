@@ -85,6 +85,7 @@ router.get("/developer/tenant-analytics", developerSecurityGuard, controller.get
 
 // Step 35: Remote System Management & Infrastructure Ops (Developer Only)
 router.get("/developer/remote/cluster-health", developerSecurityGuard, controller.getClusterHealth);
+router.get("/developer/remote/db-pool", developerSecurityGuard, controller.getDatabasePoolTelemetry);
 router.get("/developer/remote/deployments", developerSecurityGuard, controller.getDeploymentHistory);
 router.post("/developer/remote/deployments", developerSecurityGuard, controller.recordDeploymentCheckpoint);
 router.post("/developer/remote/cache/clear", developerSecurityGuard, controller.clearSystemCaches);

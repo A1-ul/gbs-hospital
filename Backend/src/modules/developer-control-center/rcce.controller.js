@@ -337,6 +337,15 @@ async function getClusterHealth(req, res, next) {
     }
 }
 
+async function getDatabasePoolTelemetry(req, res, next) {
+    try {
+        const result = await remoteOpsService.getDatabasePoolTelemetry();
+        return res.rcceSuccess("SUCCESS", result);
+    } catch (error) {
+        next(error);
+    }
+}
+
 async function getDeploymentHistory(req, res, next) {
     try {
         const result = await remoteOpsService.getDeploymentHistory();
@@ -463,6 +472,7 @@ module.exports = {
     getAiDeveloperDiagnostics,
     getTenantAnalytics,
     getClusterHealth,
+    getDatabasePoolTelemetry,
     getDeploymentHistory,
     recordDeploymentCheckpoint,
     clearSystemCaches,

@@ -23,6 +23,9 @@ const path = require("path");
 const prisma = require("../../../core/database/prisma.client");
 const { environment } = require("../../../config/environment");
 const { invalidateControlConfigCache, refreshControlConfig } = require("../../../core/middleware/rcce-audit.middleware");
+const { collectPoolAndStorageTelemetry } = require("../../../core/database/database.monitor");
+const metricsService = require("../../../core/monitoring/metrics.service");
+const { getMonitorStatus: getPrismaQueryMonitorStatus } = require("../../../core/database/prisma.monitor");
 const AppError = require("../../../core/errors/app.error");
 
 const BACKUPS_DIR = path.resolve(__dirname, "..", "..", "..", "..", "backups");
@@ -46,32 +49,35 @@ async function writeDeveloperAudit({ actor, action, affectedRecord, description,
 }
 
 /**
- * 1. Live Cluster, Process & PostgreSQL Health Telemetry
+ * 1. Live Cluster, Process, API Performance, Storage & PostgreSQL Connection Pool Telemetry
  */
 async function getClusterHealth() {
-    const dbStart = Date.now();
-    const pgStatsRows = await prisma.$queryRaw`
-        SELECT
-            current_database() AS database_name,
-            current_setting('max_connections')::int AS max_connections,
-            (SELECT count(*)::int FROM pg_stat_activity) AS active_connections,
-            pg_database_size(current_database())::bigint AS database_size_bytes
-    `;
-    const dbLatencyMs = Date.now() - dbStart;
-    const pgRow = pgStatsRows && pgStatsRows[0] ? pgStatsRows[0] : {};
+    const dbTelemetry = await collectPoolAndStorageTelemetry();
 
     const activeSessions = await prisma.session.count({ where: { expiresAt: { gt: new Date() } } });
     const expiredSessions = await prisma.session.count({ where: { expiresAt: { lte: new Date() } } });
     const totalTenants = await prisma.tenant.count();
     const lockedTenants = await prisma.tenant.count({ where: { systemLocked: true } });
     const unresolvedErrors = await prisma.systemErrorLog.count({ where: { resolved: false } });
+    const failedMigrationJobs = await prisma.migrationJob.count({ where: { status: "FAILED" } }).catch(() => 0);
 
     const mem = process.memoryUsage();
     const totalMemBytes = os.totalmem();
     const freeMemBytes = os.freemem();
+    const memUsedPct = Number((((totalMemBytes - freeMemBytes) / Math.max(1, totalMemBytes)) * 100).toFixed(1));
+
+    const httpMetrics = metricsService.getMetrics();
+    const totalReqs = Number(httpMetrics.counters["http.requests_total"] || 0);
+    const failed5xx = Number(httpMetrics.counters["http.requests_failed_5xx"] || 0);
+    const failed4xx = Number(httpMetrics.counters["http.requests_failed_4xx"] || 0);
+    const respGauge = httpMetrics.gauges["http.response_time_ms"];
+    const avgResponseTimeMs =
+        respGauge && typeof respGauge === "object" ? Number(respGauge.average || 0) : 0;
+    const errorRatePct = totalReqs > 0 ? Number(((failed5xx / totalReqs) * 100).toFixed(2)) : 0;
+    const queryStats = getPrismaQueryMonitorStatus();
 
     return {
-        checkedAt: new Date().toISOString(),
+        checkedAt: dbTelemetry.checkedAt,
         serviceName: environment.RENDER_SERVICE_NAME,
         environment: environment.NODE_ENV,
         nodeVersion: process.version,
@@ -89,24 +95,65 @@ async function getClusterHealth() {
             heapUsedMb: Math.round(mem.heapUsed / (1024 * 1024)),
             heapTotalMb: Math.round(mem.heapTotal / (1024 * 1024)),
             hostTotalMb: Math.round(totalMemBytes / (1024 * 1024)),
-            hostFreeMb: Math.round(freeMemBytes / (1024 * 1024))
+            hostFreeMb: Math.round(freeMemBytes / (1024 * 1024)),
+            hostUtilizationPct: memUsedPct
         },
         database: {
             engine: "PostgreSQL",
-            name: pgRow.database_name || "gbs_hospital",
-            latencyMs: dbLatencyMs,
-            activeConnections: Number(pgRow.active_connections || 0),
-            maxConnections: Number(pgRow.max_connections || 100),
-            sizeMb: Number((Number(pgRow.database_size_bytes || 0) / (1024 * 1024)).toFixed(2))
+            name: dbTelemetry.databaseName,
+            latencyMs: dbTelemetry.latencyMs,
+            activeConnections: dbTelemetry.pool.totalConnections,
+            activeRunningConnections: dbTelemetry.pool.activeConnections,
+            idleConnections: dbTelemetry.pool.idleConnections,
+            idleInTransaction: dbTelemetry.pool.idleInTransaction,
+            waitingRequests: dbTelemetry.pool.waitingRequests,
+            configuredPoolLimit: dbTelemetry.pool.configuredPerInstanceLimit,
+            maxConnections: dbTelemetry.pool.postgresMaxConnections,
+            safeMaxAppConnections: dbTelemetry.pool.safeMaxAppConnections,
+            poolUtilizationPct: dbTelemetry.pool.poolUtilizationPct,
+            serverUtilizationPct: dbTelemetry.pool.serverUtilizationPct,
+            poolAlertLevel: dbTelemetry.pool.alertLevel,
+            pgbouncerEnabled: dbTelemetry.pool.pgbouncerEnabled,
+            connectionTimeouts: dbTelemetry.pool.connectionTimeouts,
+            failedConnections: dbTelemetry.pool.failedConnections,
+            recoveredConnections: dbTelemetry.pool.recoveredConnections,
+            sizeMb: dbTelemetry.storage.databaseSizeMb,
+            quotaMb: dbTelemetry.storage.databaseQuotaMb,
+            remainingMb: dbTelemetry.storage.remainingMb,
+            storageUtilizationPct: dbTelemetry.storage.storageUtilizationPct,
+            storageAlertLevel: dbTelemetry.storage.alertLevel,
+            localBackupsMb: dbTelemetry.storage.localBackupsMb,
+            backupFilesCount: dbTelemetry.storage.backupFilesCount
+        },
+        apiPerformance: {
+            totalRequests: totalReqs,
+            avgResponseTimeMs,
+            failed5xx,
+            failed4xx,
+            errorRatePct,
+            slowQueries: queryStats.slowQueries || 0,
+            backgroundJobFailures: failedMigrationJobs
+        },
+        alerts: {
+            overallLevel: dbTelemetry.overallAlertLevel,
+            activeAlerts: dbTelemetry.activeAlerts
         },
         runtimeCounts: {
             activeSessions,
             expiredSessions,
             totalTenants,
             lockedTenants,
-            unresolvedErrors
+            unresolvedErrors,
+            failedMigrationJobs
         }
     };
+}
+
+/**
+ * 1B. Dedicated Database Connection Pool & Storage Telemetry Report (Developer Only)
+ */
+async function getDatabasePoolTelemetry() {
+    return collectPoolAndStorageTelemetry();
 }
 
 /**
@@ -391,6 +438,7 @@ async function getRollbackReadiness() {
 
 module.exports = {
     getClusterHealth,
+    getDatabasePoolTelemetry,
     getDeploymentHistory,
     recordDeploymentCheckpoint,
     clearSystemCaches,

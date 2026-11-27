@@ -255,8 +255,8 @@ export default function DeveloperAdvancedOpsPanel({ onStatusMsg }) {
             </h4>
             <p style={{ margin: '2px 0 0', fontSize: '0.74rem', color: 'var(--text-muted)' }}>
               {clusterHealth
-                ? `PostgreSQL ${clusterHealth.database?.name} • ${clusterHealth.database?.activeConnections}/${clusterHealth.database?.maxConnections} conns • ${clusterHealth.database?.sizeMb} MB • ${clusterHealth.database?.latencyMs}ms • ${clusterHealth.cpu?.cores} CPU cores • RTO ${rollbackInfo?.rtoTarget || '<= 2 Hours'}`
-                : 'Live cluster health & remote maintenance commands audited to PostgreSQL.'}
+                ? `PostgreSQL ${clusterHealth.database?.name} • Pool ${clusterHealth.database?.activeConnections}/${clusterHealth.database?.configuredPoolLimit || 10} (PG Max ${clusterHealth.database?.maxConnections}, ${clusterHealth.database?.poolUtilizationPct ?? 0}%) • Storage ${clusterHealth.database?.sizeMb}/${clusterHealth.database?.quotaMb || 1024} MB (${clusterHealth.database?.storageUtilizationPct ?? 0}%) • Latency ${clusterHealth.database?.latencyMs}ms • API Avg ${clusterHealth.apiPerformance?.avgResponseTimeMs ?? 0}ms • RTO ${rollbackInfo?.rtoTarget || '<= 2 Hours'}`
+                : 'Live cluster health, connection pool alerts & remote maintenance commands audited to PostgreSQL.'}
             </p>
           </div>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -289,6 +289,47 @@ export default function DeveloperAdvancedOpsPanel({ onStatusMsg }) {
             </button>
           </div>
         </div>
+
+        {clusterHealth?.database && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '8px', marginBottom: '12px' }}>
+            <div style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(6,12,24,0.8)', border: `1px solid ${clusterHealth.database.poolAlertLevel === 'CRITICAL' ? '#ef4444' : clusterHealth.database.poolAlertLevel === 'WARNING' ? '#f59e0b' : 'var(--border-subtle)'}` }}>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>DB Connection Pool ({clusterHealth.database.poolAlertLevel || 'OK'})</div>
+              <div style={{ fontSize: '1.05rem', fontWeight: 800, color: clusterHealth.database.poolAlertLevel === 'CRITICAL' ? '#fca5a5' : clusterHealth.database.poolAlertLevel === 'WARNING' ? '#fcd34d' : '#6ee7b7' }}>
+                {clusterHealth.database.activeConnections} / {clusterHealth.database.configuredPoolLimit || 10} ({clusterHealth.database.poolUtilizationPct ?? 0}%)
+              </div>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+                Active {clusterHealth.database.activeRunningConnections ?? 0} • Idle {clusterHealth.database.idleConnections ?? 0} • Wait {clusterHealth.database.waitingRequests ?? 0} • PgBouncer {clusterHealth.database.pgbouncerEnabled ? 'ON' : 'READY'}
+              </div>
+            </div>
+            <div style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(6,12,24,0.8)', border: `1px solid ${clusterHealth.database.storageAlertLevel === 'CRITICAL' ? '#ef4444' : clusterHealth.database.storageAlertLevel === 'WARNING' ? '#f59e0b' : 'var(--border-subtle)'}` }}>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>PostgreSQL Storage ({clusterHealth.database.storageAlertLevel || 'OK'})</div>
+              <div style={{ fontSize: '1.05rem', fontWeight: 800, color: '#38bdf8' }}>
+                {clusterHealth.database.sizeMb} / {clusterHealth.database.quotaMb || 1024} MB
+              </div>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+                {clusterHealth.database.storageUtilizationPct ?? 0}% used • Backups: {clusterHealth.database.localBackupsMb ?? 0} MB ({clusterHealth.database.backupFilesCount ?? 0} files)
+              </div>
+            </div>
+            <div style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(6,12,24,0.8)', border: '1px solid var(--border-subtle)' }}>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>API Response &amp; Error Rate</div>
+              <div style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--gold-300)' }}>
+                {clusterHealth.apiPerformance?.avgResponseTimeMs ?? 0}ms avg • {clusterHealth.apiPerformance?.errorRatePct ?? 0}% 5xx
+              </div>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+                {clusterHealth.apiPerformance?.totalRequests ?? 0} reqs • {clusterHealth.apiPerformance?.failed5xx ?? 0} 5xx • {clusterHealth.apiPerformance?.backgroundJobFailures ?? 0} failed jobs
+              </div>
+            </div>
+            <div style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(6,12,24,0.8)', border: '1px solid var(--border-subtle)' }}>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Backend Compute &amp; Resilience</div>
+              <div style={{ fontSize: '1.05rem', fontWeight: 800, color: '#fff' }}>
+                {clusterHealth.memory?.processRssMb ?? 0} MB RSS • {clusterHealth.cpu?.cores ?? 1} CPU
+              </div>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+                Timeouts {clusterHealth.database.connectionTimeouts ?? 0} • Failures {clusterHealth.database.failedConnections ?? 0} • Recovered {clusterHealth.database.recoveredConnections ?? 0}
+              </div>
+            </div>
+          </div>
+        )}
 
         {featureFlags.length > 0 && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '8px' }}>

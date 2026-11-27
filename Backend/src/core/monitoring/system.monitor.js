@@ -25,6 +25,10 @@ const logger =
 const metrics =
     require("./metrics.service");
 
+const {
+    monitorDatabase
+} = require("../database/database.monitor");
+
 
 
 
@@ -279,6 +283,10 @@ function collectSystemMetrics(){
             uptime
 
         );
+
+        if (process.env.NODE_ENV !== "test") {
+            monitorDatabase().catch(() => {});
+        }
 
 
 

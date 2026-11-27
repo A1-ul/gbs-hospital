@@ -24,6 +24,11 @@ const logger =
 const AppError =
     require('../errors/app.error');
 
+const {
+    recordPoolTimeout,
+    recordConnectionFailure
+} = require('./prisma.client');
+
 
 
 
@@ -253,6 +258,12 @@ function handlePrismaError(error){
 
     const mapped =
         PRISMA_ERRORS[error.code];
+
+    if (error.code === 'P2024' || error.code === 'P1008') {
+        recordPoolTimeout(error.code);
+    } else if (error.code === 'P1001' || error.code === 'P1002' || error.code === 'P1017') {
+        recordConnectionFailure(error.code);
+    }
 
 
 

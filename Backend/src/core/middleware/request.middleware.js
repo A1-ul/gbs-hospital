@@ -20,6 +20,9 @@ src/core/middleware/request.middleware.js
 const logger =
     require("../utils/logger");
 
+const metricsService =
+    require("../monitoring/metrics.service");
+
 
 
 let uuidGenerator;
@@ -155,10 +158,21 @@ function requestMiddleware(app){
 
 
                         const duration =
-
                             Date.now()
                             -
                             start;
+
+                        try {
+                            metricsService.increment("http.requests_total", 1);
+                            metricsService.observe("http.response_time_ms", duration);
+                            if (res.statusCode >= 500) {
+                                metricsService.increment("http.requests_failed_5xx", 1);
+                            } else if (res.statusCode >= 400) {
+                                metricsService.increment("http.requests_failed_4xx", 1);
+                            }
+                        } catch (_mErr) {
+                            // Never interrupt response completion on metric recording failure
+                        }
 
 
 

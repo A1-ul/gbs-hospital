@@ -104,6 +104,13 @@
       "phase": "UNIVERSAL_HTTP_RELIABILITY",
       "procedure": 8,
       "summary": "Audited against REQUEST AND ERROR HTTP STATUS 200,401.docx. Fixed malformed JSON body-parser status bug (400 instead of 500 in error.middleware.js), CORS rejection status (403 CORS_POLICY_VIOLATION instead of 500), Express 5 HTTP 405 Method Not Allowed with RFC Allow header in notFound.middleware.js, standardized 429 RCCE envelope in security.middleware.js, and added 405/408/413/429/501/502/504 classifications to enterprise-framework/gbs-rcce/error.engine.js and response.catalogue.js. Verified Phase 0/25/26/35 suites (28/28 tests passing)."
+    },
+    {
+      "timestamp": "2026-11-27T16:37:00.000Z",
+      "event": "POSTGRESQL CONNECTION POOL, PGBOUNCER & INFRASTRUCTURE MONITORING VERIFIED (PHASE 36)",
+      "phase": "DB_POOL_AND_SCALABILITY",
+      "procedure": 9,
+      "summary": "Wired environment-driven Prisma connection pooling (connection_limit=10 prod / 8 test, pool_timeout=20s, connect_timeout=10s, socket_timeout=30s, automatic PgBouncer pgbouncer=true&statement_cache_size=0 compatibility), exponential-backoff reconnect & transient executeWithDbRecovery(), real pg_stat_activity pool/storage monitoring with 80% WARNING & 95% CRITICAL threshold alerts, HTTP latency/error metrics in request.middleware.js, Developer Control Center /rcce/developer/remote/db-pool + enriched cluster-health UI cards, and Phase 36 30-request simultaneous multi-institution concurrency & zero-leak test suite (16/16 Backend tests + 7/7 Frontend tests passing)."
     }
   ]
 }
