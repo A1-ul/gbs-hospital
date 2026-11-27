@@ -479,6 +479,13 @@ async function getPatientDashboard(patientId) {
                     visitDate: true,
                     chiefComplaint: true
                 }
+            },
+            bills: {
+                orderBy: { createdAt: "desc" },
+                take: 25,
+                include: {
+                    items: true
+                }
             }
         }
     });
@@ -491,12 +498,15 @@ async function getPatientDashboard(patientId) {
         patient: {
             id: patient.id,
             patientNumber: patient.patientNumber,
+            firstName: patient.firstName,
+            lastName: patient.lastName,
             fullName: `${patient.firstName} ${patient.lastName}`,
             dateOfBirth: patient.dateOfBirth,
             gender: patient.gender,
             bloodGroup: patient.bloodGroup,
             genotype: patient.genotype,
             phone: patient.phone,
+            email: patient.email,
             nhisNumber: patient.nhisNumber,
             nationalId: patient.nationalId
         },
@@ -505,6 +515,7 @@ async function getPatientDashboard(patientId) {
         activeAllergies: patient.allergies,
         activeMedications: patient.medications,
         recentVisits: patient.patientEncounters,
+        bills: patient.bills || [],
         dashboardRoleTheme: {
             role: "PATIENT",
             themeTitle: "Personal Patient Health Portal",

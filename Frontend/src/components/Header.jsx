@@ -5,6 +5,20 @@ import {
   UserCheck, Lock, LogIn, LogOut, Key, Bell
 } from 'lucide-react';
 import { api } from '../services/api.service';
+import { connectionManager, CONNECTION_STATES } from '../services/connection.manager';
+
+function formatServerUptime(totalSeconds) {
+  if (typeof totalSeconds !== 'number' || !Number.isFinite(totalSeconds) || totalSeconds < 0) {
+    return '—';
+  }
+  const sec = Math.floor(totalSeconds);
+  const hours = Math.floor(sec / 3600);
+  const mins = Math.floor((sec % 3600) / 60);
+  const remSec = sec % 60;
+  if (hours > 0) return `${hours}h ${mins}m`;
+  if (mins > 0) return `${mins}m ${remSec}s`;
+  return `${remSec}s`;
+}
 
 export const ROLE_CATEGORIES = [
   { id: 'ALL', label: 'All Staff Roles', icon: '⭐' },
@@ -45,7 +59,7 @@ export default function Header({
   demoQuota = null
 }) {
   const [time, setTime] = useState(new Date().toLocaleTimeString());
-  const [health, setHealth] = useState({ server: 'Checking...', database: 'Checking...', uptime: '0s', environment: 'DEVELOPMENT' });
+  const [connState, setConnState] = useState(() => connectionManager.getState());
   const [showRoleCounts, setShowRoleCounts] = useState(false);
   const [roleCountsData, setRoleCountsData] = useState(null);
   const [countsError, setCountsError] = useState(null);
@@ -189,24 +203,50 @@ export default function Header({
     return () => clearInterval(timer);
   }, []);
 
-  // Live Health Check (100% Real Telemetry — No Hardcoded Uptime)
+  // Live Multi-Layer Connection Monitor (Auto-Reconnecting, Zero False Offline Flashes)
   useEffect(() => {
-    api.checkHealth()
-      .then(res => {
-        const upSec = Math.floor(Number(res.uptime || 0));
-        const mins = Math.floor(upSec / 60);
-        const secs = upSec % 60;
-        setHealth({
-          server: res.server === 'running' ? 'Online' : 'Offline',
-          database: res.database === 'connected' ? 'Connected (Live Data)' : 'Disconnected',
-          uptime: mins > 0 ? `${mins}m ${secs}s` : `${secs}s`,
-          environment: res.environment || 'DEVELOPMENT'
-        });
-      })
-      .catch(() => {
-        setHealth({ server: 'Offline', database: 'Check DB', uptime: '0s', environment: 'DEVELOPMENT' });
-      });
+    const unsubscribe = connectionManager.subscribe(setConnState);
+    connectionManager.start();
+    return () => {
+      unsubscribe();
+    };
   }, []);
+
+  const overallStatus = connState.overallStatus || CONNECTION_STATES.CHECKING;
+  const statusDisplay =
+    overallStatus === CONNECTION_STATES.ONLINE
+      ? { label: 'Online', color: 'var(--status-online)', dot: '#10b981' }
+      : overallStatus === CONNECTION_STATES.DEGRADED
+        ? { label: connState.isReconnecting ? 'Reconnecting...' : 'Degraded', color: '#f59e0b', dot: '#f59e0b' }
+        : overallStatus === CONNECTION_STATES.OFFLINE
+          ? { label: 'Offline', color: '#f87171', dot: '#ef4444' }
+          : { label: 'Connecting...', color: '#38bdf8', dot: '#38bdf8' };
+
+  const dbDisplay =
+    connState.databaseStatus === CONNECTION_STATES.ONLINE
+      ? {
+          label:
+            typeof connState.databaseLatencyMs === 'number'
+              ? `Connected (${connState.databaseLatencyMs}ms)`
+              : 'Connected (Live Data)',
+          color: '#fff',
+        }
+      : connState.databaseStatus === CONNECTION_STATES.DEGRADED
+        ? { label: 'Degraded', color: '#fbbf24' }
+        : connState.databaseStatus === CONNECTION_STATES.OFFLINE
+          ? { label: 'Disconnected', color: '#f87171' }
+          : { label: 'Checking...', color: 'var(--text-muted)' };
+
+  const centralEngineLabel =
+    connState.centralEngineStatus === CONNECTION_STATES.ONLINE
+      ? (typeof connState.apiResponseTimeMs === 'number' ? `Online (${connState.apiResponseTimeMs}ms)` : 'Online')
+      : connState.centralEngineStatus === CONNECTION_STATES.DEGRADED
+        ? (connState.isReconnecting ? 'Reconnecting' : 'Degraded')
+        : connState.centralEngineStatus === CONNECTION_STATES.OFFLINE
+          ? 'Offline'
+          : 'Checking...';
+
+  const uptimeDisplay = formatServerUptime(connState.serverUptimeSeconds);
 
   // Fetch DB-backed User Counts ONLY on drop-list click (Step 7 requirement!)
   const refreshRoleCounts = async () => {
@@ -315,21 +355,45 @@ export default function Header({
         {/* Live System Telemetry Status Card (GBS Hospital Obsidian Navy) */}
         <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '12px 16px', maxWidth: '100%', boxSizing: 'border-box', background: 'rgba(11, 23, 44, 0.85)', padding: '8px 14px', borderRadius: '8px', border: '1px solid var(--border-color)', boxShadow: '0 4px 14px rgba(0,0,0,0.45)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="pulse-live"></span>
+            <span
+              className={overallStatus === CONNECTION_STATES.ONLINE ? 'pulse-live' : undefined}
+              style={{
+                width: '10px',
+                height: '10px',
+                borderRadius: '50%',
+                display: 'inline-block',
+                background: statusDisplay.dot,
+                boxShadow: `0 0 8px ${statusDisplay.dot}`
+              }}
+            ></span>
             <div>
-              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Server Status</div>
-              <div style={{ fontSize: '0.82rem', fontWeight: 700, color: health.server === 'Online' ? 'var(--status-online)' : '#f87171' }}>{health.server}</div>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Central Engine</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontSize: '0.82rem', fontWeight: 700, color: statusDisplay.color }}>
+                  {overallStatus === CONNECTION_STATES.ONLINE ? centralEngineLabel : statusDisplay.label}
+                </span>
+                {(overallStatus === CONNECTION_STATES.DEGRADED || overallStatus === CONNECTION_STATES.OFFLINE) && (
+                  <button
+                    type="button"
+                    onClick={() => connectionManager.checkNow()}
+                    className="btn-outline-gold"
+                    style={{ padding: '1px 6px', fontSize: '0.66rem', borderRadius: '4px', lineHeight: 1.3 }}
+                  >
+                    Retry
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
           <div style={{ borderLeft: '1px solid var(--border-subtle)', paddingLeft: '12px' }}>
             <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Database</div>
-            <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#fff' }}>{health.database}</div>
+            <div style={{ fontSize: '0.82rem', fontWeight: 600, color: dbDisplay.color }}>{dbDisplay.label}</div>
           </div>
 
           <div style={{ borderLeft: '1px solid var(--border-subtle)', paddingLeft: '12px' }}>
             <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>System Uptime</div>
-            <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--gold-400)' }}>{health.uptime}</div>
+            <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--gold-400)' }}>{uptimeDisplay}</div>
           </div>
 
           <div style={{ borderLeft: '1px solid var(--border-subtle)', paddingLeft: '12px' }}>

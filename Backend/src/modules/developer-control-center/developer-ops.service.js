@@ -290,7 +290,7 @@ async function getAiDeveloperAssistantDiagnostics() {
         analyzedAt: new Date().toISOString(),
         architectureHealthScore: Math.max(0, healthScore),
         systemSummary: {
-            totalPrismaModels: 124,
+            totalPrismaModels: 126,
             activeSessions,
             totalUsers,
             totalPatients,

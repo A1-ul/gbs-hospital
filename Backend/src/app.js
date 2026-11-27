@@ -163,7 +163,11 @@ express.json({
 
     limit:"2mb",
 
-    strict:true
+    strict:true,
+
+    verify:(req,_res,buf)=>{
+        req.rawBody = buf;
+    }
 
 })
 

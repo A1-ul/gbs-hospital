@@ -170,6 +170,18 @@ registerRoute(
 );
 
 registerRoute(
+    "/payments",
+    require("../modules/payments/payments.routes"),
+    "Multi-Gateway Hospital Payments & Subscriptions"
+);
+
+registerRoute(
+    "/payment-gateway",
+    require("../modules/payments/payments.routes"),
+    "Multi-Gateway Payment Engine Alias"
+);
+
+registerRoute(
     "/surgery",
     require("../modules/surgery/routes/surgery.routes"),
     "Surgery & Operating Theatre"

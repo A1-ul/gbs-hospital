@@ -3,7 +3,8 @@
 const router = require("express").Router();
 const jwt = require("jsonwebtoken");
 
-const { checkDatabaseConnection } = require("../core/database/prisma.connection");
+const { evaluateConnectionHealth } = require("../core/monitoring/connection-monitor.service");
+const { developerSecurityGuard } = require("../modules/developer-control-center/services/developer-security-guard.middleware");
 const { environment } = require("../config/environment");
 const envConfig = require("../config/environment/environment.config");
 const authMiddleware = require("../core/middleware/auth.middleware");
@@ -29,12 +30,20 @@ function extractOptionalActor(req) {
 }
 
 router.get("/", async (req, res) => {
-    const database = await checkDatabaseConnection();
+    const report = await evaluateConnectionHealth({ timeoutMs: 5000 });
+    const dbConnected = Boolean(report.components?.database?.connected);
+    const engineHealthy = Boolean(report.components?.centralEngine?.healthy);
 
-    res.status(database ? 200 : 503).json({
-        status: database ? "healthy" : "degraded",
+    res.status(report.httpStatus).json({
+        status: dbConnected && engineHealthy ? "healthy" : "degraded",
+        overallStatus: report.overallStatus,
         server: "running",
-        database: database ? "connected" : "offline",
+        centralEngine: report.components.centralEngine.status,
+        database: dbConnected ? "connected" : "offline",
+        databaseStatus: report.components.database.status,
+        databaseLatencyMs: report.components.database.latencyMs,
+        avgApiResponseTimeMs: report.apiPerformance.avgResponseTimeMs,
+        lastSuccessfulConnection: report.telemetry.lastSuccessfulConnection,
         engine: "PostgreSQL",
         environment: envConfig.activeEnvironment,
         demoModeEnabled: envConfig.demoModeEnabled,
@@ -44,6 +53,32 @@ router.get("/", async (req, res) => {
         requestId: req.requestId || null
     });
 });
+
+// Developer-Only Full Central Engine & Database Connection Diagnostics (Zero Credential Leakage)
+router.get(
+    "/connection-diagnostics",
+    authMiddleware,
+    developerSecurityGuard,
+    async (req, res, next) => {
+        try {
+            const report = await evaluateConnectionHealth({ timeoutMs: 5000 });
+            return res.status(200).json({
+                success: true,
+                data: {
+                    environment: envConfig.activeEnvironment,
+                    serviceName: envConfig.renderServiceName,
+                    productionPublicUrl: envConfig.productionPublicUrl,
+                    overallStatus: report.overallStatus,
+                    components: report.components,
+                    apiPerformance: report.apiPerformance,
+                    telemetry: report.telemetry
+                }
+            });
+        } catch (err) {
+            next(err);
+        }
+    }
+);
 
 // Real-time PostgreSQL Global Overview Statistics (Zero Hardcoded Data)
 // Unauthenticated requests receive ONLY non-PII aggregate metrics & public facility branding.

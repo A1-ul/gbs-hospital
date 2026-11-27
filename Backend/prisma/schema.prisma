@@ -4176,6 +4176,106 @@ model FacilityTask {
   @@index([createdAt])
 }
 
+/**
+ * ====================================================
+ * MULTI-GATEWAY PAYMENT & DEVELOPER SUBSCRIPTION ENGINE
+ * Supports MTN MoMo, Telecel Cash, AT Money, Visa, Mastercard,
+ * Bank Deposits/Transfers, Signed Webhooks & Hospital Isolation.
+ * SECURITY: Never stores MoMo PINs, OTPs, raw PANs, or CVVs.
+ * ====================================================
+ */
+
+model PaymentTransaction {
+  id                   String    @id @default(uuid())
+  transactionRef       String    @unique // e.g., GBS-PAY-20261127-XXXXXX
+  idempotencyKey       String?   @unique
+
+  channel              String    @default("PATIENT_BILL") // PATIENT_BILL, DEVELOPER_SUBSCRIPTION, BANK_DEPOSIT
+  provider             String    // PAYSTACK, HUBTEL, MTN_MOMO, TELECEL_CASH, AT_MONEY, VISA, MASTERCARD, BANK_TRANSFER, BANK_DEPOSIT
+  paymentMethod        String    // MTN_MOMO, TELECEL_CASH, AT_MONEY, VISA, MASTERCARD, BANK_TRANSFER, BANK_DEPOSIT
+  status               String    @default("CREATED") // CREATED, PENDING, REQUIRES_CUSTOMER_ACTION, PROCESSING, SUCCESSFUL, FAILED, CANCELLED, EXPIRED, REVERSED, REFUNDED, UNDER_REVIEW
+
+  amount               Decimal   @db.Decimal(12, 2)
+  currency             String    @default("GHS")
+  purpose              String?
+
+  // Multi-Hospital / Tenant Isolation & Linked Financial Entities
+  hospitalId           String?
+  tenantId             String?
+  patientId            String?
+  billId               String?
+  subscriptionId       String?
+  patientPaymentId     String?   @unique
+
+  // Payer & Recipient Metadata (Masked phone only — zero PIN/CVV/raw card storage)
+  payerUserId          String?
+  payerName            String?
+  payerPhoneMasked     String?
+  payerEmail           String?
+  destinationAccount   String?   // e.g., 0554594193 for GBS Developer subscriptions or hospital settlement reference
+  subaccountCode       String?   // Hospital-specific gateway subaccount routing
+
+  // Official Gateway & Customer Flow Telemetry
+  providerRef          String?
+  authorizationUrl     String?
+  customerInstructions String?   @db.Text
+  fallbackOptions      Json?
+  receiptNumber        String?   @unique
+  failureReason        String?
+
+  // Bank Deposit / Transfer Verification
+  bankName             String?
+  bankDepositSlipRef   String?
+  verifiedById         String?
+  verifiedByName       String?
+
+  // Lifecycle Timestamps & Refund Tracking
+  confirmedAt          DateTime?
+  expiresAt            DateTime?
+  refundedAt           DateTime?
+  refundAmount         Decimal?  @db.Decimal(12, 2)
+  refundReason         String?
+  metadata             Json?
+
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  @@index([hospitalId])
+  @@index([tenantId])
+  @@index([patientId])
+  @@index([billId])
+  @@index([subscriptionId])
+  @@index([channel])
+  @@index([provider])
+  @@index([status])
+  @@index([providerRef])
+  @@index([createdAt])
+}
+
+model PaymentWebhookEvent {
+  id               String    @id @default(uuid())
+  provider         String    // PAYSTACK, HUBTEL, MTN_MOMO, TELECEL_CASH, AT_MONEY, BANK
+  eventId          String?   @unique
+  eventType        String
+  transactionRef   String?
+  signatureValid   Boolean   @default(false)
+  processed        Boolean   @default(false)
+  duplicateIgnored Boolean   @default(false)
+  retryCount       Int       @default(0)
+  status           String    @default("RECEIVED") // RECEIVED, PROCESSED, DUPLICATE_IGNORED, REJECTED_INVALID_SIGNATURE, FAILED
+  errorMessage     String?
+  payload          Json
+  receivedAt       DateTime  @default(now())
+  processedAt      DateTime?
+
+  @@index([provider])
+  @@index([transactionRef])
+  @@index([status])
+  @@index([signatureValid])
+  @@index([receivedAt])
+}
+
+
 
 
 

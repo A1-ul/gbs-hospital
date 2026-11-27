@@ -3,7 +3,18 @@
  * Central API Gateway connector pointing to /api/v1 (proxied to backend on port 5000)
  */
 
+import { connectionManager } from './connection.manager.js';
+
 const API_BASE = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_BASE_URL) || '/api/v1';
+const DEFAULT_REQUEST_TIMEOUT_MS = 25000;
+const HEALTH_REQUEST_TIMEOUT_MS = 45000;
+
+function getNowMs() {
+  if (typeof performance !== 'undefined' && typeof performance.now === 'function') {
+    return performance.now();
+  }
+  return Date.now();
+}
 
 export function getClientDeviceFingerprint() {
   if (typeof window === 'undefined') return 'server-context';
@@ -85,36 +96,96 @@ async function coreRequest(endpoint, options = {}) {
     ...options.headers,
   };
 
+  const timeoutMs =
+    Number(options.timeoutMs) > 0
+      ? Number(options.timeoutMs)
+      : (endpoint.startsWith('/health') ? HEALTH_REQUEST_TIMEOUT_MS : DEFAULT_REQUEST_TIMEOUT_MS);
+
+  const {
+    timeoutMs: _ignoredTimeout,
+    silentError: _ignoredSilent,
+    _retried: _ignoredRetried,
+    idempotencyKey: _ignoredIdempotency,
+    ...fetchOptions
+  } = options;
+
+  const controller = typeof AbortController !== 'undefined' && !fetchOptions.signal ? new AbortController() : null;
+  let timeoutHandle = null;
+  let timedOut = false;
+
+  if (controller && timeoutMs > 0) {
+    timeoutHandle = setTimeout(() => {
+      timedOut = true;
+      try {
+        controller.abort();
+      } catch (_abortErr) {
+        // Ignore abort errors
+      }
+    }, timeoutMs);
+  }
+
+  const startedAt = getNowMs();
   let response;
   try {
     response = await fetch(`${API_BASE}${endpoint}`, {
-      ...options,
+      ...fetchOptions,
       headers,
+      ...(controller ? { signal: controller.signal } : {}),
     });
   } catch (networkErr) {
     if (fingerprint) pendingSubmissionLocks.delete(fingerprint);
+    const elapsedMs = Math.max(0, Math.round(getNowMs() - startedAt));
+    const isTimeout = timedOut || networkErr?.name === 'AbortError';
     const err = new Error(
-      `Could not reach the hospital server. Please check your internet connection and try again.`
+      isTimeout
+        ? `The hospital server took longer than ${Math.round(timeoutMs / 1000)}s to respond. Please retry in a moment.`
+        : `Could not reach the hospital server. Please check your internet connection and try again.`
     );
     err.cause = networkErr;
-    err.code = 'NETWORK_ERROR';
-    if (typeof window !== 'undefined' && typeof window.gbsBrainNotify === 'function') {
+    err.status = isTimeout ? 408 : 0;
+    err.code = isTimeout ? 'REQUEST_TIMEOUT' : 'NETWORK_ERROR';
+
+    connectionManager.recordApiResult({
+      endpoint,
+      method,
+      status: isTimeout ? 408 : null,
+      ok: false,
+      latencyMs: elapsedMs,
+      errorCode: err.code,
+      errorMessage: err.message,
+    });
+
+    if (typeof window !== 'undefined' && typeof window.gbsBrainNotify === 'function' && !options.silentError) {
       window.gbsBrainNotify({
         type: 'error',
         method,
         endpoint,
-        code: 'NETWORK_ERROR',
-        title: 'Connection Problem',
+        status: err.status,
+        code: err.code,
+        title: isTimeout ? 'Request Timed Out' : 'Connection Problem',
         message: err.message,
         role: activeRole,
       });
     }
     throw err;
   } finally {
+    if (timeoutHandle !== null) {
+      clearTimeout(timeoutHandle);
+    }
     if (fingerprint) {
       pendingSubmissionLocks.delete(fingerprint);
     }
   }
+
+  const elapsedMs = Math.max(0, Math.round(getNowMs() - startedAt));
+  connectionManager.recordApiResult({
+    endpoint,
+    method,
+    status: response.status,
+    ok: response.ok,
+    latencyMs: elapsedMs,
+    errorCode: response.ok ? null : `HTTP_${response.status}`,
+  });
 
   if (fingerprint && response.status < 500) {
     actionIdempotencyKeys.delete(fingerprint);
@@ -260,8 +331,11 @@ async function requestEnvelope(endpoint, options = {}) {
 }
 
 export const api = {
-  // Health & Real-Time Global Overview Telemetry
-  checkHealth: () => request('/health'),
+  // Health, Connection Diagnostics & Real-Time Global Overview Telemetry
+  checkHealth: (timeoutMs = HEALTH_REQUEST_TIMEOUT_MS) =>
+    request('/health', { timeoutMs, silentError: true }),
+  getConnectionDiagnostics: () =>
+    request('/health/connection-diagnostics', { silentError: true }),
   getGlobalOverviewStats: () => request('/health/overview-stats'),
   getEnvironmentInfo: () => request('/health/environment-info'),
   getFacilityBranding: () => request('/health/facility-branding'),
@@ -1355,6 +1429,66 @@ export const api = {
     }),
   getMigrationVerificationReport: (jobId, format = 'json') =>
     request(`/migration/jobs/${encodeURIComponent(jobId)}/report?format=${encodeURIComponent(format)}`),
+
+  // Multi-Gateway Hospital Payments, Bank Deposits, Receipts, Reports & GBS Developer Subscriptions
+  getPaymentProviders: () =>
+    request('/payments/providers', { silentError: true }),
+  initiatePayment: (payload, idempotencyKey) =>
+    request('/payments/initiate', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      ...(idempotencyKey ? { idempotencyKey } : {}),
+    }),
+  verifyPaymentTransaction: (reference) =>
+    request(`/payments/transactions/${encodeURIComponent(reference)}/verify`, {
+      method: 'POST',
+    }),
+  cancelPaymentTransaction: (reference, payload = {}) =>
+    request(`/payments/transactions/${encodeURIComponent(reference)}/cancel`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  getPaymentTransactions: (q = '') =>
+    request(`/payments/transactions${q ? `?${q}` : ''}`),
+  getPaymentTransactionByRef: (reference) =>
+    request(`/payments/transactions/${encodeURIComponent(reference)}`),
+  getPaymentReceipt: (reference) =>
+    request(`/payments/receipts/${encodeURIComponent(reference)}`),
+  submitBankDepositProof: (payload) =>
+    request('/payments/bank-deposits/submit', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  verifyBankDeposit: (id, payload) =>
+    request(`/payments/bank-deposits/${encodeURIComponent(id)}/verify`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  refundPaymentTransaction: (id, payload) =>
+    request(`/payments/transactions/${encodeURIComponent(id)}/refund`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  getPaymentReports: (q = '') =>
+    request(`/payments/reports${q ? `?${q}` : ''}`),
+  initiateDeveloperSubscriptionPayment: (payload) =>
+    request('/payments/developer-subscriptions/initiate', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  confirmDeveloperSubscriptionPayment: (id, payload = {}) =>
+    request(`/payments/developer-subscriptions/${encodeURIComponent(id)}/confirm`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  getDeveloperPaymentsOverview: (q = '') =>
+    request(`/payments/developer/overview${q ? `?${q}` : ''}`),
+  reconcilePaymentTransaction: (reference) =>
+    request(`/payments/transactions/${encodeURIComponent(reference)}/reconcile`, {
+      method: 'POST',
+    }),
+  getPaymentWebhooks: (q = '') =>
+    request(`/payments/developer/webhooks${q ? `?${q}` : ''}`),
 };
 
 

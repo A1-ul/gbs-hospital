@@ -152,6 +152,8 @@ const FULL_BACKUP_MODEL_LIST = Object.freeze([
     "hospitalMeeting",
     "hospitalDocument",
     "facilityTask",
+    "paymentTransaction",
+    "paymentWebhookEvent",
     "systemEvent",
     "systemNotification",
     "idempotencyRecord",

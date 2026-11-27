@@ -1,7 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../services/api.service';
+import { connectionManager } from '../../services/connection.manager';
 import FacialRecognitionModal from '../../components/FacialRecognitionModal';
-import { Cpu, Shield, ScanFace, Clock, RefreshCw, CheckCircle, AlertTriangle, Server, Building2, Play } from 'lucide-react';
+import {
+  Cpu, Shield, ScanFace, Clock, RefreshCw, CheckCircle, AlertTriangle,
+  Server, Building2, Play, Activity, CreditCard, Download, Radio
+} from 'lucide-react';
+
+function formatUptimeReadable(seconds) {
+  if (typeof seconds !== 'number' || !Number.isFinite(seconds) || seconds < 0) return '—';
+  const s = Math.floor(seconds);
+  const d = Math.floor(s / 86400);
+  const h = Math.floor((s % 86400) / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const rem = s % 60;
+  if (d > 0) return `${d}d ${h}h ${m}m`;
+  if (h > 0) return `${h}h ${m}m ${rem}s`;
+  if (m > 0) return `${m}m ${rem}s`;
+  return `${rem}s`;
+}
 
 export default function DeveloperAdvancedOpsPanel({ onStatusMsg }) {
   const [diagnostics, setDiagnostics] = useState(null);
@@ -13,6 +30,9 @@ export default function DeveloperAdvancedOpsPanel({ onStatusMsg }) {
   const [featureFlags, setFeatureFlags] = useState([]);
   const [rollbackInfo, setRollbackInfo] = useState(null);
   const [sweepResult, setSweepResult] = useState(null);
+  const [connDiag, setConnDiag] = useState(null);
+  const [clientConn, setClientConn] = useState(() => connectionManager.getState());
+  const [paymentsOverview, setPaymentsOverview] = useState(null);
   const [loading, setLoading] = useState(true);
   const [sweeping, setSweeping] = useState(false);
   const [remoteBusy, setRemoteBusy] = useState('');
@@ -27,11 +47,13 @@ export default function DeveloperAdvancedOpsPanel({ onStatusMsg }) {
         api.getDeveloperTenantAnalytics().catch(() => null),
         api.getFaceBiometricStatus().catch(() => null),
       ]);
-      const [cluster, flagsRes, rb, envRes] = await Promise.all([
+      const [cluster, flagsRes, rb, envRes, cDiag, payOv] = await Promise.all([
         api.getDeveloperClusterHealth().catch(() => null),
         api.getDeveloperFeatureFlags().catch(() => null),
         api.getDeveloperRollbackReadiness().catch(() => null),
         api.getDeveloperEnvironmentStatus().catch(() => null),
+        api.getConnectionDiagnostics().catch(() => null),
+        api.getDeveloperPaymentsOverview().catch(() => null),
       ]);
       setDiagnostics(diag);
       setIntegrations(integ);
@@ -41,6 +63,8 @@ export default function DeveloperAdvancedOpsPanel({ onStatusMsg }) {
       setFeatureFlags(Array.isArray(flagsRes?.flags) ? flagsRes.flags : []);
       setRollbackInfo(rb);
       setEnvStatus(envRes);
+      setConnDiag(cDiag);
+      setPaymentsOverview(payOv);
     } finally {
       setLoading(false);
     }
@@ -73,7 +97,48 @@ export default function DeveloperAdvancedOpsPanel({ onStatusMsg }) {
 
   useEffect(() => {
     loadAll();
+    const unsub = connectionManager.subscribe(setClientConn);
+    connectionManager.start();
+    return () => unsub();
   }, []);
+
+  const handleRunLiveConnectionProbe = async () => {
+    setRemoteBusy('conn_probe');
+    try {
+      await connectionManager.checkNow();
+      const freshDiag = await api.getConnectionDiagnostics().catch(() => null);
+      if (freshDiag) setConnDiag(freshDiag);
+      if (typeof onStatusMsg === 'function') {
+        onStatusMsg({ type: 'success', msg: 'Live multi-layer Central Engine & PostgreSQL probe completed.' });
+      }
+    } finally {
+      setRemoteBusy('');
+    }
+  };
+
+  const handleExportDevPaymentsCsv = () => {
+    const txs = paymentsOverview?.recentTransactions || [];
+    const headers = ['TransactionRef', 'Channel', 'Method', 'Provider', 'Amount(GHS)', 'Status', 'Destination', 'ReceiptNumber', 'CreatedAt'];
+    const rows = txs.map((t) => [
+      t.transactionRef,
+      t.channel,
+      t.paymentMethod,
+      t.provider,
+      Number(t.amount || 0).toFixed(2),
+      t.status,
+      t.destinationAccount || '',
+      t.receiptNumber || '',
+      t.createdAt || ''
+    ]);
+    const csv = [headers.join(','), ...rows.map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `gbs-developer-payments-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const handleRunTrialSweep = async () => {
     setSweeping(true);
@@ -144,7 +209,7 @@ export default function DeveloperAdvancedOpsPanel({ onStatusMsg }) {
               {healthScore} / 100
             </div>
             <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-              {sys.totalPrismaModels || 124} Models • {sys.unresolvedErrorsCount ?? 0} Open Errors
+              {sys.totalPrismaModels || 126} Models • {sys.unresolvedErrorsCount ?? 0} Open Errors
             </div>
           </div>
           <Cpu size={22} style={{ color: 'var(--gold-400)' }} />
@@ -439,6 +504,372 @@ export default function DeveloperAdvancedOpsPanel({ onStatusMsg }) {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Central Engine & Multi-Layer Connection Diagnostics (All 8 Required Telemetry Fields) */}
+      <div className="glass-panel" style={{ padding: '18px', border: '1px solid #38bdf8' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '12px' }}>
+          <div>
+            <h4 style={{ margin: 0, fontSize: '0.96rem', color: '#38bdf8', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Radio size={16} /> Central Engine &amp; Multi-Layer Connection Diagnostics (Truthful Live Probes)
+            </h4>
+            <p style={{ margin: '2px 0 0', fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+              Independent Frontend, Central Engine (GBS-RCCE), Backend API, and PostgreSQL monitoring with zero mocked health responses or exposed secrets.
+            </p>
+          </div>
+          <button
+            type="button"
+            disabled={remoteBusy === 'conn_probe'}
+            onClick={handleRunLiveConnectionProbe}
+            className="btn-outline-gold"
+            style={{ fontSize: '0.75rem', padding: '5px 10px' }}
+          >
+            <Activity size={13} /> {remoteBusy === 'conn_probe' ? 'Probing...' : 'Run Live Connection Probe'}
+          </button>
+        </div>
+
+        {(() => {
+          const frontendSt = clientConn?.frontendStatus || 'ONLINE';
+          const engineSt = connDiag?.components?.centralEngine?.status || clientConn?.centralEngineStatus || 'CHECKING';
+          const dbSt = connDiag?.components?.database?.status || clientConn?.databaseStatus || 'CHECKING';
+          const dbLat = connDiag?.components?.database?.latencyMs ?? clientConn?.databaseLatencyMs;
+          const apiResp = clientConn?.apiResponseTimeMs ?? connDiag?.apiPerformance?.avgResponseTimeMs;
+          const apiAvg = connDiag?.apiPerformance?.avgResponseTimeMs ?? clientConn?.avgApiResponseTimeMs;
+          const lastSuccess = connDiag?.telemetry?.lastSuccessfulConnection || clientConn?.lastSuccessfulConnection;
+          const lastFailure = connDiag?.telemetry?.lastFailureReason || clientConn?.lastFailureReason;
+          const uptimeSec = connDiag?.components?.backend?.uptimeSeconds ?? clientConn?.serverUptimeSeconds;
+          const mergedErrors = [
+            ...(Array.isArray(connDiag?.telemetry?.recentConnectionErrors) ? connDiag.telemetry.recentConnectionErrors : []),
+            ...(Array.isArray(clientConn?.recentConnectionErrors) ? clientConn.recentConnectionErrors : [])
+          ].slice(0, 12);
+
+          const statusColor = (st) =>
+            st === 'ONLINE' ? '#6ee7b7' : st === 'DEGRADED' ? '#fbbf24' : st === 'OFFLINE' ? '#fca5a5' : '#38bdf8';
+
+          return (
+            <>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(195px, 1fr))', gap: '8px', marginBottom: '12px' }}>
+                <div style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(6,12,24,0.8)', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>1. Frontend Status</div>
+                  <div style={{ fontSize: '1rem', fontWeight: 800, color: statusColor(frontendSt) }}>{frontendSt}</div>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--text-dim)' }}>
+                    {clientConn?.isReconnecting ? `Auto-retrying every ${Math.round((clientConn.retryDelayMs || 4000) / 1000)}s` : 'Browser link active'}
+                  </div>
+                </div>
+                <div style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(6,12,24,0.8)', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>2. Central Engine (GBS-RCCE)</div>
+                  <div style={{ fontSize: '1rem', fontWeight: 800, color: statusColor(engineSt) }}>{engineSt}</div>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--text-dim)' }}>
+                    {connDiag?.components?.centralEngine?.healthySubsystems !== undefined
+                      ? `${connDiag.components.centralEngine.healthySubsystems}/${connDiag.components.centralEngine.totalSubsystems} subsystems healthy`
+                      : 'Core orchestration probe'}
+                  </div>
+                </div>
+                <div style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(6,12,24,0.8)', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>3. Database Status (PostgreSQL)</div>
+                  <div style={{ fontSize: '1rem', fontWeight: 800, color: statusColor(dbSt) }}>{dbSt}</div>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--text-dim)' }}>
+                    {typeof dbLat === 'number' ? `Probe latency: ${dbLat}ms` : 'SELECT 1 health monitor'}
+                  </div>
+                </div>
+                <div style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(6,12,24,0.8)', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>4. API Response Time</div>
+                  <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--gold-300)', fontFamily: 'var(--font-mono)' }}>
+                    {typeof apiResp === 'number' ? `${apiResp}ms` : '—'}
+                  </div>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--text-dim)' }}>
+                    Avg: {typeof apiAvg === 'number' ? `${apiAvg}ms` : '—'}
+                  </div>
+                </div>
+                <div style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(6,12,24,0.8)', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>5. Last Successful Connection</div>
+                  <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#fff', marginTop: '3px' }}>
+                    {lastSuccess ? new Date(lastSuccess).toLocaleString() : 'Not recorded yet'}
+                  </div>
+                </div>
+                <div style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(6,12,24,0.8)', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>6. Last Failure Reason</div>
+                  <div style={{ fontSize: '0.78rem', fontWeight: 600, color: lastFailure ? '#fca5a5' : '#6ee7b7', marginTop: '3px' }}>
+                    {lastFailure || 'None — all connection layers healthy'}
+                  </div>
+                </div>
+                <div style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(6,12,24,0.8)', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>7. Server Uptime</div>
+                  <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--gold-400)', fontFamily: 'var(--font-mono)' }}>
+                    {formatUptimeReadable(uptimeSec)}
+                  </div>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--text-dim)' }}>
+                    {connDiag?.serviceName || clientConn?.serviceName || 'gbs-hospital-system'}
+                  </div>
+                </div>
+                <div style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(6,12,24,0.8)', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>8. Recent Connection Errors</div>
+                  <div style={{ fontSize: '1rem', fontWeight: 800, color: mergedErrors.length > 0 ? '#fbbf24' : '#6ee7b7' }}>
+                    {mergedErrors.length} Logged
+                  </div>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--text-dim)' }}>Sanitized telemetry only</div>
+                </div>
+              </div>
+
+              {mergedErrors.length > 0 && (
+                <div style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(6,12,24,0.75)', border: '1px solid rgba(245,158,11,0.35)' }}>
+                  <div style={{ fontSize: '0.74rem', fontWeight: 700, color: '#fcd34d', marginBottom: '6px' }}>
+                    Recent Connection Error Log (Sanitized — Zero Credentials)
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxHeight: '160px', overflowY: 'auto', fontSize: '0.73rem' }}>
+                    {mergedErrors.map((er, i) => (
+                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '4px' }}>
+                        <span style={{ color: '#fca5a5' }}>
+                          <strong>[{er.source || er.component || 'CONN'}]</strong> {er.reason}
+                        </span>
+                        <span style={{ color: 'var(--text-dim)', whiteSpace: 'nowrap', fontFamily: 'var(--font-mono)' }}>
+                          {er.timestamp ? new Date(er.timestamp).toLocaleTimeString() : ''}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          );
+        })()}
+      </div>
+
+      {/* Developer Payment, Subscription Revenue (0554594193) & Webhook Administration Console */}
+      <div className="glass-panel" style={{ padding: '18px', border: '1px solid var(--gold-400)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '12px' }}>
+          <div>
+            <h4 style={{ margin: 0, fontSize: '0.96rem', color: 'var(--gold-400)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <CreditCard size={16} /> Developer Payment Administration, Subscription Revenue &amp; Webhook Monitor
+            </h4>
+            <p style={{ margin: '2px 0 0', fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+              Designated GBS Developer MoMo Destination: <strong style={{ color: '#fff', fontFamily: 'var(--font-mono)' }}>{paymentsOverview?.developerDestination?.phone || '0554594193'}</strong> • Only verified SUCCESSFUL payments count as confirmed revenue • Full secret API keys are never displayed.
+            </p>
+          </div>
+          <button type="button" onClick={handleExportDevPaymentsCsv} className="btn-outline-gold" style={{ fontSize: '0.75rem', padding: '5px 10px' }}>
+            <Download size={13} /> Export Revenue CSV
+          </button>
+        </div>
+
+        {/* Masked Gateway Credentials & Mode Strip */}
+        {paymentsOverview?.gatewayHealth?.gateways && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '8px', marginBottom: '12px' }}>
+            {Object.values(paymentsOverview.gatewayHealth.gateways).map((gw) => (
+              <div key={gw.provider} style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(6,12,24,0.8)', border: '1px solid var(--border-subtle)', fontSize: '0.74rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                  <strong style={{ color: '#fff' }}>{gw.provider}</strong>
+                  <span style={{ fontSize: '0.66rem', fontWeight: 800, color: gw.configured ? '#6ee7b7' : '#fcd34d' }}>
+                    {gw.configured ? gw.mode : 'NOT CONFIGURED'}
+                  </span>
+                </div>
+                <div style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontSize: '0.7rem' }}>
+                  Key: {gw.maskedSecretKey || gw.maskedClientId || 'Set in Render Env Vars'}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Revenue & Exception Metrics */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(185px, 1fr))', gap: '8px', marginBottom: '14px' }}>
+          <div style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(6,12,24,0.8)', border: '1px solid rgba(16,185,129,0.4)' }}>
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Confirmed GBS Subscription Revenue</div>
+            <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#6ee7b7', fontFamily: 'var(--font-mono)' }}>
+              GHS {Number(paymentsOverview?.summary?.verifiedSubscriptionRevenueGhs || 0).toFixed(2)}
+            </div>
+          </div>
+          <div style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(6,12,24,0.8)', border: '1px solid var(--border-subtle)' }}>
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Verified Hospital Collections</div>
+            <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#38bdf8', fontFamily: 'var(--font-mono)' }}>
+              GHS {Number(paymentsOverview?.summary?.verifiedHospitalCollectionsGhs || 0).toFixed(2)}
+            </div>
+          </div>
+          <div style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(6,12,24,0.8)', border: '1px solid var(--border-subtle)' }}>
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Pending Subscription Approvals</div>
+            <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#fbbf24' }}>
+              {paymentsOverview?.summary?.pendingSubscriptionVerifications ?? 0}
+            </div>
+          </div>
+          <div style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(6,12,24,0.8)', border: '1px solid var(--border-subtle)' }}>
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Failed Payments / Failed Webhooks</div>
+            <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#fca5a5' }}>
+              {paymentsOverview?.summary?.failedPaymentsAll ?? 0} / {paymentsOverview?.summary?.failedWebhooksCount ?? 0}
+            </div>
+          </div>
+        </div>
+
+        {/* Subscription Payments Awaiting Developer Verification (0554594193) */}
+        <h5 style={{ margin: '0 0 8px', fontSize: '0.84rem', color: 'var(--gold-300)' }}>
+          Hospital → GBS Developer Subscription Payments ({(paymentsOverview?.subscriptionTransactions || []).length})
+        </h5>
+        <div style={{ overflowX: 'auto', marginBottom: '14px' }}>
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Reference</th>
+                <th>Purpose / Hospital</th>
+                <th>Method / Transfer Ref</th>
+                <th>Amount (GHS)</th>
+                <th>Status</th>
+                <th>Developer Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(paymentsOverview?.subscriptionTransactions || []).length === 0 ? (
+                <tr>
+                  <td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '12px' }}>
+                    No hospital subscription payments submitted yet.
+                  </td>
+                </tr>
+              ) : (
+                (paymentsOverview?.subscriptionTransactions || []).slice(0, 15).map((stx) => (
+                  <tr key={stx.id}>
+                    <td style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: 'var(--gold-300)', fontWeight: 700 }}>{stx.transactionRef}</td>
+                    <td style={{ fontSize: '0.78rem' }}>{stx.purpose}</td>
+                    <td style={{ fontSize: '0.75rem' }}>
+                      {stx.paymentMethod} {stx.bankDepositSlipRef ? `• Ref: ${stx.bankDepositSlipRef}` : ''}
+                    </td>
+                    <td style={{ fontFamily: 'monospace', fontWeight: 700 }}>{Number(stx.amount || 0).toFixed(2)}</td>
+                    <td>
+                      <span className={stx.status === 'SUCCESSFUL' ? 'badge badge-success' : stx.status === 'FAILED' ? 'badge badge-danger' : 'badge badge-warning'}>
+                        {stx.status}
+                      </span>
+                    </td>
+                    <td>
+                      {stx.status === 'UNDER_REVIEW' || stx.status === 'PENDING' ? (
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          <button
+                            type="button"
+                            disabled={Boolean(remoteBusy)}
+                            onClick={() =>
+                              executeRemoteOp(
+                                `sub_ok_${stx.id}`,
+                                () => api.confirmDeveloperSubscriptionPayment(stx.id, { decision: 'APPROVE', verifiedReference: stx.bankDepositSlipRef || stx.transactionRef }),
+                                `Confirmed subscription payment ${stx.transactionRef} and activated hospital subscription.`
+                              )
+                            }
+                            className="btn-gold"
+                            style={{ padding: '3px 8px', fontSize: '0.7rem' }}
+                          >
+                            Approve &amp; Activate
+                          </button>
+                          <button
+                            type="button"
+                            disabled={Boolean(remoteBusy)}
+                            onClick={() =>
+                              executeRemoteOp(
+                                `sub_rej_${stx.id}`,
+                                () => api.confirmDeveloperSubscriptionPayment(stx.id, { decision: 'REJECT', notes: 'Receipt not found on 0554594193' }),
+                                `Rejected subscription payment ${stx.transactionRef}.`
+                              )
+                            }
+                            className="btn-outline-gold"
+                            style={{ padding: '3px 8px', fontSize: '0.7rem', borderColor: '#ef4444', color: '#fca5a5' }}
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      ) : (
+                        <span style={{ fontSize: '0.72rem', color: '#6ee7b7', fontFamily: 'monospace' }}>{stx.receiptNumber || stx.status}</span>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Cross-Hospital Payment Reconciliation & Recent Webhook Audit Logs */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '12px' }}>
+          <div style={{ overflowX: 'auto' }}>
+            <h5 style={{ margin: '0 0 8px', fontSize: '0.84rem', color: '#38bdf8' }}>
+              Recent Transactions &amp; Manual Reconciliation ({(paymentsOverview?.recentTransactions || []).length})
+            </h5>
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Ref</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(paymentsOverview?.recentTransactions || []).slice(0, 10).map((tx) => (
+                  <tr key={tx.id}>
+                    <td style={{ fontFamily: 'monospace', fontSize: '0.72rem', color: 'var(--gold-300)' }}>{tx.transactionRef}</td>
+                    <td style={{ fontFamily: 'monospace', fontSize: '0.74rem' }}>GHS {Number(tx.amount || 0).toFixed(2)}</td>
+                    <td style={{ fontSize: '0.72rem' }}>{tx.status}</td>
+                    <td>
+                      {['PENDING', 'REQUIRES_CUSTOMER_ACTION', 'PROCESSING'].includes(tx.status) ? (
+                        <button
+                          type="button"
+                          disabled={Boolean(remoteBusy)}
+                          onClick={() =>
+                            executeRemoteOp(
+                              `rec_${tx.transactionRef}`,
+                              () => api.reconcilePaymentTransaction(tx.transactionRef),
+                              `Reconciliation probe completed for ${tx.transactionRef}.`
+                            )
+                          }
+                          className="btn-outline-gold"
+                          style={{ padding: '2px 7px', fontSize: '0.68rem' }}
+                        >
+                          Reconcile
+                        </button>
+                      ) : (
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>{tx.receiptNumber || '—'}</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+                {(paymentsOverview?.recentTransactions || []).length === 0 && (
+                  <tr>
+                    <td colSpan={4} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '10px' }}>No gateway transactions recorded yet.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          <div style={{ overflowX: 'auto' }}>
+            <h5 style={{ margin: '0 0 8px', fontSize: '0.84rem', color: '#38bdf8' }}>
+              Webhook Delivery &amp; Signature Audit Log ({(paymentsOverview?.recentWebhooks || []).length})
+            </h5>
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Provider / Event</th>
+                  <th>Ref</th>
+                  <th>Signature</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(paymentsOverview?.recentWebhooks || []).slice(0, 10).map((wh) => (
+                  <tr key={wh.id}>
+                    <td style={{ fontSize: '0.72rem' }}>
+                      <strong>{wh.provider}</strong> • {wh.eventType}
+                    </td>
+                    <td style={{ fontFamily: 'monospace', fontSize: '0.7rem', color: 'var(--gold-300)' }}>{wh.transactionRef || '—'}</td>
+                    <td style={{ fontSize: '0.72rem', color: wh.signatureValid ? '#6ee7b7' : '#fca5a5', fontWeight: 700 }}>
+                      {wh.signatureValid ? 'VALID' : 'INVALID'}
+                    </td>
+                    <td style={{ fontSize: '0.7rem' }}>
+                      {wh.duplicateIgnored ? 'DUPLICATE IGNORED' : wh.status}
+                    </td>
+                  </tr>
+                ))}
+                {(paymentsOverview?.recentWebhooks || []).length === 0 && (
+                  <tr>
+                    <td colSpan={4} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '10px' }}>No webhook events received yet.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
       <FacialRecognitionModal

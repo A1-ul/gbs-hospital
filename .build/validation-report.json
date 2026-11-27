@@ -1,6 +1,6 @@
 {
-  "lastRun": "2026-11-27T20:00:00.000Z",
-  "procedure": "Procedure 10 — Provenance Data Identification, 124-Model Backup, Production Purge Guard, Unified Request ID & 26-Module Universal Detail Navigation (Files 1-11)",
+  "lastRun": "2026-11-27T21:40:00.000Z",
+  "procedure": "Procedure 11 — Intelligent Multi-Layer Connection Monitor & Multi-Gateway Hospital Payment / GBS Subscription Engine (Batch 2 Files 1-11 + Phase 37)",
   "checks": [
     {
       "name": "static_structure_audit",
@@ -107,6 +107,17 @@
       "status": "PASSED",
       "horizontalOverflowPx": 0,
       "images": "57/57"
+    },
+    {
+      "name": "batch2_connection_monitor_and_multi_gateway_payments_phase37",
+      "status": "PASSED",
+      "prismaModels": 126,
+      "backupParityModels": "126/126",
+      "frontendTransformedModules": 1609,
+      "frontendSmokeTests": "7/7",
+      "phase37JestTests": "8/8",
+      "phase35JestTests": "8/8",
+      "notes": "Verified independent multi-layer health probes, 401/403/200 Developer connection diagnostics with zero credential leaks, Frontend connection.manager.js state machine & AbortController timeouts, Ghanaian MSISDN validation, prohibited PIN/CVV blocking, partial bank deposit verification, HMAC-SHA512 webhook + duplicate replay suppression, cross-hospital 403 isolation, refunds, and Hospital Admin -> GBS Developer Subscription (0554594193)."
     }
   ],
   "errorsDiscovered": [

@@ -70,16 +70,16 @@ describe("Phase 30: 4-Step Facial Security, Automated Trial Sweep & Developer Di
 
     afterAll(async () => {
         if (expiredTenantRecord) {
-            await prisma.systemNotification.deleteMany({ where: { tenantId: expiredTenantRecord.id } }).catch(() => {});
-            await prisma.auditLog.deleteMany({ where: { tenantId: expiredTenantRecord.id } }).catch(() => {});
-            await prisma.tenantSubscription.deleteMany({ where: { tenantId: expiredTenantRecord.id } }).catch(() => {});
-            await prisma.tenant.delete({ where: { id: expiredTenantRecord.id } }).catch(() => {});
+            await prisma.systemNotification.deleteMany({ where: { tenantId: expiredTenantRecord.id } }).catch(() => { });
+            await prisma.auditLog.deleteMany({ where: { tenantId: expiredTenantRecord.id } }).catch(() => { });
+            await prisma.tenantSubscription.deleteMany({ where: { tenantId: expiredTenantRecord.id } }).catch(() => { });
+            await prisma.tenant.delete({ where: { id: expiredTenantRecord.id } }).catch(() => { });
         }
         for (const uid of createdUserIds) {
-            await prisma.session.deleteMany({ where: { userId: uid } }).catch(() => {});
-            await prisma.biometricVerificationLog.deleteMany({ where: { userId: uid } }).catch(() => {});
-            await prisma.biometricSecurityCredential.deleteMany({ where: { userId: uid } }).catch(() => {});
-            await prisma.user.delete({ where: { id: uid } }).catch(() => {});
+            await prisma.session.deleteMany({ where: { userId: uid } }).catch(() => { });
+            await prisma.biometricVerificationLog.deleteMany({ where: { userId: uid } }).catch(() => { });
+            await prisma.biometricSecurityCredential.deleteMany({ where: { userId: uid } }).catch(() => { });
+            await prisma.user.delete({ where: { id: uid } }).catch(() => { });
         }
     });
 
@@ -249,7 +249,7 @@ describe("Phase 30: 4-Step Facial Security, Automated Trial Sweep & Developer Di
         expect(diagRes.statusCode).toBe(200);
         expect(diagRes.body.data.architectureHealthScore).toBeGreaterThanOrEqual(0);
         expect(diagRes.body.data.architectureHealthScore).toBeLessThanOrEqual(100);
-        expect(diagRes.body.data.systemSummary.totalPrismaModels).toBe(124);
+        expect(diagRes.body.data.systemSummary.totalPrismaModels).toBe(126);
         expect(Array.isArray(diagRes.body.data.findings)).toBe(true);
 
         expect(analRes.statusCode).toBe(200);
