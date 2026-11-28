@@ -11,6 +11,7 @@ LOCATION: Backend/src/core/database/prisma.connection.js
 
 const logger = require("../utils/logger");
 const prisma = require("./prisma.client");
+const databaseConfig = require("../../config/database.config");
 const {
     recordConnectionFailure,
     recordConnectionRecovery,
@@ -100,6 +101,14 @@ async function connectWithRetry() {
 
                 await prisma.$connect();
                 await prisma.$queryRaw`SELECT 1`;
+                try {
+                    const idleTxTimeoutMs = Number(databaseConfig.pool.idleInTransactionTimeoutMs || 30000);
+                    if (Number.isInteger(idleTxTimeoutMs) && idleTxTimeoutMs >= 5000 && idleTxTimeoutMs <= 120000) {
+                        await prisma.$executeRawUnsafe(`SET idle_in_transaction_session_timeout = ${idleTxTimeoutMs}`);
+                    }
+                } catch (_txTimeoutErr) {
+                    // PgBouncer transaction-pooling or restricted roles may disallow session SET; continue cleanly
+                }
                 connected = true;
                 if (attempt > 1) {
                     recordConnectionRecovery();

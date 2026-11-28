@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Lock, Mail, AlertCircle, CheckCircle, Check, Zap, KeyRound, ArrowLeft } from 'lucide-react';
 import { api } from '../services/api.service';
 import { ROLES, ROLE_CATEGORIES } from './Header';
+import { useLocale } from '../context/LocaleContext';
 
 export default function RoleLoginModal({
   isOpen,
@@ -10,6 +11,7 @@ export default function RoleLoginModal({
   initialRole = 'DOCTOR',
   demoModeEnabled = false
 }) {
+  const { t, activeCountry } = useLocale();
   const safeInitialRole = initialRole && initialRole !== 'DEVELOPER' ? initialRole : 'DOCTOR';
 
   const [mode, setMode] = useState('signin'); // signin | signup | forgot
@@ -90,7 +92,7 @@ export default function RoleLoginModal({
         setDevResetHint(res?.devVerificationToken || null);
         setSuccessMsg(
           res?.message ||
-            'Password reset request recorded. Enter your recovery code below to set a new password.'
+          'Password reset request recorded. Enter your recovery code below to set a new password.'
         );
       } else {
         if (newPasswordInput !== confirmNewPassword) {
@@ -141,13 +143,13 @@ export default function RoleLoginModal({
         });
         setSuccessMsg(
           res.message ||
-            'Registration submitted successfully. Awaiting Administrator approval before activation.'
+          'Registration submitted successfully. Awaiting Administrator approval before activation.'
         );
         setPassword('');
       } else {
         const res = await api.login(email.trim(), password);
         if (res?.user?.role === 'DEVELOPER') {
-          await api.logout().catch(() => {});
+          await api.logout().catch(() => { });
           localStorage.removeItem('gbs_token');
           localStorage.removeItem('gbs_user');
           setError('Developer accounts must authenticate via the unlisted Developer Security Portal.');
@@ -229,6 +231,37 @@ export default function RoleLoginModal({
           </div>
 
           <div style={{ position: 'relative', zIndex: 2 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+              <div
+                style={{
+                  width: '44px',
+                  height: '44px',
+                  minWidth: '44px',
+                  borderRadius: '8px',
+                  border: '1.5px solid var(--gold-400)',
+                  background: '#091830',
+                  padding: '2px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 4px 14px rgba(0, 0, 0, 0.7)'
+                }}
+              >
+                <img
+                  src="/gbs-official-logo.png"
+                  alt="GBS Official Company Logo"
+                  style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', borderRadius: '5px' }}
+                />
+              </div>
+              <div>
+                <div style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--gold-300)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                  GBS Hospital System
+                </div>
+                <div style={{ fontSize: '0.65rem', color: '#e5e7eb', opacity: 0.88 }}>
+                  Intelligence Talks To Wisdom
+                </div>
+              </div>
+            </div>
             <div
               style={{
                 display: 'inline-block',
@@ -333,17 +366,17 @@ export default function RoleLoginModal({
 
           <h2 className="header-3d" style={{ fontSize: '1.35rem', fontWeight: 700, marginBottom: '6px' }}>
             {isForgot
-              ? 'Reset Account Password'
+              ? t('auth.forgotPassword', 'Reset Account Password')
               : isSignUp
-                ? 'Request Hospital Role Account'
-                : 'Sign In to Your Workspace'}
+                ? t('auth.signUpTab', 'Request Hospital Role Account')
+                : `${t('auth.signInTab', 'Sign In')} — ${t(`role.${currentRoleObj.id}`, currentRoleObj.name)}`}
           </h2>
           <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
             {isForgot
               ? 'Request a single-use recovery code verified against the hospital database.'
               : isSignUp
-                ? 'Select your clinical or operational role. Administrator approval is required before activation.'
-                : 'Enter your registered email and password to access authorized hospital modules.'}
+                ? `Select your clinical or operational role (${activeCountry.flag} ${activeCountry.name} • ${activeCountry.dialCode}). Administrator approval is required before activation.`
+                : `Enter your registered email and password to access authorized hospital modules (${activeCountry.flag} ${activeCountry.name}).`}
           </p>
 
           {error && (

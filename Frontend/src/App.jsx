@@ -5,6 +5,11 @@ import DeveloperPortalGate from './components/DeveloperPortalGate';
 import UniversalDetailPage from './components/UniversalDetailPage';
 import SystemFeedbackBrain from './components/SystemFeedbackBrain';
 import SubscriptionLockOverlay from './components/SubscriptionLockOverlay';
+import AllTabsNavigatorModal from './components/AllTabsNavigatorModal';
+import CallCenterModal from './components/CallCenterModal';
+import IncomingCallBanner from './components/IncomingCallBanner';
+import LiveMediaRoomModal from './components/LiveMediaRoomModal';
+import HospitalMembershipCardModal from './components/HospitalMembershipCardModal';
 
 const MODULE_BACKGROUND_MAP = {
   OVERVIEW: '/assets/images/hospital_hero_exterior.jpg',
@@ -92,6 +97,7 @@ import {
   Video, MapPin, Mic, Eye, Bell, History, Building2, User, Layers
 } from 'lucide-react';
 import { api } from './services/api.service';
+import { useLocale } from './context/LocaleContext';
 import {
   isDeveloperRoute,
   initManualScrollRestoration,
@@ -99,6 +105,8 @@ import {
   captureScrollSnapshot,
   saveScrollSnapshot,
   loadScrollSnapshot,
+  saveRouteFallbackSnapshot,
+  loadRouteFallbackSnapshot,
   restoreScrollSnapshot,
   scrollNewPageToTop
 } from './services/navigation.manager';
@@ -185,6 +193,21 @@ export const ECOSYSTEM_CATEGORIES = {
   TECHNOLOGY: { id: 'TECHNOLOGY', label: 'Digital Tools' }
 };
 
+const VALID_MODULE_KEYS = new Set([
+  'OVERVIEW',
+  'DEVELOPER_PORTAL',
+  'MIGRATION',
+  ...SUBSYSTEM_MODULES.map((m) => m.key)
+]);
+
+function normalizeValidModuleKey(rawKey) {
+  const normalized = String(rawKey || '').trim().toUpperCase();
+  if (VALID_MODULE_KEYS.has(normalized)) {
+    return normalized;
+  }
+  return 'OVERVIEW';
+}
+
 function parseUrlRoute(pathname) {
   const clean = (pathname || '/').replace(/\/+$/, '') || '/';
   // Hidden unlisted Developer Control Center path
@@ -194,10 +217,11 @@ function parseUrlRoute(pathname) {
   // Match /module/:moduleKey/detail/:detailType/:recordId
   const detailMatch = clean.match(/^\/module\/([^/]+)\/detail\/([^/]+)\/(.+)$/);
   if (detailMatch) {
+    const validMod = normalizeValidModuleKey(decodeURIComponent(detailMatch[1]));
     return {
-      moduleKey: decodeURIComponent(detailMatch[1]),
+      moduleKey: validMod,
       detail: {
-        moduleKey: decodeURIComponent(detailMatch[1]),
+        moduleKey: validMod,
         detailType: decodeURIComponent(detailMatch[2]),
         recordId: decodeURIComponent(detailMatch[3])
       }
@@ -206,7 +230,7 @@ function parseUrlRoute(pathname) {
   const modMatch = clean.match(/^\/module\/([^/]+)$/);
   if (modMatch) {
     return {
-      moduleKey: decodeURIComponent(modMatch[1]),
+      moduleKey: normalizeValidModuleKey(decodeURIComponent(modMatch[1])),
       detail: null
     };
   }
@@ -231,6 +255,7 @@ function getDefaultModuleForRole(role) {
 }
 
 export default function App() {
+  const { t, activeCountry, activeLanguage } = useLocale();
   const initialRoute = typeof window !== 'undefined' ? parseUrlRoute(window.location.pathname) : { moduleKey: 'OVERVIEW', detail: null };
 
   const [currentRole, setCurrentRole] = useState('ADMINISTRATOR');
@@ -238,6 +263,18 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [showOperatingGuide, setShowOperatingGuide] = useState(false);
+  const [showAllTabsModal, setShowAllTabsModal] = useState(false);
+  const [showCallCenter, setShowCallCenter] = useState(false);
+  const [activeMediaSession, setActiveMediaSession] = useState(null);
+  const [incomingCall, setIncomingCall] = useState(null);
+  const [answeringCall, setAnsweringCall] = useState(false);
+  const [membershipCardState, setMembershipCardState] = useState({
+    isOpen: false,
+    cardData: null,
+    loading: false,
+    error: null,
+    retryFn: null,
+  });
   const [activeModule, setActiveModuleState] = useState(initialRoute.moduleKey);
   const [activeDetail, setActiveDetail] = useState(initialRoute.detail);
   const [subsystemCategory, setSubsystemCategory] = useState('ALL');
@@ -260,6 +297,7 @@ export default function App() {
     activeModule,
     activeDetail,
     currentRole,
+    currentUser,
     subsystemCategory,
     overviewStaffCategory,
     overviewModuleCategory
@@ -446,6 +484,7 @@ export default function App() {
     });
     saveScrollSnapshot(outgoingKey, scrollSnapshot);
     if (typeof window !== 'undefined') {
+      saveRouteFallbackSnapshot(window.location.pathname || '/', scrollSnapshot);
       const existingState = window.history.state || {};
       window.history.replaceState(
         {
@@ -469,7 +508,13 @@ export default function App() {
     const nextRole = navOptions.role || prev.currentRole;
     const targetUrl = moduleKey === 'OVERVIEW' ? '/' : `/module/${encodeURIComponent(moduleKey)}`;
 
-    if (prev.activeModule === moduleKey && !prev.activeDetail && typeof window !== 'undefined' && window.location.pathname === targetUrl) {
+    if (
+      prev.activeModule === moduleKey &&
+      prev.currentRole === nextRole &&
+      !prev.activeDetail &&
+      typeof window !== 'undefined' &&
+      window.location.pathname === targetUrl
+    ) {
       return;
     }
 
@@ -486,7 +531,11 @@ export default function App() {
     setActiveModuleState(moduleKey);
 
     if (typeof window !== 'undefined') {
-      if (window.location.pathname !== targetUrl || window.history.state?.detail) {
+      if (
+        window.location.pathname !== targetUrl ||
+        window.history.state?.detail ||
+        prev.currentRole !== nextRole
+      ) {
         window.history.pushState(
           {
             navKey: nextNavKey,
@@ -601,10 +650,59 @@ export default function App() {
 
   const handleBackFromDetail = handleNavigateBack;
 
+  const openMembershipCardWithFetcher = async (fetcher) => {
+    setMembershipCardState({
+      isOpen: true,
+      cardData: null,
+      loading: true,
+      error: null,
+      retryFn: () => openMembershipCardWithFetcher(fetcher),
+    });
+    try {
+      const res = await fetcher();
+      const cardObj = res?.card || res;
+      if (!cardObj || !(cardObj.cardSerial || cardObj.cardNumber)) {
+        throw new Error('Membership ID card payload was incomplete.');
+      }
+      setMembershipCardState({
+        isOpen: true,
+        cardData: cardObj,
+        loading: false,
+        error: null,
+        retryFn: () => openMembershipCardWithFetcher(fetcher),
+      });
+    } catch (err) {
+      setMembershipCardState({
+        isOpen: true,
+        cardData: null,
+        loading: false,
+        error: err?.message || 'Unable to generate Hospital Membership ID Card. Please ensure you are signed in with an accepted account.',
+        retryFn: () => openMembershipCardWithFetcher(fetcher),
+      });
+    }
+  };
+
+  const openPatientMembershipCard = (patientId) => {
+    if (!patientId) return;
+    openMembershipCardWithFetcher(() => api.getPatientMembershipCard(patientId));
+  };
+
+  const openUserMembershipCard = (userId) => {
+    if (!userId) return;
+    openMembershipCardWithFetcher(() => api.getUserMembershipCard(userId));
+  };
+
+  const openMyMembershipCard = () => {
+    openMembershipCardWithFetcher(() => api.getMyMembershipCard());
+  };
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
     initManualScrollRestoration();
     window.gbsNavigateDetail = openDetailPage;
+    window.gbsOpenPatientMembershipCard = openPatientMembershipCard;
+    window.gbsOpenUserMembershipCard = openUserMembershipCard;
+    window.gbsOpenMyMembershipCard = openMyMembershipCard;
 
     // Stamp the initial entry with a navKey without altering URL or creating duplicate history
     const initState = window.history.state;
@@ -631,20 +729,22 @@ export default function App() {
       const leaving = navStateRef.current;
       // Save leaving page's scroll snapshot so Browser Forward restores its exact position too
       if (!isDeveloperRoute(leaving.activeModule) && currentNavKeyRef.current) {
-        saveScrollSnapshot(
-          currentNavKeyRef.current,
-          captureScrollSnapshot({
-            subsystemCategory: leaving.subsystemCategory,
-            overviewStaffCategory: leaving.overviewStaffCategory,
-            overviewModuleCategory: leaving.overviewModuleCategory,
-            role: leaving.currentRole
-          })
-        );
+        const leavingSnap = captureScrollSnapshot({
+          subsystemCategory: leaving.subsystemCategory,
+          overviewStaffCategory: leaving.overviewStaffCategory,
+          overviewModuleCategory: leaving.overviewModuleCategory,
+          role: leaving.currentRole
+        });
+        saveScrollSnapshot(currentNavKeyRef.current, leavingSnap);
+        const leavingPath = leaving.activeDetail
+          ? `/module/${encodeURIComponent(leaving.activeDetail.moduleKey || leaving.activeModule)}/detail/${encodeURIComponent(leaving.activeDetail.detailType)}/${encodeURIComponent(leaving.activeDetail.recordId)}`
+          : (leaving.activeModule === 'OVERVIEW' ? '/' : `/module/${encodeURIComponent(leaving.activeModule)}`);
+        saveRouteFallbackSnapshot(leavingPath, leavingSnap);
       }
 
       const st = event.state;
       const parsed = parseUrlRoute(window.location.pathname);
-      const targetMod = (st && st.moduleKey) ? st.moduleKey : parsed.moduleKey;
+      const targetMod = (st && st.moduleKey) ? normalizeValidModuleKey(st.moduleKey) : parsed.moduleKey;
       const targetDetail = (st && st.detail !== undefined) ? st.detail : parsed.detail;
       const targetKey = (st && st.navKey) ? st.navKey : generateNavKey('pop');
 
@@ -658,7 +758,19 @@ export default function App() {
 
       // Exclude Developer Dashboard from scroll/context restoration overrides
       if (!isDeveloperRoute(targetMod)) {
-        const savedSnap = loadScrollSnapshot(targetKey);
+        const savedSnap = loadScrollSnapshot(targetKey) || loadRouteFallbackSnapshot(window.location.pathname || '/');
+        const restoredRole = st?.role || savedSnap?.context?.role;
+        const activeUser = leaving.currentUser;
+        const canRestoreRole =
+          !activeUser ||
+          ['ADMINISTRATOR', 'HOSPITAL_DIRECTOR', 'DEVELOPER'].includes(activeUser.role) ||
+          activeUser.role === restoredRole;
+        if (restoredRole && restoredRole !== 'DEVELOPER' && restoredRole !== leaving.currentRole && canRestoreRole) {
+          setCurrentRole(restoredRole);
+          try {
+            localStorage.setItem('gbs_role', restoredRole);
+          } catch (_e) { }
+        }
         if (savedSnap) {
           if (savedSnap.context?.subsystemCategory) setSubsystemCategory(savedSnap.context.subsystemCategory);
           if (savedSnap.context?.overviewStaffCategory) setOverviewStaffCategory(savedSnap.context.overviewStaffCategory);
@@ -759,7 +871,7 @@ export default function App() {
         module: targetMod,
       });
     }
-    setActiveModule(targetMod);
+    setActiveModule(targetMod, { role: r });
   };
 
   // Hidden Unlisted Developer Access Gate (/developer-portal)
@@ -778,13 +890,127 @@ export default function App() {
     );
   }
 
+  // Global Real-Time Voice/Video Calling & Incoming Ring Listener (SSE + Polling Fallback)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.gbsOpenLiveMediaRoom = (mediaSession) => {
+        if (mediaSession && (mediaSession.roomCode || mediaSession.meetingCode)) {
+          setActiveMediaSession(mediaSession);
+        }
+      };
+      window.gbsOpenCallCenter = () => setShowCallCenter(true);
+    }
+
+    if (!currentUser) {
+      setIncomingCall(null);
+      return undefined;
+    }
+
+    const checkIncoming = async () => {
+      try {
+        if (typeof document !== 'undefined' && document.hidden) return;
+        const res = await api.getIncomingCalls();
+        const list = Array.isArray(res?.incomingCalls) ? res.incomingCalls : [];
+        if (list.length > 0) {
+          setIncomingCall((prev) => {
+            if (activeMediaSession && list[0].roomCode === activeMediaSession.roomCode) {
+              return null;
+            }
+            if (prev && prev.roomCode === list[0].roomCode) return prev;
+            return list[0];
+          });
+        } else {
+          setIncomingCall((prev) => (prev && prev.eventType === 'CONFERENCE_INVITE' ? prev : null));
+        }
+      } catch (_ignore) { }
+    };
+
+    const onSseCallEvent = (ev) => {
+      const detail = ev?.detail;
+      if (!detail) return;
+      if (detail.type === 'INCOMING_CALL' && detail.call) {
+        if (!activeMediaSession || activeMediaSession.roomCode !== detail.call.roomCode) {
+          setIncomingCall(detail.call);
+        }
+      } else if (detail.type === 'CONFERENCE_INVITE' && detail.call) {
+        if (!activeMediaSession || activeMediaSession.roomCode !== detail.call.roomCode) {
+          setIncomingCall({
+            ...detail.call,
+            eventType: 'CONFERENCE_INVITE',
+            invitedBy: detail.invitedBy || null,
+          });
+        }
+      } else if (['CALL_CANCELLED', 'CALL_DECLINED', 'CALL_ENDED'].includes(detail.type)) {
+        const code = detail.call?.roomCode;
+        setIncomingCall((prev) => (prev && (!code || prev.roomCode === code) ? null : prev));
+      }
+    };
+
+    checkIncoming();
+    const poll = setInterval(checkIncoming, 4500);
+    window.addEventListener('gbs:call_event', onSseCallEvent);
+
+    return () => {
+      clearInterval(poll);
+      window.removeEventListener('gbs:call_event', onSseCallEvent);
+    };
+  }, [currentUser, activeMediaSession]);
+
+  const handleAcceptIncomingCall = async (callObj, chosenMode = 'VIDEO') => {
+    if (!callObj?.roomCode) return;
+    setAnsweringCall(true);
+    try {
+      const isConf = callObj.kind === 'CONFERENCE' || callObj.eventType === 'CONFERENCE_INVITE';
+      const res = isConf
+        ? await api.joinCommunicationRoom(callObj.roomCode, { callMode: chosenMode })
+        : await api.acceptDirectCall(callObj.roomCode, { callMode: chosenMode });
+
+      const roomRecord = res?.call || res?.room || callObj;
+      setIncomingCall(null);
+      setActiveMediaSession({
+        ...roomRecord,
+        ...(res?.webrtcSession || {}),
+        roomCode: res?.webrtcSession?.roomCode || callObj.roomCode,
+        callMode: chosenMode,
+        kind: isConf ? 'CONFERENCE' : 'DIRECT_CALL',
+        roomTitle: roomRecord.title || `Live Call ${callObj.roomCode}`,
+      });
+    } catch (err) {
+      if (typeof window !== 'undefined' && typeof window.gbsBrainNotify === 'function') {
+        window.gbsBrainNotify({
+          type: 'error',
+          method: 'CALL',
+          title: 'Could Not Answer Call',
+          message: err.message || 'The call may have already ended.',
+          forceToast: true,
+        });
+      }
+      setIncomingCall(null);
+    } finally {
+      setAnsweringCall(false);
+    }
+  };
+
+  const handleDeclineIncomingCall = async (callObj) => {
+    if (!callObj) return;
+    setAnsweringCall(true);
+    try {
+      if (callObj.kind !== 'CONFERENCE' && callObj.eventType !== 'CONFERENCE_INVITE' && callObj.roomCode) {
+        await api.declineDirectCall(callObj.roomCode, { reason: 'Declined by user.' }).catch(() => {});
+      }
+    } finally {
+      setIncomingCall(null);
+      setAnsweringCall(false);
+    }
+  };
+
   const activeBgSrc =
     activeModule === 'OVERVIEW'
       ? (ROLE_BACKGROUND_MAP[currentRole] || MODULE_BACKGROUND_MAP.OVERVIEW)
       : (MODULE_BACKGROUND_MAP[activeModule] || ROLE_BACKGROUND_MAP[currentRole] || MODULE_BACKGROUND_MAP.OVERVIEW);
 
   return (
-    <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'transparent' }}>
+    <div data-role={currentRole} style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'transparent' }}>
       {/* Full-Page Real-Life Dashboard Background Layer */}
       <div className="dashboard-bg-stage" aria-hidden="true">
         <img
@@ -811,6 +1037,9 @@ export default function App() {
           facilityBranding={facilityBranding}
           onUpdateFacilityBranding={setFacilityBranding}
           demoQuota={demoQuota}
+          onOpenCallCenter={() => setShowCallCenter(true)}
+          incomingCallsCount={incomingCall ? 1 : 0}
+          onOpenMyIdCard={openMyMembershipCard}
         />
       </div>
 
@@ -822,7 +1051,7 @@ export default function App() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '10px', borderBottom: '1px solid rgba(212,175,55,0.12)', paddingBottom: '8px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
               <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--gold-400)', textTransform: 'uppercase', letterSpacing: '0.06em', marginRight: '4px' }}>
-                Departments:
+                {t('nav.departments', 'Departments')}:
               </span>
               {Object.values(SUBSYSTEM_CATEGORIES).map((cat) => {
                 const CatIcon = cat.icon;
@@ -847,7 +1076,7 @@ export default function App() {
                     }}
                   >
                     <CatIcon size={12} />
-                    <span>{cat.label}</span>
+                    <span>{t(`cat.${cat.id}`, cat.label)}</span>
                     <span style={{
                       fontSize: '0.64rem',
                       padding: '1px 5px',
@@ -872,16 +1101,25 @@ export default function App() {
                   style={{ padding: '3px 10px', fontSize: '0.74rem' }}
                   aria-label="Return to previous screen"
                 >
-                  ← Back
+                  ← {t('nav.back', 'Back')}
                 </button>
               )}
+              <button
+                type="button"
+                onClick={() => setShowAllTabsModal(true)}
+                className="btn-gold"
+                style={{ padding: '3px 10px', fontSize: '0.74rem' }}
+                aria-label="Open full organized directory of all departments, sub-tabs, and staff portals"
+              >
+                <Layers size={13} /> {t('nav.allTabs', 'All Tabs & Menu')}
+              </button>
               <button
                 type="button"
                 onClick={() => setShowOperatingGuide((prev) => !prev)}
                 className="btn-outline-gold"
                 style={{ padding: '3px 10px', fontSize: '0.74rem' }}
               >
-                📖 Quick Guide
+                📖 {t('nav.quickGuide', 'Quick Guide')}
               </button>
               <button
                 type="button"
@@ -889,15 +1127,15 @@ export default function App() {
                 className="btn-outline-gold"
                 style={{ padding: '3px 10px', fontSize: '0.74rem' }}
               >
-                ↑ Top
+                ↑ {t('nav.top', 'Top')}
               </button>
-              <span>Env:</span>
+              <span>{t('nav.env', 'Env')}:</span>
               <span style={{ color: activeEnvironment === 'PRODUCTION' ? '#22c55e' : '#38bdf8', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', border: '1px solid currentColor' }}>
                 {activeEnvironment}
               </span>
-              <span>Role:</span>
+              <span>{t('nav.role', 'Role')}:</span>
               <span style={{ color: 'var(--gold-400)', fontWeight: 700, background: 'var(--gold-glow)', padding: '2px 8px', borderRadius: '4px', border: '1px solid var(--border-gold)' }}>
-                {currentRole}
+                {t(`role.${currentRole}`, currentRole)}
               </span>
             </div>
           </div>
@@ -917,7 +1155,7 @@ export default function App() {
                 boxShadow: activeModule === 'OVERVIEW' && !activeDetail ? '0 0 10px rgba(212,175,55,0.4)' : 'none'
               }}
             >
-              <Building2 size={13} /> Home Overview
+              <Building2 size={13} /> {t('nav.homeOverview', 'Home Overview')}
             </button>
 
             {SUBSYSTEM_MODULES
@@ -943,7 +1181,7 @@ export default function App() {
                   >
                     <ModIcon size={13} style={{ color: isActive ? '#000' : mod.color }} />
                     <span style={{ fontWeight: 700 }}>{mod.number}.</span>
-                    <span>{mod.label}</span>
+                    <span>{t(`mod.${mod.key}`, mod.label)}</span>
                   </button>
                 );
               })}
@@ -981,10 +1219,10 @@ export default function App() {
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
             <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--gold-400)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Quick Full-Page Records ({activeModule.replace(/_/g, ' ')}):
+              {t('nav.quickFullPageRecords', 'Quick Full-Page Records')} ({t(`mod.${activeModule}`, activeModule.replace(/_/g, ' '))}):
             </span>
             <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
-              Click any button below to view full details, payments, history, or alerts
+              {t('nav.quickRecordsHint', 'Click any button below to view full details, payments, history, or alerts')}
             </span>
           </div>
 
@@ -1083,26 +1321,26 @@ export default function App() {
                   <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'flex-end', flexWrap: 'wrap', gap: '16px' }}>
                     <div>
                       <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--gold-300)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                        Welcome to {facilityBranding?.hospitalName || 'GBS Hospital'}
+                        {t('overview.welcome', 'Welcome to')} {facilityBranding?.hospitalName || 'GBS Hospital'} • {activeCountry.flag} {activeCountry.name} ({activeCountry.currencyCode}) • {activeLanguage.nativeName}
                       </span>
                       <h2 className="header-3d" style={{ fontSize: '2rem', marginTop: '4px' }}>
-                        Hospital Daily Workspace & Care Hub
+                        {t('overview.heroTitle', 'Hospital Daily Workspace & Care Hub')}
                       </h2>
                       <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', maxWidth: '680px' }}>
-                        Everything your hospital team needs in one simple place — live patient numbers, bed status, medicine stock, lab results, and billing.
+                        {t('overview.heroSubtitle', 'Everything your hospital team needs in one simple place — live patient numbers, bed status, medicine stock, lab results, and billing.')}
                       </p>
                     </div>
 
                     {/* Safety Status & Refresh */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                       <button onClick={loadGlobalOverview} className="btn-outline-gold" style={{ padding: '8px 14px', fontSize: '0.82rem' }}>
-                        <RefreshCw size={14} /> Refresh Numbers
+                        <RefreshCw size={14} /> {t('overview.refreshNumbers', 'Refresh Numbers')}
                       </button>
                       <div style={{ background: 'rgba(0,0,0,0.65)', padding: '10px 16px', borderRadius: '10px', border: '1px solid var(--border-gold)', display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <Shield style={{ color: 'var(--status-online)', width: '22px', height: '22px' }} />
                         <div>
-                          <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--status-online)' }}>Patient Safety Always On</div>
-                          <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>Emergency care stays open 24/7</div>
+                          <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--status-online)' }}>{t('overview.safetyAlwaysOn', 'Patient Safety Always On')}</div>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>{t('overview.emergency247', 'Emergency care stays open 24/7')} • {activeCountry.emergencyNumber}</div>
                         </div>
                       </div>
                     </div>
@@ -1117,7 +1355,7 @@ export default function App() {
                     style={{ padding: '18px 20px', borderLeft: '4px solid var(--gold-400)', cursor: 'pointer' }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)' }}>Patient Visits Today</span>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)' }}>{t('overview.visitsToday', 'Patient Visits Today')}</span>
                       <Activity size={18} style={{ color: 'var(--gold-400)' }} />
                     </div>
                     <div style={{ fontSize: '2rem', fontWeight: 800, color: '#fff', marginTop: '6px' }}>
@@ -1135,7 +1373,7 @@ export default function App() {
                     style={{ padding: '18px 20px', borderLeft: '4px solid var(--status-info)', cursor: 'pointer' }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)' }}>Admitted Patients</span>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)' }}>{t('overview.admittedPatients', 'Admitted Patients')}</span>
                       <Bed size={18} style={{ color: 'var(--status-info)' }} />
                     </div>
                     <div style={{ fontSize: '2rem', fontWeight: 800, color: '#fff', marginTop: '6px' }}>
@@ -1153,7 +1391,7 @@ export default function App() {
                     style={{ padding: '18px 20px', borderLeft: '4px solid var(--status-warning)', cursor: 'pointer' }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)' }}>Scheduled Surgeries</span>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)' }}>{t('overview.scheduledSurgeries', 'Scheduled Surgeries')}</span>
                       <Stethoscope size={18} style={{ color: 'var(--status-warning)' }} />
                     </div>
                     <div style={{ fontSize: '2rem', fontWeight: 800, color: '#fff', marginTop: '6px' }}>
@@ -1171,7 +1409,7 @@ export default function App() {
                     style={{ padding: '18px 20px', borderLeft: '4px solid var(--status-online)', cursor: 'pointer' }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)' }}>Patients Sent Home</span>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)' }}>{t('overview.patientsSentHome', 'Patients Sent Home')}</span>
                       <CheckCircle size={18} style={{ color: 'var(--status-online)' }} />
                     </div>
                     <div style={{ fontSize: '2rem', fontWeight: 800, color: '#fff', marginTop: '6px' }}>
@@ -1189,14 +1427,14 @@ export default function App() {
                   <div className="glass-panel" style={{ padding: '18px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                       <h3 style={{ margin: 0, fontSize: '0.98rem', color: 'var(--gold-400)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Bell size={16} /> Recent Alerts ({recentNotifications.length})
+                        <Bell size={16} /> {t('overview.recentAlerts', 'Recent Alerts')} ({recentNotifications.length})
                       </h3>
                       <button
                         onClick={() => openDetailPage({ detailType: 'VIEW_NOTIFICATIONS', moduleKey: 'OVERVIEW', recordId: 'all' })}
                         className="btn-outline-gold"
                         style={{ padding: '4px 10px', fontSize: '0.76rem' }}
                       >
-                        All Alerts →
+                        {t('overview.allAlertsBtn', 'All Alerts')} →
                       </button>
                     </div>
                     {recentNotifications.length === 0 ? (
@@ -1227,14 +1465,14 @@ export default function App() {
                   <div className="glass-panel" style={{ padding: '18px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                       <h3 style={{ margin: 0, fontSize: '0.98rem', color: 'var(--gold-400)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <History size={16} /> Recent Activity Log ({recentAuditLogs.length})
+                        <History size={16} /> {t('overview.recentActivity', 'Recent Activity Log')} ({recentAuditLogs.length})
                       </h3>
                       <button
                         onClick={() => openDetailPage({ detailType: 'VIEW_HISTORY', moduleKey: 'OVERVIEW', recordId: 'audit-trail' })}
                         className="btn-outline-gold"
                         style={{ padding: '4px 10px', fontSize: '0.76rem' }}
                       >
-                        Full Activity →
+                        {t('overview.fullActivityBtn', 'Full Activity')} →
                       </button>
                     </div>
                     {recentAuditLogs.length === 0 ? (
@@ -1267,7 +1505,7 @@ export default function App() {
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
                     <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff', margin: 0 }}>
-                      Hospital Staff & Specialist Portals ({ROLES.filter(r => r.id !== 'DEVELOPER' || isDeveloperAuthenticated).length} Authorized Roles)
+                      {t('overview.staffPortalsHeading', 'Hospital Staff & Specialist Portals')} ({ROLES.filter(r => r.id !== 'DEVELOPER' || isDeveloperAuthenticated).length} Authorized Roles)
                     </h3>
                     <span style={{ fontSize: '0.75rem', color: 'var(--gold-400)' }}>
                       Click any role to open its dedicated real-life login page or launch its live workspace
@@ -1378,10 +1616,10 @@ export default function App() {
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
                     <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff', margin: 0 }}>
-                      Hospital Departments & Services
+                      {t('overview.departmentsHeading', 'Hospital Departments & Services')}
                     </h3>
                     <span style={{ fontSize: '0.78rem', color: 'var(--gold-400)' }}>
-                      Click any card to open that department
+                      {t('overview.clickAnyDepartment', 'Click any card to open that department')}
                     </span>
                   </div>
 
@@ -1502,7 +1740,7 @@ export default function App() {
             {activeModule === 'QUALITY' && <QualityAssuranceView onNavigateDetail={openDetailPage} />}
             {activeModule === 'NHIA_CLAIMS' && <NhiaClaimsView onNavigateDetail={openDetailPage} />}
             {activeModule === 'VOICE_AUTH' && <VoiceBiometricsView onNavigateDetail={openDetailPage} />}
-            {activeModule === 'TELEMEDICINE' && <TelemedicineGisView onNavigateDetail={openDetailPage} />}
+            {activeModule === 'TELEMEDICINE' && <TelemedicineGisView onNavigateDetail={openDetailPage} onOpenLiveMediaRoom={(sess) => setActiveMediaSession(sess)} />}
             {activeModule === 'DENTAL' && <DentalClinicView onNavigateDetail={openDetailPage} />}
             {activeModule === 'EYE_CLINIC' && <EyeClinicView onNavigateDetail={openDetailPage} />}
             {activeModule === 'ICU' && <IcuVitalsView onNavigateDetail={openDetailPage} />}
@@ -1512,7 +1750,7 @@ export default function App() {
             {activeModule === 'BILLING' && <BillingPaymentsView onNavigateDetail={openDetailPage} />}
             {activeModule === 'PATIENT_PORTAL' && <PatientPortalView onNavigateDetail={openDetailPage} />}
             {activeModule === 'EXECUTIVE_BI' && <ExecutiveAdminBiView currentRole={currentRole} onNavigateDetail={openDetailPage} />}
-            {activeModule === 'OPERATIONS_HUB' && <OperationsSuiteView onNavigateDetail={openDetailPage} />}
+            {activeModule === 'OPERATIONS_HUB' && <OperationsSuiteView onNavigateDetail={openDetailPage} onOpenLiveMediaRoom={(sess) => setActiveMediaSession(sess)} />}
             {(activeModule === 'DEVELOPER_NOC' || activeModule === 'MIGRATION' || activeModule === 'DEVELOPER_PORTAL') && (
               isDeveloperAuthenticated ? (
                 <DeveloperControlCenterView onNavigateDetail={openDetailPage} />
@@ -1532,6 +1770,25 @@ export default function App() {
           </>
         )}
       </main>
+
+      {/* Organized All Departments, Sub-Tabs & Portals Directory Modal */}
+      <AllTabsNavigatorModal
+        isOpen={showAllTabsModal}
+        onClose={() => setShowAllTabsModal(false)}
+        activeModule={activeModule}
+        onSelectModule={(modKey) => {
+          setSubsystemCategory('ALL');
+          setActiveModule(modKey);
+        }}
+        roles={ROLES}
+        currentRole={currentRole}
+        onSelectRole={handleSelectRole}
+        detailGroups={DETAIL_PAGE_GROUPS}
+        onOpenDetail={openDetailPage}
+        categories={SUBSYSTEM_CATEGORIES}
+        modules={SUBSYSTEM_MODULES}
+        isDeveloperAuthenticated={isDeveloperAuthenticated}
+      />
 
       {/* Role Login Modal */}
       <RoleLoginModal
@@ -1574,6 +1831,43 @@ export default function App() {
 
       {/* Blueprint System Locked / Subscription Expired Overlay (with Audited Emergency Bypass) */}
       <SubscriptionLockOverlay onNavigateModule={(mod) => setActiveModule(mod)} />
+
+      {/* Family-Friendly All-Users Voice & Video Call Hub */}
+      <CallCenterModal
+        isOpen={showCallCenter}
+        onClose={() => setShowCallCenter(false)}
+        currentUser={currentUser}
+        onOpenLogin={() => setIsLoginOpen(true)}
+        onOpenLiveRoom={(mediaSession) => setActiveMediaSession(mediaSession)}
+      />
+
+      {/* Official GBS Hospital Registration & Membership ID Card Modal */}
+      <HospitalMembershipCardModal
+        isOpen={membershipCardState.isOpen}
+        cardData={membershipCardState.cardData}
+        loading={membershipCardState.loading}
+        error={membershipCardState.error}
+        onClose={() => setMembershipCardState((prev) => ({ ...prev, isOpen: false }))}
+        onRetry={membershipCardState.retryFn}
+      />
+
+      {/* Real-Time Incoming Voice/Video Call & Conference Invite Banner */}
+      <IncomingCallBanner
+        incomingCall={incomingCall}
+        busy={answeringCall}
+        onAccept={handleAcceptIncomingCall}
+        onDecline={handleDeclineIncomingCall}
+      />
+
+      {/* Full Multi-Camera Live WebRTC Video & Voice Room (Self-View + All Participants) */}
+      {activeMediaSession && (
+        <LiveMediaRoomModal
+          session={activeMediaSession}
+          currentUser={currentUser}
+          onClose={() => setActiveMediaSession(null)}
+          onSessionEnded={() => setActiveMediaSession(null)}
+        />
+      )}
 
       {/* Central GBS System Feedback Brain */}
       <SystemFeedbackBrain currentRole={currentRole} activeModule={activeModule} />

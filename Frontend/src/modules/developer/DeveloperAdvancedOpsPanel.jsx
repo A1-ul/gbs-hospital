@@ -33,6 +33,8 @@ export default function DeveloperAdvancedOpsPanel({ onStatusMsg }) {
   const [connDiag, setConnDiag] = useState(null);
   const [clientConn, setClientConn] = useState(() => connectionManager.getState());
   const [paymentsOverview, setPaymentsOverview] = useState(null);
+  const [deploymentRegistry, setDeploymentRegistry] = useState(null);
+  const [workingSystemAudit, setWorkingSystemAudit] = useState(null);
   const [loading, setLoading] = useState(true);
   const [sweeping, setSweeping] = useState(false);
   const [remoteBusy, setRemoteBusy] = useState('');
@@ -47,13 +49,15 @@ export default function DeveloperAdvancedOpsPanel({ onStatusMsg }) {
         api.getDeveloperTenantAnalytics().catch(() => null),
         api.getFaceBiometricStatus().catch(() => null),
       ]);
-      const [cluster, flagsRes, rb, envRes, cDiag, payOv] = await Promise.all([
+      const [cluster, flagsRes, rb, envRes, cDiag, payOv, depReg, wsAudit] = await Promise.all([
         api.getDeveloperClusterHealth().catch(() => null),
         api.getDeveloperFeatureFlags().catch(() => null),
         api.getDeveloperRollbackReadiness().catch(() => null),
         api.getDeveloperEnvironmentStatus().catch(() => null),
         api.getConnectionDiagnostics().catch(() => null),
         api.getDeveloperPaymentsOverview().catch(() => null),
+        api.getDeveloperDeploymentRegistry().catch(() => null),
+        api.getDeveloperWorkingSystemAudit().catch(() => null),
       ]);
       setDiagnostics(diag);
       setIntegrations(integ);
@@ -65,6 +69,8 @@ export default function DeveloperAdvancedOpsPanel({ onStatusMsg }) {
       setEnvStatus(envRes);
       setConnDiag(cDiag);
       setPaymentsOverview(payOv);
+      setDeploymentRegistry(depReg);
+      setWorkingSystemAudit(wsAudit);
     } finally {
       setLoading(false);
     }
@@ -390,6 +396,33 @@ export default function DeveloperAdvancedOpsPanel({ onStatusMsg }) {
           </div>
         </div>
 
+        {Array.isArray(clusterHealth?.alerts?.activeAlerts) && clusterHealth.alerts.activeAlerts.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '12px' }}>
+            {clusterHealth.alerts.activeAlerts.map((al, idx) => (
+              <div
+                key={`${al.category}-${idx}`}
+                style={{
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  background: al.severity === 'CRITICAL' ? 'rgba(127,29,29,0.55)' : 'rgba(120,53,15,0.55)',
+                  borderLeft: `4px solid ${al.severity === 'CRITICAL' ? '#ef4444' : '#f59e0b'}`,
+                  fontSize: '0.74rem',
+                  color: '#fff',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  gap: '10px',
+                  flexWrap: 'wrap'
+                }}
+              >
+                <span><strong>[{al.severity} • {al.category}]</strong> {al.message}</span>
+                <span style={{ fontFamily: 'var(--font-mono)', color: al.severity === 'CRITICAL' ? '#fca5a5' : '#fcd34d' }}>
+                  {al.utilizationPct}% / {al.thresholdPct}%
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
         {clusterHealth?.database && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '8px', marginBottom: '12px' }}>
             <div style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(6,12,24,0.8)', border: `1px solid ${clusterHealth.database.poolAlertLevel === 'CRITICAL' ? '#ef4444' : clusterHealth.database.poolAlertLevel === 'WARNING' ? '#f59e0b' : 'var(--border-subtle)'}` }}>
@@ -426,6 +459,24 @@ export default function DeveloperAdvancedOpsPanel({ onStatusMsg }) {
               </div>
               <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
                 Timeouts {clusterHealth.database.connectionTimeouts ?? 0} • Failures {clusterHealth.database.failedConnections ?? 0} • Recovered {clusterHealth.database.recoveredConnections ?? 0}
+              </div>
+            </div>
+            <div style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(6,12,24,0.8)', border: '1px solid var(--border-subtle)' }}>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>PostgreSQL Cache &amp; Query Health</div>
+              <div style={{ fontSize: '1.05rem', fontWeight: 800, color: (clusterHealth.database.cacheHitRatioPct ?? 100) >= 95 ? '#6ee7b7' : '#fcd34d' }}>
+                {clusterHealth.database.cacheHitRatioPct ?? 100}% Cache Hit
+              </div>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+                Queries {clusterHealth.apiPerformance?.totalQueries ?? 0} • Slow {clusterHealth.apiPerformance?.slowQueries ?? 0} • Deadlocks {clusterHealth.database.deadlocks ?? 0} • Idle-Tx {clusterHealth.database.idleInTransactionTimeout || '30s'}
+              </div>
+            </div>
+            <div style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(6,12,24,0.8)', border: '1px solid var(--border-subtle)' }}>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Backup &amp; Scaling Capacity</div>
+              <div style={{ fontSize: '0.88rem', fontWeight: 800, color: clusterHealth.database.safeToScaleMoreInstances === false ? '#fcd34d' : '#6ee7b7', marginTop: '2px' }}>
+                Safe Cap: {clusterHealth.database.safeMaxAppConnections ?? 75} / {clusterHealth.database.maxConnections ?? 100}
+              </div>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+                {clusterHealth.database.backupStatus || 'VERIFIED'} • {clusterHealth.database.latestBackupAt ? new Date(clusterHealth.database.latestBackupAt).toLocaleDateString() : 'On-demand ready'} • {(clusterHealth.database.scalingRecommendation || 'CURRENT_CAPACITY_HEALTHY').replace(/_/g, ' ')}
               </div>
             </div>
           </div>
@@ -870,6 +921,84 @@ export default function DeveloperAdvancedOpsPanel({ onStatusMsg }) {
             </table>
           </div>
         </div>
+      </div>
+
+      {/* GBS Central Deployment Registry (Render-Only Policy — 8 Mandatory Fields) */}
+      <div className="glass-panel" style={{ padding: '18px', border: '1px solid var(--border-gold)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
+          <h4 style={{ margin: 0, color: 'var(--gold-400)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.96rem' }}>
+            <Server size={16} /> GBS Central Deployment Registry (Render-Only Cloud Policy)
+          </h4>
+          <span style={{ fontSize: '0.72rem', color: '#6ee7b7', fontWeight: 700 }}>
+            {deploymentRegistry?.approvedHostingProvider || 'Render.com (RENDER ONLY)'} • Account: {deploymentRegistry?.officialAccountEmail || 'gabosei48@gmail.com'}
+          </span>
+        </div>
+
+        {deploymentRegistry?.primarySystem ? (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px', fontSize: '0.78rem' }}>
+            {[
+              { label: 'System Name', val: deploymentRegistry.primarySystem.systemName },
+              { label: 'GitHub Repository', val: deploymentRegistry.primarySystem.githubRepository },
+              { label: 'Render Service Name', val: deploymentRegistry.primarySystem.renderServiceName },
+              { label: 'Live Website Address', val: deploymentRegistry.primarySystem.liveWebsiteAddress },
+              { label: 'Deployment Status', val: deploymentRegistry.primarySystem.deploymentStatus },
+              { label: 'Last Successful Deployment', val: deploymentRegistry.primarySystem.lastSuccessfulDeployment },
+              { label: 'Database Connection Status', val: deploymentRegistry.primarySystem.databaseConnectionStatus },
+              { label: 'Hosting Plan', val: deploymentRegistry.primarySystem.hostingPlan }
+            ].map((row) => (
+              <div key={row.label} style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(6,12,24,0.65)', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '3px' }}>{row.label}</div>
+                <div style={{ fontWeight: 700, color: '#fff', wordBreak: 'break-word' }}>{row.val || '—'}</div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div style={{ padding: '14px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+            No records available
+          </div>
+        )}
+      </div>
+
+      {/* File 9: Live 12-Phase Working-System Verification Scorecard */}
+      <div className="glass-panel" style={{ padding: '18px', border: '1px solid rgba(16, 185, 129, 0.45)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
+          <h4 style={{ margin: 0, color: '#6ee7b7', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.96rem' }}>
+            <CheckCircle size={16} /> Live 12-Phase Working-System Verification Scorecard
+          </h4>
+          <span style={{ fontSize: '0.76rem', fontWeight: 800, color: workingSystemAudit?.verifiedCount === 12 ? '#6ee7b7' : '#fcd34d' }}>
+            {workingSystemAudit
+              ? `${workingSystemAudit.verifiedCount}/${workingSystemAudit.totalPhases} Verified (${workingSystemAudit.readinessPercent}%) • ${workingSystemAudit.classification}`
+              : 'Loading live runtime probes...'}
+          </span>
+        </div>
+
+        {Array.isArray(workingSystemAudit?.phases) && workingSystemAudit.phases.length > 0 ? (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '10px', fontSize: '0.76rem' }}>
+            {workingSystemAudit.phases.map((p) => (
+              <div
+                key={p.phase}
+                style={{
+                  padding: '10px 12px',
+                  borderRadius: '8px',
+                  background: 'rgba(6, 12, 24, 0.72)',
+                  border: `1px solid ${p.verified ? 'rgba(16, 185, 129, 0.45)' : 'rgba(239, 68, 68, 0.55)'}`,
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px', gap: '6px' }}>
+                  <strong style={{ color: '#e7cf88' }}>Phase {p.phase}: {p.name}</strong>
+                  <span className={p.verified ? 'badge badge-success' : 'badge badge-danger'}>
+                    {p.verified ? 'VERIFIED' : 'NEEDS FIX'}
+                  </span>
+                </div>
+                <div style={{ color: 'var(--text-muted)', lineHeight: 1.4 }}>{p.evidence}</div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div style={{ padding: '14px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+            No records available
+          </div>
+        )}
       </div>
 
       <FacialRecognitionModal

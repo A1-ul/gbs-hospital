@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Video, VideoOff, Mic, MicOff, PhoneOff, PhoneCall,
   MapPin, ShieldAlert, Layers, Compass, Radio, Users,
@@ -6,12 +6,21 @@ import {
   Search, Eye, FileText, Send, Sparkles, X, ChevronRight, Bed, Stethoscope, Heart
 } from 'lucide-react';
 import { api } from '../../services/api.service';
+import { acquireLocalMedia } from '../../services/webrtc.service';
 
-export default function TelemedicineGisView({ onNavigateDetail }) {
+export default function TelemedicineGisView({ onNavigateDetail, onOpenLiveMediaRoom }) {
   const openDetail = (payload) => {
     const fn = onNavigateDetail || (typeof window !== 'undefined' ? window.gbsNavigateDetail : null);
     if (typeof fn === 'function') fn(payload);
   };
+  const openFullCameraRoom = (sessionObj) => {
+    const fn = onOpenLiveMediaRoom || (typeof window !== 'undefined' ? window.gbsOpenLiveMediaRoom : null);
+    if (typeof fn === 'function') fn(sessionObj);
+  };
+  const localVideoRef = useRef(null);
+  const localStreamRef = useRef(null);
+  const [cameraNotice, setCameraNotice] = useState('Click Start Video Call to turn on your live camera and microphone.');
+  const [hasLiveCamera, setHasLiveCamera] = useState(false);
   const [activeTab, setActiveTab] = useState('VIRTUAL_CLINIC'); // VIRTUAL_CLINIC, GEOFENCING, FLOOR_PLANS, TELEMETRY
   const [telemedTelemetry, setTelemedTelemetry] = useState(null);
   const [gisTelemetry, setGisTelemetry] = useState(null);
@@ -86,18 +95,63 @@ export default function TelemedicineGisView({ onNavigateDetail }) {
     fetchInitialData();
   }, []);
 
-  // Timer for active call
+  // Timer & Real Local Camera Lifecycle for Active Telemedicine Video Call
   useEffect(() => {
     let timer;
+    let cancelled = false;
     if (inCall) {
       timer = setInterval(() => {
         setCallDuration(prev => prev + 1);
       }, 1000);
+      acquireLocalMedia({ wantVideo: true, wantAudio: true }).then((res) => {
+        if (cancelled) {
+          res.stream?.getTracks().forEach((t) => t.stop());
+          return;
+        }
+        localStreamRef.current = res.stream;
+        setHasLiveCamera(Boolean(res.stream && res.videoEnabled));
+        setAudioMuted(!res.audioEnabled);
+        setVideoDisabled(!res.videoEnabled);
+        setCameraNotice(res.notice);
+        if (localVideoRef.current && res.stream) {
+          localVideoRef.current.srcObject = res.stream;
+          localVideoRef.current.play?.().catch(() => { });
+        }
+      });
     } else {
       setCallDuration(0);
+      if (localStreamRef.current) {
+        localStreamRef.current.getTracks().forEach((t) => t.stop());
+        localStreamRef.current = null;
+      }
+      setHasLiveCamera(false);
     }
-    return () => clearInterval(timer);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+      if (localStreamRef.current) {
+        localStreamRef.current.getTracks().forEach((t) => t.stop());
+        localStreamRef.current = null;
+      }
+    };
   }, [inCall]);
+
+  const handleToggleTelemedAudio = () => {
+    const stream = localStreamRef.current;
+    if (!stream) return;
+    const nextMuted = !audioMuted;
+    stream.getAudioTracks().forEach((t) => { t.enabled = !nextMuted; });
+    setAudioMuted(nextMuted);
+  };
+
+  const handleToggleTelemedVideo = () => {
+    const stream = localStreamRef.current;
+    if (!stream) return;
+    const nextDisabled = !videoDisabled;
+    stream.getVideoTracks().forEach((t) => { t.enabled = !nextDisabled; });
+    setVideoDisabled(nextDisabled);
+    setHasLiveCamera(!nextDisabled && stream.getVideoTracks().length > 0);
+  };
 
   const fetchInitialData = async () => {
     fetchTelemedTelemetry();
@@ -428,24 +482,35 @@ export default function TelemedicineGisView({ onNavigateDetail }) {
                 </div>
               </div>
 
-              {/* Video Feeds Grid */}
+              {/* Real Live Camera Self-View & Remote Participant Viewport */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Doctor Viewport */}
-                <div className="relative aspect-video rounded-xl bg-slate-950 border border-slate-800 overflow-hidden flex items-center justify-center">
-                  <img
-                    src="/assets/images/telemedicine_command_center_real.jpg"
-                    alt="Physician Feed"
-                    className="w-full h-full object-cover opacity-90"
+                {/* Real Local Self-View Camera Feed */}
+                <div className="relative aspect-video rounded-xl bg-slate-950 border border-amber-500/40 overflow-hidden flex items-center justify-center">
+                  <video
+                    ref={localVideoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    aria-label="Your live consultation camera"
+                    className={`w-full h-full object-cover ${hasLiveCamera && !videoDisabled ? 'block' : 'hidden'}`}
+                    style={{ transform: 'scaleX(-1)' }}
                   />
-                  <div className="absolute top-3 left-3 px-2.5 py-1 rounded bg-slate-950/80 backdrop-blur-sm text-xs font-semibold text-emerald-400 border border-slate-800">
-                    Dr. {activeSession.doctorName} (Physician Host)
+                  {(!hasLiveCamera || videoDisabled) && (
+                    <div className="flex flex-col items-center justify-center text-center p-6 space-y-2">
+                      <VideoOff className="w-8 h-8 text-amber-400" />
+                      <div className="text-sm font-bold text-white">Dr. {activeSession.doctorName} (Your Camera)</div>
+                      <div className="text-xs text-slate-300 max-w-xs">{cameraNotice}</div>
+                    </div>
+                  )}
+                  <div className="absolute top-3 left-3 px-2.5 py-1 rounded bg-slate-950/85 backdrop-blur-sm text-xs font-semibold text-emerald-400 border border-slate-800">
+                    Dr. {activeSession.doctorName} (You — Live Self-View)
                   </div>
-                  <div className="absolute bottom-3 left-3 px-2 py-0.5 rounded bg-slate-950/80 text-[11px] font-mono text-slate-400">
-                    1080p HD &bull; 60fps &bull; WebRTC AES-256
+                  <div className="absolute bottom-3 left-3 px-2 py-0.5 rounded bg-slate-950/85 text-[11px] font-mono text-slate-300">
+                    {hasLiveCamera && !videoDisabled ? 'Live Browser Camera • WebRTC Ready' : 'Voice / Camera Standby'}
                   </div>
                 </div>
 
-                {/* Patient Viewport */}
+                {/* Patient Remote Peer & Multi-Camera Room Launcher */}
                 <div className="relative aspect-video rounded-xl bg-slate-950 border border-slate-800 overflow-hidden flex items-center justify-center">
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900 to-slate-950 flex flex-col items-center justify-center text-center p-6 space-y-3">
                     <div className="w-16 h-16 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-300">
@@ -453,19 +518,38 @@ export default function TelemedicineGisView({ onNavigateDetail }) {
                     </div>
                     <div>
                       <div className="text-base font-bold text-white">{activeSession.patientName}</div>
-                      <div className="text-xs text-slate-400">{activeSession.patientPhone || 'Secure Video Tunnel'}</div>
+                      <div className="text-xs text-slate-400">{activeSession.patientPhone || 'Secure WebRTC Room'}</div>
                     </div>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          const confRes = await api.createConferenceRoom({
+                            title: `Telemedicine Visit ${activeSession.sessionCode} — Dr. ${activeSession.doctorName} & ${activeSession.patientName}`,
+                            callMode: 'VIDEO',
+                            meetingType: 'CLINICAL_BOARD',
+                            startImmediately: true,
+                          });
+                          openFullCameraRoom({
+                            ...(confRes?.conference || {}),
+                            ...(confRes?.webrtcSession || {}),
+                            roomCode: confRes?.webrtcSession?.roomCode || confRes?.conference?.roomCode,
+                            callMode: 'VIDEO',
+                            kind: 'CONFERENCE',
+                            roomTitle: `Telemedicine Visit ${activeSession.sessionCode}`,
+                          });
+                        } catch (err) {
+                          setFeedback({ type: 'error', text: err.message || 'Could not launch multi-camera room.' });
+                        }
+                      }}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950"
+                    >
+                      <Video className="w-4 h-4" />
+                      Open Full Multi-Camera Room
+                    </button>
                   </div>
                   <div className="absolute top-3 left-3 px-2.5 py-1 rounded bg-slate-950/80 backdrop-blur-sm text-xs font-semibold text-blue-400 border border-slate-800">
-                    Patient Remote Peer
-                  </div>
-                  {/* Live ECG Vitals HUD overlay */}
-                  <div className="absolute top-3 right-3 p-2 rounded-lg bg-slate-950/90 border border-slate-800 text-[11px] font-mono space-y-1">
-                    <div className="text-emerald-400 flex items-center gap-1">
-                      <Heart className="w-3 h-3 text-red-500 animate-pulse" /> HR: 74 bpm
-                    </div>
-                    <div className="text-blue-400">BP: 122/80 mmHg</div>
-                    <div className="text-amber-400">SpO2: 98%</div>
+                    Patient Remote Peer • {activeSession.sessionCode}
                   </div>
                 </div>
               </div>
@@ -475,13 +559,17 @@ export default function TelemedicineGisView({ onNavigateDetail }) {
                 {/* Hardware Toggle Controls */}
                 <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-around">
                   <button
-                    onClick={() => setAudioMuted(!audioMuted)}
+                    type="button"
+                    aria-label={audioMuted ? 'Unmute consultation microphone' : 'Mute consultation microphone'}
+                    onClick={handleToggleTelemedAudio}
                     className={`p-3 rounded-full transition-all ${audioMuted ? 'bg-red-500 text-white' : 'bg-slate-800 text-slate-200 hover:bg-slate-700'}`}
                   >
                     {audioMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
                   </button>
                   <button
-                    onClick={() => setVideoDisabled(!videoDisabled)}
+                    type="button"
+                    aria-label={videoDisabled ? 'Turn consultation camera on' : 'Turn consultation camera off'}
+                    onClick={handleToggleTelemedVideo}
                     className={`p-3 rounded-full transition-all ${videoDisabled ? 'bg-red-500 text-white' : 'bg-slate-800 text-slate-200 hover:bg-slate-700'}`}
                   >
                     {videoDisabled ? <VideoOff className="w-5 h-5" /> : <Video className="w-5 h-5" />}

@@ -52,8 +52,9 @@ function sanitizeErrorReason(rawMessage) {
     if (!rawMessage) return "Unknown connection issue";
     return String(rawMessage)
         .replace(/postgres(?:ql)?:\/\/[^\s"'`]+/gi, "postgresql://[REDACTED]")
-        .replace(/password=[^\s&;]+/gi, "password=[REDACTED]")
+        .replace(/(password|passwd|pwd|secret|token|apikey|api_key)\s*[:=]\s*[^\s&;,"']+/gi, "$1=[REDACTED]")
         .replace(/Bearer\s+[A-Za-z0-9._-]+/gi, "Bearer [REDACTED]")
+        .replace(/\b(sk_live|sk_test|pk_live|pk_test)_[A-Za-z0-9]+\b/gi, "[REDACTED_KEY]")
         .slice(0, 260);
 }
 
@@ -92,24 +93,32 @@ function probeCentralEngine() {
         const hasControl = Boolean(rcce && rcce.control);
         const hasError = Boolean(rcce && rcce.errors);
 
-        const allReady = hasResponse && hasRules && hasEvents && hasAudit && hasControl && hasError;
+        const subsystems = {
+            responseEngine: hasResponse,
+            businessRulesEngine: hasRules,
+            eventNotificationEngine: hasEvents,
+            auditEngine: hasAudit,
+            controlEngine: hasControl,
+            errorEngine: hasError
+        };
+        const subsystemValues = Object.values(subsystems);
+        const totalSubsystems = subsystemValues.length;
+        const healthySubsystems = subsystemValues.filter(Boolean).length;
+        const allReady = healthySubsystems === totalSubsystems;
         return {
-            status: allReady ? "ONLINE" : "DEGRADED",
+            status: allReady ? "ONLINE" : (healthySubsystems > 0 ? "DEGRADED" : "OFFLINE"),
             healthy: allReady,
-            subsystems: {
-                responseEngine: hasResponse,
-                businessRulesEngine: hasRules,
-                eventNotificationEngine: hasEvents,
-                auditEngine: hasAudit,
-                controlEngine: hasControl,
-                errorEngine: hasError
-            }
+            healthySubsystems,
+            totalSubsystems,
+            subsystems
         };
     } catch (error) {
         recordConnectionError("CENTRAL_ENGINE", error, "RCCE_INIT_FAILURE");
         return {
             status: "OFFLINE",
             healthy: false,
+            healthySubsystems: 0,
+            totalSubsystems: 6,
             subsystems: {},
             error: sanitizeErrorReason(error.message)
         };
@@ -231,6 +240,8 @@ async function evaluateConnectionHealth({ timeoutMs = 5000 } = {}) {
                 status: engineProbe.status,
                 name: "GBS-RCCE",
                 healthy: engineProbe.healthy,
+                healthySubsystems: engineProbe.healthySubsystems,
+                totalSubsystems: engineProbe.totalSubsystems,
                 subsystems: engineProbe.subsystems
             },
             database: {

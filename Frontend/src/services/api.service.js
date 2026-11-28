@@ -40,6 +40,44 @@ export function getClientDeviceFingerprint() {
 const pendingSubmissionLocks = new Set();
 const actionIdempotencyKeys = new Map();
 
+export function getFriendlyHttpErrorTitle(status, code = '') {
+  if (code === 'DEMO_TRIAL_LIMIT_REACHED') return 'Demo Trial Limit Reached (10/10)';
+  switch (Number(status)) {
+    case 400:
+    case 422:
+      return 'Please Check Your Input';
+    case 401:
+      return 'Sign In Required';
+    case 402:
+    case 423:
+      return 'System Access Locked';
+    case 403:
+      return 'Permission Needed';
+    case 404:
+      return 'Record Not Found';
+    case 405:
+      return 'Action Not Supported';
+    case 408:
+    case 504:
+      return 'Request Timed Out';
+    case 409:
+      return 'Duplicate or Conflicting Entry';
+    case 413:
+      return 'Payload Too Large';
+    case 429:
+      return 'Too Many Requests — Please Wait';
+    case 501:
+      return 'Feature Not Implemented';
+    case 502:
+    case 503:
+      return 'Service Temporarily Unavailable';
+    case 500:
+      return 'System Error Reported';
+    default:
+      return 'Could Not Complete Action';
+  }
+}
+
 function buildPayloadFingerprint(method, endpoint, body) {
   const raw = typeof body === 'string' ? body : JSON.stringify(body || {});
   let hash = 0;
@@ -82,8 +120,13 @@ async function coreRequest(endpoint, options = {}) {
       ? sessionStorage.getItem('gbs_emergency_reason') || 'Active Patient Safety Clinical Emergency Bypass'
       : '';
 
+  const activeLang = (typeof window !== 'undefined' ? localStorage.getItem('gbs_language') : null) || 'en';
+  const activeCountry = (typeof window !== 'undefined' ? localStorage.getItem('gbs_country') : null) || 'GH';
+
   const headers = {
     'Content-Type': 'application/json',
+    'Accept-Language': activeLang,
+    'X-GBS-Country': activeCountry,
     'X-Device-Fingerprint': getClientDeviceFingerprint(),
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(idempotencyKey ? { 'X-Idempotency-Key': idempotencyKey } : {}),
@@ -217,7 +260,9 @@ async function coreRequest(endpoint, options = {}) {
 
   const contentType = response.headers.get('content-type') || '';
   let data = null;
-  if (contentType && contentType.includes('application/json')) {
+  if (response.status === 204) {
+    data = null;
+  } else if (contentType && contentType.includes('application/json')) {
     data = await response.json();
   } else {
     data = await response.text();
@@ -272,18 +317,7 @@ async function coreRequest(endpoint, options = {}) {
         status: response.status,
         code: err.code,
         requestId: err.requestId,
-        title:
-          err.code === 'DEMO_TRIAL_LIMIT_REACHED'
-            ? 'Demo Trial Limit Reached (10/10)'
-            : response.status === 401
-              ? 'Sign In Required'
-              : response.status === 403
-                ? 'Permission Needed'
-                : response.status === 423 || response.status === 402
-                  ? 'System Access Locked'
-                  : response.status === 404
-                    ? 'Not Found'
-                    : 'Could Not Complete Action',
+        title: getFriendlyHttpErrorTitle(response.status, err.code),
         message: `${errorMsg}${err.requestId ? ` (Ref: ${err.requestId.slice(0, 8)})` : ''}`,
         role: activeRole,
       });
@@ -514,6 +548,9 @@ export const api = {
   searchMPI: (query = '') => request(`/patients/search?q=${encodeURIComponent(query)}`),
   getPatientById: (id) => request(`/patients/${encodeURIComponent(id)}`),
   getPatientDashboard: (id) => request(`/patients/${encodeURIComponent(id)}/dashboard`),
+  getPatientMembershipCard: (id) => request(`/patients/${encodeURIComponent(id)}/membership-card`),
+  getUserMembershipCard: (id) => request(`/users/${encodeURIComponent(id)}/membership-card`),
+  getMyMembershipCard: () => request('/auth/me/membership-card'),
   registerPatient: (payload) =>
     request('/patients/register', {
       method: 'POST',
@@ -1418,6 +1455,10 @@ export const api = {
     }),
   getDeveloperRollbackReadiness: () =>
     request('/rcce/developer/remote/rollback-readiness'),
+  getDeveloperDeploymentRegistry: () =>
+    request('/rcce/developer/remote/deployment-registry'),
+  getDeveloperWorkingSystemAudit: () =>
+    request('/rcce/developer/remote/working-system-audit'),
 
   // Step 30: Migration Queue Status, Enqueue & Downloadable Verification Report
   getMigrationQueueStatus: () =>
@@ -1489,6 +1530,87 @@ export const api = {
     }),
   getPaymentWebhooks: (q = '') =>
     request(`/payments/developer/webhooks${q ? `?${q}` : ''}`),
+
+  // International Countries (50) & Multilingual Support (10 Languages)
+  getInternationalCountries: (params = {}) => {
+    const qs = new URLSearchParams();
+    if (params.region && params.region !== 'ALL') qs.set('region', params.region);
+    if (params.search) qs.set('search', params.search);
+    const suffix = qs.toString() ? `?${qs.toString()}` : '';
+    return request(`/international/countries${suffix}`, { silentError: true });
+  },
+  getInternationalCountry: (code) =>
+    request(`/international/countries/${encodeURIComponent(code)}`, { silentError: true }),
+  getSupportedLanguages: () =>
+    request('/international/languages', { silentError: true }),
+  getInternationalProfile: () =>
+    request('/international/profile', { silentError: true }),
+  updateInternationalProfile: (payload) =>
+    request('/international/profile', {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    }),
+
+  // File 8: All-Users Direct Voice/Video Calling & Multi-Camera WebRTC Conferences
+  getCallDirectory: (params = {}) => {
+    const qs = new URLSearchParams();
+    if (params.search) qs.set('search', params.search);
+    if (params.role && params.role !== 'ALL') qs.set('role', params.role);
+    const suffix = qs.toString() ? `?${qs.toString()}` : '';
+    return request(`/communications/directory${suffix}`);
+  },
+  getCallsAndConferences: (limit = 40) =>
+    request(`/communications/calls?limit=${encodeURIComponent(limit)}`),
+  getIncomingCalls: () =>
+    request('/communications/calls/incoming', { silentError: true }),
+  initiateDirectCall: (payload) =>
+    request('/communications/calls', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  acceptDirectCall: (idOrCode, payload = {}) =>
+    request(`/communications/calls/${encodeURIComponent(idOrCode)}/accept`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  declineDirectCall: (idOrCode, payload = {}) =>
+    request(`/communications/calls/${encodeURIComponent(idOrCode)}/decline`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  endDirectCall: (idOrCode, payload = {}) =>
+    request(`/communications/calls/${encodeURIComponent(idOrCode)}/end`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  createConferenceRoom: (payload) =>
+    request('/communications/conferences', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  joinCommunicationRoom: (roomCode, payload = {}) =>
+    request(`/communications/rooms/${encodeURIComponent(roomCode)}/join`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  leaveCommunicationRoom: (roomCode) =>
+    request(`/communications/rooms/${encodeURIComponent(roomCode)}/leave`, {
+      method: 'POST',
+    }),
+  sendRoomSignal: (roomCode, payload) =>
+    request(`/communications/rooms/${encodeURIComponent(roomCode)}/signal`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      silentError: true,
+    }),
+  pollRoomSignals: (roomCode, params = {}) => {
+    const qs = new URLSearchParams();
+    if (params.afterSeq !== undefined) qs.set('afterSeq', String(params.afterSeq));
+    if (params.audioEnabled !== undefined) qs.set('audioEnabled', String(Boolean(params.audioEnabled)));
+    if (params.videoEnabled !== undefined) qs.set('videoEnabled', String(Boolean(params.videoEnabled)));
+    if (params.screenSharing !== undefined) qs.set('screenSharing', String(Boolean(params.screenSharing)));
+    return request(`/communications/rooms/${encodeURIComponent(roomCode)}/signals?${qs.toString()}`, { silentError: true });
+  },
 };
 
 

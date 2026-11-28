@@ -1093,6 +1093,82 @@
         "enterprise-framework/gbs-rcce/response.catalogue.js",
         "render.yaml"
       ]
+    },
+    {
+      "id": "REQ-MEM-001",
+      "blueprintSection": "Persistent Build & Upgrade Memory",
+      "feature": "Maintain human-readable SYSTEM_MEMORY.md and machine-readable .build/upgrade-memory.json capturing every file, phase, upgrade, and verification result",
+      "phase": "FILE_1_PHASE_1_1",
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "SYSTEM_MEMORY.md",
+        ".build/upgrade-memory.json",
+        ".build/architecture-report.json",
+        ".build/build-state.json"
+      ]
+    },
+    {
+      "id": "REQ-INTL-001",
+      "blueprintSection": "Multilingual Support (10 International Languages)",
+      "feature": "Live language switcher supporting English, French, Spanish, Portuguese, Arabic (RTL), Swahili, Twi/Akan, German, Hindi, and Chinese with HTML lang/dir sync",
+      "phase": "FILE_1_PHASE_1_2",
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Frontend/src/i18n/translations.js",
+        "Frontend/src/context/LocaleContext.jsx",
+        "Frontend/src/components/Header.jsx",
+        "Frontend/src/App.jsx",
+        "Frontend/src/components/RoleLoginModal.jsx",
+        "Backend/src/modules/international/international.catalog.js",
+        "Backend/tests/phase38.international_multilingual_engine.test.js"
+      ]
+    },
+    {
+      "id": "REQ-INTL-002",
+      "blueprintSection": "International Countries & Regional Configuration (50 Countries)",
+      "feature": "50 supported countries across Africa, Europe, Americas, Middle East & Asia-Pacific with currency, dial code, timezone, national ID format, health scheme, live PostgreSQL tenant counts & audited hospital defaults",
+      "phase": "FILE_1_PHASE_1_2",
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Backend/src/modules/international/international.catalog.js",
+        "Backend/src/modules/international/international.service.js",
+        "Backend/src/modules/international/international.controller.js",
+        "Backend/src/modules/international/international.routes.js",
+        "Frontend/src/i18n/countries.js",
+        "Frontend/src/components/ModuleViews.jsx",
+        "Frontend/src/modules/finance/BillingPaymentsView.jsx",
+        "Backend/tests/phase38.international_multilingual_engine.test.js"
+      ]
+    },
+    {
+      "id": "REQ-UX-TABS-001",
+      "blueprintSection": "Organized Visible-Tabs Navigation & Zero Hidden Tabs",
+      "feature": "Searchable All Departments, Sub-Tabs & Portals Directory Modal + Expandable Staff Role Grid toggle ensuring all permitted tabs and portals remain visible while keeping Developer NOC isolated",
+      "phase": "FILE_1_PHASE_1_3",
+      "implementationStatus": "COMPLETE",
+      "files": [
+        "Frontend/src/components/AllTabsNavigatorModal.jsx",
+        "Frontend/src/App.jsx",
+        "Frontend/src/components/Header.jsx",
+        "Frontend/tests/smoke.roles-and-dashboards.test.js"
+      ]
+    },
+    {
+      "id": "REQ-FILE2-DEP-001",
+      "blueprintSection": "File 2 — Central GBS Deployment Registry & Render-Only Cloud Policy",
+      "feature": "8-field Central GBS System Deployment Registry (.build/deployment-registry.json + Developer-only live DB probe endpoint + DeveloperAdvancedOpsPanel UI + Render-only policy enforcement + UniversalDetailPage 10-language i18n)",
+      "phase": "FILE_2_COMPLETE",
+      "implementationStatus": "COMPLETE",
+      "files": [
+        ".build/deployment-registry.json",
+        "Backend/src/modules/developer-control-center/services/developer-remote-ops.service.js",
+        "Backend/src/modules/developer-control-center/rcce.controller.js",
+        "Backend/src/modules/developer-control-center/rcce.routes.js",
+        "Frontend/src/modules/developer/DeveloperAdvancedOpsPanel.jsx",
+        "Frontend/src/components/UniversalDetailPage.jsx",
+        "documentation/DEPLOYMENT_REPORT.md",
+        "Backend/tests/phase39.file2_deployment_registry_and_production_policy.test.js"
+      ]
     }
   ]
 }

@@ -1,0 +1,24 @@
+{
+  "policy": "PERMANENT_GBS_COMPANY_GITHUB_AND_RENDER_HOSTING_POLICY",
+  "officialAccountEmail": "gabosei48@gmail.com",
+  "approvedHostingProvider": "Render.com (RENDER ONLY)",
+  "disallowedProviders": ["Vercel", "Netlify", "Railway", "Firebase Hosting"],
+  "systems": [
+    {
+      "systemName": "GBS Hospital Management System",
+      "githubRepository": "https://github.com/A1-ul/gbs-hospital",
+      "productionBranch": "main",
+      "renderServiceName": "gbs-hospital-system",
+      "renderServiceId": "srv-dbt7h5gae00c739t58q0",
+      "liveWebsiteAddress": "https://gbs-hospital-system.onrender.com",
+      "deploymentStatus": "LIVE_AUTO_DEPLOY_ENABLED",
+      "lastSuccessfulDeployment": "2026-11-27T21:40:00.000Z",
+      "databaseConnectionStatus": "CONNECTED_POSTGRESQL_16",
+      "databaseName": "gbs-hospital-db (PostgreSQL 16)",
+      "hostingPlan": "Render Web Service (free / frankfurt) + Managed PostgreSQL 16",
+      "healthCheckPath": "/api/v1/health",
+      "autoDeployEnabled": true
+    }
+  ],
+  "lastUpdated": "2026-11-28T11:04:00.000Z"
+}

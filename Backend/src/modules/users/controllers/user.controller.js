@@ -10,6 +10,7 @@ LOCATION: src/modules/users/controllers/user.controller.js
 */
 
 const service = require("../services/user.service");
+const membershipCardService = require("../../patients/services/membership-card.service");
 const AppError = require("../../../core/errors/app.error");
 const { rcce } = require("../../../core/gbs-rcce.bootstrap");
 
@@ -158,9 +159,30 @@ async function setUserStatus(req, res, next) {
     }
 }
 
+/**
+ * Generate Official Hospital Membership ID Card for an Accepted/Active Hospital Member
+ * GET /api/v1/users/:id/membership-card
+ */
+async function getUserMembershipCard(req, res, next) {
+    try {
+        const card = await membershipCardService.generateUserMembershipCard(
+            req.params.id,
+            req.user,
+            req.requestId
+        );
+        return res.rcceSuccess("MEMBERSHIP_CARD_GENERATED", card, {
+            httpStatus: 200,
+            message: `Official Hospital Membership ID Card ${card.cardSerial} generated for ${card.member.fullName}.`
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
 module.exports = {
     getRoleUserCounts,
     getUsers,
     approveUser,
-    setUserStatus
+    setUserStatus,
+    getUserMembershipCard
 };

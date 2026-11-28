@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import {
   Activity, Database, Shield, Users, Clock, AlertTriangle,
   ChevronDown, Search, PlusCircle, Bed, FlaskConical, Pill, FileText,
-  UserCheck, Lock, LogIn, LogOut, Key, Bell
+  UserCheck, Lock, LogIn, LogOut, Key, Bell, Globe, Languages, Check, Video, Phone, Sun, Moon, Contrast, Type, CreditCard
 } from 'lucide-react';
 import { api } from '../services/api.service';
 import { connectionManager, CONNECTION_STATES } from '../services/connection.manager';
+import { useLocale } from '../context/LocaleContext';
+import { useTheme } from '../context/ThemeContext';
 
 function formatServerUptime(totalSeconds) {
   if (typeof totalSeconds !== 'number' || !Number.isFinite(totalSeconds) || totalSeconds < 0) {
@@ -56,7 +58,10 @@ export default function Header({
   onOpenQuickAction,
   facilityBranding,
   onUpdateFacilityBranding,
-  demoQuota = null
+  demoQuota = null,
+  onOpenCallCenter,
+  incomingCallsCount = 0,
+  onOpenMyIdCard
 }) {
   const [time, setTime] = useState(new Date().toLocaleTimeString());
   const [connState, setConnState] = useState(() => connectionManager.getState());
@@ -76,10 +81,33 @@ export default function Header({
   const [savingBranding, setSavingBranding] = useState(false);
   const [brandingFeedback, setBrandingFeedback] = useState('');
 
+  const {
+    languageCode,
+    activeLanguage,
+    languages,
+    setLanguage,
+    countryCode,
+    activeCountry,
+    countries,
+    regions,
+    setCountry,
+    saveHospitalDefaultLocale,
+    savingDefault,
+    t
+  } = useLocale();
+
   const [roleCategory, setRoleCategory] = useState('ALL');
+  const [expandAllRolesGrid, setExpandAllRolesGrid] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [notificationsList, setNotificationsList] = useState([]);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+  const [showCountryMenu, setShowCountryMenu] = useState(false);
+  const [showThemeMenu, setShowThemeMenu] = useState(false);
+  const [countryRegionFilter, setCountryRegionFilter] = useState('ALL');
+  const [countrySearch, setCountrySearch] = useState('');
+  const [localeSaveNotice, setLocaleSaveNotice] = useState('');
+  const { themeMode, textSize, setThemeMode, setTextSize, themes, textSizes } = useTheme();
 
   const loadNotifications = async () => {
     try {
@@ -131,6 +159,26 @@ export default function Header({
               }
             } catch (_parseErr) { }
           });
+
+          // Real-Time Voice/Video Calling & Multi-Camera WebRTC SSE Channels
+          evtSource.addEventListener('call_event', (event) => {
+            try {
+              const payload = JSON.parse(event.data);
+              window.dispatchEvent(new CustomEvent('gbs:call_event', { detail: payload }));
+            } catch (_e) { }
+          });
+          evtSource.addEventListener('webrtc_signal', (event) => {
+            try {
+              const payload = JSON.parse(event.data);
+              window.dispatchEvent(new CustomEvent('gbs:webrtc_signal', { detail: payload }));
+            } catch (_e) { }
+          });
+          evtSource.addEventListener('room_presence', (event) => {
+            try {
+              const payload = JSON.parse(event.data);
+              window.dispatchEvent(new CustomEvent('gbs:room_presence', { detail: payload }));
+            } catch (_e) { }
+          });
         } catch (_sseErr) { }
       }
     }
@@ -157,7 +205,7 @@ export default function Header({
 
   const activeHospitalName = facilityBranding?.hospitalName || 'GBS Premier Specialist Teaching Hospital';
   const activeHospitalMotto = facilityBranding?.motto || facilityBranding?.facilityTagline || 'Smart Healthcare, Better Care.';
-  const activeLogoUrl = facilityBranding?.logoUrl || '/hospital-logo.png';
+  const activeLogoUrl = facilityBranding?.logoUrl || '/gbs-official-logo.png';
   const activeOrganizationType = facilityBranding?.organizationType || 'PRIVATE_HOSPITAL';
 
   const openHospitalNameModal = () => {
@@ -215,22 +263,22 @@ export default function Header({
   const overallStatus = connState.overallStatus || CONNECTION_STATES.CHECKING;
   const statusDisplay =
     overallStatus === CONNECTION_STATES.ONLINE
-      ? { label: 'Online', color: 'var(--status-online)', dot: '#10b981' }
+      ? { label: t('header.online', 'Online'), color: 'var(--status-online)', dot: '#10b981' }
       : overallStatus === CONNECTION_STATES.DEGRADED
-        ? { label: connState.isReconnecting ? 'Reconnecting...' : 'Degraded', color: '#f59e0b', dot: '#f59e0b' }
+        ? { label: connState.isReconnecting ? t('header.reconnecting', 'Reconnecting...') : t('header.degraded', 'Degraded'), color: '#f59e0b', dot: '#f59e0b' }
         : overallStatus === CONNECTION_STATES.OFFLINE
-          ? { label: 'Offline', color: '#f87171', dot: '#ef4444' }
-          : { label: 'Connecting...', color: '#38bdf8', dot: '#38bdf8' };
+          ? { label: t('header.offline', 'Offline'), color: '#f87171', dot: '#ef4444' }
+          : { label: t('header.connecting', 'Connecting...'), color: '#38bdf8', dot: '#38bdf8' };
 
   const dbDisplay =
     connState.databaseStatus === CONNECTION_STATES.ONLINE
       ? {
-          label:
-            typeof connState.databaseLatencyMs === 'number'
-              ? `Connected (${connState.databaseLatencyMs}ms)`
-              : 'Connected (Live Data)',
-          color: '#fff',
-        }
+        label:
+          typeof connState.databaseLatencyMs === 'number'
+            ? `Connected (${connState.databaseLatencyMs}ms)`
+            : 'Connected (Live Data)',
+        color: '#fff',
+      }
       : connState.databaseStatus === CONNECTION_STATES.DEGRADED
         ? { label: 'Degraded', color: '#fbbf24' }
         : connState.databaseStatus === CONNECTION_STATES.OFFLINE
@@ -324,12 +372,24 @@ export default function Header({
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 20px', borderBottom: '1px solid var(--border-subtle)', flexWrap: 'wrap', gap: '12px' }}>
         {/* Hospital Branding */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0, maxWidth: '100%' }}>
-          <div style={{ width: '48px', height: '48px', minWidth: '48px', minHeight: '48px', flexShrink: 0, borderRadius: '8px', border: '2px solid var(--gold-400)', overflow: 'hidden', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <img src={activeLogoUrl} alt="Hospital Logo" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} onError={(e) => { e.target.style.display = 'none'; }} />
+          <div style={{ width: '50px', height: '50px', minWidth: '50px', minHeight: '50px', flexShrink: 0, borderRadius: '10px', border: '2px solid var(--gold-400)', overflow: 'hidden', background: '#091830', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2px', boxShadow: '0 4px 12px rgba(9, 24, 48, 0.65)' }}>
+            <img
+              src={activeLogoUrl}
+              alt="GBS Official Company Logo"
+              style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', borderRadius: '6px' }}
+              onError={(e) => {
+                if (e.currentTarget.dataset.fallbackApplied) {
+                  e.currentTarget.style.display = 'none';
+                  return;
+                }
+                e.currentTarget.dataset.fallbackApplied = 'true';
+                e.currentTarget.src = '/hospital-logo.png';
+              }}
+            />
           </div>
           <div style={{ minWidth: 0 }}>
             <h1 className="header-3d" style={{ fontSize: 'clamp(1.05rem, 2.4vw, 1.52rem)', textTransform: 'uppercase', letterSpacing: '0.04em', lineHeight: 1.2, margin: 0 }}>
-              <span className="header-3d-gold">GBS HOSPITAL</span> MANAGEMENT SYSTEM
+              <span className="header-3d-gold">GBS HOSPITAL</span> {languageCode === 'en' ? 'MANAGEMENT SYSTEM' : `— ${t('header.systemTitle', 'GBS HOSPITAL MANAGEMENT SYSTEM')}`}
             </h1>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginTop: '2px' }}>
               <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#10b981', letterSpacing: '0.03em' }}>
@@ -345,7 +405,7 @@ export default function Header({
                   className="btn-outline-gold"
                   style={{ padding: '2px 8px', fontSize: '0.7rem', borderRadius: '4px' }}
                 >
-                  Change Hospital Name
+                  {t('header.changeHospitalName', 'Change Hospital Name')}
                 </button>
               )}
             </div>
@@ -367,7 +427,7 @@ export default function Header({
               }}
             ></span>
             <div>
-              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Central Engine</div>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>{t('header.centralEngine', 'Central Engine')}</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ fontSize: '0.82rem', fontWeight: 700, color: statusDisplay.color }}>
                   {overallStatus === CONNECTION_STATES.ONLINE ? centralEngineLabel : statusDisplay.label}
@@ -379,7 +439,7 @@ export default function Header({
                     className="btn-outline-gold"
                     style={{ padding: '1px 6px', fontSize: '0.66rem', borderRadius: '4px', lineHeight: 1.3 }}
                   >
-                    Retry
+                    {t('header.retry', 'Retry')}
                   </button>
                 )}
               </div>
@@ -387,23 +447,393 @@ export default function Header({
           </div>
 
           <div style={{ borderLeft: '1px solid var(--border-subtle)', paddingLeft: '12px' }}>
-            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Database</div>
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>{t('header.database', 'Database')}</div>
             <div style={{ fontSize: '0.82rem', fontWeight: 600, color: dbDisplay.color }}>{dbDisplay.label}</div>
           </div>
 
           <div style={{ borderLeft: '1px solid var(--border-subtle)', paddingLeft: '12px' }}>
-            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>System Uptime</div>
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>{t('header.systemUptime', 'System Uptime')}</div>
             <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--gold-400)' }}>{uptimeDisplay}</div>
           </div>
 
           <div style={{ borderLeft: '1px solid var(--border-subtle)', paddingLeft: '12px' }}>
-            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Current Time</div>
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>{t('header.currentTime', 'Current Time')}</div>
             <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--cyan-accent)', fontFamily: 'var(--font-mono)' }}>{time}</div>
           </div>
         </div>
 
-        {/* Quick User State & Login Actions */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        {/* Quick User State, Theme/Accessibility, International Language & Country Switchers, Alerts & Staff Directory */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          {/* Official GBS Display Mode & Text-Size Accessibility Switcher */}
+          <div style={{ position: 'relative' }}>
+            <button
+              type="button"
+              onClick={() => {
+                setShowThemeMenu((prev) => !prev);
+                setShowLanguageMenu(false);
+                setShowCountryMenu(false);
+                setShowNotifications(false);
+                setShowRoleCounts(false);
+              }}
+              aria-label={`Display theme and text size settings. Current mode: ${themeMode}`}
+              className="btn-outline-gold"
+              style={{ padding: '7px 11px', fontSize: '0.78rem', gap: '6px' }}
+            >
+              {themeMode === 'light' ? <Sun size={15} /> : themeMode === 'high-contrast' ? <Contrast size={15} /> : <Moon size={15} />}
+              <span style={{ fontWeight: 700 }}>
+                {themeMode === 'light' ? 'Light' : themeMode === 'high-contrast' ? 'High Contrast' : 'Dark'}
+              </span>
+              <ChevronDown size={13} />
+            </button>
+
+            {showThemeMenu && (
+              <div
+                className="glass-panel"
+                style={{
+                  position: 'absolute',
+                  right: 0,
+                  top: '115%',
+                  width: '286px',
+                  zIndex: 9999,
+                  padding: '14px',
+                  background: '#091830',
+                  color: '#F7F5EF',
+                  border: '1.5px solid #C29B4F',
+                  boxShadow: '0 18px 40px rgba(0, 0, 0, 0.9)',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', paddingBottom: '6px', borderBottom: '1px solid rgba(194, 155, 79, 0.35)' }}>
+                  <span style={{ fontWeight: 800, fontSize: '0.82rem', color: '#E7CF88' }}>
+                    Display &amp; Accessibility
+                  </span>
+                  <button
+                    type="button"
+                    aria-label="Close display settings"
+                    onClick={() => setShowThemeMenu(false)}
+                    style={{ background: 'none', border: 'none', color: '#D8D2C5', cursor: 'pointer', fontSize: '0.76rem' }}
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <div style={{ fontSize: '0.7rem', color: '#BAA479', fontWeight: 700, textTransform: 'uppercase', marginBottom: '6px' }}>
+                  Official GBS Theme Mode
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '12px' }}>
+                  {themes.map((tm) => {
+                    const active = themeMode === tm.id;
+                    return (
+                      <button
+                        key={tm.id}
+                        type="button"
+                        onClick={() => setThemeMode(tm.id)}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '8px 10px',
+                          borderRadius: '8px',
+                          border: active ? '1.5px solid #E7CF88' : '1px solid rgba(186, 164, 121, 0.25)',
+                          background: active ? 'rgba(194, 155, 79, 0.24)' : 'rgba(15, 35, 66, 0.72)',
+                          color: '#F7F5EF',
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                        }}
+                      >
+                        <div>
+                          <div style={{ fontSize: '0.8rem', fontWeight: 700, color: active ? '#E7CF88' : '#F7F5EF' }}>
+                            {tm.label}
+                          </div>
+                          <div style={{ fontSize: '0.68rem', color: '#D8D2C5' }}>{tm.desc}</div>
+                        </div>
+                        {active && <Check size={15} style={{ color: '#E7CF88', flexShrink: 0 }} />}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div style={{ fontSize: '0.7rem', color: '#BAA479', fontWeight: 700, textTransform: 'uppercase', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <Type size={13} /> Adjustable Text Size
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
+                  {textSizes.map((sz) => {
+                    const active = textSize === sz.id;
+                    return (
+                      <button
+                        key={sz.id}
+                        type="button"
+                        aria-label={`Set text size to ${sz.name}`}
+                        onClick={() => setTextSize(sz.id)}
+                        className={active ? 'btn-gold' : 'btn-outline-gold'}
+                        style={{ padding: '6px 4px', fontSize: '0.78rem', fontWeight: 800 }}
+                      >
+                        {sz.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Multilingual Switcher (10 International Languages incl. Arabic RTL) */}
+          <div style={{ position: 'relative' }}>
+            <button
+              type="button"
+              onClick={() => {
+                setShowLanguageMenu((prev) => !prev);
+                setShowCountryMenu(false);
+                setShowNotifications(false);
+                setShowRoleCounts(false);
+              }}
+              aria-label={`Select system language. Current language: ${activeLanguage.name}`}
+              className="btn-outline-gold"
+              style={{ padding: '7px 11px', fontSize: '0.78rem', gap: '6px' }}
+            >
+              <Languages size={15} />
+              <span>{activeLanguage.flag}</span>
+              <span style={{ fontWeight: 700 }}>{activeLanguage.code.toUpperCase()}</span>
+              <ChevronDown size={13} />
+            </button>
+
+            {showLanguageMenu && (
+              <div
+                className="glass-panel"
+                style={{
+                  position: 'absolute',
+                  right: 0,
+                  top: '115%',
+                  width: '260px',
+                  zIndex: 9999,
+                  padding: '12px',
+                  border: '1px solid var(--gold-400)',
+                  boxShadow: '0 16px 36px rgba(0,0,0,0.88)'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', paddingBottom: '6px', borderBottom: '1px solid var(--border-subtle)' }}>
+                  <span style={{ fontWeight: 700, fontSize: '0.82rem', color: 'var(--gold-400)' }}>
+                    {t('header.language', 'Language')} ({languages.length})
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowLanguageMenu(false)}
+                    style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '0.72rem' }}
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxHeight: '300px', overflowY: 'auto' }}>
+                  {languages.map((lang) => {
+                    const selected = lang.code === languageCode;
+                    return (
+                      <button
+                        key={lang.code}
+                        type="button"
+                        onClick={() => {
+                          setLanguage(lang.code);
+                          setShowLanguageMenu(false);
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '7px 10px',
+                          borderRadius: '7px',
+                          border: selected ? '1px solid var(--gold-400)' : '1px solid transparent',
+                          background: selected ? 'rgba(212,175,55,0.18)' : 'rgba(15,27,49,0.55)',
+                          color: selected ? 'var(--gold-300)' : '#e5e7eb',
+                          cursor: 'pointer',
+                          fontSize: '0.8rem',
+                          fontWeight: selected ? 700 : 500,
+                          textAlign: 'left'
+                        }}
+                      >
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                          <span>{lang.flag}</span>
+                          <span>{lang.nativeName}</span>
+                          <span style={{ fontSize: '0.68rem', color: 'var(--text-dim)' }}>({lang.name})</span>
+                        </span>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          {lang.dir === 'rtl' && (
+                            <span style={{ fontSize: '0.62rem', padding: '1px 4px', borderRadius: '4px', background: 'rgba(56,189,248,0.2)', color: '#38bdf8' }}>
+                              RTL
+                            </span>
+                          )}
+                          {selected && <Check size={14} />}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* International Country & Currency Switcher (50 Countries across 5 Regions) */}
+          <div style={{ position: 'relative' }}>
+            <button
+              type="button"
+              onClick={() => {
+                setShowCountryMenu((prev) => !prev);
+                setShowLanguageMenu(false);
+                setShowNotifications(false);
+                setShowRoleCounts(false);
+                setLocaleSaveNotice('');
+              }}
+              aria-label={`Select international country profile. Current country: ${activeCountry.name}`}
+              className="btn-outline-gold"
+              style={{ padding: '7px 11px', fontSize: '0.78rem', gap: '6px' }}
+            >
+              <Globe size={15} />
+              <span>{activeCountry.flag}</span>
+              <span style={{ fontWeight: 700 }}>{activeCountry.code}</span>
+              <span style={{ fontSize: '0.7rem', color: 'var(--gold-300)' }}>({activeCountry.currencyCode})</span>
+              <ChevronDown size={13} />
+            </button>
+
+            {showCountryMenu && (
+              <div
+                className="glass-panel"
+                style={{
+                  position: 'absolute',
+                  right: 0,
+                  top: '115%',
+                  width: '360px',
+                  maxWidth: '92vw',
+                  zIndex: 9999,
+                  padding: '14px',
+                  border: '1px solid var(--gold-400)',
+                  boxShadow: '0 16px 36px rgba(0,0,0,0.9)'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', paddingBottom: '6px', borderBottom: '1px solid var(--border-subtle)' }}>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: '0.84rem', color: 'var(--gold-400)' }}>
+                      {t('header.country', 'Country')} ({countries.length} International Countries)
+                    </div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                      {activeCountry.flag} {activeCountry.name} • {activeCountry.currencyCode} ({activeCountry.currencySymbol}) • {activeCountry.dialCode}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowCountryMenu(false)}
+                    style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '0.75rem' }}
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <input
+                  type="text"
+                  value={countrySearch}
+                  onChange={(e) => setCountrySearch(e.target.value)}
+                  placeholder={t('header.searchCountries', 'Search 50 countries or currency...')}
+                  aria-label="Search international countries"
+                  style={{ width: '100%', padding: '7px 10px', fontSize: '0.78rem', marginBottom: '8px' }}
+                />
+
+                <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                  {['ALL', ...regions].map((reg) => {
+                    const activeReg = countryRegionFilter === reg;
+                    return (
+                      <button
+                        key={reg}
+                        type="button"
+                        onClick={() => setCountryRegionFilter(reg)}
+                        className={activeReg ? 'btn-gold' : 'btn-outline-gold'}
+                        style={{ padding: '2px 7px', fontSize: '0.67rem', borderRadius: '5px' }}
+                      >
+                        {reg === 'ALL' ? t('header.allRegions', 'All Regions') : reg}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div style={{ maxHeight: '240px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  {countries
+                    .filter((c) => {
+                      if (countryRegionFilter !== 'ALL' && c.region !== countryRegionFilter) return false;
+                      if (!countrySearch.trim()) return true;
+                      const q = countrySearch.trim().toLowerCase();
+                      return (
+                        c.name.toLowerCase().includes(q) ||
+                        c.code.toLowerCase().includes(q) ||
+                        c.currencyCode.toLowerCase().includes(q) ||
+                        c.dialCode.toLowerCase().includes(q)
+                      );
+                    })
+                    .map((c) => {
+                      const selected = c.code === countryCode;
+                      return (
+                        <button
+                          key={c.code}
+                          type="button"
+                          onClick={() => {
+                            setCountry(c.code);
+                            setLocaleSaveNotice('');
+                          }}
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            padding: '6px 9px',
+                            borderRadius: '7px',
+                            border: selected ? '1px solid var(--gold-400)' : '1px solid transparent',
+                            background: selected ? 'rgba(212,175,55,0.18)' : 'rgba(15,27,49,0.55)',
+                            color: selected ? 'var(--gold-300)' : '#e5e7eb',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            fontSize: '0.76rem'
+                          }}
+                        >
+                          <div style={{ minWidth: 0 }}>
+                            <div style={{ fontWeight: selected ? 700 : 600 }}>
+                              {c.flag} {c.name} <span style={{ color: 'var(--text-dim)', fontSize: '0.68rem' }}>({c.dialCode})</span>
+                            </div>
+                            <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)' }}>
+                              {c.healthInsuranceScheme} • {c.region}
+                            </div>
+                          </div>
+                          <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: '8px' }}>
+                            <div style={{ fontWeight: 700, color: 'var(--gold-400)', fontSize: '0.74rem' }}>
+                              {c.currencySymbol} {c.currencyCode}
+                            </div>
+                            {selected && <Check size={12} style={{ color: 'var(--status-online)' }} />}
+                          </div>
+                        </button>
+                      );
+                    })}
+                </div>
+
+                {canCustomizeHospitalName && currentUser && (
+                  <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <button
+                      type="button"
+                      disabled={savingDefault}
+                      onClick={async () => {
+                        try {
+                          await saveHospitalDefaultLocale(countryCode, languageCode);
+                          setLocaleSaveNotice(`Saved ${activeCountry.name} (${activeCountry.currencyCode}) & ${activeLanguage.nativeName} as hospital default.`);
+                        } catch (err) {
+                          setLocaleSaveNotice(`Could not save default: ${err.message}`);
+                        }
+                      }}
+                      className="btn-gold"
+                      style={{ width: '100%', padding: '6px 10px', fontSize: '0.74rem' }}
+                    >
+                      {savingDefault ? 'Saving...' : t('header.saveHospitalDefault', 'Save as Hospital Default')}
+                    </button>
+                    {localeSaveNotice && (
+                      <div style={{ fontSize: '0.7rem', color: '#6ee7b7', textAlign: 'center' }}>
+                        {localeSaveNotice}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
           {currentUser ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div style={{ textAlign: 'right' }}>
@@ -444,16 +874,63 @@ export default function Header({
                   <Shield size={14} /> Developer Dashboard
                 </button>
               )}
+              {typeof onOpenMyIdCard === 'function' && (
+                <button
+                  type="button"
+                  onClick={onOpenMyIdCard}
+                  aria-label="Open Official Hospital Registration and Membership ID Card"
+                  className="btn-outline-gold"
+                  style={{ padding: '6px 12px', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
+                >
+                  <CreditCard size={14} /> My ID Card
+                </button>
+              )}
               <button onClick={onLogout} className="btn-outline-gold" style={{ padding: '6px 12px', fontSize: '0.8rem' }}>
-                <LogOut size={14} /> Sign Out
+                <LogOut size={14} /> {t('header.signOut', 'Sign Out')}
               </button>
             </div>
           ) : (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <button onClick={() => onOpenLogin && onOpenLogin(currentRole)} className="btn-gold" style={{ padding: '8px 16px' }}>
-                <LogIn size={16} /> Sign In
+                <LogIn size={16} /> {t('header.signIn', 'Sign In')}
               </button>
             </div>
+          )}
+
+          {/* Family-Friendly Voice & Video Calling Hub Button (All Users) */}
+          {typeof onOpenCallCenter === 'function' && (
+            <button
+              type="button"
+              onClick={onOpenCallCenter}
+              aria-label="Open Voice Calls, Video Calls and Live Camera Conferences"
+              className={incomingCallsCount > 0 ? 'btn-gold' : 'btn-outline-gold'}
+              style={{
+                padding: '8px 12px',
+                fontSize: '0.8rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                borderColor: incomingCallsCount > 0 ? '#10b981' : 'var(--gold-400)',
+              }}
+            >
+              <Video size={15} />
+              <span>Voice &amp; Video Calls</span>
+              {incomingCallsCount > 0 && (
+                <span
+                  className="pulse-live"
+                  style={{
+                    background: '#10b981',
+                    color: '#fff',
+                    fontSize: '0.68rem',
+                    fontWeight: 800,
+                    padding: '1px 6px',
+                    borderRadius: '10px',
+                  }}
+                >
+                  {incomingCallsCount}
+                </span>
+              )}
+            </button>
           )}
 
           {/* Live Notifications Bell */}
@@ -467,7 +944,7 @@ export default function Header({
               className="btn-outline-gold"
               style={{ padding: '8px 12px', fontSize: '0.8rem', position: 'relative' }}
             >
-              <Bell size={16} /> Alerts
+              <Bell size={16} /> {t('header.alerts', 'Alerts')}
               {unreadNotifications > 0 && (
                 <span style={{
                   marginLeft: '4px',
@@ -575,7 +1052,7 @@ export default function Header({
               className="btn-outline-gold"
               style={{ padding: '8px 14px', fontSize: '0.8rem', background: showRoleCounts ? 'var(--gold-glow)' : 'transparent' }}
             >
-              <Users size={16} /> Staff Directory <ChevronDown size={14} />
+              <Users size={16} /> {t('header.staffDirectory', 'Staff Directory')} <ChevronDown size={14} />
             </button>
 
             {/* Dropdown Card */}
@@ -711,16 +1188,32 @@ export default function Header({
                                               Approve
                                             </button>
                                           ) : (
-                                            u.id !== currentUser?.id && String(u.email || '').toLowerCase() !== 'gabosei48@gmail.com' && (
+                                            <>
                                               <button
                                                 type="button"
-                                                onClick={() => handleRoleUserAction(u, 'DEACTIVATE')}
-                                                className="btn-outline-gold"
-                                                style={{ padding: '2px 7px', fontSize: '0.68rem', borderColor: '#ef4444', color: '#fca5a5' }}
+                                                onClick={() => {
+                                                  setShowRoleCounts(false);
+                                                  if (window.gbsOpenUserMembershipCard) {
+                                                    window.gbsOpenUserMembershipCard(u.id);
+                                                  }
+                                                }}
+                                                aria-label={`Generate Official Hospital ID Card for ${u.firstName} ${u.lastName}`}
+                                                className="btn-gold"
+                                                style={{ padding: '2px 7px', fontSize: '0.68rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                                               >
-                                                Deactivate
+                                                <CreditCard size={11} /> ID Card
                                               </button>
-                                            )
+                                              {u.id !== currentUser?.id && String(u.email || '').toLowerCase() !== 'gabosei48@gmail.com' && (
+                                                <button
+                                                  type="button"
+                                                  onClick={() => handleRoleUserAction(u, 'DEACTIVATE')}
+                                                  className="btn-outline-gold"
+                                                  style={{ padding: '2px 7px', fontSize: '0.68rem', borderColor: '#ef4444', color: '#fca5a5' }}
+                                                >
+                                                  Deactivate
+                                                </button>
+                                              )}
+                                            </>
                                           )}
                                         </div>
                                       </div>
@@ -759,7 +1252,7 @@ export default function Header({
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 16px', borderBottom: '1px solid rgba(212,175,55,0.12)', flexWrap: 'wrap', gap: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
             <span style={{ fontSize: '0.74rem', color: 'var(--gold-400)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginRight: '4px' }}>
-              Staff Portals:
+              {t('header.staffPortals', 'Staff Portals')}:
             </span>
             {ROLE_CATEGORIES.map(cat => {
               const count = cat.id === 'ALL'
@@ -787,7 +1280,7 @@ export default function Header({
                   }}
                 >
                   <span>{cat.icon}</span>
-                  <span>{cat.label}</span>
+                  <span>{t(`roleCat.${cat.id}`, cat.label)}</span>
                   <span style={{
                     fontSize: '0.68rem',
                     padding: '1px 5px',
@@ -803,13 +1296,32 @@ export default function Header({
             })}
           </div>
 
-          <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>
-            Active: <strong style={{ color: 'var(--gold-400)' }}>{currentRole}</strong> • Showing {filteredRoles.length} of {visibleRoles.length} Portals
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={() => setExpandAllRolesGrid((prev) => !prev)}
+              className={expandAllRolesGrid ? 'btn-gold' : 'btn-outline-gold'}
+              style={{ padding: '3px 10px', fontSize: '0.72rem', borderRadius: '6px' }}
+              aria-label="Toggle between compact horizontal ribbon and expanded full grid of all staff portals"
+            >
+              {expandAllRolesGrid
+                ? t('header.compactRibbon', 'Compact Ribbon')
+                : `${t('header.showAllRoles', 'Show All Roles')} (${filteredRoles.length})`}
+            </button>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>
+              Active: <strong style={{ color: 'var(--gold-400)' }}>{t(`role.${currentRole}`, currentRole)}</strong> • Showing {filteredRoles.length} of {visibleRoles.length} Portals
+            </div>
           </div>
         </div>
 
-        {/* Roles Horizontal Ribbon */}
-        <div style={{ display: 'flex', gap: '10px', padding: '10px 16px', overflowX: 'auto' }}>
+        {/* Roles Ribbon or Expanded Full-Visibility Grid */}
+        <div
+          style={
+            expandAllRolesGrid
+              ? { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(195px, 1fr))', gap: '8px', padding: '10px 16px' }
+              : { display: 'flex', gap: '10px', padding: '10px 16px', overflowX: 'auto' }
+          }
+        >
           {filteredRoles.map(role => {
             const isActive = currentRole === role.id;
             return (
@@ -844,7 +1356,7 @@ export default function Header({
 
                 <div style={{ textAlign: 'left' }}>
                   <div style={{ fontSize: '0.84rem', fontWeight: isActive ? 800 : 600, color: isActive ? 'var(--gold-300)' : '#fff', letterSpacing: '0.01em' }}>
-                    {role.name}
+                    {t(`role.${role.id}`, role.name)}
                   </div>
                   <div style={{ fontSize: '0.67rem', color: isActive ? 'var(--gold-400)' : 'var(--text-dim)', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {role.dept || role.desc}
@@ -862,22 +1374,22 @@ export default function Header({
           {/* Clinical Direct Actions */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
             <span style={{ color: 'var(--gold-400)', fontWeight: 700, textTransform: 'uppercase', fontSize: '0.72rem', letterSpacing: '0.05em', marginRight: '2px' }}>
-              🩺 Quick Actions:
+              🩺 {t('header.quickActions', 'Quick Actions')}:
             </span>
             <button onClick={() => onOpenQuickAction('NEW_APPOINTMENT')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.76rem' }}>
-              <PlusCircle size={13} /> New Patient
+              <PlusCircle size={13} /> {t('header.newPatient', 'New Patient')}
             </button>
             <button onClick={() => onOpenQuickAction('PATIENT_SEARCH')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.76rem' }}>
-              <Search size={13} /> Find Patient
+              <Search size={13} /> {t('header.findPatient', 'Find Patient')}
             </button>
             <button onClick={() => onOpenQuickAction('BED_AVAILABILITY')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.76rem' }}>
-              <Bed size={13} /> Free Beds
+              <Bed size={13} /> {t('header.freeBeds', 'Free Beds')}
             </button>
             <button onClick={() => onOpenQuickAction('LAB_REQUESTS')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.76rem' }}>
-              <FlaskConical size={13} /> Lab Tests
+              <FlaskConical size={13} /> {t('header.labTests', 'Lab Tests')}
             </button>
             <button onClick={() => onOpenQuickAction('PHARMACY_STOCK')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.76rem' }}>
-              <Pill size={13} /> Medicine Stock
+              <Pill size={13} /> {t('header.medicineStock', 'Medicine Stock')}
             </button>
           </div>
 
@@ -886,29 +1398,29 @@ export default function Header({
           {/* Dossiers & Intelligence Pages */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
             <span style={{ color: '#38bdf8', fontWeight: 700, textTransform: 'uppercase', fontSize: '0.72rem', letterSpacing: '0.05em', marginRight: '2px' }}>
-              📊 Records:
+              📊 {t('header.records', 'Records')}:
             </span>
             <button onClick={() => onOpenQuickAction('VIEW_REPORTS')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.76rem' }}>
-              <FileText size={13} /> Reports
+              <FileText size={13} /> {t('header.reports', 'Reports')}
             </button>
             <button onClick={() => onOpenQuickAction('VIEW_NOTIFICATIONS')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.76rem' }}>
-              <AlertTriangle size={13} /> All Alerts
+              <AlertTriangle size={13} /> {t('header.allAlerts', 'All Alerts')}
             </button>
             <button onClick={() => onOpenQuickAction('VIEW_APPLICATIONS')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.76rem' }}>
-              <UserCheck size={13} /> Requests
+              <UserCheck size={13} /> {t('header.requests', 'Requests')}
             </button>
             <button onClick={() => onOpenQuickAction('VIEW_HOSPITAL_INFORMATION')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.76rem' }}>
-              <Database size={13} /> Hospital Info
+              <Database size={13} /> {t('header.hospitalInfo', 'Hospital Info')}
             </button>
             <button onClick={() => onOpenQuickAction('VIEW_SYSTEM_INFORMATION')} className="btn-outline-gold" style={{ padding: '4px 9px', fontSize: '0.76rem' }}>
-              <Activity size={13} /> System Health
+              <Activity size={13} /> {t('header.systemHealth', 'System Health')}
             </button>
           </div>
         </div>
 
         {/* Patient Safety Guardrail Tag */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--status-online)', fontSize: '0.76rem', fontWeight: 600 }}>
-          <Shield size={14} /> Patient Safety Protected • Emergency Access Always Open
+          <Shield size={14} /> {t('header.safetyBanner', 'Patient Safety Protected • Emergency Access Always Open')}
         </div>
       </div>
 

@@ -36,6 +36,8 @@ function resolveRequestActor(req) {
 const TENANT_BYPASS_PREFIXES = [
     "/health",
     "/auth",
+    "/international",
+    "/i18n",
     "/tenants/register",
     "/tenants/developer",
     "/developer",

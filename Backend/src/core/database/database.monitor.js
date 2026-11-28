@@ -109,6 +109,8 @@ function evaluateUtilizationAlerts({
 function getLocalBackupFootprint() {
     let totalBytes = 0;
     let fileCount = 0;
+    let latestMtimeMs = 0;
+    let latestBackupFile = null;
     try {
         if (fs.existsSync(BACKUPS_DIR)) {
             const entries = fs.readdirSync(BACKUPS_DIR);
@@ -118,6 +120,10 @@ function getLocalBackupFootprint() {
                     if (st.isFile()) {
                         totalBytes += st.size;
                         fileCount += 1;
+                        if (st.mtimeMs > latestMtimeMs) {
+                            latestMtimeMs = st.mtimeMs;
+                            latestBackupFile = f;
+                        }
                     }
                 }
             }
@@ -127,7 +133,10 @@ function getLocalBackupFootprint() {
     }
     return {
         backupFilesCount: fileCount,
-        localBackupsMb: Number((totalBytes / (1024 * 1024)).toFixed(2))
+        localBackupsMb: Number((totalBytes / (1024 * 1024)).toFixed(2)),
+        latestBackupAt: latestMtimeMs > 0 ? new Date(latestMtimeMs).toISOString() : null,
+        latestBackupFile,
+        backupStatus: fileCount > 0 ? "VERIFIED_SNAPSHOTS_AVAILABLE" : "NO_LOCAL_SNAPSHOT_YET"
     };
 }
 
@@ -142,13 +151,19 @@ async function collectPoolAndStorageTelemetry() {
         SELECT
             current_database() AS database_name,
             current_setting('max_connections')::int AS max_connections,
+            current_setting('idle_in_transaction_session_timeout') AS idle_in_tx_timeout,
             (SELECT count(*)::int FROM pg_stat_activity WHERE datname = current_database()) AS total_db_connections,
             (SELECT count(*)::int FROM pg_stat_activity WHERE datname = current_database() AND state = 'active') AS active_connections,
             (SELECT count(*)::int FROM pg_stat_activity WHERE datname = current_database() AND state = 'idle') AS idle_connections,
             (SELECT count(*)::int FROM pg_stat_activity WHERE datname = current_database() AND state = 'idle in transaction') AS idle_in_transaction,
             (SELECT count(*)::int FROM pg_stat_activity WHERE datname = current_database() AND wait_event_type = 'Lock') AS waiting_lock_requests,
             (SELECT count(*)::int FROM pg_stat_activity WHERE datname = current_database() AND state = 'active' AND wait_event_type IS NOT NULL AND wait_event_type NOT IN ('Client', 'Activity')) AS waiting_requests,
-            pg_database_size(current_database())::bigint AS database_size_bytes
+            pg_database_size(current_database())::bigint AS database_size_bytes,
+            (SELECT COALESCE(blks_hit, 0)::bigint FROM pg_stat_database WHERE datname = current_database()) AS blks_hit,
+            (SELECT COALESCE(blks_read, 0)::bigint FROM pg_stat_database WHERE datname = current_database()) AS blks_read,
+            (SELECT COALESCE(xact_commit, 0)::bigint FROM pg_stat_database WHERE datname = current_database()) AS xact_commit,
+            (SELECT COALESCE(xact_rollback, 0)::bigint FROM pg_stat_database WHERE datname = current_database()) AS xact_rollback,
+            (SELECT COALESCE(deadlocks, 0)::bigint FROM pg_stat_database WHERE datname = current_database()) AS deadlocks
     `;
     const latencyMs = Date.now() - startedAt;
     const r = (rows && rows[0]) || {};
@@ -162,6 +177,14 @@ async function collectPoolAndStorageTelemetry() {
     const waitingLockRequests = Number(r.waiting_lock_requests || 0);
     const dbSizeBytes = Number(r.database_size_bytes || 0);
     const sizeMb = Number((dbSizeBytes / (1024 * 1024)).toFixed(2));
+    const blksHit = Number(r.blks_hit || 0);
+    const blksRead = Number(r.blks_read || 0);
+    const totalBlks = blksHit + blksRead;
+    const cacheHitRatioPct = totalBlks > 0 ? Number(((blksHit / totalBlks) * 100).toFixed(2)) : 100;
+    const xactCommit = Number(r.xact_commit || 0);
+    const xactRollback = Number(r.xact_rollback || 0);
+    const deadlocks = Number(r.deadlocks || 0);
+    const idleInTransactionTimeout = String(r.idle_in_tx_timeout || `${databaseConfig.pool.idleInTransactionTimeoutMs}ms`);
 
     // Safe application pool ceiling = 75% of PostgreSQL max_connections (reserves 25% for rolling deploys, admin & migrations)
     const safeMaxAppConnections = Math.max(5, Math.floor(postgresMaxConnections * 0.75));
@@ -199,6 +222,15 @@ async function collectPoolAndStorageTelemetry() {
 
     const backups = getLocalBackupFootprint();
 
+    let scalingRecommendation = "CURRENT_CAPACITY_HEALTHY";
+    if (thresholdEval.overallLevel === "CRITICAL") {
+        scalingRecommendation = "UPGRADE_RENDER_POSTGRES_AND_ENABLE_PGBOUNCER_IMMEDIATELY";
+    } else if (thresholdEval.overallLevel === "WARNING") {
+        scalingRecommendation = "PLAN_RENDER_STANDARD_UPGRADE_AND_PGBOUNCER";
+    } else if (aggregateConfiguredAppPool >= safeMaxAppConnections) {
+        scalingRecommendation = "ENABLE_PGBOUNCER_BEFORE_ADDING_BACKEND_INSTANCES";
+    }
+
     const telemetry = {
         checkedAt: new Date().toISOString(),
         engine: "PostgreSQL",
@@ -215,6 +247,7 @@ async function collectPoolAndStorageTelemetry() {
             activeConnections,
             idleConnections,
             idleInTransaction,
+            idleInTransactionTimeout,
             waitingRequests,
             waitingLockRequests,
             poolUtilizationPct,
@@ -232,6 +265,12 @@ async function collectPoolAndStorageTelemetry() {
             criticalThresholdPct: databaseConfig.pool.criticalThresholdPct,
             alertLevel: thresholdEval.connectionAlertLevel
         },
+        performance: {
+            cacheHitRatioPct,
+            xactCommit,
+            xactRollback,
+            deadlocks
+        },
         storage: {
             databaseSizeMb: sizeMb,
             databaseQuotaMb: quotaMb,
@@ -240,6 +279,7 @@ async function collectPoolAndStorageTelemetry() {
             alertLevel: thresholdEval.storageAlertLevel,
             ...backups
         },
+        scalingRecommendation,
         overallAlertLevel: thresholdEval.overallLevel,
         activeAlerts: thresholdEval.alerts
     };

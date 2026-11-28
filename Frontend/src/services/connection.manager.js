@@ -344,7 +344,7 @@ export function createConnectionManager(options = {}) {
         );
         const derivedOverall =
           payload.overallStatus === CONNECTION_STATES.OFFLINE && databaseStatus === CONNECTION_STATES.OFFLINE
-            ? (nextFailures >= offlineThreshold ? CONNECTION_STATES.DEGRADED : CONNECTION_STATES.DEGRADED)
+            ? (nextFailures >= offlineThreshold ? CONNECTION_STATES.OFFLINE : CONNECTION_STATES.DEGRADED)
             : normalizeComponentState(payload.overallStatus, CONNECTION_STATES.DEGRADED);
 
         const detailMsg =

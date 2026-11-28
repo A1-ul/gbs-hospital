@@ -1,19 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Shield, Activity, Lock, Unlock, Key, AlertTriangle, CheckCircle,
-  RefreshCw, FileText, Settings, Eye, EyeOff, Wrench
+  Shield, Activity, Lock, Key, AlertTriangle, CheckCircle,
+  RefreshCw, FileText, Settings, Eye, EyeOff, Wrench, Bell, BookOpen, Search
 } from 'lucide-react';
 import { api } from '../services/api.service';
 
 export default function RcceDeveloperConsole({ onStatusMsg }) {
-  const [subTab, setSubTab] = useState('OVERVIEW'); // OVERVIEW | PRIVACY_GRANTS | PERMISSIONS | ERRORS | AUDITS
+  const [subTab, setSubTab] = useState('OVERVIEW'); // OVERVIEW | PRIVACY_GRANTS | PERMISSIONS | EVENTS | CATALOGUE | CONFIGS | ERRORS | AUDITS
   const [overview, setOverview] = useState(null);
   const [usersActivity, setUsersActivity] = useState({ users: [], privacyPolicyApplied: 'REDACTED_BY_DEFAULT', grantCode: null });
   const [includePrivate, setIncludePrivate] = useState(false);
   const [grants, setGrants] = useState([]);
   const [permissionsData, setPermissionsData] = useState({ roles: [], allRoles: [], rolePermissionOverrides: {} });
+  const [eventsData, setEventsData] = useState({ events: [], queueDepth: 0, realtimeSubscribers: 0 });
+  const [catalogueData, setCatalogueData] = useState({ applicationName: 'GBS Hospital Management System', totalCodes: 0, entries: [] });
+  const [catalogueSearch, setCatalogueSearch] = useState('');
   const [errorsData, setErrorsData] = useState({ errors: [], unresolvedCount: 0, byCategory: [] });
-  const [auditsData, setAuditsData] = useState({ logs: [], integrity: { verifiedCount: 0, integrityIntact: true } });
+  const [auditsData, setAuditsData] = useState({ logs: [], integrity: { verifiedCount: 0, hashedCount: 0, chainedLinksVerified: 0, integrityIntact: true } });
   const [configs, setConfigs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [localMsg, setLocalMsg] = useState(null);
@@ -28,6 +31,12 @@ export default function RcceDeveloperConsole({ onStatusMsg }) {
     permission: 'billing:write',
     action: 'REVOKE'
   });
+  const [configForm, setConfigForm] = useState({
+    configKey: '',
+    category: 'GENERAL',
+    description: '',
+    configValueText: '{}'
+  });
   const [maintenanceMessage, setMaintenanceMessage] = useState('Scheduled system maintenance by GBS Engineering.');
 
   const notify = (type, msg) => {
@@ -38,7 +47,7 @@ export default function RcceDeveloperConsole({ onStatusMsg }) {
   const loadRcce = async (privateFlag = includePrivate) => {
     setLoading(true);
     try {
-      const [ov, ua, gr, pm, er, au, cf] = await Promise.all([
+      const [ov, ua, gr, pm, ev, cat, er, au, cf] = await Promise.all([
         api.getRcceDeveloperOverview().catch(() => null),
         api.getRcceUsersActivity(privateFlag).catch((err) => {
           if (privateFlag && err?.code === 'SENSITIVE_ACCESS_RESTRICTED') {
@@ -49,14 +58,18 @@ export default function RcceDeveloperConsole({ onStatusMsg }) {
         }),
         api.getRcceAccessGrants().catch(() => ({ grants: [] })),
         api.getRccePermissions().catch(() => ({ roles: [], allRoles: [], rolePermissionOverrides: {} })),
+        api.getRcceEvents('limit=60').catch(() => ({ events: [], queueDepth: 0, realtimeSubscribers: 0 })),
+        api.getRcceCatalogue().catch(() => ({ applicationName: 'GBS Hospital Management System', totalCodes: 0, entries: [] })),
         api.getRcceErrorLogs().catch(() => ({ errors: [], unresolvedCount: 0, byCategory: [] })),
-        api.getRcceAuditLogs().catch(() => ({ logs: [], integrity: { verifiedCount: 0, integrityIntact: true } })),
+        api.getRcceAuditLogs().catch(() => ({ logs: [], integrity: { verifiedCount: 0, hashedCount: 0, chainedLinksVerified: 0, integrityIntact: true } })),
         api.getRcceConfigs().catch(() => ({ configs: [] }))
       ]);
       if (ov) setOverview(ov);
       if (ua) setUsersActivity(ua);
       if (gr?.grants) setGrants(gr.grants);
       if (pm?.roles) setPermissionsData(pm);
+      if (ev?.events) setEventsData(ev);
+      if (cat?.entries) setCatalogueData(cat);
       if (er?.errors) setErrorsData(er);
       if (au?.logs) setAuditsData(au);
       if (cf?.configs) setConfigs(cf.configs);
@@ -136,6 +149,34 @@ export default function RcceDeveloperConsole({ onStatusMsg }) {
     }
   };
 
+  const handleSaveConfig = async (e) => {
+    e.preventDefault();
+    const key = String(configForm.configKey || '').trim().toUpperCase();
+    if (!key) {
+      notify('error', 'Configuration key is required.');
+      return;
+    }
+    let parsedValue = {};
+    try {
+      parsedValue = JSON.parse(configForm.configValueText || '{}');
+    } catch (_parseErr) {
+      notify('error', 'Configuration value must be valid JSON.');
+      return;
+    }
+    try {
+      await api.updateRcceConfig(key, {
+        configValue: parsedValue,
+        category: configForm.category || 'GENERAL',
+        description: configForm.description || ''
+      });
+      notify('success', `Authorized configuration "${key}" saved and audited.`);
+      setConfigForm({ configKey: '', category: 'GENERAL', description: '', configValueText: '{}' });
+      loadRcce();
+    } catch (err) {
+      notify('error', err.message);
+    }
+  };
+
   const handleToggleMaintenance = async () => {
     const currentlyEnabled = Boolean(overview?.maintenanceMode?.enabled);
     try {
@@ -149,6 +190,15 @@ export default function RcceDeveloperConsole({ onStatusMsg }) {
 
   const ops = overview?.operations || {};
   const maintenanceOn = Boolean(overview?.maintenanceMode?.enabled);
+  const filteredCatalogueEntries = (catalogueData.entries || []).filter((entry) => {
+    const q = catalogueSearch.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      String(entry.code || '').toLowerCase().includes(q) ||
+      String(entry.category || '').toLowerCase().includes(q) ||
+      String(entry.message || '').toLowerCase().includes(q)
+    );
+  });
 
   return (
     <div className="glass-panel" style={{ padding: '20px', border: '1px solid var(--border-gold)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -238,6 +288,9 @@ export default function RcceDeveloperConsole({ onStatusMsg }) {
           { id: 'OVERVIEW', label: 'Staff Activity (Private Details Hidden)', icon: Activity },
           { id: 'PRIVACY_GRANTS', label: 'Private Access Requests', icon: Key },
           { id: 'PERMISSIONS', label: 'Role Permissions', icon: Lock },
+          { id: 'EVENTS', label: `System Events (${eventsData.events?.length || 0})`, icon: Bell },
+          { id: 'CATALOGUE', label: `Response Catalogue (${catalogueData.totalCodes || 0})`, icon: BookOpen },
+          { id: 'CONFIGS', label: `Configurations (${configs.length})`, icon: Settings },
           { id: 'ERRORS', label: `System Issues (${errorsData.unresolvedCount || 0})`, icon: AlertTriangle },
           { id: 'AUDITS', label: 'Full Activity Log', icon: FileText }
         ].map((tab) => {
@@ -456,6 +509,231 @@ export default function RcceDeveloperConsole({ onStatusMsg }) {
         </div>
       )}
 
+      {/* TAB: SYSTEM EVENTS & REAL-TIME NOTIFICATION QUEUE */}
+      {subTab === 'EVENTS' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', background: 'rgba(6,12,24,0.65)', padding: '10px 14px', borderRadius: '6px', border: '1px solid var(--border-subtle)', fontSize: '0.78rem' }}>
+            <span style={{ color: 'var(--text-muted)' }}>
+              Event Queue Depth: <strong style={{ color: 'var(--gold-300)' }}>{eventsData.queueDepth ?? 0}</strong> • Real-Time SSE Subscribers: <strong style={{ color: 'var(--status-online)' }}>{eventsData.realtimeSubscribers ?? 0}</strong>
+            </span>
+            <span style={{ color: 'var(--text-dim)', fontSize: '0.72rem' }}>
+              Showing latest {(eventsData.events || []).length} persisted domain events
+            </span>
+          </div>
+          <div style={{ overflowX: 'auto' }}>
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Domain</th>
+                  <th>Event Code</th>
+                  <th>Actor Role</th>
+                  <th>Affected Record</th>
+                  <th>Severity</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(eventsData.events || []).length === 0 ? (
+                  <tr>
+                    <td colSpan={7} style={{ textAlign: 'center', color: 'var(--text-dim)', padding: '16px' }}>
+                      No records available
+                    </td>
+                  </tr>
+                ) : (
+                  (eventsData.events || []).slice(0, 40).map((ev) => (
+                    <tr key={ev.id}>
+                      <td style={{ fontSize: '0.72rem', fontFamily: 'var(--font-mono)' }}>{new Date(ev.createdAt).toLocaleString()}</td>
+                      <td style={{ fontWeight: 700, color: 'var(--gold-300)' }}>{ev.domain}</td>
+                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.74rem' }}>{ev.eventCode}</td>
+                      <td>{ev.actorRole || 'SYSTEM'}</td>
+                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem' }}>{ev.affectedRecord || '—'}</td>
+                      <td style={{ fontWeight: 700, color: ev.severity === 'CRITICAL' ? '#ef4444' : ev.severity === 'WARNING' ? '#f59e0b' : 'var(--status-online)' }}>
+                        {ev.severity || 'INFO'}
+                      </td>
+                      <td>{ev.status || 'PROCESSED'}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* TAB: PREDEFINED RESPONSE CATALOGUE */}
+      {subTab === 'CATALOGUE' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+              Active Application: <strong style={{ color: 'var(--gold-300)' }}>{catalogueData.applicationName}</strong> • Registered Predefined Codes: <strong style={{ color: '#fff' }}>{catalogueData.totalCodes || 0}</strong>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#060c18', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '4px 10px' }}>
+              <Search size={13} style={{ color: 'var(--gold-400)' }} />
+              <input
+                type="text"
+                aria-label="Filter response catalogue"
+                placeholder="Search code, category, or message..."
+                value={catalogueSearch}
+                onChange={(e) => setCatalogueSearch(e.target.value)}
+                style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '0.76rem', outline: 'none', minWidth: '210px' }}
+              />
+            </div>
+          </div>
+          <div style={{ overflowX: 'auto', maxHeight: '360px' }}>
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>HTTP</th>
+                  <th>Category</th>
+                  <th>Severity</th>
+                  <th>Predefined User Message</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredCatalogueEntries.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-dim)', padding: '16px' }}>
+                      No records available
+                    </td>
+                  </tr>
+                ) : (
+                  filteredCatalogueEntries.map((entry) => (
+                    <tr key={entry.code}>
+                      <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--gold-300)', fontSize: '0.74rem' }}>{entry.code}</td>
+                      <td style={{ fontFamily: 'var(--font-mono)' }}>{entry.httpStatus}</td>
+                      <td>{entry.category}</td>
+                      <td style={{ fontWeight: 700, color: entry.severity === 'CRITICAL' || entry.severity === 'ERROR' ? '#ef4444' : entry.severity === 'WARNING' ? '#f59e0b' : 'var(--status-online)' }}>
+                        {entry.severity}
+                      </td>
+                      <td style={{ fontSize: '0.76rem' }}>{entry.message}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* TAB: AUTHORIZED SYSTEM CONFIGURATIONS & MAINTENANCE NOTICE */}
+      {subTab === 'CONFIGS' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div style={{ background: 'rgba(6,12,24,0.75)', padding: '12px 14px', borderRadius: '6px', border: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--gold-400)' }}>
+              Maintenance Window Notice Message
+            </div>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <input
+                type="text"
+                aria-label="Maintenance mode message"
+                value={maintenanceMessage}
+                onChange={(e) => setMaintenanceMessage(e.target.value)}
+                style={{ flex: 1, minWidth: '240px', padding: '8px', background: '#060c18', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px', fontSize: '0.78rem' }}
+              />
+              <button
+                type="button"
+                onClick={handleToggleMaintenance}
+                className={maintenanceOn ? 'btn-gold' : 'btn-danger'}
+                style={{ fontSize: '0.76rem', padding: '6px 14px' }}
+              >
+                <Wrench size={13} /> {maintenanceOn ? 'Resume Normal Operations' : 'Activate Maintenance Mode'}
+              </button>
+            </div>
+          </div>
+
+          <form onSubmit={handleSaveConfig} style={{ background: 'rgba(6,12,24,0.75)', padding: '14px', borderRadius: '6px', border: '1px solid var(--border-subtle)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px', alignItems: 'end' }}>
+            <div>
+              <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Config Key *</label>
+              <input
+                required
+                type="text"
+                placeholder="e.g. SESSION_TIMEOUT_POLICY"
+                value={configForm.configKey}
+                onChange={(e) => setConfigForm({ ...configForm, configKey: e.target.value })}
+                style={{ width: '100%', padding: '8px', background: '#060c18', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Category</label>
+              <select
+                value={configForm.category}
+                onChange={(e) => setConfigForm({ ...configForm, category: e.target.value })}
+                style={{ width: '100%', padding: '8px', background: '#060c18', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
+              >
+                <option value="GENERAL">GENERAL</option>
+                <option value="SECURITY">SECURITY</option>
+                <option value="MAINTENANCE">MAINTENANCE</option>
+                <option value="OPERATIONS">OPERATIONS</option>
+                <option value="NOTIFICATIONS">NOTIFICATIONS</option>
+              </select>
+            </div>
+            <div>
+              <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Description</label>
+              <input
+                type="text"
+                placeholder="Purpose of configuration"
+                value={configForm.description}
+                onChange={(e) => setConfigForm({ ...configForm, description: e.target.value })}
+                style={{ width: '100%', padding: '8px', background: '#060c18', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px' }}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>JSON Value *</label>
+              <input
+                required
+                type="text"
+                placeholder='{"enabled": true}'
+                value={configForm.configValueText}
+                onChange={(e) => setConfigForm({ ...configForm, configValueText: e.target.value })}
+                style={{ width: '100%', padding: '8px', background: '#060c18', border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: '4px', fontFamily: 'var(--font-mono)' }}
+              />
+            </div>
+            <button type="submit" className="btn-gold" style={{ padding: '8px 14px', fontSize: '0.78rem' }}>
+              Save Configuration
+            </button>
+          </form>
+
+          <div style={{ overflowX: 'auto' }}>
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Config Key</th>
+                  <th>Category</th>
+                  <th>Description</th>
+                  <th>Value</th>
+                  <th>Updated</th>
+                </tr>
+              </thead>
+              <tbody>
+                {configs.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-dim)', padding: '16px' }}>
+                      No records available
+                    </td>
+                  </tr>
+                ) : (
+                  configs.map((cfg) => (
+                    <tr key={cfg.id || cfg.configKey}>
+                      <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--gold-300)', fontSize: '0.74rem' }}>{cfg.configKey}</td>
+                      <td>{cfg.category || 'GENERAL'}</td>
+                      <td style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>{cfg.description || '—'}</td>
+                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', maxWidth: '280px', wordBreak: 'break-word' }}>
+                        {typeof cfg.configValue === 'object' ? JSON.stringify(cfg.configValue) : String(cfg.configValue ?? '')}
+                      </td>
+                      <td style={{ fontSize: '0.7rem', fontFamily: 'var(--font-mono)' }}>
+                        {cfg.updatedAt ? new Date(cfg.updatedAt).toLocaleString() : '—'}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       {/* TAB: ERROR DIAGNOSTICS */}
       {subTab === 'ERRORS' && (
         <div style={{ overflowX: 'auto' }}>
@@ -471,26 +749,34 @@ export default function RcceDeveloperConsole({ onStatusMsg }) {
               </tr>
             </thead>
             <tbody>
-              {(errorsData.errors || []).slice(0, 25).map((err) => (
-                <tr key={err.id}>
-                  <td style={{ fontSize: '0.72rem', fontFamily: 'var(--font-mono)' }}>{new Date(err.createdAt).toLocaleString()}</td>
-                  <td>{err.errorCategory}</td>
-                  <td style={{ fontFamily: 'var(--font-mono)', color: '#fca5a5' }}>{err.code} ({err.httpStatus})</td>
-                  <td style={{ fontSize: '0.74rem', fontFamily: 'var(--font-mono)' }}>{err.method} {err.path}</td>
-                  <td style={{ fontSize: '0.74rem', maxWidth: '300px' }}>{err.technicalMessage}</td>
-                  <td>
-                    {err.resolved ? (
-                      <span style={{ color: 'var(--status-online)', fontSize: '0.72rem', fontWeight: 700 }}>
-                        <CheckCircle size={12} /> Resolved
-                      </span>
-                    ) : (
-                      <button type="button" onClick={() => handleResolveError(err.id)} className="btn-outline-gold" style={{ padding: '3px 8px', fontSize: '0.7rem' }}>
-                        Mark Resolved
-                      </button>
-                    )}
+              {(errorsData.errors || []).length === 0 ? (
+                <tr>
+                  <td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-dim)', padding: '16px' }}>
+                    No records available
                   </td>
                 </tr>
-              ))}
+              ) : (
+                (errorsData.errors || []).slice(0, 25).map((err) => (
+                  <tr key={err.id}>
+                    <td style={{ fontSize: '0.72rem', fontFamily: 'var(--font-mono)' }}>{new Date(err.createdAt).toLocaleString()}</td>
+                    <td>{err.errorCategory}</td>
+                    <td style={{ fontFamily: 'var(--font-mono)', color: '#fca5a5' }}>{err.code} ({err.httpStatus})</td>
+                    <td style={{ fontSize: '0.74rem', fontFamily: 'var(--font-mono)' }}>{err.method} {err.path}</td>
+                    <td style={{ fontSize: '0.74rem', maxWidth: '300px' }}>{err.technicalMessage}</td>
+                    <td>
+                      {err.resolved ? (
+                        <span style={{ color: 'var(--status-online)', fontSize: '0.72rem', fontWeight: 700 }}>
+                          <CheckCircle size={12} /> Resolved
+                        </span>
+                      ) : (
+                        <button type="button" onClick={() => handleResolveError(err.id)} className="btn-outline-gold" style={{ padding: '3px 8px', fontSize: '0.7rem' }}>
+                          Mark Resolved
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -500,7 +786,7 @@ export default function RcceDeveloperConsole({ onStatusMsg }) {
       {subTab === 'AUDITS' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <div style={{ fontSize: '0.76rem', color: auditsData.integrity?.integrityIntact ? 'var(--status-online)' : '#ef4444', fontWeight: 700 }}>
-            Cryptographic Audit Integrity: {auditsData.integrity?.integrityIntact ? 'VERIFIED (SHA-256 Chain Intact)' : 'INTEGRITY ALERT'} • Verified Records: {auditsData.integrity?.verifiedCount ?? 0}
+            Cryptographic Audit Integrity: {auditsData.integrity?.integrityIntact ? 'VERIFIED (SHA-256 Chain Intact)' : 'INTEGRITY ALERT'} • Verified Records: {auditsData.integrity?.verifiedCount ?? 0} • Hashed: {auditsData.integrity?.hashedCount ?? 0} • Linked Chain Steps: {auditsData.integrity?.chainedLinksVerified ?? 0}
           </div>
           <div style={{ overflowX: 'auto' }}>
             <table className="data-table">
@@ -516,19 +802,27 @@ export default function RcceDeveloperConsole({ onStatusMsg }) {
                 </tr>
               </thead>
               <tbody>
-                {(auditsData.logs || []).slice(0, 30).map((log) => (
-                  <tr key={log.id}>
-                    <td style={{ fontSize: '0.72rem', fontFamily: 'var(--font-mono)' }}>{new Date(log.createdAt).toLocaleString()}</td>
-                    <td>{log.role || 'SYSTEM'}</td>
-                    <td>{log.module}</td>
-                    <td style={{ fontSize: '0.74rem' }}>{log.action}</td>
-                    <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem' }}>{log.affectedRecord || '—'}</td>
-                    <td style={{ fontWeight: 700, color: log.outcome === 'SUCCESS' ? 'var(--status-online)' : log.outcome === 'DUPLICATE_REPLAY' ? '#fcd34d' : '#ef4444' }}>
-                      {log.outcome || 'SUCCESS'}
+                {(auditsData.logs || []).length === 0 ? (
+                  <tr>
+                    <td colSpan={7} style={{ textAlign: 'center', color: 'var(--text-dim)', padding: '16px' }}>
+                      No records available
                     </td>
-                    <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem' }}>{log.requestId ? log.requestId.slice(0, 8) : '—'}</td>
                   </tr>
-                ))}
+                ) : (
+                  (auditsData.logs || []).slice(0, 30).map((log) => (
+                    <tr key={log.id}>
+                      <td style={{ fontSize: '0.72rem', fontFamily: 'var(--font-mono)' }}>{new Date(log.createdAt).toLocaleString()}</td>
+                      <td>{log.role || 'SYSTEM'}</td>
+                      <td>{log.module}</td>
+                      <td style={{ fontSize: '0.74rem' }}>{log.action}</td>
+                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem' }}>{log.affectedRecord || '—'}</td>
+                      <td style={{ fontWeight: 700, color: log.outcome === 'SUCCESS' ? 'var(--status-online)' : log.outcome === 'DUPLICATE_REPLAY' ? '#fcd34d' : '#ef4444' }}>
+                        {log.outcome || 'SUCCESS'}
+                      </td>
+                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem' }}>{log.requestId ? log.requestId.slice(0, 8) : '—'}</td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

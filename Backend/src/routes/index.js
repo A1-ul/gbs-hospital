@@ -528,6 +528,32 @@ registerRoute(
     "Facility Management (Housekeeping, Utilities & Maintenance)"
 );
 
+// FILE 1 PHASE 1.2: International Countries (50) & Multilingual Support (10 Languages)
+registerRoute(
+    "/international",
+    require("../modules/international/international.routes"),
+    "International Countries & Multilingual Engine"
+);
+
+registerRoute(
+    "/i18n",
+    require("../modules/international/international.routes"),
+    "Multilingual & Locale Engine Alias"
+);
+
+// FILE 8 PHASE 8.2: All-Users Voice/Video Calling & Multi-Camera WebRTC Conferences
+registerRoute(
+    "/communications",
+    require("../modules/communications/communications.routes"),
+    "All-Users Voice/Video Calling & Multi-Camera WebRTC Conferences"
+);
+
+registerRoute(
+    "/calls",
+    require("../modules/communications/communications.routes"),
+    "Direct Voice & Video Calling Alias"
+);
+
 router.use("/rcce", require("../modules/developer-control-center/rcce.routes"));
 
 module.exports = router;

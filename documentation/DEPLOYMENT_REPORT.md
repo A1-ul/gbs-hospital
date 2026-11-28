@@ -67,4 +67,19 @@ Live Production URL (https://gbs-hospital-system.onrender.com)
 - **Central Payments API (`/api/v1/payments`)**: Server-side bill validation, atomic `prisma.$transaction()` settlement to `PatientPayment` + `PatientBill`, authorized Hospital Accountant Bank Deposit verification (`UNDER_REVIEW` -> `SUCCESSFUL`), printable official receipts, refunds, reconciliation reports, and Hospital Admin -> GBS Developer Subscription payments directed to designated GBS Developer Mobile Money destination **`0554594193`**.
 - **UI Portals**: Upgraded `BillingPaymentsView.jsx` (Multi-Gateway Checkout, Bank Deposit Verification Queue, Reports/CSV, GBS Subscription Tab), `PatientPortalView.jsx` (Self-Service Hospital Bill Checkout & Printable Receipts), and `DeveloperAdvancedOpsPanel.jsx` (Developer Revenue, Subscription Approval, Reconciliation & Webhook Audit Console).
 
+## 7. Central GBS System Deployment Registry Record (Render-Only Policy)
+Authoritative machine-readable manifest: `.build/deployment-registry.json` | Live Developer Endpoint: `GET /api/v1/rcce/developer/remote/deployment-registry`
+
+| Registry Field | Authoritative Production Value |
+| :--- | :--- |
+| **System Name** | GBS Hospital Management System |
+| **GitHub Repository** | `https://github.com/A1-ul/gbs-hospital` (`main`) |
+| **Render Service Name** | `gbs-hospital-system` (`srv-dbt7h5gae00c739t58q0`) |
+| **Live Website Address** | `https://gbs-hospital-system.onrender.com` |
+| **Deployment Status** | `LIVE_AUTO_DEPLOY_ENABLED` |
+| **Last Successful Deployment** | Tracked live in PostgreSQL Deployment Ledger & `.build/deployment-registry.json` |
+| **Database Connection Status** | Verified live via `SELECT 1` probe (`gbs-hospital-db` — PostgreSQL 16) |
+| **Hosting Plan** | Render Web Service (`free` / `frankfurt`) + Managed PostgreSQL 16 (**Render-Only Policy — Zero Vercel/Netlify/Railway**) |
+
+
 

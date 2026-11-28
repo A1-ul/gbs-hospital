@@ -91,8 +91,12 @@ NORMALIZE CORS ORIGINS
 function getAllowedOrigins() {
     const productionDefaults = [
         "https://gbs-hospital-system.onrender.com",
-        "https://gbs-hospital.onrender.com"
-    ];
+        "https://gbs-hospital.onrender.com",
+        environment.PRODUCTION_PUBLIC_URL,
+        process.env.RENDER_EXTERNAL_URL
+    ]
+        .map((origin) => String(origin || "").trim().replace(/\/+$/, ""))
+        .filter(Boolean);
 
     const devDefaults = [
         "http://localhost:3000",
@@ -105,13 +109,15 @@ function getAllowedOrigins() {
     ];
 
     if (!environment.CORS_ORIGIN || environment.CORS_ORIGIN === "*") {
-        return environment.IS_PRODUCTION ? productionDefaults : devDefaults;
+        return Array.from(new Set(environment.IS_PRODUCTION ? productionDefaults : devDefaults));
     }
 
-    return environment.CORS_ORIGIN
+    const configured = environment.CORS_ORIGIN
         .split(",")
-        .map((origin) => origin.trim())
+        .map((origin) => origin.trim().replace(/\/+$/, ""))
         .filter(Boolean);
+
+    return Array.from(new Set([...configured, ...productionDefaults]));
 }
 
 
@@ -445,8 +451,12 @@ function applyCors(app) {
             allowedHeaders: [
                 "Content-Type",
                 "Authorization",
+                "Accept-Language",
                 "X-Request-ID",
                 "X-Idempotency-Key",
+                "Idempotency-Key",
+                "X-GBS-Health-Probe",
+                "X-GBS-Country",
                 "X-Tenant-Id",
                 "X-Hospital-Id",
                 "X-Emergency-Override",

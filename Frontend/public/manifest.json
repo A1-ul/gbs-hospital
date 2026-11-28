@@ -5,21 +5,27 @@
   "start_url": "/",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#060c18",
-  "theme_color": "#070d19",
+  "background_color": "#091830",
+  "theme_color": "#091830",
   "categories": ["medical", "healthcare", "productivity"],
   "icons": [
     {
-      "src": "/hospital-logo.png",
+      "src": "/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/hospital-logo.png",
+      "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    },
+    {
+      "src": "/gbs-official-logo.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any"
     }
   ]
 }

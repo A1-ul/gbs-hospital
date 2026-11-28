@@ -5,6 +5,8 @@ import {
   User, Building2, CreditCard, Bell, History, Layers, Eye
 } from 'lucide-react';
 import { api } from '../services/api.service';
+import { useLocale } from '../context/LocaleContext';
+import { savePageViewState, loadPageViewState } from '../services/navigation.manager';
 
 /**
  * GBS HOSPITAL MANAGEMENT SYSTEM
@@ -25,14 +27,20 @@ export default function UniversalDetailPage({
   facilityBranding,
   currentUser
 }) {
+  const { t, activeCountry, activeLanguage } = useLocale();
   const [loading, setLoading] = useState(false);
   const [liveData, setLiveData] = useState(detailState?.recordData || null);
   const [extraRecords, setExtraRecords] = useState([]);
   const [envInfo, setEnvInfo] = useState(null);
   const [error, setError] = useState(null);
   const [actionFeedback, setActionFeedback] = useState(null);
-  const [detailFilter, setDetailFilter] = useState('');
-  const [reportCategory, setReportCategory] = useState('ALL');
+  const detailType = detailState?.detailType || 'VIEW_DETAILS';
+  const moduleKey = detailState?.moduleKey || 'OVERVIEW';
+  const recordId = detailState?.recordId || 'summary';
+  const viewStateKey = `detail:${moduleKey}:${detailType}:${recordId}`;
+
+  const [detailFilter, setDetailFilter] = useState(() => loadPageViewState(viewStateKey)?.detailFilter || '');
+  const [reportCategory, setReportCategory] = useState(() => loadPageViewState(viewStateKey)?.reportCategory || 'ALL');
   const [dutyForm, setDutyForm] = useState({
     reportTitle: '',
     department: '',
@@ -42,13 +50,20 @@ export default function UniversalDetailPage({
   });
   const [submittingDuty, setSubmittingDuty] = useState(false);
 
-  const detailType = detailState?.detailType || 'VIEW_DETAILS';
-  const moduleKey = detailState?.moduleKey || 'OVERVIEW';
-  const recordId = detailState?.recordId || 'summary';
   const pageTitle = detailState?.title || formatDetailTitle(detailType, moduleKey);
   const pageSubtitle =
     detailState?.subtitle ||
     `Live hospital details for ${detailType.replace(/^VIEW_/, '').replace(/_/g, ' ').toLowerCase()} (${moduleKey})`;
+
+  useEffect(() => {
+    const saved = loadPageViewState(viewStateKey);
+    setDetailFilter(saved?.detailFilter || '');
+    setReportCategory(saved?.reportCategory || 'ALL');
+  }, [viewStateKey]);
+
+  useEffect(() => {
+    savePageViewState(viewStateKey, { detailFilter, reportCategory });
+  }, [viewStateKey, detailFilter, reportCategory]);
 
   useEffect(() => {
     loadDetailData();
@@ -66,25 +81,43 @@ export default function UniversalDetailPage({
       }
 
       if (detailType === 'VIEW_SYSTEM_INFORMATION') {
-        const [overview, envStatus] = await Promise.all([
+        const [overview, envStatus, intlProfile] = await Promise.all([
           api.getGlobalOverviewStats().catch(() => null),
-          api.getEnvironmentInfo().catch(() => null)
+          api.getEnvironmentInfo().catch(() => null),
+          api.getInternationalProfile().catch(() => null)
         ]);
-        setLiveData({ overview, environment: envStatus });
+        setLiveData({
+          overview,
+          environment: envStatus,
+          internationalConfiguration: intlProfile || {
+            country: activeCountry.name,
+            currency: `${activeCountry.currencySymbol} ${activeCountry.currencyCode}`,
+            language: activeLanguage.nativeName,
+            healthScheme: activeCountry.healthInsuranceScheme
+          }
+        });
         setExtraRecords(envStatus?.tables || []);
       } else if (detailType === 'VIEW_HOSPITAL_INFORMATION') {
         const isDevActor = currentUser?.role === 'DEVELOPER' || currentRole === 'DEVELOPER';
-        const [overview, wards, theatres, tenants] = await Promise.all([
+        const [overview, wards, theatres, tenants, intlProfile] = await Promise.all([
           api.getGlobalOverviewStats().catch(() => null),
           api.getWards().catch(() => []),
           api.getOperatingTheatres().catch(() => []),
-          isDevActor ? api.getTenants().catch(() => []) : Promise.resolve([])
+          isDevActor ? api.getTenants().catch(() => []) : Promise.resolve([]),
+          api.getInternationalProfile().catch(() => null)
         ]);
         setLiveData({
           overview: overview?.metrics || {},
           totalWards: Array.isArray(wards) ? wards.length : 0,
           totalOperatingTheatres: Array.isArray(theatres) ? theatres.length : 0,
-          registeredInstitutions: Array.isArray(tenants) ? tenants.length : (overview?.metrics?.totalTenants ?? 1)
+          registeredInstitutions: Array.isArray(tenants) ? tenants.length : (overview?.metrics?.totalTenants ?? 1),
+          internationalRegion: {
+            country: intlProfile?.countryName || activeCountry.name,
+            currency: intlProfile?.currencyCode || activeCountry.currencyCode,
+            nationalHealthScheme: intlProfile?.healthInsuranceScheme || activeCountry.healthInsuranceScheme,
+            emergencyNumber: intlProfile?.emergencyNumber || activeCountry.emergencyNumber,
+            activeLanguage: activeLanguage.nativeName
+          }
         });
         setExtraRecords(Array.isArray(wards) ? wards : []);
       } else if (detailType === 'VIEW_NOTIFICATIONS') {
@@ -394,6 +427,7 @@ export default function UniversalDetailPage({
           {/* MANDATORY TOP-LEFT BACK BUTTON */}
           <button
             onClick={onBack}
+            aria-label="Return to previous page"
             className="btn-gold"
             style={{
               display: 'inline-flex',
@@ -408,7 +442,7 @@ export default function UniversalDetailPage({
             }}
           >
             <ArrowLeft size={18} />
-            Back
+            {t('nav.back', 'Back')}
           </button>
 
           <div>
@@ -453,7 +487,7 @@ export default function UniversalDetailPage({
             className="btn-outline-gold"
             style={{ padding: '7px 12px', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '6px' }}
           >
-            <RefreshCw size={14} /> Refresh
+            <RefreshCw size={14} /> {t('detail.refresh', 'Refresh')}
           </button>
 
           <button
@@ -461,7 +495,7 @@ export default function UniversalDetailPage({
             className="btn-outline-gold"
             style={{ padding: '7px 12px', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '6px' }}
           >
-            <Printer size={14} /> Print Page
+            <Printer size={14} /> {t('detail.printPage', 'Print Page')}
           </button>
         </div>
       </div>
@@ -641,7 +675,7 @@ export default function UniversalDetailPage({
 
         {loading ? (
           <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>
-            Loading latest information...
+            {t('detail.loading', 'Loading latest information...')}
           </div>
         ) : liveData && typeof liveData === 'object' && Object.keys(liveData).length > 0 ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
@@ -697,7 +731,7 @@ export default function UniversalDetailPage({
           </div>
         ) : (
           <div style={{ padding: '28px', textAlign: 'center', color: 'var(--text-muted)', background: 'rgba(0,0,0,0.28)', borderRadius: '10px' }}>
-            No records added for this view yet.
+            {t('detail.noRecords', 'No records available')}
           </div>
         )}
       </div>
@@ -739,7 +773,7 @@ export default function UniversalDetailPage({
 
           {filteredExtraRecords.length === 0 ? (
             <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)', background: 'rgba(0,0,0,0.32)', borderRadius: '10px' }}>
-              No records found yet.
+              {t('detail.noRecords', 'No records available')}
             </div>
           ) : (
             <div style={{ overflowX: 'auto' }}>

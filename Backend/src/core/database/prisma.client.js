@@ -13,6 +13,7 @@ const { PrismaClient } = require("@prisma/client");
 const logger = require("../utils/logger");
 const { environment } = require("../../config/environment");
 const databaseConfig = require("../../config/database.config");
+const { startPrismaMonitor } = require("./prisma.monitor");
 
 const GLOBAL_KEY = "__GBS_HOSPITAL_PRISMA__";
 const POOL_STATE_KEY = "__GBS_HOSPITAL_PRISMA_POOL_STATE__";
@@ -45,7 +46,7 @@ function createClient() {
     const clientOptions = {
         log: environment.IS_DEVELOPMENT
             ? [{ emit: "event", level: "query" }, "warn", "error"]
-            : ["error"],
+            : [{ emit: "event", level: "query" }, "error"],
         errorFormat: "minimal",
         transactionOptions: {
             maxWait: Math.min(15000, effective.poolTimeoutSec * 1000),
@@ -60,15 +61,7 @@ function createClient() {
     }
 
     const prisma = new PrismaClient(clientOptions);
-
-    if (environment.IS_DEVELOPMENT) {
-        prisma.$on("query", (event) => {
-            logger.debug({
-                message: "Prisma query executed",
-                duration: `${event.duration}ms`
-            });
-        });
-    }
+    startPrismaMonitor(prisma);
 
     return prisma;
 }

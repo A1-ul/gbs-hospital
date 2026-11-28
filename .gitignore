@@ -38,3 +38,6 @@ Thumbs.db
 
 # CI jest machine-readable output
 Backend/jest-results.json
+
+# Runtime locale persistence
+storage/locale-profile.json

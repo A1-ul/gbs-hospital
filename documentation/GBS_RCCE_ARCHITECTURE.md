@@ -51,6 +51,26 @@ GBS-RCCE is a centralized, reusable enterprise middleware and governance engine 
 | `POST` | `/api/v1/rcce/developer/access-grants/request` | Developer | Submit time-bounded request for private data access |
 | `PATCH` | `/api/v1/rcce/developer/access-grants/:id/approve` | Non-Developer Admin | Approve sensitive access grant (self-approval blocked) |
 | `PATCH` | `/api/v1/rcce/developer/access-grants/:id/revoke` | Admins & Developer | Revoke sensitive access grant |
-| `GET` | `/api/v1/rcce/developer/configs` | Admins & Developer | List authorized system configurations |
-| `PUT` | `/api/v1/rcce/developer/configs/:key` | Developer / Admin | Upsert system configuration |
-| `POST` | `/api/v1/rcce/developer/maintenance` | Developer / Admin | Toggle authorized system maintenance mode |
+| `GET` | `/api/v1/rcce/developer/configs` | Developer Only | List authorized system configurations |
+| `PUT` | `/api/v1/rcce/developer/configs/:key` | Developer Only | Upsert system configuration |
+| `POST` | `/api/v1/rcce/developer/maintenance` | Developer Only | Toggle authorized system maintenance mode |
+
+## 4. Full Hospital Module Coverage & Specialized Catalogue Codes (File 3 Upgrade)
+
+- **100% Active Backend Controller Coverage:** All active clinical, financial, administrative, and international controllers — including `payments`, `icu`, `clinical-safety`, `eye-clinic`, `dental`, `documents`, `meetings`, `facility`, `ai-clinical`, and `international` — emit canonical `res.rcceSuccess(...)` catalogue codes and publish persisted `SystemEvent` / real-time SSE notifications.
+- **Hospital Domain Codes (`Backend/src/core/gbs-rcce.bootstrap.js`):**
+  `PATIENT_REGISTERED`, `PATIENT_ADMITTED`, `PRESCRIPTION_DISPENSED`, `LAB_RESULTS_RELEASED`, `RADIOLOGY_REPORT_FINALIZED`, `SURGERY_BOOKED`, `EMERGENCY_DISPATCHED`, `CLAIM_SUBMITTED`, `PAYMENT_INITIATED`, `PAYMENT_REFUNDED`, `ICU_VITALS_RECORDED`, `ICU_CRITICAL_ALERT`, `CLINICAL_SAFETY_ALERT`, `CLINICAL_OVERRIDE_RECORDED`, `DENTAL_RECORD_SAVED`, `EYE_EXAM_RECORDED`, `DOCUMENT_STORED`, `MEETING_SCHEDULED`, `FACILITY_TASK_LOGGED`, `CLINICAL_ADVISORY_RECORDED`, `LOCALE_PROFILE_UPDATED`.
+- **Hardened SHA-256 Audit Verification (`enterprise-framework/gbs-rcce/audit.engine.js`):**
+  `verifyIntegrity()` verifies 64-character SHA-256 format on both `integrityHash` and `previousHash`, rejects cyclic or malformed links, and reports `verifiedCount`, `hashedCount`, and `chainedLinksVerified`.
+
+## 5. Production & 10-Entry Demo Trial Parity (`demo-quota.middleware.js`)
+
+- Supervised non-Developer training sessions (`isDemoSession === true`, gated by `DEMO_MODE_ENABLED=true`) execute real production PostgreSQL workflows and GBS-RCCE responses for up to **10 write entries** (`X-Demo-Mode`, `X-Demo-Entries-Used`, `X-Demo-Entries-Limit`, `X-Demo-Entries-Remaining`).
+- Failed validation writes (4xx) do not consume trial entries; read-only `GET` requests remain unlimited; the 11th write returns HTTP `403 DEMO_TRIAL_LIMIT_REACHED`.
+- `DEVELOPER` sessions are strictly blocked from demo mode (`403 FORBIDDEN_DEVELOPER_DEMO`), and real authenticated production accounts are never capped.
+
+## 6. Frontend Live Feedback Brain & 8-Tab Developer Control Console
+
+- **`SystemFeedbackBrain.jsx`:** Preserves and displays `code` and `requestId` from every GBS-RCCE envelope across toasts and the collapsible live command-response ledger, with multilingual empty-state support (`"No records available"`).
+- **`RcceDeveloperConsole.jsx`:** Exposes all 8 Developer RCCE governance views (`OVERVIEW`, `PRIVACY_GRANTS`, `PERMISSIONS`, `EVENTS`, `CATALOGUE`, `CONFIGS`, `ERRORS`, `AUDITS`) with zero hover tooltips (`0` `title=` attributes).
+- **Automated Verification Suites:** `phase25.gbs_rcce_engine.test.js`, `phase34.demo_10_entry_quota_and_rcce.test.js`, `phase40.file3_rcce_full_module_coverage.test.js`, and Frontend Smoke Tests #6 & #11.

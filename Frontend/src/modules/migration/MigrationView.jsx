@@ -38,6 +38,7 @@ export default function MigrationView({ onNavigateDetail }) {
   // Template Save State
   const [saveTemplateName, setSaveTemplateName] = useState('');
   const [duplicateStrategy, setDuplicateStrategy] = useState('SKIP');
+  const [pendingRollbackJobId, setPendingRollbackJobId] = useState(null);
 
   useEffect(() => {
     fetchCatalogs();
@@ -198,13 +199,17 @@ export default function MigrationView({ onNavigateDetail }) {
     }
   };
 
-  // 5. Atomic Rollback
-  const handleRollback = async (jobId) => {
+  // 5. Atomic Rollback (Accessible In-App Confirmation — Zero Native Browser Popups)
+  const handleRollback = (jobId) => {
     const targetId = jobId || (activeJob && activeJob.id);
     if (!targetId) return;
-    if (!window.confirm('CAUTION: Are you sure you want to execute an ATOMIC ROLLBACK? All database entities created by this migration job will be permanently reverted.')) {
-      return;
-    }
+    setPendingRollbackJobId(targetId);
+  };
+
+  const executeConfirmedRollback = async () => {
+    const targetId = pendingRollbackJobId;
+    if (!targetId) return;
+    setPendingRollbackJobId(null);
     setLoading(true);
     setFeedback(null);
     try {
@@ -314,6 +319,35 @@ export default function MigrationView({ onNavigateDetail }) {
           <button onClick={() => setFeedback(null)} className="text-slate-400 hover:text-white">
             <X className="w-4 h-4" />
           </button>
+        </div>
+      )}
+
+      {/* In-App Atomic Rollback Confirmation Banner */}
+      {pendingRollbackJobId && (
+        <div role="alert" className="p-4 rounded-xl border border-red-500/60 bg-red-950/60 text-red-100 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <ShieldAlert className="w-5 h-5 text-red-400 flex-shrink-0" />
+            <div className="text-sm">
+              <strong>Confirm Atomic Rollback:</strong> All database entities created by this migration job will be safely reverted in PostgreSQL.
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={executeConfirmedRollback}
+              disabled={loading}
+              className="px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-bold"
+            >
+              Confirm Rollback
+            </button>
+            <button
+              type="button"
+              onClick={() => setPendingRollbackJobId(null)}
+              className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-600"
+            >
+              Cancel
+            </button>
+          </div>
         </div>
       )}
 

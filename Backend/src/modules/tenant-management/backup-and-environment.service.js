@@ -31,7 +31,7 @@ const PERMANENT_SYSTEM_ACCOUNTS = Object.freeze([
 const PRODUCTION_PURGE_AUTH_TOKEN = "AUTHORIZE_PRODUCTION_TEST_PURGE";
 
 /**
- * Authoritative parent-first list of all 124 Prisma models in schema.prisma
+ * Authoritative parent-first list of all 126 Prisma models in schema.prisma
  * Ensures complete SHA-256 verified backups and safe non-destructive restores.
  */
 const FULL_BACKUP_MODEL_LIST = Object.freeze([

@@ -282,6 +282,26 @@ export default function PatientPortalView({ onNavigateDetail }) {
           <button type="button" onClick={loadPortal} className="btn-outline-gold" style={{ fontSize: '0.78rem' }}>
             <RefreshCw size={14} /> Refresh My Records
           </button>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+            <button
+              type="button"
+              onClick={() => {
+                if (pat?.id && window.gbsOpenPatientMembershipCard) {
+                  window.gbsOpenPatientMembershipCard(pat.id);
+                } else if (window.gbsOpenMyMembershipCard) {
+                  window.gbsOpenMyMembershipCard();
+                }
+              }}
+              aria-label="Generate and Print My Official Hospital Registration ID Card"
+              className="btn-gold"
+              style={{ fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+            >
+              <CreditCard size={14} /> My Hospital ID Card
+            </button>
+            <button type="button" onClick={loadPortal} className="btn-outline-gold" style={{ fontSize: '0.78rem' }}>
+              <RefreshCw size={14} /> Refresh My Records
+            </button>
+          </div>
         </div>
       </div>
 

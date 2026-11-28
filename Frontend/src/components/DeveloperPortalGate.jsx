@@ -23,7 +23,7 @@ export default function DeveloperPortalGate({ onDeveloperAuthenticated, onExitPo
     try {
       const auth = await api.login(email.trim(), password, { deviceFingerprint });
       if (!auth?.user || auth.user.role !== 'DEVELOPER') {
-        await api.logout().catch(() => {});
+        await api.logout().catch(() => { });
         localStorage.removeItem('gbs_token');
         localStorage.removeItem('gbs_user');
         setError('Access denied. This unlisted portal requires verified Root Developer authority.');
@@ -158,11 +158,33 @@ export default function DeveloperPortalGate({ onDeveloperAuthenticated, onExitPo
           )}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
           <div
             style={{
-              width: '62px',
-              height: '62px',
+              width: '54px',
+              height: '54px',
+              minWidth: '54px',
+              borderRadius: '10px',
+              overflow: 'hidden',
+              border: '2px solid var(--gold-400)',
+              background: '#091830',
+              padding: '2px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0
+            }}
+          >
+            <img
+              src="/gbs-official-logo.png"
+              alt="GBS Official Company Logo"
+              style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', borderRadius: '6px' }}
+            />
+          </div>
+          <div
+            style={{
+              width: '54px',
+              height: '54px',
               borderRadius: '50%',
               overflow: 'hidden',
               border: '2px solid var(--gold-400)',
@@ -179,7 +201,7 @@ export default function DeveloperPortalGate({ onDeveloperAuthenticated, onExitPo
             />
           </div>
           <div>
-            <h1 className="header-3d" style={{ fontSize: '1.35rem', margin: 0 }}>
+            <h1 className="header-3d" style={{ fontSize: '1.3rem', margin: 0 }}>
               GBS Developer Control Center
             </h1>
             <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '4px 0 0' }}>

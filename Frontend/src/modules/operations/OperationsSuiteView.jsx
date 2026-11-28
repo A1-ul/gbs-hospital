@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../services/api.service';
-import { Video, FileText, Wrench, PlusCircle, RefreshCw, RotateCcw, Send, Archive, Eye } from 'lucide-react';
+import { Video, Phone, FileText, Wrench, PlusCircle, RefreshCw, RotateCcw, Send, Archive, Eye } from 'lucide-react';
 
-export default function OperationsSuiteView({ onNavigateDetail }) {
+export default function OperationsSuiteView({ onNavigateDetail, onOpenLiveMediaRoom }) {
   const openDetail = (payload) => {
     const fn = onNavigateDetail || (typeof window !== 'undefined' ? window.gbsNavigateDetail : null);
     if (typeof fn === 'function') fn(payload);
+  };
+  const openLiveCameraRoom = (session) => {
+    const fn = onOpenLiveMediaRoom || (typeof window !== 'undefined' ? window.gbsOpenLiveMediaRoom : null);
+    if (typeof fn === 'function') fn(session);
   };
   const [tab, setTab] = useState('MEETINGS'); // MEETINGS | DOCUMENTS | FACILITY
   const [meetings, setMeetings] = useState([]);
@@ -82,11 +86,38 @@ export default function OperationsSuiteView({ onNavigateDetail }) {
     }
   };
 
-  const handleJoinMeeting = async (id) => {
+  const handleJoinMeeting = async (meetingOrId, callMode = 'VIDEO') => {
+    const targetId = typeof meetingOrId === 'object' ? (meetingOrId.meetingCode || meetingOrId.id) : meetingOrId;
+    const meetingTitle = typeof meetingOrId === 'object' ? meetingOrId.title : '';
     try {
-      const res = await api.joinMeeting(id);
-      setActiveRoom(res?.webrtcSession || null);
-      setFeedback({ type: 'success', msg: `Joined live meeting room ${res?.webrtcSession?.roomCode} (Screen Share Enabled).` });
+      let roomPayload = null;
+      try {
+        const commRes = await api.joinCommunicationRoom(targetId, { callMode });
+        roomPayload = {
+          ...(commRes?.room || {}),
+          ...(commRes?.webrtcSession || {}),
+          roomCode: commRes?.webrtcSession?.roomCode || commRes?.room?.roomCode || targetId,
+          callMode,
+          kind: 'CONFERENCE',
+          roomTitle: commRes?.room?.title || meetingTitle || `Conference ${targetId}`,
+        };
+      } catch (_fallbackErr) {
+        const res = await api.joinMeeting(targetId);
+        roomPayload = {
+          ...(res?.meeting || {}),
+          ...(res?.webrtcSession || {}),
+          roomCode: res?.webrtcSession?.roomCode || targetId,
+          callMode,
+          kind: 'CONFERENCE',
+          roomTitle: res?.meeting?.title || meetingTitle || `Conference ${targetId}`,
+        };
+      }
+      setActiveRoom(roomPayload);
+      openLiveCameraRoom(roomPayload);
+      setFeedback({
+        type: 'success',
+        msg: `Joined live camera conference room ${roomPayload.roomCode} (${callMode === 'VOICE' ? 'Voice Mode' : 'Live Camera + Audio'}).`,
+      });
       loadAll();
     } catch (err) {
       setFeedback({ type: 'error', msg: err.message });
@@ -193,9 +224,19 @@ export default function OperationsSuiteView({ onNavigateDetail }) {
                     Token: <span style={{ fontFamily: 'var(--font-mono)' }}>{activeRoom.roomToken}</span> • Participant: {activeRoom.joinedAs} • Screen Share: {activeRoom.screenShareEnabled ? 'Ready' : 'Off'}
                   </div>
                 </div>
-                <button type="button" onClick={() => handleEndMeeting(activeRoom.roomCode)} className="btn-danger" style={{ padding: '5px 12px', fontSize: '0.76rem' }}>
-                  End Meeting &amp; Save Minutes
-                </button>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    onClick={() => openLiveCameraRoom(activeRoom)}
+                    className="btn-gold"
+                    style={{ padding: '5px 12px', fontSize: '0.76rem', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
+                  >
+                    <Video size={13} /> Open Live Camera View
+                  </button>
+                  <button type="button" onClick={() => handleEndMeeting(activeRoom.roomCode)} className="btn-danger" style={{ padding: '5px 12px', fontSize: '0.76rem' }}>
+                    End Meeting &amp; Save Minutes
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -257,9 +298,14 @@ export default function OperationsSuiteView({ onNavigateDetail }) {
                             <Eye size={11} /> Details
                           </button>
                           {m.status !== 'COMPLETED' && m.status !== 'CANCELLED' && (
-                            <button type="button" onClick={() => handleJoinMeeting(m.id)} className="btn-gold" style={{ padding: '3px 9px', fontSize: '0.72rem' }}>
-                              Join Room
-                            </button>
+                            <>
+                              <button type="button" onClick={() => handleJoinMeeting(m, 'VIDEO')} className="btn-gold" style={{ padding: '3px 9px', fontSize: '0.72rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                <Video size={11} /> Join Camera
+                              </button>
+                              <button type="button" onClick={() => handleJoinMeeting(m, 'VOICE')} className="btn-outline-gold" style={{ padding: '3px 9px', fontSize: '0.72rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                <Phone size={11} /> Voice
+                              </button>
+                            </>
                           )}
                           {m.status === 'LIVE' && (
                             <button type="button" onClick={() => handleEndMeeting(m.id)} className="btn-outline-gold" style={{ padding: '3px 9px', fontSize: '0.72rem' }}>

@@ -89,17 +89,49 @@ function createAuditEngine({ storageAdapter, logger }) {
     }
 
     async function verifyIntegrity(records = []) {
+        const SHA256_HEX = /^[a-f0-9]{64}$/;
         let valid = true;
         let brokenAtId = null;
+        let hashedCount = 0;
+        let chainedLinksVerified = 0;
+
+        const knownHashes = new Set();
         for (const rec of records) {
-            if (rec.integrityHash && !/^[a-f0-9]{64}$/.test(rec.integrityHash)) {
-                valid = false;
-                brokenAtId = rec.id;
-                break;
+            if (rec && rec.integrityHash && SHA256_HEX.test(rec.integrityHash)) {
+                knownHashes.add(rec.integrityHash);
+            }
+        }
+
+        for (const rec of records) {
+            if (!rec) continue;
+            if (rec.integrityHash) {
+                hashedCount += 1;
+                if (!SHA256_HEX.test(rec.integrityHash)) {
+                    valid = false;
+                    brokenAtId = rec.id || null;
+                    break;
+                }
+                if (rec.previousHash) {
+                    if (rec.previousHash === rec.integrityHash) {
+                        valid = false;
+                        brokenAtId = rec.id || null;
+                        break;
+                    }
+                    if (rec.previousHash !== "GENESIS" && !SHA256_HEX.test(rec.previousHash)) {
+                        valid = false;
+                        brokenAtId = rec.id || null;
+                        break;
+                    }
+                    if (rec.previousHash === "GENESIS" || knownHashes.has(rec.previousHash)) {
+                        chainedLinksVerified += 1;
+                    }
+                }
             }
         }
         return {
             verifiedCount: records.length,
+            hashedCount,
+            chainedLinksVerified,
             integrityIntact: valid,
             brokenAtId
         };

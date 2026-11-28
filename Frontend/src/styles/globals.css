@@ -1,57 +1,224 @@
-:root {
+:root,
+[data-theme="dark"] {
   --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --font-heading: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --font-body: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
-  /* GBS Modern Accessible Dark-Navy & Warm-Gold Design System */
-  --bg-dark: #070d19;
-  --bg-primary: #070d19;
-  --bg-secondary: #0f1b33;
-  --bg-card: rgba(15, 27, 49, 0.82);
-  --bg-card-hover: rgba(24, 42, 74, 0.92);
-  --bg-glass: rgba(12, 22, 42, 0.72);
-  --bg-surface: rgba(15, 27, 49, 0.82);
-  --bg-surface-elevated: rgba(24, 42, 74, 0.92);
-  --bg-surface-hover: rgba(30, 52, 90, 0.95);
+  /* Official GBS Brand Standardisation — Midnight Navy & Antique/Champagne Gold */
+  --bg-dark: #091830;
+  --bg-primary: #091830;
+  --bg-secondary: #0F2342;
+  --bg-card: rgba(13, 30, 58, 0.88);
+  --bg-card-hover: rgba(19, 41, 78, 0.94);
+  --bg-glass: rgba(9, 24, 48, 0.84);
+  --bg-surface: rgba(13, 30, 58, 0.88);
+  --bg-surface-elevated: rgba(19, 41, 78, 0.94);
+  --bg-surface-hover: rgba(25, 52, 96, 0.96);
+  --bg-nav: #091830;
+  --bg-input: rgba(9, 24, 48, 0.92);
 
-  --border-color: rgba(212, 175, 55, 0.24);
-  --border-glow: rgba(212, 175, 55, 0.45);
-  --border-gold: rgba(212, 175, 55, 0.34);
-  --border-gold-strong: rgba(244, 224, 123, 0.65);
-  --border-subtle: rgba(255, 255, 255, 0.10);
+  --border-color: rgba(194, 155, 79, 0.34);
+  --border-glow: rgba(231, 207, 136, 0.58);
+  --border-gold: rgba(194, 155, 79, 0.48);
+  --border-gold-strong: rgba(231, 207, 136, 0.78);
+  --border-subtle: rgba(186, 164, 121, 0.22);
 
-  --gold-primary: #E0B843;
-  --gold-light: #F7E58E;
-  --gold-dark: #B68C16;
-  --gold-500: #E0B843;
-  --gold-400: #F7E58E;
-  --gold-300: #FFF3B8;
-  --gold-glow: rgba(224, 184, 67, 0.20);
+  --gold-primary: #C29B4F;
+  --gold-light: #E7CF88;
+  --gold-dark: #9B7834;
+  --gold-500: #C29B4F;
+  --gold-400: #E7CF88;
+  --gold-300: #F2DFAC;
+  --gold-muted: #BAA479;
+  --gold-glow: rgba(194, 155, 79, 0.22);
 
   --cyan-accent: #38BDF8;
   --blue-accent: #60A5FA;
-  --green-success: #22C55E;
-  --red-danger: #EF4444;
-  --amber-warning: #F59E0B;
-  --status-online: #22C55E;
-  --status-warning: #F59E0B;
-  --status-danger: #EF4444;
-  --status-info: #38BDF8;
+  --green-success: #34D399;
+  --red-danger: #FCA5A5;
+  --amber-warning: #FCD34D;
+  --status-online: #34D399;
+  --status-warning: #FCD34D;
+  --status-danger: #FCA5A5;
+  --status-info: #7DD3FC;
 
-  --text-main: #F8FAFC;
-  --text-muted: #CBD5E1;
-  --text-dim: #94A3B8;
-  --text-gold: #F7E58E;
+  --text-main: #F7F5EF;
+  --text-muted: #D8D2C5;
+  --text-dim: #BAA479;
+  --text-gold: #E7CF88;
+  --text-on-gold: #091830;
+  --role-accent: #C29B4F;
 
   --radius-sm: 10px;
   --radius-md: 16px;
   --radius-lg: 22px;
 
-  --shadow-glow: 0 0 24px rgba(224, 184, 67, 0.16);
-  --shadow-card: 0 12px 32px rgba(0, 0, 0, 0.45);
-  --shadow-gold: 0 8px 24px -4px rgba(224, 184, 67, 0.30);
+  --shadow-glow: 0 0 24px rgba(194, 155, 79, 0.18);
+  --shadow-card: 0 12px 32px rgba(4, 10, 22, 0.48);
+  --shadow-gold: 0 8px 24px -4px rgba(194, 155, 79, 0.34);
   --transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Official GBS Light Mode — Warm Ivory (#F7F5EF) & White Reading Areas + Midnight Navy (#091830) Nav + Charcoal (#1B1A1B) Text */
+[data-theme="light"] {
+  --bg-dark: #F7F5EF;
+  --bg-primary: #F7F5EF;
+  --bg-secondary: #EFECE3;
+  --bg-card: rgba(255, 255, 255, 0.96);
+  --bg-card-hover: #FFFFFF;
+  --bg-glass: rgba(247, 245, 239, 0.96);
+  --bg-surface: #FFFFFF;
+  --bg-surface-elevated: #F7F5EF;
+  --bg-surface-hover: #EFECE3;
+  --bg-nav: #091830;
+  --bg-input: #FFFFFF;
+
+  --border-color: rgba(194, 155, 79, 0.55);
+  --border-glow: #C29B4F;
+  --border-gold: #C29B4F;
+  --border-gold-strong: #9B7834;
+  --border-subtle: rgba(9, 24, 48, 0.15);
+
+  --gold-primary: #C29B4F;
+  --gold-light: #E7CF88;
+  --gold-dark: #745418;
+  --gold-500: #C29B4F;
+  --gold-400: #745418;
+  --gold-300: #091830;
+  --gold-muted: #6C5530;
+  --gold-glow: rgba(194, 155, 79, 0.18);
+
+  --cyan-accent: #0369A1;
+  --blue-accent: #1D4ED8;
+  --green-success: #047857;
+  --red-danger: #B91C1C;
+  --amber-warning: #92400E;
+  --status-online: #047857;
+  --status-warning: #92400E;
+  --status-danger: #B91C1C;
+  --status-info: #0369A1;
+
+  --text-main: #1B1A1B;
+  --text-muted: #333B48;
+  --text-dim: #4A5260;
+  --text-gold: #745418;
+  --text-on-gold: #091830;
+
+  --shadow-glow: 0 0 18px rgba(194, 155, 79, 0.22);
+  --shadow-card: 0 8px 24px rgba(9, 24, 48, 0.09);
+  --shadow-gold: 0 6px 18px -4px rgba(194, 155, 79, 0.35);
+}
+
+/* Official GBS High-Contrast Accessibility Mode (WCAG 2.2 AAA Target >= 7:1) */
+[data-theme="high-contrast"] {
+  --bg-dark: #050D1C;
+  --bg-primary: #050D1C;
+  --bg-secondary: #091830;
+  --bg-card: #091830;
+  --bg-card-hover: #0F254A;
+  --bg-glass: #091830;
+  --bg-surface: #091830;
+  --bg-surface-elevated: #0F254A;
+  --bg-surface-hover: #163366;
+  --bg-nav: #050D1C;
+  --bg-input: #050D1C;
+
+  --border-color: #E7CF88;
+  --border-glow: #FFE07D;
+  --border-gold: #E7CF88;
+  --border-gold-strong: #FFE07D;
+  --border-subtle: #BAA479;
+
+  --gold-primary: #E7CF88;
+  --gold-light: #FFE07D;
+  --gold-dark: #C29B4F;
+  --gold-500: #E7CF88;
+  --gold-400: #FFE07D;
+  --gold-300: #FFF3C4;
+  --gold-muted: #E7CF88;
+  --gold-glow: rgba(231, 207, 136, 0.28);
+
+  --cyan-accent: #7DD3FC;
+  --blue-accent: #93C5FD;
+  --green-success: #6EE7B7;
+  --red-danger: #FCA5A5;
+  --amber-warning: #FDE047;
+  --status-online: #6EE7B7;
+  --status-warning: #FDE047;
+  --status-danger: #FCA5A5;
+  --status-info: #7DD3FC;
+
+  --text-main: #FFFFFF;
+  --text-muted: #F7F5EF;
+  --text-dim: #E7CF88;
+  --text-gold: #FFE07D;
+  --text-on-gold: #050D1C;
+}
+
+/* Subtle Per-Role Accent Variations (Unified Midnight Navy & Gold Brand Identity Preserved) */
+[data-role="ADMINISTRATOR"] {
+  --role-accent: #C29B4F;
+}
+
+[data-role="HOSPITAL_DIRECTOR"] {
+  --role-accent: #E7CF88;
+}
+
+[data-role="DEVELOPER"] {
+  --role-accent: #C29B4F;
+}
+
+[data-role="DOCTOR"] {
+  --role-accent: #38BDF8;
+}
+
+[data-role="SURGEON"] {
+  --role-accent: #60A5FA;
+}
+
+[data-role="DENTIST"] {
+  --role-accent: #2DD4BF;
+}
+
+[data-role="EYE_DOCTOR"] {
+  --role-accent: #818CF8;
+}
+
+[data-role="RADIOLOGIST"] {
+  --role-accent: #A78BFA;
+}
+
+[data-role="NURSE"] {
+  --role-accent: #34D399;
+}
+
+[data-role="PHARMACIST"] {
+  --role-accent: #10B981;
+}
+
+[data-role="LAB_TECHNICIAN"] {
+  --role-accent: #22D3EE;
+}
+
+[data-role="RECEPTIONIST"] {
+  --role-accent: #E7CF88;
+}
+
+[data-role="FOLDER_RETRIEVER"] {
+  --role-accent: #BAA479;
+}
+
+[data-role="ACCOUNTANT"] {
+  --role-accent: #C29B4F;
+}
+
+[data-role="HR_MANAGER"] {
+  --role-accent: #F59E0B;
+}
+
+[data-role="PATIENT"] {
+  --role-accent: #34D399;
 }
 
 * {
@@ -61,13 +228,24 @@
   font-family: var(--font-sans);
 }
 
+/* Accessible Keyboard Focus Indicator (WCAG 2.2 AA — Never Colour Alone) */
+:focus-visible {
+  outline: 3px solid var(--gold-primary) !important;
+  outline-offset: 2px;
+}
+
+[data-theme="high-contrast"] :focus-visible {
+  outline: 3px solid #FFE07D !important;
+  outline-offset: 3px;
+}
+
 html,
 body {
   background-color: var(--bg-dark);
   background-image:
-    radial-gradient(circle at 12% 18%, rgba(224, 184, 67, 0.08) 0%, transparent 42%),
-    radial-gradient(circle at 88% 82%, rgba(56, 189, 248, 0.08) 0%, transparent 42%),
-    linear-gradient(180deg, #050a14 0%, #091326 100%);
+    radial-gradient(circle at 12% 18%, rgba(194, 155, 79, 0.10) 0%, transparent 42%),
+    radial-gradient(circle at 88% 82%, rgba(186, 164, 121, 0.08) 0%, transparent 42%),
+    linear-gradient(180deg, #091830 0%, #0D2040 100%);
   color: var(--text-main);
   font-family: var(--font-body);
   line-height: 1.6;
@@ -75,6 +253,22 @@ body {
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+[data-theme="light"] body,
+[data-theme="light"] {
+  background-color: #F7F5EF;
+  background-image:
+    radial-gradient(circle at 12% 18%, rgba(194, 155, 79, 0.10) 0%, transparent 46%),
+    linear-gradient(180deg, #F7F5EF 0%, #EFECE3 100%);
+  color: #1B1A1B;
+}
+
+[data-theme="high-contrast"] body,
+[data-theme="high-contrast"] {
+  background-color: #050D1C;
+  background-image: none;
+  color: #FFFFFF;
 }
 
 h1,
@@ -103,14 +297,18 @@ h6 {
   letter-spacing: 0.02em;
 }
 
-/* Full-page Real-Life Hospital Dashboard Background Layer with Obsidian Navy Tint */
+/* Full-page Real-Life Hospital Dashboard Background Layer — Photos Strictly Preserved Untouched */
 .dashboard-bg-stage {
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
-  background-color: #060c18;
+  background-color: #091830;
+}
+
+[data-theme="light"] .dashboard-bg-stage {
+  background-color: #F7F5EF;
 }
 
 .dashboard-bg-image {
@@ -120,18 +318,33 @@ h6 {
   height: 100%;
   object-fit: cover;
   object-position: center;
-  opacity: 0.38;
-  filter: contrast(1.08) saturate(1.12) brightness(0.92);
+  opacity: 0.36;
   transition: opacity 0.45s ease-in-out, transform 0.6s ease;
+}
+
+[data-theme="light"] .dashboard-bg-image {
+  opacity: 0.18;
+}
+
+[data-theme="high-contrast"] .dashboard-bg-image {
+  opacity: 0.10;
 }
 
 .dashboard-bg-scrim {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 20%, rgba(6, 12, 24, 0.42) 0%, rgba(6, 12, 24, 0.72) 65%, rgba(4, 8, 16, 0.92) 100%);
+  background: radial-gradient(circle at 50% 20%, rgba(9, 24, 48, 0.48) 0%, rgba(9, 24, 48, 0.78) 65%, rgba(9, 24, 48, 0.94) 100%);
 }
 
-/* Modern Navy Glassmorphism Surfaces */
+[data-theme="light"] .dashboard-bg-scrim {
+  background: linear-gradient(180deg, rgba(247, 245, 239, 0.84) 0%, rgba(247, 245, 239, 0.92) 65%, rgba(247, 245, 239, 0.97) 100%);
+}
+
+[data-theme="high-contrast"] .dashboard-bg-scrim {
+  background: rgba(5, 13, 28, 0.92);
+}
+
+/* Official GBS Surfaces */
 .glass-panel {
   background: var(--bg-card);
   backdrop-filter: blur(16px);
@@ -142,48 +355,113 @@ h6 {
   transition: var(--transition);
 }
 
+[data-theme="high-contrast"] .glass-panel {
+  border-width: 2px;
+  border-color: #E7CF88;
+  box-shadow: none;
+}
+
 .glass-panel:hover {
   border-color: var(--border-glow);
-  box-shadow: 0 12px 34px rgba(2, 6, 23, 0.52), 0 0 18px rgba(212, 175, 55, 0.08);
+  box-shadow: 0 12px 34px rgba(9, 24, 48, 0.25), 0 0 18px rgba(194, 155, 79, 0.14);
 }
 
 .glass-panel-subtle {
-  background: rgba(11, 23, 44, 0.65);
+  background: var(--bg-glass);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
 }
 
-/* Modern Sleek Headings & Buttons */
+/* Official Midnight Navy Navigation Header (Preserved in Dark, Light & High Contrast) */
+header.glass-panel {
+  background: #091830 !important;
+  color: #F7F5EF !important;
+  border-color: #C29B4F !important;
+  border-bottom: 3px solid var(--role-accent, #C29B4F) !important;
+}
+
+[data-theme="light"] header.glass-panel {
+  --text-main: #F7F5EF;
+  --text-muted: #D8D2C5;
+  --text-dim: #BAA479;
+  --gold-400: #E7CF88;
+  --gold-300: #F2DFAC;
+  --border-subtle: rgba(186, 164, 121, 0.28);
+  --border-color: rgba(194, 155, 79, 0.45);
+  box-shadow: 0 8px 24px rgba(9, 24, 48, 0.24);
+}
+
+[data-theme="light"] header.glass-panel .btn-outline-gold {
+  background: rgba(19, 41, 78, 0.85);
+  color: #F7F5EF;
+  border-color: #C29B4F;
+}
+
+[data-theme="light"] header.glass-panel .btn-outline-gold:hover {
+  background: rgba(194, 155, 79, 0.26);
+  color: #FFFFFF;
+}
+
+/* Official Headings */
 .header-3d {
-  color: #FFF7CC;
+  color: #E7CF88;
   font-family: var(--font-heading);
   font-weight: 800;
   letter-spacing: -0.01em;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.65);
+  text-shadow: 0 2px 10px rgba(9, 24, 48, 0.65);
 }
 
 .header-3d-gold {
-  color: #F7E58E;
+  color: #E7CF88;
   font-family: var(--font-heading);
   font-weight: 800;
   letter-spacing: 0.01em;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+  text-shadow: 0 2px 10px rgba(9, 24, 48, 0.7);
+}
+
+[data-theme="light"] main .header-3d {
+  color: #091830;
+  text-shadow: none;
+}
+
+[data-theme="light"] main .header-3d-gold {
+  color: #745418;
+  text-shadow: none;
+}
+
+/* Preserve light text on dark photo hero banners in Light Mode */
+[data-theme="light"] main .glass-panel:has(> img[style*="position: absolute"]) .header-3d,
+[data-theme="light"] main .glass-panel:has(> img[style*="position: absolute"]) .header-3d-gold {
+  color: #E7CF88;
+  text-shadow: 0 2px 10px rgba(9, 24, 48, 0.8);
 }
 
 .header-3d-panel {
-  background: linear-gradient(180deg, rgba(22, 38, 68, 0.90) 0%, rgba(12, 22, 42, 0.95) 100%);
-  border: 1px solid rgba(247, 229, 142, 0.38);
+  background: linear-gradient(180deg, rgba(16, 36, 70, 0.92) 0%, rgba(9, 24, 48, 0.96) 100%);
+  border: 1px solid rgba(231, 207, 136, 0.42);
   border-radius: 16px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 32px rgba(4, 10, 22, 0.55), inset 0 1px 0 rgba(247, 245, 239, 0.08);
+}
+
+[data-theme="light"] main .header-3d-panel {
+  background: linear-gradient(180deg, #FFFFFF 0%, #F7F5EF 100%);
+  border: 1.5px solid #C29B4F;
+  box-shadow: 0 8px 24px rgba(9, 24, 48, 0.08);
 }
 
 .gold-gradient-text {
-  background: linear-gradient(135deg, #FFF3B8 0%, #E0B843 55%, #C89B1E 100%);
+  background: linear-gradient(135deg, #E7CF88 0%, #C29B4F 65%, #BAA479 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   font-family: var(--font-heading);
+}
+
+[data-theme="light"] main .gold-gradient-text {
+  background: none;
+  -webkit-text-fill-color: #091830;
+  color: #091830;
 }
 
 .cyan-gradient-text {
@@ -192,14 +470,14 @@ h6 {
   -webkit-text-fill-color: transparent;
 }
 
-/* Modern Pill & Action Buttons */
+/* Official Antique & Champagne Gold Action Buttons (Midnight Navy Text -> >= 7:1 Contrast) */
 .btn-gold,
 .btn-primary {
-  background: linear-gradient(135deg, #F7E58E 0%, #E0B843 60%, #C69A1A 100%);
-  color: #070D19;
-  font-weight: 700;
+  background: linear-gradient(135deg, #E7CF88 0%, #C29B4F 72%, #B28B40 100%);
+  color: #091830;
+  font-weight: 800;
   font-family: var(--font-sans);
-  border: 1px solid rgba(247, 229, 142, 0.75);
+  border: 1px solid #E7CF88;
   border-radius: var(--radius-sm);
   padding: 9px 18px;
   cursor: pointer;
@@ -209,15 +487,16 @@ h6 {
   gap: 8px;
   font-size: 0.875rem;
   transition: var(--transition);
-  box-shadow: 0 4px 14px rgba(224, 184, 67, 0.25);
+  box-shadow: 0 4px 14px rgba(194, 155, 79, 0.28);
   text-decoration: none;
 }
 
 .btn-gold:hover,
 .btn-primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 20px rgba(224, 184, 67, 0.42);
-  background: linear-gradient(135deg, #FFF5C0 0%, #F7E58E 50%, #E0B843 100%);
+  box-shadow: 0 8px 20px rgba(194, 155, 79, 0.45);
+  background: linear-gradient(135deg, #F2DFAC 0%, #E7CF88 55%, #C29B4F 100%);
+  color: #091830;
 }
 
 .btn-gold:active,
@@ -227,9 +506,9 @@ h6 {
 
 .btn-outline-gold,
 .btn-secondary {
-  background: rgba(15, 27, 49, 0.72);
-  color: var(--text-main);
-  border: 1px solid rgba(224, 184, 67, 0.28);
+  background: rgba(9, 24, 48, 0.78);
+  color: #F7F5EF;
+  border: 1px solid rgba(194, 155, 79, 0.52);
   font-weight: 600;
   font-family: var(--font-sans);
   border-radius: var(--radius-sm);
@@ -244,78 +523,148 @@ h6 {
   text-decoration: none;
 }
 
+[data-theme="light"] main .btn-outline-gold,
+[data-theme="light"] main .btn-secondary {
+  background: #FFFFFF;
+  color: #091830;
+  border: 1.5px solid #C29B4F;
+}
+
 .btn-outline-gold:hover,
 .btn-secondary:hover {
-  background: rgba(224, 184, 67, 0.16);
-  border-color: var(--gold-primary);
-  color: #FFF;
-  box-shadow: 0 4px 14px rgba(224, 184, 67, 0.16);
+  background: rgba(194, 155, 79, 0.20);
+  border-color: #E7CF88;
+  color: #FFFFFF;
+  box-shadow: 0 4px 14px rgba(194, 155, 79, 0.22);
   transform: translateY(-1px);
 }
 
+[data-theme="light"] main .btn-outline-gold:hover,
+[data-theme="light"] main .btn-secondary:hover {
+  background: #091830;
+  border-color: #091830;
+  color: #F7F5EF;
+}
+
 .btn-danger {
-  background: linear-gradient(135deg, #EF4444 0%, #B91C1C 100%);
-  color: #FFF;
-  border: 1px solid rgba(254, 202, 202, 0.35);
+  background: linear-gradient(135deg, #DC2626 0%, #991B1B 100%);
+  color: #FFFFFF;
+  border: 1px solid rgba(254, 202, 202, 0.45);
   border-radius: var(--radius-sm);
   padding: 8px 16px;
   cursor: pointer;
   font-weight: 700;
   font-family: var(--font-sans);
   font-size: 0.86rem;
-  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.32);
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.32);
   transition: var(--transition);
 }
 
 .btn-danger:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.48);
-  background: linear-gradient(135deg, #F87171 0%, #B91C1C 100%);
+  box-shadow: 0 6px 20px rgba(220, 38, 38, 0.48);
+  background: linear-gradient(135deg, #EF4444 0%, #B91C1C 100%);
 }
 
-/* Badges: GBS Hospital Enterprise Spectrum */
+/* Badges with Non-Colour Visual Signifiers (WCAG 2.2 AA — Never Colour Alone) */
 .badge {
   display: inline-flex;
   align-items: center;
+  gap: 4px;
   padding: 4px 10px;
   border-radius: 9999px;
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
 }
 
 .badge-gold {
-  background: rgba(212, 175, 55, 0.15);
-  color: var(--gold-primary);
-  border: 1px solid var(--border-color);
+  background: rgba(194, 155, 79, 0.20);
+  color: var(--text-gold);
+  border: 1px solid var(--border-gold);
+}
+
+.badge-gold::before {
+  content: '★ ';
+  font-size: 0.68em;
 }
 
 .badge-cyan {
-  background: rgba(0, 242, 254, 0.15);
-  color: var(--cyan-accent);
-  border: 1px solid rgba(0, 242, 254, 0.3);
+  background: rgba(56, 189, 248, 0.16);
+  color: var(--status-info);
+  border: 1px solid var(--status-info);
+}
+
+.badge-cyan::before {
+  content: '● ';
+  font-size: 0.68em;
 }
 
 .badge-success {
-  background: rgba(16, 185, 129, 0.15);
-  color: var(--green-success);
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: rgba(16, 185, 129, 0.16);
+  color: var(--status-online);
+  border: 1px solid var(--status-online);
+}
+
+.badge-success::before {
+  content: '✓ ';
+  font-weight: 900;
 }
 
 .badge-warning {
-  background: rgba(245, 158, 11, 0.15);
-  color: var(--amber-warning);
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  background: rgba(245, 158, 11, 0.16);
+  color: var(--status-warning);
+  border: 1px solid var(--status-warning);
+}
+
+.badge-warning::before {
+  content: '▲ ';
+  font-size: 0.7em;
 }
 
 .badge-danger {
-  background: rgba(239, 68, 68, 0.15);
-  color: var(--red-danger);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.16);
+  color: var(--status-danger);
+  border: 1px solid var(--status-danger);
 }
 
-/* GBS Hospital Enterprise Interactive Tab Bar & Tab Pills */
+.badge-danger::before {
+  content: '✕ ';
+  font-weight: 900;
+}
+
+[data-theme="light"] .badge-gold {
+  background: #F7F5EF;
+  color: #745418;
+  border-color: #C29B4F;
+}
+
+[data-theme="light"] .badge-cyan {
+  background: #E0F2FE;
+  color: #0369A1;
+  border-color: #0284C7;
+}
+
+[data-theme="light"] .badge-success {
+  background: #ECFDF5;
+  color: #047857;
+  border-color: #059669;
+}
+
+[data-theme="light"] .badge-warning {
+  background: #FEF3C7;
+  color: #92400E;
+  border-color: #B45309;
+}
+
+[data-theme="light"] .badge-danger {
+  background: #FEE2E2;
+  color: #B91C1C;
+  border-color: #DC2626;
+}
+
+/* GBS Interactive Tab Bar & Tab Pills (Midnight Navy Navigation + Antique Gold Active) */
 .dashboard-tab-bar {
   display: flex;
   gap: 10px;
@@ -323,10 +672,10 @@ h6 {
   align-items: center;
   margin-bottom: 20px;
   padding: 12px 14px;
-  background: rgba(8, 16, 32, 0.92);
-  border: 1px solid rgba(212, 175, 55, 0.28);
+  background: #091830;
+  border: 1px solid rgba(194, 155, 79, 0.45);
   border-radius: var(--radius-md);
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 10px 26px rgba(9, 24, 48, 0.32);
 }
 
 .dashboard-tab-pill {
@@ -338,27 +687,27 @@ h6 {
   font-size: 0.90rem;
   font-weight: 700;
   letter-spacing: 0.01em;
-  color: #E2E8F0;
-  background: rgba(15, 27, 49, 0.78);
-  border: 1px solid rgba(212, 175, 55, 0.18);
+  color: #F7F5EF;
+  background: rgba(19, 41, 78, 0.85);
+  border: 1px solid rgba(194, 155, 79, 0.28);
   cursor: pointer;
   transition: all 0.2s ease;
   user-select: none;
 }
 
 .dashboard-tab-pill:hover {
-  color: #F8FAFC;
-  background: rgba(212, 175, 55, 0.15);
-  border-color: rgba(212, 175, 55, 0.48);
+  color: #FFFFFF;
+  background: rgba(194, 155, 79, 0.24);
+  border-color: #E7CF88;
   transform: translateY(-1px);
 }
 
 .dashboard-tab-pill.active {
-  color: #060C18;
+  color: #091830;
   font-weight: 800;
-  background: linear-gradient(135deg, #F4E07B 0%, #D4AF37 65%, #AA820A 100%);
-  border-color: #F4E07B;
-  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.35);
+  background: linear-gradient(135deg, #E7CF88 0%, #C29B4F 72%, #B28B40 100%);
+  border-color: #E7CF88;
+  box-shadow: 0 4px 14px rgba(194, 155, 79, 0.38);
 }
 
 .dashboard-tab-badge {
@@ -371,17 +720,17 @@ h6 {
   border-radius: 999px;
   font-size: 0.68rem;
   font-weight: 800;
-  background: rgba(212, 175, 55, 0.2);
-  color: #F4E07B;
+  background: rgba(194, 155, 79, 0.24);
+  color: #E7CF88;
   font-variant-numeric: tabular-nums;
 }
 
 .dashboard-tab-pill.active .dashboard-tab-badge {
-  background: rgba(6, 12, 24, 0.85);
-  color: #F4E07B;
+  background: #091830;
+  color: #E7CF88;
 }
 
-/* Metric Cards with GBS Hospital 3D Gold Left Accent */
+/* Metric Cards with Antique Gold Left Accent */
 .metric-card {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -400,23 +749,18 @@ h6 {
   position: absolute;
   top: 0;
   left: 0;
-  width: 3px;
+  width: 4px;
   height: 100%;
-  background: linear-gradient(180deg, var(--gold-primary), transparent);
-  opacity: 0.65;
+  background: linear-gradient(180deg, #C29B4F, #E7CF88);
+  opacity: 0.85;
   transition: var(--transition);
 }
 
 .metric-card:hover {
   transform: translateY(-3px);
-  border-color: rgba(212, 175, 55, 0.48);
+  border-color: #C29B4F;
   background: var(--bg-card-hover);
-  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.55), 0 0 18px rgba(212, 175, 55, 0.16);
-}
-
-.metric-card:hover::before {
-  opacity: 1;
-  width: 4px;
+  box-shadow: 0 14px 32px rgba(9, 24, 48, 0.25), 0 0 18px rgba(194, 155, 79, 0.18);
 }
 
 .metric-value {
@@ -426,6 +770,7 @@ h6 {
   margin-top: 4px;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
+  color: var(--text-main);
 }
 
 /* Quick Command Cards */
@@ -441,8 +786,8 @@ h6 {
   gap: 12px;
   padding: 15px 16px;
   border-radius: 12px;
-  background: rgba(11, 22, 42, 0.82);
-  border: 1px solid rgba(212, 175, 55, 0.22);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   color: var(--text-main);
   text-align: left;
   cursor: pointer;
@@ -452,9 +797,9 @@ h6 {
 
 .quick-command-card:hover {
   transform: translateY(-3px);
-  background: rgba(20, 36, 66, 0.95);
-  border-color: var(--gold-primary);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45), 0 0 14px rgba(212, 175, 55, 0.18);
+  background: var(--bg-card-hover);
+  border-color: #C29B4F;
+  box-shadow: 0 10px 24px rgba(9, 24, 48, 0.22), 0 0 14px rgba(194, 155, 79, 0.20);
 }
 
 .quick-command-card:active {
@@ -468,20 +813,20 @@ h6 {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(212, 175, 55, 0.14);
-  border: 1px solid rgba(212, 175, 55, 0.32);
-  color: var(--gold-primary);
+  background: rgba(194, 155, 79, 0.18);
+  border: 1px solid rgba(194, 155, 79, 0.45);
+  color: var(--text-gold);
   flex-shrink: 0;
   transition: var(--transition);
 }
 
 .quick-command-card:hover .quick-command-icon {
-  background: linear-gradient(135deg, #D4AF37, #AA820A);
-  color: #060C18;
-  box-shadow: 0 0 12px rgba(212, 175, 55, 0.4);
+  background: linear-gradient(135deg, #E7CF88, #C29B4F);
+  color: #091830;
+  box-shadow: 0 0 12px rgba(194, 155, 79, 0.42);
 }
 
-/* Inputs & Form Fields (GBS Hospital Obsidian Navy) */
+/* Inputs & Form Fields (Midnight Navy in Dark / Crisp White & Charcoal in Light Mode) */
 .gbs-input,
 .gbs-select,
 .gbs-textarea,
@@ -491,13 +836,24 @@ textarea {
   width: 100%;
   padding: 9px 13px;
   border-radius: var(--radius-sm);
-  border: 1px solid rgba(212, 175, 55, 0.25);
-  background: rgba(6, 12, 24, 0.88);
+  border: 1px solid var(--border-gold);
+  background: var(--bg-input);
   color: var(--text-main);
   font-family: var(--font-body);
   font-size: 0.9rem;
   outline: none;
   transition: var(--transition);
+}
+
+[data-theme="light"] input::placeholder,
+[data-theme="light"] textarea::placeholder {
+  color: #555D6B;
+}
+
+[data-theme="high-contrast"] input,
+[data-theme="high-contrast"] select,
+[data-theme="high-contrast"] textarea {
+  border: 2px solid #E7CF88;
 }
 
 .gbs-input:focus,
@@ -507,19 +863,13 @@ input:focus,
 select:focus,
 textarea:focus {
   border-color: var(--gold-primary);
-  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.16);
+  box-shadow: 0 0 0 3px rgba(194, 155, 79, 0.25);
 }
 
-.gbs-input:hover:not(:focus),
-.gbs-select:hover:not(:focus),
-.gbs-textarea:hover:not(:focus) {
-  border-color: rgba(212, 175, 55, 0.45);
-}
-
-/* Custom Scrollbar with GBS Gold Accent */
+/* Custom Scrollbar with Official GBS Antique Gold */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
 }
 
 ::-webkit-scrollbar-track {
@@ -527,15 +877,15 @@ textarea:focus {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(212, 175, 55, 0.3);
-  border-radius: 3px;
+  background: rgba(194, 155, 79, 0.48);
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--gold-primary);
+  background: #C29B4F;
 }
 
-/* Data Table with Obsidian Navy & Gold Border Styling */
+/* Data Table — Official Midnight Navy Header + Warm Ivory/White Light Mode Rows */
 .data-table {
   width: 100%;
   border-collapse: collapse;
@@ -543,11 +893,11 @@ textarea:focus {
 }
 
 .data-table th {
-  background: rgba(15, 27, 49, 0.88);
-  color: var(--gold-light);
+  background: #091830;
+  color: #E7CF88;
   text-align: left;
   padding: 12px 14px;
-  border-bottom: 2px solid var(--border-gold-strong);
+  border-bottom: 2px solid #C29B4F;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -556,12 +906,70 @@ textarea:focus {
 
 .data-table td {
   padding: 12px 14px;
-  border-bottom: 1px solid rgba(212, 175, 55, 0.08);
+  border-bottom: 1px solid var(--border-subtle);
   color: var(--text-main);
 }
 
+[data-theme="light"] .data-table tbody tr:nth-child(even) td {
+  background: #F7F5EF;
+}
+
+[data-theme="light"] .data-table tbody tr:nth-child(odd) td {
+  background: #FFFFFF;
+}
+
 .data-table tr:hover td {
-  background: rgba(212, 175, 55, 0.08);
+  background: rgba(194, 155, 79, 0.14);
+}
+
+/* Light Mode Comprehensive Semantic Safeguards for Inline Dark Panels & Tailwind Slate Views */
+[data-theme="light"] main .glass-panel {
+  color: #1B1A1B;
+  border-color: rgba(194, 155, 79, 0.55);
+}
+
+[data-theme="light"] main .bg-slate-900,
+[data-theme="light"] main .bg-slate-900\/80,
+[data-theme="light"] main .bg-slate-950,
+[data-theme="light"] main .bg-slate-800,
+[data-theme="light"] main .bg-slate-800\/80 {
+  background-color: #FFFFFF !important;
+  color: #1B1A1B !important;
+  border-color: rgba(194, 155, 79, 0.55) !important;
+}
+
+[data-theme="light"] main .text-white,
+[data-theme="light"] main .text-slate-100,
+[data-theme="light"] main .text-slate-200 {
+  color: #091830 !important;
+}
+
+[data-theme="light"] main .text-slate-300,
+[data-theme="light"] main .text-slate-400,
+[data-theme="light"] main .text-slate-500 {
+  color: #333B48 !important;
+}
+
+[data-theme="light"] main .text-amber-300,
+[data-theme="light"] main .text-amber-400 {
+  color: #745418 !important;
+}
+
+[data-theme="light"] main .border-slate-800,
+[data-theme="light"] main .border-slate-700 {
+  border-color: rgba(194, 155, 79, 0.45) !important;
+}
+
+/* Preserve white/gold readability inside photographic hero overlays & Midnight Navy banners */
+[data-theme="light"] main .bg-gradient-to-r,
+[data-theme="light"] main .bg-gradient-to-r * {
+  color: #F7F5EF;
+}
+
+[data-theme="light"] footer {
+  background: #091830 !important;
+  color: #E7CF88 !important;
+  border-top: 2px solid #C29B4F !important;
 }
 
 /* Pulse animation for live online indicators */
@@ -589,45 +997,45 @@ textarea:focus {
   animation: pulseGlow 2s infinite ease-in-out;
 }
 
-/* Official GBS Gold Repeating Monogram Watermark (GBS Hospital Enterprise) */
+/* Official GBS Gold Repeating Monogram Watermark (Midnight Navy #091830 + Antique Gold #C29B4F) */
 .gbs-watermark-bg {
-  background-color: #060e1f;
+  background-color: #091830;
   background-image:
-    radial-gradient(circle at 50% 25%, rgba(212, 175, 55, 0.14) 0%, rgba(10, 22, 46, 0.45) 55%, rgba(4, 9, 20, 0.96) 100%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='136' height='96' viewBox='0 0 136 96'%3E%3Cg opacity='0.22'%3E%3Cpath d='M0 48 L68 0 L136 48 L68 96 Z' fill='none' stroke='%23D4AF37' stroke-width='0.55'/%3E%3Ctext x='34' y='28' text-anchor='middle' font-family='Times New Roman, Georgia, serif' font-weight='700' font-size='14' letter-spacing='1.5' fill='%23E6C15A'%3EGBS%3C/text%3E%3Ctext x='102' y='28' text-anchor='middle' font-family='Times New Roman, Georgia, serif' font-weight='700' font-size='14' letter-spacing='1.5' fill='%23E6C15A'%3EGBS%3C/text%3E%3Ctext x='68' y='53' text-anchor='middle' font-family='Times New Roman, Georgia, serif' font-weight='700' font-size='14' letter-spacing='1.5' fill='%23D4AF37'%3EGBS%3C/text%3E%3Ctext x='34' y='78' text-anchor='middle' font-family='Times New Roman, Georgia, serif' font-weight='700' font-size='14' letter-spacing='1.5' fill='%23E6C15A'%3EGBS%3C/text%3E%3Ctext x='102' y='78' text-anchor='middle' font-family='Times New Roman, Georgia, serif' font-weight='700' font-size='14' letter-spacing='1.5' fill='%23E6C15A'%3EGBS%3C/text%3E%3C/g%3E%3C/svg%3E");
+    radial-gradient(circle at 50% 25%, rgba(194, 155, 79, 0.16) 0%, rgba(9, 24, 48, 0.55) 55%, rgba(9, 24, 48, 0.96) 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='136' height='96' viewBox='0 0 136 96'%3E%3Cg opacity='0.22'%3E%3Cpath d='M0 48 L68 0 L136 48 L68 96 Z' fill='none' stroke='%23C29B4F' stroke-width='0.55'/%3E%3Ctext x='34' y='28' text-anchor='middle' font-family='Times New Roman, Georgia, serif' font-weight='700' font-size='14' letter-spacing='1.5' fill='%23E7CF88'%3EGBS%3C/text%3E%3Ctext x='102' y='28' text-anchor='middle' font-family='Times New Roman, Georgia, serif' font-weight='700' font-size='14' letter-spacing='1.5' fill='%23E7CF88'%3EGBS%3C/text%3E%3Ctext x='68' y='53' text-anchor='middle' font-family='Times New Roman, Georgia, serif' font-weight='700' font-size='14' letter-spacing='1.5' fill='%23C29B4F'%3EGBS%3C/text%3E%3Ctext x='34' y='78' text-anchor='middle' font-family='Times New Roman, Georgia, serif' font-weight='700' font-size='14' letter-spacing='1.5' fill='%23E7CF88'%3EGBS%3C/text%3E%3Ctext x='102' y='78' text-anchor='middle' font-family='Times New Roman, Georgia, serif' font-weight='700' font-size='14' letter-spacing='1.5' fill='%23E7CF88'%3EGBS%3C/text%3E%3C/g%3E%3C/svg%3E");
   background-repeat: repeat;
 }
 
 .gbs-watermark-banner {
-  background-color: rgba(15, 23, 42, 0.92);
+  background-color: #091830;
   background-image:
-    linear-gradient(90deg, rgba(120, 53, 15, 0.42), rgba(9, 17, 34, 0.88)),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='112' height='74' viewBox='0 0 112 74'%3E%3Cg opacity='0.18'%3E%3Cpath d='M0 37 L56 0 L112 37 L56 74 Z' fill='none' stroke='%23D4AF37' stroke-width='0.5'/%3E%3Ctext x='28' y='22' text-anchor='middle' font-family='Times New Roman, Georgia, serif' font-weight='700' font-size='11' letter-spacing='1.2' fill='%23F4D47A'%3EGBS%3C/text%3E%3Ctext x='84' y='22' text-anchor='middle' font-family='Times New Roman, Georgia, serif' font-weight='700' font-size='11' letter-spacing='1.2' fill='%23F4D47A'%3EGBS%3C/text%3E%3Ctext x='56' y='41' text-anchor='middle' font-family='Times New Roman, Georgia, serif' font-weight='700' font-size='11' letter-spacing='1.2' fill='%23D4AF37'%3EGBS%3C/text%3E%3Ctext x='28' y='60' text-anchor='middle' font-family='Times New Roman, Georgia, serif' font-weight='700' font-size='11' letter-spacing='1.2' fill='%23F4D47A'%3EGBS%3C/text%3E%3Ctext x='84' y='60' text-anchor='middle' font-family='Times New Roman, Georgia, serif' font-weight='700' font-size='11' letter-spacing='1.2' fill='%23F4D47A'%3EGBS%3C/text%3E%3C/g%3E%3C/svg%3E");
+    linear-gradient(90deg, rgba(194, 155, 79, 0.22), rgba(9, 24, 48, 0.92)),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='112' height='74' viewBox='0 0 112 74'%3E%3Cg opacity='0.18'%3E%3Cpath d='M0 37 L56 0 L112 37 L56 74 Z' fill='none' stroke='%23C29B4F' stroke-width='0.5'/%3E%3Ctext x='28' y='22' text-anchor='middle' font-family='Times New Roman, Georgia, serif' font-weight='700' font-size='11' letter-spacing='1.2' fill='%23E7CF88'%3EGBS%3C/text%3E%3Ctext x='84' y='22' text-anchor='middle' font-family='Times New Roman, Georgia, serif' font-weight='700' font-size='11' letter-spacing='1.2' fill='%23E7CF88'%3EGBS%3C/text%3E%3Ctext x='56' y='41' text-anchor='middle' font-family='Times New Roman, Georgia, serif' font-weight='700' font-size='11' letter-spacing='1.2' fill='%23C29B4F'%3EGBS%3C/text%3E%3Ctext x='28' y='60' text-anchor='middle' font-family='Times New Roman, Georgia, serif' font-weight='700' font-size='11' letter-spacing='1.2' fill='%23E7CF88'%3EGBS%3C/text%3E%3Ctext x='84' y='60' text-anchor='middle' font-family='Times New Roman, Georgia, serif' font-weight='700' font-size='11' letter-spacing='1.2' fill='%23E7CF88'%3EGBS%3C/text%3E%3C/g%3E%3C/svg%3E");
   background-repeat: repeat;
 }
 
-/* GBS Gold-Wine Onboarding Gradient (GBS Hospital Enterprise) */
+/* Official GBS Midnight Navy & Antique Gold Onboarding Surface (Standardised — Zero Off-Brand Wine) */
 .onboarding-gold-wine-gradient {
   min-height: 100vh;
   background:
-    radial-gradient(circle at 12% 15%, rgba(212, 175, 55, 0.38) 0%, transparent 48%),
-    radial-gradient(circle at 86% 18%, rgba(107, 29, 47, 0.55) 0%, transparent 50%),
-    radial-gradient(circle at 75% 85%, rgba(75, 78, 83, 0.52) 0%, transparent 48%),
-    linear-gradient(135deg, #3D2B1F 0%, #6B1D2F 28%, #4B4E53 62%, #4E342E 84%, #8E6E1E 100%);
-  color: #F8FAFC;
+    radial-gradient(circle at 12% 15%, rgba(194, 155, 79, 0.28) 0%, transparent 48%),
+    radial-gradient(circle at 86% 18%, rgba(231, 207, 136, 0.16) 0%, transparent 50%),
+    linear-gradient(135deg, #091830 0%, #0F2342 52%, #172F54 84%, #091830 100%);
+  color: #F7F5EF;
 }
 
 .onboarding-gold-wine-glass {
-  background: linear-gradient(155deg, rgba(30, 18, 24, 0.84) 0%, rgba(44, 46, 52, 0.86) 55%, rgba(56, 37, 28, 0.88) 100%);
+  background: linear-gradient(155deg, rgba(9, 24, 48, 0.94) 0%, rgba(15, 35, 66, 0.94) 100%);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(212, 175, 55, 0.42);
+  border: 1.5px solid #C29B4F;
   border-radius: var(--radius-lg);
-  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 22px 60px rgba(4, 10, 22, 0.65);
 }
 
 /* Mobile & Tablet Responsive Layout Safeguards */
 @media (max-width: 768px) {
+
   .data-table th,
   .data-table td {
     padding: 8px 10px;
@@ -655,8 +1063,8 @@ textarea:focus {
   body,
   * {
     font-family: 'Times New Roman', Times, Georgia, serif !important;
-    color: #000000 !important;
-    background: #ffffff !important;
+    color: #1B1A1B !important;
+    background: #FFFFFF !important;
     text-shadow: none !important;
   }
 }

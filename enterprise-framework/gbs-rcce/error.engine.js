@@ -12,6 +12,15 @@ Catalogue while routing full diagnostics ONLY to authorized developers.
 ================================================================================
 */
 
+function sanitizeDiagnosticText(raw) {
+    if (raw === undefined || raw === null) return null;
+    return String(raw)
+        .replace(/postgres(?:ql)?:\/\/[^\s"'`]+/gi, "postgresql://[REDACTED]")
+        .replace(/(password|passwd|pwd|secret|token|apikey|api_key)\s*[:=]\s*[^\s&;,"']+/gi, "$1=[REDACTED]")
+        .replace(/Bearer\s+[A-Za-z0-9._-]+/gi, "Bearer [REDACTED]")
+        .replace(/\b(sk_live|sk_test|pk_live|pk_test)_[A-Za-z0-9]+\b/gi, "[REDACTED_KEY]");
+}
+
 function classifyError(err) {
     if (!err) {
         return { category: "INTERNAL", code: "INTERNAL_ERROR", httpStatus: 500 };
@@ -21,8 +30,8 @@ function classifyError(err) {
     const rawCode = err.code || "";
     const status = err.statusCode || err.status || 500;
 
-    // Prisma / PostgreSQL connection or query errors
-    if (rawCode === "P1001" || rawCode === "P1002" || rawCode === "P1008" || rawCode === "ECONNREFUSED") {
+    // Prisma / PostgreSQL connection, pool timeout (P2024), or dropped server connection (P1017)
+    if (["P1001", "P1002", "P1008", "P1017", "P2024", "ECONNREFUSED"].includes(rawCode)) {
         return { category: "DATABASE", code: "DATABASE_ERROR", httpStatus: 503 };
     }
     if (rawCode === "P2002") {
@@ -103,8 +112,8 @@ function createErrorEngine({ catalogue, responseEngine, storageAdapter, eventEng
             code: def.code,
             httpStatus: classified.httpStatus,
             userMessage: safeUserMessage,
-            technicalMessage: (err && err.message) || def.message,
-            stackTrace: (err && err.stack) || null,
+            technicalMessage: sanitizeDiagnosticText((err && err.message) || def.message),
+            stackTrace: err && err.stack ? sanitizeDiagnosticText(err.stack) : null,
             errorCategory: classified.category,
             module: extractModule(req.originalUrl || req.path || ""),
             method: req.method || null,
@@ -181,4 +190,4 @@ function extractModule(urlPath = "") {
     return (firstSeg || "SYSTEM").toUpperCase();
 }
 
-module.exports = { createErrorEngine, classifyError };
+module.exports = { createErrorEngine, classifyError, sanitizeDiagnosticText };

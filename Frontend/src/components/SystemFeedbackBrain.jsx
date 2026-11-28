@@ -13,6 +13,7 @@ import {
   Brain,
   X,
 } from 'lucide-react';
+import { useLocale } from '../context/LocaleContext';
 
 /**
  * GBS Enterprise System Feedback Brain
@@ -28,6 +29,8 @@ export function emitBrainEvent(payload) {
         type: payload?.type || 'info',
         title: payload?.title || 'System Action',
         message: payload?.message || 'Action processed by GBS Core Engine.',
+        code: payload?.code || '',
+        requestId: payload?.requestId || '',
         endpoint: payload?.endpoint || '',
         method: payload?.method || '',
         status: payload?.status ?? null,
@@ -43,6 +46,7 @@ if (typeof window !== 'undefined') {
 }
 
 export default function SystemFeedbackBrain({ currentRole, activeModule }) {
+  const { t } = useLocale();
   const [events, setEvents] = useState([
     {
       id: 'boot-brain',
@@ -50,6 +54,8 @@ export default function SystemFeedbackBrain({ currentRole, activeModule }) {
       type: 'success',
       title: 'System Ready',
       message: 'Connected to hospital records — ready when you are.',
+      code: 'SUCCESS',
+      requestId: '',
       endpoint: '/api/v1/health',
       method: 'READY',
       status: 200,
@@ -170,12 +176,19 @@ export default function SystemFeedbackBrain({ currentRole, activeModule }) {
                 <div style={{ fontSize: '0.8rem', color: '#f5f5f4', marginTop: '3px', wordBreak: 'break-word' }}>
                   {toast.message}
                 </div>
-                <div style={{ fontSize: '0.68rem', color: '#d6d3d1', marginTop: '4px' }}>
-                  {toast.role?.replace(/_/g, ' ')} • {toast.timestamp}
+                <div style={{ fontSize: '0.68rem', color: '#d6d3d1', marginTop: '4px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                  <span>{toast.role?.replace(/_/g, ' ')} • {toast.timestamp}</span>
+                  {toast.code && (
+                    <span style={{ fontFamily: 'var(--font-mono)', color: text }}>{toast.code}</span>
+                  )}
+                  {toast.requestId && (
+                    <span style={{ fontFamily: 'var(--font-mono)' }}>Ref: {String(toast.requestId).slice(0, 8)}</span>
+                  )}
                 </div>
               </div>
               <button
                 type="button"
+                aria-label="Dismiss notification"
                 onClick={() => setToasts((prev) => prev.filter((item) => item.id !== toast.id))}
                 style={{ background: 'none', border: 'none', color: '#e7e5e4', cursor: 'pointer', padding: '2px' }}
               >
@@ -263,7 +276,7 @@ export default function SystemFeedbackBrain({ currentRole, activeModule }) {
             <div style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '5px', paddingRight: '4px' }}>
               {events.length === 0 ? (
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', padding: '12px', textAlign: 'center' }}>
-                  No command events in current buffer. Perform any action on any dashboard to inspect live responses.
+                  {t('detail.noRecords', 'No records available')}
                 </div>
               ) : (
                 events.map((ev) => {
@@ -284,12 +297,20 @@ export default function SystemFeedbackBrain({ currentRole, activeModule }) {
                         flexWrap: 'wrap',
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: '220px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: '220px', flexWrap: 'wrap' }}>
                         <span style={{ color: text, fontWeight: 800 }}>[{ev.method || ev.type.toUpperCase()}]</span>
+                        {ev.code && (
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.68rem', padding: '1px 5px', borderRadius: '4px', background: 'rgba(255,255,255,0.08)', color: text }}>
+                            {ev.code}
+                          </span>
+                        )}
                         <span style={{ color: '#fff', fontWeight: 700 }}>{ev.title}:</span>
                         <span style={{ color: '#e7e2d8' }}>{ev.message}</span>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-gold)', fontSize: '0.7rem' }}>
+                        {ev.requestId && (
+                          <span style={{ fontFamily: 'var(--font-mono)', color: '#d6d3d1' }}>#{String(ev.requestId).slice(0, 8)}</span>
+                        )}
                         <span>{ev.role}</span>
                         <span>•</span>
                         <span>{ev.module}</span>
@@ -297,7 +318,8 @@ export default function SystemFeedbackBrain({ currentRole, activeModule }) {
                         <span>{ev.timestamp}</span>
                         <button
                           type="button"
-                          onClick={() => handleCopyText(`${ev.title} - ${ev.message}`, 'Response Entry')}
+                          aria-label="Copy response entry"
+                          onClick={() => handleCopyText(`${ev.title} [${ev.code || 'INFO'}]${ev.requestId ? ` (${ev.requestId})` : ''} - ${ev.message}`, 'Response Entry')}
                           style={{ background: 'none', border: 'none', color: '#fde68a', cursor: 'pointer' }}
                         >
                           <Copy size={12} />

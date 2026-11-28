@@ -240,6 +240,23 @@ async function me(req, res, next) {
     }
 }
 
+async function myMembershipCard(req, res, next) {
+    try {
+        const membershipCardService = require("../../patients/services/membership-card.service");
+        const card = await membershipCardService.generateUserMembershipCard(
+            req.user.id,
+            req.user,
+            req.requestId
+        );
+        return res.rcceSuccess("MEMBERSHIP_CARD_GENERATED", card, {
+            httpStatus: 200,
+            message: `Your Official Hospital Membership ID Card (${card.cardSerial}) is ready.`
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
 module.exports = {
     signup,
     login,
@@ -252,5 +269,6 @@ module.exports = {
     developerMfaVerify,
     startDemoSession,
     demoQuota,
-    me
+    me,
+    myMembershipCard
 };

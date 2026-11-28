@@ -76,6 +76,139 @@ const HOSPITAL_CUSTOM_RESPONSES = Object.freeze({
         severity: "INFO",
         category: "CLAIMS",
         message: "Insurance claim submitted successfully."
+    },
+    PAYMENT_INITIATED: {
+        code: "PAYMENT_INITIATED",
+        httpStatus: 201,
+        severity: "INFO",
+        category: "PAYMENT",
+        message: "Payment request initiated. Awaiting verified provider or finance confirmation."
+    },
+    PAYMENT_REFUNDED: {
+        code: "PAYMENT_REFUNDED",
+        httpStatus: 200,
+        severity: "WARNING",
+        category: "PAYMENT",
+        message: "Authorized refund recorded and bill balances recalculated."
+    },
+    ICU_VITALS_RECORDED: {
+        code: "ICU_VITALS_RECORDED",
+        httpStatus: 201,
+        severity: "INFO",
+        category: "ICU",
+        message: "ICU vitals recorded successfully."
+    },
+    ICU_CRITICAL_ALERT: {
+        code: "ICU_CRITICAL_ALERT",
+        httpStatus: 201,
+        severity: "CRITICAL",
+        category: "ICU",
+        message: "Critical ICU alert triggered. Immediate clinical review required."
+    },
+    CLINICAL_SAFETY_ALERT: {
+        code: "CLINICAL_SAFETY_ALERT",
+        httpStatus: 201,
+        severity: "WARNING",
+        category: "CLINICAL_SAFETY",
+        message: "Patient safety alert recorded and active across clinical guardrails."
+    },
+    CLINICAL_OVERRIDE_RECORDED: {
+        code: "CLINICAL_OVERRIDE_RECORDED",
+        httpStatus: 201,
+        severity: "WARNING",
+        category: "CLINICAL_SAFETY",
+        message: "Clinical safety override recorded to immutable audit trail."
+    },
+    DENTAL_RECORD_SAVED: {
+        code: "DENTAL_RECORD_SAVED",
+        httpStatus: 201,
+        severity: "INFO",
+        category: "DENTAL",
+        message: "Dental record saved successfully."
+    },
+    EYE_EXAM_RECORDED: {
+        code: "EYE_EXAM_RECORDED",
+        httpStatus: 201,
+        severity: "INFO",
+        category: "EYE_CLINIC",
+        message: "Eye examination record saved successfully."
+    },
+    DOCUMENT_STORED: {
+        code: "DOCUMENT_STORED",
+        httpStatus: 201,
+        severity: "INFO",
+        category: "DOCUMENTS",
+        message: "Hospital document stored with integrity verification."
+    },
+    MEETING_SCHEDULED: {
+        code: "MEETING_SCHEDULED",
+        httpStatus: 201,
+        severity: "INFO",
+        category: "MEETINGS",
+        message: "Hospital online meeting scheduled successfully."
+    },
+    FACILITY_TASK_LOGGED: {
+        code: "FACILITY_TASK_LOGGED",
+        httpStatus: 201,
+        severity: "INFO",
+        category: "FACILITY",
+        message: "Facility management task logged successfully."
+    },
+    CLINICAL_ADVISORY_RECORDED: {
+        code: "CLINICAL_ADVISORY_RECORDED",
+        httpStatus: 201,
+        severity: "INFO",
+        category: "CLINICAL_DECISION_SUPPORT",
+        message: "Clinical advisory assessment recorded for licensed clinician review."
+    },
+    LOCALE_PROFILE_UPDATED: {
+        code: "LOCALE_PROFILE_UPDATED",
+        httpStatus: 200,
+        severity: "INFO",
+        category: "INTERNATIONAL",
+        message: "Hospital international country and language profile updated successfully."
+    },
+    CALL_INITIATED: {
+        code: "CALL_INITIATED",
+        httpStatus: 201,
+        severity: "INFO",
+        category: "COMMUNICATIONS",
+        message: "Call started — ringing the other person now."
+    },
+    CALL_ACCEPTED: {
+        code: "CALL_ACCEPTED",
+        httpStatus: 200,
+        severity: "INFO",
+        category: "COMMUNICATIONS",
+        message: "Call answered — connecting live audio and camera."
+    },
+    CALL_DECLINED: {
+        code: "CALL_DECLINED",
+        httpStatus: 200,
+        severity: "INFO",
+        category: "COMMUNICATIONS",
+        message: "Call was declined."
+    },
+    CALL_ENDED: {
+        code: "CALL_ENDED",
+        httpStatus: 200,
+        severity: "INFO",
+        category: "COMMUNICATIONS",
+        message: "Call ended safely."
+    },
+    CONFERENCE_JOINED: {
+        code: "CONFERENCE_JOINED",
+        httpStatus: 200,
+        severity: "INFO",
+        category: "COMMUNICATIONS",
+        message: "Joined live camera conference room."
+    },
+    MEMBERSHIP_CARD_GENERATED: {
+        code: "MEMBERSHIP_CARD_GENERATED",
+        httpStatus: 200,
+        severity: "INFO",
+        category: "MEMBERSHIP",
+        message: "Official Hospital Registration Membership ID Card generated successfully."
     }
 });
 

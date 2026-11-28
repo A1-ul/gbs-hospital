@@ -80,6 +80,13 @@ router.get(
     controller.getPatientDashboard
 );
 
+// Official Hospital Registration / Membership ID Card for Accepted Patient
+router.get(
+    "/:id/membership-card",
+    authorizeRoles(...PATIENT_VIEW_ROLES),
+    controller.getPatientMembershipCard
+);
+
 // Get Patient by ID or MRN
 router.get(
     "/:id",

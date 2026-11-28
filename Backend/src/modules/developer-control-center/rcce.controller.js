@@ -365,7 +365,7 @@ async function recordDeploymentCheckpoint(req, res, next) {
             actor: req.user,
             ipAddress: req.ip
         });
-        return res.rcceSuccess("RECORD_CREATED", result, { httpStatus: 201 });
+        return res.rcceSuccess("CREATED", result, { httpStatus: 201 });
     } catch (error) {
         next(error);
     }
@@ -446,6 +446,26 @@ async function getRollbackReadiness(req, res, next) {
     }
 }
 
+async function getDeploymentRegistry(req, res, next) {
+    try {
+        const result = await remoteOpsService.getDeploymentRegistry();
+        return res.rcceSuccess("SUCCESS", result);
+    } catch (error) {
+        next(error);
+    }
+}
+
+async function getWorkingSystemAudit(req, res, next) {
+    try {
+        const result = await remoteOpsService.evaluateWorkingSystemReadiness();
+        return res.rcceSuccess("SUCCESS", result, {
+            message: `12-Phase Working-System audit completed: ${result.verifiedCount}/${result.totalPhases} verified (${result.classification}).`
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
 module.exports = {
     getCatalogue,
     getNotifications,
@@ -480,5 +500,7 @@ module.exports = {
     rotateAndPruneLogs,
     listFeatureFlags,
     setFeatureFlag,
-    getRollbackReadiness
+    getRollbackReadiness,
+    getDeploymentRegistry,
+    getWorkingSystemAudit
 };

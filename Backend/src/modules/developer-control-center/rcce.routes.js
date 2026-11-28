@@ -94,5 +94,7 @@ router.post("/developer/remote/logs/rotate", developerSecurityGuard, controller.
 router.get("/developer/remote/feature-flags", developerSecurityGuard, controller.listFeatureFlags);
 router.put("/developer/remote/feature-flags/:flagKey", developerSecurityGuard, controller.setFeatureFlag);
 router.get("/developer/remote/rollback-readiness", developerSecurityGuard, controller.getRollbackReadiness);
+router.get("/developer/remote/deployment-registry", developerSecurityGuard, controller.getDeploymentRegistry);
+router.get("/developer/remote/working-system-audit", developerSecurityGuard, controller.getWorkingSystemAudit);
 
 module.exports = router;

@@ -37,7 +37,12 @@ const CANONICAL_EVENTS = Object.freeze({
     ACCESS_GRANT_APPROVED: "ACCESS_GRANT_APPROVED",
     ACCESS_GRANT_REVOKED: "ACCESS_GRANT_REVOKED",
     MAINTENANCE_MODE_CHANGED: "MAINTENANCE_MODE_CHANGED",
-    OPERATION_DENIED: "OPERATION_DENIED"
+    OPERATION_DENIED: "OPERATION_DENIED",
+    CALL_INITIATED: "CALL_INITIATED",
+    CALL_ACCEPTED: "CALL_ACCEPTED",
+    CALL_DECLINED: "CALL_DECLINED",
+    CALL_ENDED: "CALL_ENDED",
+    CONFERENCE_JOINED: "CONFERENCE_JOINED"
 });
 
 function createEventNotificationEngine({ storageAdapter, logger }) {
@@ -51,6 +56,42 @@ function createEventNotificationEngine({ storageAdapter, logger }) {
     function subscribeRealtime(client) {
         sseClients.add(client);
         return () => sseClients.delete(client);
+    }
+
+    function emitUserEvent(targetUserIds, eventName, data) {
+        if (!eventName || sseClients.size === 0) return 0;
+        const idSet = new Set(
+            (Array.isArray(targetUserIds) ? targetUserIds : [targetUserIds])
+                .filter(Boolean)
+                .map((id) => String(id))
+        );
+        if (idSet.size === 0) return 0;
+
+        const serialized = JSON.stringify(data || {});
+        let delivered = 0;
+
+        for (const client of sseClients) {
+            if (!client || !client.userId || !idSet.has(String(client.userId))) {
+                continue;
+            }
+            try {
+                client.res.write(`event: ${eventName}\ndata: ${serialized}\n\n`);
+                delivered += 1;
+            } catch (_err) {
+                sseClients.delete(client);
+            }
+        }
+        return delivered;
+    }
+
+    function getOnlineUserIds() {
+        const ids = new Set();
+        for (const client of sseClients) {
+            if (client && client.userId) {
+                ids.add(String(client.userId));
+            }
+        }
+        return Array.from(ids);
     }
 
     function dispatchToSseClients(notification) {
@@ -220,6 +261,8 @@ function createEventNotificationEngine({ storageAdapter, logger }) {
         on: emitter.on.bind(emitter),
         off: emitter.off.bind(emitter),
         subscribeRealtime,
+        emitUserEvent,
+        getOnlineUserIds,
         publish,
         getQueueDepth: () => backgroundQueue.length,
         getSubscriberCount: () => sseClients.size

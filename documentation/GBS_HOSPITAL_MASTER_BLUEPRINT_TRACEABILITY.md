@@ -3,8 +3,9 @@
 **Official GBS Account:** `gabosei48@gmail.com`  
 **GitHub Repository:** `https://github.com/A1-ul/gbs-hospital` (`main`)  
 **Render Service:** `gbs-hospital-system` (`https://gbs-hospital-system.onrender.com`)  
-**Database Engine:** PostgreSQL 16 (Prisma ORM 6.19.3 — 124 Relational Models)  
-**Backend Standard:** CommonJS (`require()` / `module.exports` — 0 ESM violations)
+**Database Engine:** PostgreSQL 16 (Prisma ORM 6.19.3 — 126 Relational Models)  
+**Backend Standard:** CommonJS (`require()` / `module.exports` — 0 ESM violations, 37 route files, 460 endpoints)
+**Internationalization:** 10 Languages (incl. Arabic RTL) & 50 Countries across 5 Global Regions
 
 ---
 
@@ -27,7 +28,8 @@
 | **Finance, NHIA, Procurement, HR, Quality & Ops** | `REQ-BILL-*`, `REQ-NHIA-*`, `REQ-BIOMED-*`, `REQ-SCM-*`, `REQ-HR-*`, `REQ-QA-*`, `REQ-MOD-P4-001` | `billing`, `insurance-claims`, `biomedical`, `procurement`, `hr`, `quality`, `meetings`, `documents`, `facility` | `BillingPaymentsView`, `NhiaClaimsView`, `ExecutiveAdminBiView`, `OperationsSuiteView` | `phase10`, `phase15..19`, `phase29`, `phase31` |
 | **Migration Service Queue Worker & Reports** | `REQ-MIG-001..003`, `REQ-GAP-006` | `migration.service.js`, `migration.queue.js`, `migration.worker.js`, `migration.routes.js` | `MigrationView.jsx`, `api.service.js` | `phase20`, `phase33` |
 | **GIS, Telemedicine & Biometric Vault** | `REQ-GIS-001..003`, `REQ-VOX-001..003` | `facility-maps`, `telemedicine`, `biometrics` | `TelemedicineGisView`, `VoiceBiometricsView`, `FacialRecognitionModal` | `phase21`, `phase22`, `phase30` |
-| **CI Resilience, Architecture & External Adapters** | `REQ-GAP-001`, `REQ-GAP-003..004`, `REQ-GAP-007..012` | `jest.afterEnv.js`, `core/integration/*`, `prisma/migrations/*`, `ci-render-deploy.yml` | `Frontend/tests/smoke.roles-and-dashboards.test.js` | `phase27`, `phase32`, `phase33`, `Frontend npm test` |
+| **CI Resilience, Architecture & External Adapters** | `REQ-GAP-001`, `REQ-GAP-003..004`, `REQ-GAP-007..014` | `jest.afterEnv.js`, `core/integration/*`, `prisma/migrations/*`, `ci-render-deploy.yml` | `Frontend/tests/smoke.roles-and-dashboards.test.js` | `phase27`, `phase32..37`, `Frontend npm test` |
+| **Persistent Memory, Multilingual (10 Languages), 50 Countries & Visible Tabs** | `REQ-MEM-001`, `REQ-INTL-001..002`, `REQ-UX-TABS-001` | `Backend/src/modules/international/*`, `SYSTEM_MEMORY.md`, `.build/upgrade-memory.json` | `LocaleContext.jsx`, `translations.js`, `countries.js`, `AllTabsNavigatorModal.jsx`, `Header.jsx`, `App.jsx` | `phase38`, `Frontend npm test (9/9)` |
 
 ---
 

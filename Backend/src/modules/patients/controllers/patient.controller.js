@@ -9,6 +9,7 @@ LOCATION: src/modules/patients/controllers/patient.controller.js
 */
 
 const patientService = require("../services/patient.service");
+const membershipCardService = require("../services/membership-card.service");
 const { rcce } = require("../../../core/gbs-rcce.bootstrap");
 
 /**
@@ -218,11 +219,32 @@ async function getPatientDashboard(req, res, next) {
     }
 }
 
+/**
+ * Generate Official Hospital Registration Membership ID Card for a Registered Patient
+ * GET /api/v1/patients/:id/membership-card
+ */
+async function getPatientMembershipCard(req, res, next) {
+    try {
+        const card = await membershipCardService.generatePatientMembershipCard(
+            req.params.id,
+            req.user,
+            req.requestId
+        );
+        return res.rcceSuccess("MEMBERSHIP_CARD_GENERATED", card, {
+            httpStatus: 200,
+            message: `Official Hospital Membership ID Card ${card.cardSerial} ready for ${card.member.fullName}.`
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
 module.exports = {
     registerPatient,
     searchMPI,
     getPatientById,
     updatePatient,
     getMyPatientDashboard,
-    getPatientDashboard
+    getPatientDashboard,
+    getPatientMembershipCard
 };

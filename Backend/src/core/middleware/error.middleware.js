@@ -24,6 +24,9 @@ const AppError =
 const logger =
     require("../utils/logger");
 
+const { sanitizeDiagnosticText } =
+    require("../../../../enterprise-framework/gbs-rcce/error.engine");
+
 
 
 let handlePrismaError;
@@ -265,7 +268,7 @@ async function errorMiddleware(
 
 
         message:
-            err.message,
+            sanitizeDiagnosticText(err.message),
 
 
         code:
@@ -289,7 +292,7 @@ async function errorMiddleware(
 
 
         stack:
-            err.stack
+            err.stack ? sanitizeDiagnosticText(err.stack) : null
 
 
 

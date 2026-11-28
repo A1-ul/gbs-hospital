@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../services/api.service';
+import { useLocale } from '../../context/LocaleContext';
 import {
   CreditCard, PlusCircle, RefreshCw, Search, CheckCircle, DollarSign,
   Building2, Smartphone, ShieldCheck, FileText, Printer, AlertTriangle,
@@ -73,6 +74,7 @@ function StatusPill({ status }) {
 }
 
 export default function BillingPaymentsView({ onNavigateDetail }) {
+  const { activeCountry, t } = useLocale();
   const [activeTab, setActiveTab] = useState('BILLING_CHECKOUT');
   const [stats, setStats] = useState(null);
   const [annualReport, setAnnualReport] = useState(null);
@@ -477,6 +479,30 @@ export default function BillingPaymentsView({ onNavigateDetail }) {
             <RefreshCw size={14} /> Refresh Ledger
           </button>
         </div>
+      </div>
+
+      {/* International Country & Regional Billing Profile Strip */}
+      <div className="glass-panel" style={{ padding: '12px 18px', border: '1px solid var(--border-subtle)', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '12px', fontSize: '0.78rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          <span style={{ fontWeight: 800, color: 'var(--gold-400)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            {t('intl.activeCountryBanner', 'International Regional Profile')}:
+          </span>
+          <span style={{ fontWeight: 700, color: '#fff' }}>
+            {activeCountry.flag} {activeCountry.name} ({activeCountry.region})
+          </span>
+          <span style={{ color: 'var(--text-muted)' }}>
+            • {t('intl.currency', 'Currency')}: <strong style={{ color: 'var(--gold-300)' }}>{activeCountry.currencySymbol} {activeCountry.currencyCode}</strong>
+          </span>
+          <span style={{ color: 'var(--text-muted)' }}>
+            • {t('intl.insurance', 'National Health Scheme')}: <strong style={{ color: '#6ee7b7' }}>{activeCountry.healthInsuranceScheme}</strong>
+          </span>
+          <span style={{ color: 'var(--text-muted)' }}>
+            • {t('intl.nationalId', 'National ID Format')}: <strong style={{ color: '#e5e7eb' }}>{activeCountry.nationalIdLabel}</strong>
+          </span>
+        </div>
+        <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>
+          {t('intl.emergency', 'Emergency Line')}: {activeCountry.emergencyNumber}
+        </span>
       </div>
 
       {/* Truthful Gateway & Payment Method Capability Strip */}

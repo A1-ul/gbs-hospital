@@ -23,4 +23,7 @@ router.patch("/:id/approve", controller.approveUser);
 // Toggle active/disabled status
 router.patch("/:id/status", controller.setUserStatus);
 
+// Official Hospital Membership ID Card for Accepted/Active Member
+router.get("/:id/membership-card", controller.getUserMembershipCard);
+
 module.exports = router;

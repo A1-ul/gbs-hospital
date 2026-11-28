@@ -4,13 +4,15 @@
     "moduleSystem": "commonjs",
     "express": "^5.1.0",
     "database": "postgresql-16-prisma-6.19.3",
-    "prismaModels": 124,
+    "prismaModels": 126,
+    "activeRouteFiles": 36,
+    "activeRouteEndpoints": 455,
     "testRunner": "jest@29.7.0 + supertest@7.0.0 (global Prisma teardown enabled)",
     "optionalExternalAdapters": [
       "redis/bullmq (fallback: PostgreSQL queue)",
       "smtp",
       "sms",
-      "paystack/stripe"
+      "paystack/hubtel/momo/stripe"
     ]
   },
   "frontend": {
@@ -18,8 +20,9 @@
     "framework": "react@18.3.1",
     "bundler": "vite@5.4.11",
     "icons": "lucide-react@0.468.0",
-    "transformedModules": 1607,
+    "transformedModules": 1609,
+    "smokeTestsPassed": 7,
     "packageJsonEmpty": false
   },
-  "lastVerified": "2026-11-26T19:05:00.000Z"
+  "lastVerified": "2026-11-28T10:15:00.000Z"
 }

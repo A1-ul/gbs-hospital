@@ -1,28 +1,84 @@
 /**
- * GBS Hospital Management System — Enterprise Design System Theme Tokens
- * Dark Obsidian Navy & Luminous Gold Architecture
+ * GBS Hospital Management System — Official Brand Design System Theme Tokens
+ * File 10 Standardised Official GBS Palette:
+ *   Midnight Navy:  #091830
+ *   Antique Gold:   #C29B4F
+ *   Champagne Gold: #E7CF88
+ *   Muted Gold:     #BAA479
+ *   Warm Ivory:     #F7F5EF
+ *   Charcoal:       #1B1A1B
  */
-:root {
-  --gbs-bg-dark: #060c18;
-  --gbs-bg-card: rgba(15, 27, 49, 0.78);
-  --gbs-bg-card-hover: rgba(22, 38, 68, 0.88);
-  --gbs-bg-glass: rgba(11, 23, 44, 0.65);
+:root,
+[data-theme="dark"] {
+  --gbs-navy: #091830;
+  --gbs-antique-gold: #C29B4F;
+  --gbs-champagne-gold: #E7CF88;
+  --gbs-muted-gold: #BAA479;
+  --gbs-warm-ivory: #F7F5EF;
+  --gbs-charcoal: #1B1A1B;
+  --gbs-gold-text-light-bg: #745418;
 
-  --gbs-border-color: rgba(212, 175, 55, 0.22);
-  --gbs-border-glow: rgba(212, 175, 55, 0.45);
-  --gbs-border-gold-strong: rgba(244, 224, 123, 0.68);
+  --gbs-bg-dark: #091830;
+  --gbs-bg-card: rgba(13, 30, 58, 0.88);
+  --gbs-bg-card-hover: rgba(19, 41, 78, 0.94);
+  --gbs-bg-glass: rgba(9, 24, 48, 0.84);
 
-  --gbs-gold-primary: #D4AF37;
-  --gbs-gold-light: #F4E07B;
-  --gbs-gold-dark: #AA820A;
+  --gbs-border-color: rgba(194, 155, 79, 0.34);
+  --gbs-border-glow: rgba(231, 207, 136, 0.58);
+  --gbs-border-gold-strong: rgba(231, 207, 136, 0.78);
 
-  --gbs-cyan-accent: #00F2FE;
-  --gbs-blue-accent: #4FACFE;
-  --gbs-green-success: #10B981;
-  --gbs-red-danger: #EF4444;
+  --gbs-gold-primary: #C29B4F;
+  --gbs-gold-light: #E7CF88;
+  --gbs-gold-dark: #9B7834;
+  --gbs-gold-muted: #BAA479;
+
+  --gbs-cyan-accent: #38BDF8;
+  --gbs-blue-accent: #60A5FA;
+  --gbs-green-success: #22C55E;
+  --gbs-red-danger: #F87171;
   --gbs-amber-warning: #F59E0B;
 
-  --gbs-text-main: #F1F5F9;
-  --gbs-text-muted: #94A3B8;
-  --gbs-text-dim: #64748B;
+  --gbs-text-main: #F7F5EF;
+  --gbs-text-muted: #D8D2C5;
+  --gbs-text-dim: #BAA479;
+}
+
+[data-theme="light"] {
+  --gbs-bg-dark: #F7F5EF;
+  --gbs-bg-card: rgba(255, 255, 255, 0.96);
+  --gbs-bg-card-hover: #FFFFFF;
+  --gbs-bg-glass: rgba(247, 245, 239, 0.95);
+
+  --gbs-border-color: rgba(194, 155, 79, 0.55);
+  --gbs-border-glow: #C29B4F;
+  --gbs-border-gold-strong: #9B7834;
+
+  --gbs-gold-primary: #C29B4F;
+  --gbs-gold-light: #745418;
+  --gbs-gold-dark: #745418;
+  --gbs-gold-muted: #6C5530;
+
+  --gbs-text-main: #1B1A1B;
+  --gbs-text-muted: #3A3F4B;
+  --gbs-text-dim: #4E5666;
+}
+
+[data-theme="high-contrast"] {
+  --gbs-bg-dark: #050D1C;
+  --gbs-bg-card: #091830;
+  --gbs-bg-card-hover: #0F2447;
+  --gbs-bg-glass: #091830;
+
+  --gbs-border-color: #E7CF88;
+  --gbs-border-glow: #FFE07D;
+  --gbs-border-gold-strong: #FFE07D;
+
+  --gbs-gold-primary: #E7CF88;
+  --gbs-gold-light: #FFE07D;
+  --gbs-gold-dark: #C29B4F;
+  --gbs-gold-muted: #E7CF88;
+
+  --gbs-text-main: #FFFFFF;
+  --gbs-text-muted: #F7F5EF;
+  --gbs-text-dim: #E7CF88;
 }
